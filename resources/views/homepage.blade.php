@@ -39,7 +39,7 @@
       </nav>
 
       <a class="btn-getstarted" href="{{ route('admin.auth.login') }}">Masuk</a>
-      <a class="btn-getstarted" href="{{ route('admin.auth.register') }}">Daftar</a>
+      <a class="btn-getstarted" href="#register">Pesan</a>
 
     </div>
   </header>
@@ -52,8 +52,10 @@
       <div class="container">
         <div class="row gy-4">
           <div class="col-lg-6 order-lg-1 d-flex flex-column justify-content-center order-2" data-aos="fade-up">
-            <h2>Kelola Produksi Konveksi dengan Efisien dan Profesional</h2>
-            <p>SewFlow adalah solusi digital untuk mengelola proses produksi maklun dan konveksi secara transparan, terstruktur, dan mudah diawasi — dari penyerahan bahan hingga pembayaran hasil kerja.</p>
+            <h2>Kelola Koperasi dan Saldo Santri dengan Transparan dan Profesional</h2>
+            <p>{{ env('APP_NAME') }} adalah solusi digital untuk mencatat dan mengelola saldo santri di lingkungan
+              pesantren secara terstruktur, transparan, dan mudah diawasi — mulai dari proses top up, pembelian,
+              hingga penarikan dana oleh santri.</p>
           </div>
           <div class="col-lg-6 order-lg-2 hero-img order-1" data-aos="zoom-out" data-aos-delay="200">
             <img src="assets/img/hero-img.jpg" class="img-fluid" style="border-radius: 10px;" alt="">
@@ -68,11 +70,12 @@
 
       <div class="container">
 
-        <h3 class="text-center">Sistem Terintegrasi untuk Manajemen Produksi yang Lebih Baik</h3>
+        <h3 class="text-center">Sistem Terintegrasi untuk Manajemen Keuangan Santri yang Aman dan Rapi</h3>
         <p class="mb-5 text-center">
-          SewFlow dirancang khusus untuk usaha konveksi yang bekerja sama dengan penjahit lepas
-          atau tim produksi internal. Aplikasi ini membantu Anda mencatat setiap proses produksi
-          secara akurat dan meminimalkan kesalahan administrasi.
+          {{ env('APP_NAME') }} dirancang khusus untuk koperasi pesantren, sekolah Islam, dan lingkungan pendidikan
+          berbasis boarding. Aplikasi ini memudahkan operator koperasi untuk mencatat setiap transaksi
+          keuangan santri secara akurat, sekaligus memberikan akses informasi saldo bagi orang tua atau
+          wali secara real time.
         </p>
         <div class="row gy-3 items-center">
           <div class="col-lg-6 d-flex flex-column justify-content-center" data-aos="fade-up" data-aos-delay="100">
@@ -84,43 +87,50 @@
                 <li>
                   <i class="bi bi-activity"></i>
                   <div>
-                    <h4>Manajemen Order Produksi</h4>
-                    <p>Catat dan pantau setiap pesanan dari brand — mulai dari jenis produk, model, ukuran, jumlah, hingga status pengerjaan.</p>
+                    <h4>Pencatatan Top Up Saldo</h4>
+                    <p>Operator koperasi dapat mencatat setoran dari orang tua atau wali ke akun saldo masing-masing santri dengan cepat dan aman.</p>
                   </div>
                 </li>
                 <li>
                   <i class="bi bi-person-bounding-box"></i>
                   <div>
-                    <h4>Penugasan ke Penjahit</h4>
-                    <p>Distribusikan pekerjaan kepada penjahit dengan pencatatan detail bahan yang diambil, jumlah potongan, dan waktu target penyelesaian.</p>
+                    <h4>Pencatatan Top Up Saldo</h4>
+                    <p>Setiap transaksi pembelian di koperasi atau penarikan tunai oleh santri tercatat secara otomatis, memastikan transparansi dana yang keluar.</p>
                   </div>
                 </li>
                 <li>
                   <i class="bi bi-hand-thumbs-up"></i>
                   <div>
-                    <h4>Proses Serah Terima</h4>
-                    <p>Pencatatan otomatis saat penjahit menyerahkan hasil jahitan. Sistem akan mencocokkan jumlah, status kualitas, dan progres pengerjaan.</p>
+                    <h4>Riwayat Transaksi Digital</h4>
+                    <p>Orang tua dan santri dapat melihat semua aktivitas keuangan secara rinci, mulai dari tanggal, jenis transaksi, hingga sisa saldo.</p>
                   </div>
                 </li>
                 <li>
                   <i class="bi bi-journal-check"></i>
                   <div>
-                    <h4>Penghitungan Upah Otomatis</h4>
-                    <p>Perhitungan upah dilakukan secara otomatis berdasarkan jumlah potongan yang diselesaikan, sesuai dengan kesepakatan tarif per model atau ukuran.</p>
+                    <h4>Akses Online untuk Wali Santri</h4>
+                    <p>Orang tua bisa memantau saldo anak mereka melalui tautan pribadi atau akun login yang aman — tanpa perlu bertanya ke koperasi.</p>
                   </div>
                 </li>
                 <li>
                   <i class="bi bi-journal-check"></i>
                   <div>
-                    <h4>Laporan Produksi dan Pembayaran</h4>
-                    <p>Dapatkan laporan ringkas dan mendetail mengenai kinerja produksi, status pembayaran, dan performa penjahit dalam satu dashboard terpusat.</p>
+                    <h4>Integrasi dengan POS Koperasi</h4>
+                    <p>{{ env('APP_NAME') }} siap diintegrasikan dengan sistem penjualan koperasi (Point of Sale) untuk mencatat pembelian secara otomatis dan langsung memotong saldo.</p>
                   </div>
                 </li>
                 <li>
                   <i class="bi bi-journal-check"></i>
                   <div>
-                    <h4>Notifikasi dan Riwayat Aktivitas</h4>
-                    <p>Dapatkan notifikasi terkait penyerahan, keterlambatan, atau pembayaran. Semua aktivitas tercatat untuk memudahkan evaluasi.</p>
+                    <h4>Laporan Keuangan Koperasi</h4>
+                    <p>Manajemen koperasi dapat mengakses laporan harian, mingguan, atau bulanan mengenai pemasukan, pengeluaran, dan total transaksi saldo santri.</p>
+                  </div>
+                </li>
+                <li>
+                  <i class="bi bi-journal-check"></i>
+                  <div>
+                    <h4>Notifikasi & Pengingat</h4>
+                    <p>Sistem memberikan notifikasi otomatis untuk transaksi besar, saldo minim, atau top up terbaru — membantu pengawasan dan pengendalian konsumsi.</p>
                   </div>
                 </li>
               </ul>
@@ -134,12 +144,10 @@
     </section><!-- /About Section -->
 
     <!-- Features Section -->
-    <section id="features" class="services section light-background">
-
-      <!-- Section Title -->
+    <!-- <section id="features" class="services section light-background">
       <div class="section-title container" data-aos="fade-up">
         <h2>Mendukung Dua Skema Produksi</h2>
-      </div><!-- End Section Title -->
+      </div>
 
       <div class="container">
 
@@ -164,19 +172,20 @@
 
       </div>
 
-    </section><!-- /Services Section -->
+    </section> -->
+    <!-- /Services Section -->
 
     <!-- Contact Section -->
     <section id="contact" class="contact section">
 
       <!-- Section Title -->
       <div class="container" data-aos="fade-up">
-        <h2 class="text-center">Bagaimana SewFlow Membantu Bisnis Anda?</h2>
+        <h2 class="text-center">Kenapa Memilih {{ env('APP_NAME') }}?</h2>
         <div class="text-center">
-          <p><strong>1. Transparansi & Kejelasan Proses:</strong> Setiap pengambilan bahan, pengerjaan, hingga pembayaran tercatat secara digital.</p>
-          <p><strong>2. Efisiensi Waktu dan Administrasi:</strong> Kurangi pekerjaan manual yang repetitif dan fokus pada peningkatan produktivitas.</p>
-          <p><strong>3. Meningkatkan Kepercayaan Mitra dan Tim:</strong> Brand dapat memantau prosesnya, dan penjahit merasa lebih adil dan profesional karena semua data terdokumentasi dengan baik.</p>
-          <p><strong>4. Skalabilitas Usaha:</strong> Siap digunakan baik untuk usaha kecil maupun konveksi berskala besar dengan banyak mitra penjahit.</p>
+          <p><strong>1. Transparansi & Amanah:</strong> Semua transaksi tercatat secara digital, meminimalkan kecurangan, dan membangun kepercayaan antara koperasi, santri, dan wali.</p>
+          <p><strong>2. Mendukung Pendidikan Karakter:</strong> Membantu santri belajar mengelola keuangan sejak dini dengan sistem yang terpantau dan bertanggung jawab.</p>
+          <p><strong>3. Efisiensi Operasional Koperasi:</strong> Kurangi pencatatan manual yang memakan waktu, sehingga petugas koperasi bisa fokus pada pelayanan.</p>
+          <p><strong>4. Siap Dikembangkan Lebih Lanjut:</strong> Dirancang modular untuk mendukung fitur tambahan seperti tabungan, belanja online internal, atau pelaporan pajak koperasi di masa depan.</p>
         </div>
       </div><!-- End Section Title -->
 
@@ -190,10 +199,10 @@
       <div class="container">
         <div class="row justify-content-center text-center">
           <div class="col-lg-12">
-            <h4>Mulai Sekarang!</h4>
-            <p>Daftar Sekarang dan nikmati pengalaman manajemen konveksi yang lebih mudah dan modern dengan SewFlow!</p>
-            <a href="https://wa.me/6285317404760?text=Halo+saya+ingin+mendaftar+aplikasi+SewFlow+untuk+manajemen+produksi+konveksi+usaha+saya.+Mohon+info+selanjutnya." target="_blank" class="btn-get-started">
-              Pesan Sekrang
+            <h4 id="register">Mulai Sekarang!</h4>
+            <p>Daftar Sekarang dan nikmati pengalaman manajemen koperasi yang lebih mudah dan modern dengan {{ env('APP_NAME') }} !</p>
+            <a href="https://wa.me/6285317404760?text=Bismillah,+Assalamu'alaikum.+Saya+ingin+mendaftar+aplikasi+Amanah+POS+untuk+manajemen+koperasi+instansi+kami.+Mohon+info+selanjutnya." target="_blank" class="btn-get-started">
+              Pesan Sekarang!!!
             </a>
           </div>
         </div>
@@ -206,7 +215,7 @@
           <h4>Hubungi Kami</h4>
           <p class="mt-3"><strong>Telepon / WA:</strong> <a href="https://wa.me/6285317404760">+6285-3174-04760</a>
           </p>
-          <p><strong>Email:</strong> <span>sewflow@shiftech.my.id</span></p>
+          <p><strong>Email:</strong> <span>amanahpos@shiftech.my.id</span></p>
         </div>
       </div>
       <!--
