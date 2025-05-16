@@ -23,14 +23,14 @@ const submit = () =>
   <q-form class="row" @submit.prevent="submit" @validation-error="scrollToFirstErrorField">
     <q-card flat bordered square class="col">
       <q-card-section>
-        <div class="text-subtitle1 q-my-xs">Profil Perusahaan</div>
-        <p class="text-caption text-grey-9">Perbarui profil perusahaan anda.</p>
-        <q-input ref="nameInputRef" v-model.trim="form.name" label="Nama Perusahaan" :disable="form.processing"
+        <div class="text-subtitle1 q-my-xs">Profil Koperasi</div>
+        <p class="text-caption text-grey-9">Perbarui profil koperasi.</p>
+        <q-input ref="nameInputRef" v-model.trim="form.name" label="Nama Koperasi" :disable="form.processing"
           lazy-rules :error="!!form.errors.name" :error-message="form.errors.name"
-          :rules="[(val) => (val && val.length > 0) || 'Nama Perusahaan harus diisi.']" />
+          :rules="[(val) => (val && val.length > 0) || 'Nama Koperasi harus diisi.']" />
         <q-input v-model.trim="form.phone" label="No Telepon" :disable="form.processing" lazy-rules
           :error="!!form.errors.phone" :error-message="form.errors.phone" />
-        <q-input type="textarea" counter autogrow maxlength="1000" v-model.trim="form.address" label="Alamat Perusahaan"
+        <q-input type="textarea" counter autogrow maxlength="1000" v-model.trim="form.address" label="Alamat Koperasi"
           :disable="form.processing" lazy-rules :error="!!form.errors.address" :error-message="form.errors.address" />
       </q-card-section>
       <q-card-section>

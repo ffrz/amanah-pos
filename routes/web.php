@@ -9,14 +9,11 @@ use App\Http\Controllers\Admin\ProductCategoryController;
 use App\Http\Controllers\Admin\OperationalCostController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ProfileController;
-use App\Http\Controllers\Admin\ServiceOrderController;
 use App\Http\Controllers\Admin\StockAdjustmentController;
 use App\Http\Controllers\Admin\StockMovementController;
 use App\Http\Controllers\Admin\SupplierController;
 use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Admin\WashOrderController;
-use App\Http\Controllers\Admin\WashServiceController;
-use App\Http\Controllers\Utils\ArtisanCommandController;
+
 use App\Http\Middleware\Auth;
 use App\Http\Middleware\NonAuthenticated;
 use Illuminate\Support\Facades\Route;
@@ -24,20 +21,6 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('homepage');
 })->name('home');
-
-Route::get('/test', function () {
-    return inertia('Test');
-})->name('test');
-
-if (env('APP_RUN_COMMAND_ALLOWED')) {
-    Route::prefix('/--cmd')->group(function () {
-        Route::prefix('/artisan')->group(function() {
-            Route::get('migrate', [ArtisanCommandController::class, 'migrate']);
-            Route::get('migrate:rollback', [ArtisanCommandController::class, 'migrateRollback']);
-            Route::get('migrate:fresh--seed', [ArtisanCommandController::class, 'migrateFreshSeed']);
-        });
-    });
-}
 
 Route::middleware(NonAuthenticated::class)->group(function () {
     Route::prefix('/admin/auth')->group(function () {
@@ -114,39 +97,6 @@ Route::middleware([Auth::class])->group(function () {
             Route::get('detail/{id}', [SupplierController::class, 'detail'])->name('admin.supplier.detail');
             Route::post('save', [SupplierController::class, 'save'])->name('admin.supplier.save');
             Route::post('delete/{id}', [SupplierController::class, 'delete'])->name('admin.supplier.delete');
-        });
-
-        Route::prefix('wash-services')->group(function () {
-            Route::get('', [WashServiceController::class, 'index'])->name('admin.wash-service.index');
-            Route::get('data', [WashServiceController::class, 'data'])->name('admin.wash-service.data');
-            Route::get('add', [WashServiceController::class, 'editor'])->name('admin.wash-service.add');
-            Route::get('duplicate/{id}', [WashServiceController::class, 'duplicate'])->name('admin.wash-service.duplicate');
-            Route::get('edit/{id}', [WashServiceController::class, 'editor'])->name('admin.wash-service.edit');
-            Route::get('detail/{id}', [WashServiceController::class, 'detail'])->name('admin.wash-service.detail');
-            Route::post('save', [WashServiceController::class, 'save'])->name('admin.wash-service.save');
-            Route::post('delete/{id}', [WashServiceController::class, 'delete'])->name('admin.wash-service.delete');
-        });
-
-        Route::prefix('wash-orders')->group(function () {
-            Route::get('', [WashOrderController::class, 'index'])->name('admin.wash-order.index');
-            Route::get('data', [WashOrderController::class, 'data'])->name('admin.wash-order.data');
-            Route::get('add', [WashOrderController::class, 'editor'])->name('admin.wash-order.add');
-            Route::get('edit/{id}', [WashOrderController::class, 'editor'])->name('admin.wash-order.edit');
-            Route::get('duplicate/{id}', [WashOrderController::class, 'duplicate'])->name('admin.wash-order.duplicate');
-            Route::get('detail/{id}', [WashOrderController::class, 'detail'])->name('admin.wash-order.detail');
-            Route::post('save', [WashOrderController::class, 'save'])->name('admin.wash-order.save');
-            Route::post('delete/{id}', [WashOrderController::class, 'delete'])->name('admin.wash-order.delete');
-        });
-
-        Route::prefix('service-orders')->group(function () {
-            Route::get('', [ServiceOrderController::class, 'index'])->name('admin.service-order.index');
-            Route::get('data', [ServiceOrderController::class, 'data'])->name('admin.service-order.data');
-            Route::get('add', [ServiceOrderController::class, 'editor'])->name('admin.service-order.add');
-            Route::get('edit/{id}', [ServiceOrderController::class, 'editor'])->name('admin.service-order.edit');
-            Route::get('duplicate/{id}', [ServiceOrderController::class, 'duplicate'])->name('admin.service-order.duplicate');
-            Route::get('detail/{id}', [ServiceOrderController::class, 'detail'])->name('admin.service-order.detail');
-            Route::post('save', [ServiceOrderController::class, 'save'])->name('admin.service-order.save');
-            Route::post('delete/{id}', [ServiceOrderController::class, 'delete'])->name('admin.service-order.delete');
         });
 
         Route::prefix('operational-cost-categories')->group(function () {

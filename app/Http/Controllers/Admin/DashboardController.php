@@ -4,8 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
-use App\Models\ServiceOrder;
-use App\Models\Technician;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -31,25 +29,25 @@ class DashboardController extends Controller
             $days[(int)$i] = 0;
         }
 
-        $openedOrders = ServiceOrder::openedOrderByPeriod($start_date, $end_date);
+        $openedOrders = [];
         $monthly_opened_orders = $days;
         foreach ($openedOrders as $order) {
             $monthly_opened_orders[(int)substr($order->order_date, 8, 2)] = $order->total_order;
         }
 
-        $successfullServices = ServiceOrder::successOrderByPeriod($start_date, $end_date);
+        $successfullServices = [];
         $monthly_successfull_services = $days;
         foreach ($successfullServices as $order) {
             $monthly_successfull_services[(int)substr($order->order_date, 8, 2)] = $order->total_order;
         }
 
-        $failedServices = ServiceOrder::failedOrderByPeriod($start_date, $end_date);
+        $failedServices = [];
         $monthly_failed_services = $days;
         foreach ($failedServices as $order) {
             $monthly_failed_services[(int)substr($order->order_date, 8, 2)] = $order->total_order;
         }
 
-        $closedOrders = ServiceOrder::closedOrderByPeriod($start_date, $end_date);
+        $closedOrders = []; //ServiceOrder::closedOrderByPeriod($start_date, $end_date);
         $monthly_closed_orders = $days;
         foreach ($closedOrders as $order) {
             $monthly_closed_orders[(int)substr($order->order_date, 8, 2)] = $order->total_order;
@@ -57,17 +55,17 @@ class DashboardController extends Controller
 
         return inertia('admin/dashboard/Index', [
             'data' => [
-                'active_order_count' => ServiceOrder::activeOrderCount(),
-                'received_order_count' => ServiceOrder::receivedOrderCount(),
-                'in_progress_order_count' => ServiceOrder::inProgressCount(),
-                'pickable_order_count' => ServiceOrder::pickableOrderCount(),
-                'total_billable_order' => ServiceOrder::totalBillable(),
-                'total_active_bill' => ServiceOrder::totalActiveBill(),
-                'total_active_downpayment' => ServiceOrder::totalActiveDownPayment(),
+                'active_order_count' => 0,
+                'received_order_count' => 0,
+                'in_progress_order_count' => 0,
+                'pickable_order_count' => 0,
+                'total_billable_order' => 0,
+                'total_active_bill' =>0,
+                'total_active_downpayment' => 0,
                 'active_customer_count' => Customer::activeCustomerCount(),
                 'active_technician_count' => 0,
-                'top_customers' => ServiceOrder::topCustomers($start_date, $end_date),
-                'top_technicians' => ServiceOrder::topTechnicians($start_date, $end_date),
+                'top_customers' => 0,
+                'top_technicians' => 0,
                 'chart1_data' => [
                     'x_axis_label_data' => array_keys($monthly_opened_orders),
                     'data' => [

@@ -9,14 +9,12 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable
 {
     public const Role_Admin = 'admin';
-    public const Role_Washer = 'washer';
     public const Role_Cashier = 'cashier';
     public const Role_Owner = 'owner';
 
     // Display role di hardcode saja, tidak diambil dari translations
     public const Roles = [
         self::Role_Admin => 'Administrator',
-        self::Role_Washer => 'Washer',
         self::Role_Cashier => 'Kasir',
         self::Role_Owner => 'Owner',
     ];
