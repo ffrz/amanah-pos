@@ -2,10 +2,10 @@
 import { computed, onMounted, reactive, ref } from "vue";
 import { router } from "@inertiajs/vue3";
 import { handleDelete, handleFetchItems } from "@/helpers/client-req-handler";
-import { check_role, getQueryParams } from "@/helpers/utils";
+import { check_role, getQueryParams, formatNumber } from "@/helpers/utils";
 import { useQuasar } from "quasar";
 
-const title = "Pelanggan";
+const title = "Santri";
 const $q = useQuasar();
 const showFilter = ref(false);
 const rows = ref([]);
@@ -26,10 +26,25 @@ const pagination = ref({
 
 const columns = [
   {
+    name: "nis",
+    label: "NIS",
+    field: "nis",
+    align: "left",
+    sortable: true,
+  },
+  ,
+  {
     name: "name",
     label: "Nama",
     field: "name",
     align: "left",
+    sortable: true,
+  },
+  {
+    name: "balance",
+    label: "Saldo (Rp)",
+    field: "balance",
+    align: "right",
     sortable: true,
   },
   {
@@ -64,7 +79,7 @@ onMounted(() => {
 
 const deleteItem = (row) =>
   handleDelete({
-    message: `Hapus pelanggan ${row.name}?`,
+    message: `Hapus Santri ${row.name}?`,
     url: route("admin.customer.delete", row.id),
     fetchItemsCallback: fetchItems,
     loading,
@@ -85,7 +100,7 @@ const onFilterChange = () => fetchItems();
 const onRowClicked = (row) => router.get(route('admin.customer.detail', { id: row.id }));
 const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return columns;
-  return columns.filter((col) => col.name === "name" || col.name === "action");
+  return columns.filter((col) => col.name === "nis" || col.name === "action");
 });
 </script>
 
@@ -133,12 +148,20 @@ const computedColumns = computed(() => {
         <template v-slot:body="props">
           <q-tr :props="props" :class="!props.row.active ? 'bg-red-1' : ''" class="cursor-pointer"
             @click="onRowClicked(props.row)">
-            <q-td key="name" :props="props" class="wrap-column">
-              <div><q-icon name="person" v-if="$q.screen.lt.md" /> {{ props.row.name }}</div>
+            <q-td key="nis" :props="props" class="wrap-column">
+              <div><q-icon name="person" v-if="$q.screen.lt.md" /> {{ props.row.nis }}</div>
               <template v-if="$q.screen.lt.md">
+                <div><q-icon name="person" v-if="$q.screen.lt.md" /> {{ props.row.name }}</div>
                 <div><q-icon name="phone" /> {{ props.row.phone }}</div>
                 <div><q-icon name="home_pin" /> {{ props.row.address }}</div>
+                <div><q-icon name="wallet" /> Rp. {{ formatNumber(props.row.balance) }}</div>
               </template>
+            </q-td>
+            <q-td key="name" :props="props">
+              {{ props.row.name }}
+            </q-td>
+            <q-td key="balance" :props="props">
+              {{ formatNumber(props.row.balance) }}
             </q-td>
             <q-td key="phone" :props="props">
               {{ props.row.phone }}

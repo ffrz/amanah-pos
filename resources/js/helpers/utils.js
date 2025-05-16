@@ -10,6 +10,10 @@ export const getQueryParams = (...args) => {
   return Object.assign(Object.fromEntries(new URLSearchParams(queryString)), ...args);
 }
 
+export function plusMinusSymbol(amount) {
+  return amount > 0 ? '+' : (amount < 0) ? '-' : '';
+}
+
 /**
  * Memeriksa apakah current user role ada di roles
  * @param {string | Array} roles

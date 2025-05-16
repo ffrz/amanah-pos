@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\CompanyProfileController;
 use App\Http\Controllers\Admin\CustomerController;
+use App\Http\Controllers\Admin\CustomerWalletTransactionController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\OperationalCostCategoryController;
 use App\Http\Controllers\Admin\ProductCategoryController;
@@ -86,6 +87,16 @@ Route::middleware([Auth::class])->group(function () {
             Route::get('detail/{id}', [CustomerController::class, 'detail'])->name('admin.customer.detail');
             Route::post('save', [CustomerController::class, 'save'])->name('admin.customer.save');
             Route::post('delete/{id}', [CustomerController::class, 'delete'])->name('admin.customer.delete');
+        });
+
+        Route::prefix('customer-wallet-transactions')->group(function () {
+            Route::get('', [CustomerWalletTransactionController::class, 'index'])->name('admin.customer-wallet-transaction.index');
+            Route::get('data', [CustomerWalletTransactionController::class, 'data'])->name('admin.customer-wallet-transaction.data');
+            Route::get('add', [CustomerWalletTransactionController::class, 'editor'])->name('admin.customer-wallet-transaction.add');
+            Route::get('edit/{id}', [CustomerWalletTransactionController::class, 'editor'])->name('admin.customer-wallet-transaction.edit');
+            Route::get('detail/{id}', [CustomerWalletTransactionController::class, 'detail'])->name('admin.customer-wallet-transaction.detail');
+            Route::post('save', [CustomerWalletTransactionController::class, 'save'])->name('admin.customer-wallet-transaction.save');
+            Route::post('delete/{id}', [CustomerWalletTransactionController::class, 'delete'])->name('admin.customer-wallet-transaction.delete');
         });
 
         Route::prefix('suppliers')->group(function () {

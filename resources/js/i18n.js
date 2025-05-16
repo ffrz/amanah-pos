@@ -17,7 +17,7 @@ const messages = {
 
     dashboard: 'Dasbor',
     stock_adjustment: 'Penyesuaian Stok',
-    customers: 'Pelanggan',
+    customers: 'Santri',
     suppliers: 'Pemasok',
     sales_orders: 'Penjualan',
     purchase_orders: 'Pembelian',

@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\CustomerWalletTransaction;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -11,14 +12,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('customers', function (Blueprint $table) {
+        Schema::create('customer_wallet_transactions', function (Blueprint $table) {
             $table->id();
-            $table->string('nis', 40)->unique();
-            $table->string('name', 100);
-            $table->string('phone', 100);
-            $table->string('address', 200);
-            $table->decimal('balance', 15, 0);
-            $table->boolean('active')->default(true);
+            $table->unsignedBigInteger('customer_id')->nullable();
+            $table->datetime('datetime')->nullable(); // transaction date time
+            $table->enum('type', array_keys(CustomerWalletTransaction::Types));
+            $table->decimal('amount', 12, 2);
+            $table->unsignedBigInteger('ref_id')->nullable();
+            $table->enum('method', ['cash', 'transfer', 'admin-input']); // belum digunakan
+            $table->text('notes')->nullable();
 
             $table->datetime('created_datetime')->nullable();
             $table->datetime('updated_datetime')->nullable();
@@ -26,6 +28,7 @@ return new class extends Migration
             $table->unsignedBigInteger('updated_by_uid')->nullable();
             $table->foreign('created_by_uid')->references('id')->on('users')->onDelete('set null');
             $table->foreign('updated_by_uid')->references('id')->on('users')->onDelete('set null');
+            $table->foreign('customer_id')->references('id')->on('customers')->onDelete('cascade');
         });
     }
 
@@ -34,6 +37,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('customers');
+        Schema::dropIfExists('customer_wallet_transactions');
     }
 };

@@ -10,7 +10,7 @@ class Customer extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 'phone', 'address', 'active'
+        'nis', 'name', 'phone', 'address', 'active', 'balance',
     ];
 
     public static function activeCustomerCount()

@@ -120,7 +120,7 @@ onMounted(() => {
               <q-item-label>{{ $t("dashboard") }}</q-item-label>
             </q-item-section>
           </q-item>
-
+          <q-separator />
           <q-expansion-item
             v-if="$page.props.auth.user.role == $CONSTANTS.USER_ROLE_ADMIN || $page.props.auth.user.role == $CONSTANTS.USER_ROLE_CASHIER"
             expand-separator icon="storefront" label="Penjualan"
@@ -145,7 +145,6 @@ onMounted(() => {
             </q-item>
           </q-expansion-item>
 
-
           <q-expansion-item
             v-if="$page.props.auth.user.role == $CONSTANTS.USER_ROLE_ADMIN || $page.props.auth.user.role == $CONSTANTS.USER_ROLE_CASHIER"
             expand-separator icon="local_shipping" label="Pembelian"
@@ -169,6 +168,7 @@ onMounted(() => {
               </q-item-section>
             </q-item>
           </q-expansion-item>
+
           <q-expansion-item
             v-if="$page.props.auth.user.role == $CONSTANTS.USER_ROLE_ADMIN || $page.props.auth.user.role == $CONSTANTS.USER_ROLE_CASHIER"
             expand-separator icon="inventory_2" label="Inventori"
@@ -201,6 +201,21 @@ onMounted(() => {
               </q-item-section>
             </q-item>
           </q-expansion-item>
+
+          <q-separator />
+
+          <q-item clickable v-ripple :active="$page.url.startsWith('/admin/customer-wallet-transaction')"
+            @click="router.get(route('admin.customer-wallet-transaction.index'))">
+            <q-item-section avatar>
+              <q-icon name="wallet" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Dompet Santri</q-item-label>
+            </q-item-section>
+          </q-item>
+
+          <q-separator />
+
           <q-expansion-item v-if="$page.props.auth.user.role == $CONSTANTS.USER_ROLE_ADMIN" expand-separator icon="paid"
             label="Operasional"
             :default-opened="$page.url.startsWith('/admin/operational-costs') || $page.url.startsWith('/admin/operational-cost-categories')">

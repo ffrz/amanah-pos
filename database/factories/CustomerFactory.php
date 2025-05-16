@@ -17,9 +17,11 @@ class CustomerFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->name,
+            'nis' => $this->faker->unique()->nik(),
+            'name' => $this->faker->firstName('male') . ' ' . $this->faker->lastName('male'),
             'phone' => $this->faker->phoneNumber,
             'address' => $this->faker->address,
+            'balance' => $this->faker->randomNumber(3) * 500,
             'active' => $this->faker->boolean(90)
         ];
     }

@@ -21,7 +21,7 @@ class CompanyProfileController extends Controller
     public function edit()
     {
         $data = [
-            'name' => Setting::value('company_name', 'My Company'),
+            'name' => Setting::value('company_name', 'Koperasiku'),
             'phone' => Setting::value('company_phone', '-'),
             'address' => Setting::value('company_address', '-'),
         ];

@@ -36,7 +36,7 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $user ? [
                     'id' => $user->id,
-                    'company_name' => Setting::value('company_name', 'My Company'),
+                    'company_name' => Setting::value('company_name', 'Koperasiku'),
                     'name' => $user->name,
                     'username' => $user->username,
                     'role' => $user->role,
