@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\CompanyProfileController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\CustomerWalletTransactionController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\FinanceAccountController;
 use App\Http\Controllers\Admin\OperationalCostCategoryController;
 use App\Http\Controllers\Admin\ProductCategoryController;
 use App\Http\Controllers\Admin\OperationalCostController;
@@ -57,7 +58,7 @@ Route::middleware([Auth::class])->group(function () {
         Route::prefix('stock-adjustments')->group(function () {
             Route::get('', [StockAdjustmentController::class, 'index'])->name('admin.stock-adjustment.index');
             Route::get('data', [StockAdjustmentController::class, 'data'])->name('admin.stock-adjustment.data');
-            Route::match(['get', 'post'],'create', [StockAdjustmentController::class, 'create'])->name('admin.stock-adjustment.create');
+            Route::match(['get', 'post'], 'create', [StockAdjustmentController::class, 'create'])->name('admin.stock-adjustment.create');
             Route::get('editor/{id}', [StockAdjustmentController::class, 'editor'])->name('admin.stock-adjustment.editor');
             Route::post('save', [StockAdjustmentController::class, 'save'])->name('admin.stock-adjustment.save');
             Route::post('delete/{id}', [StockAdjustmentController::class, 'delete'])->name('admin.stock-adjustment.delete');
@@ -76,6 +77,17 @@ Route::middleware([Auth::class])->group(function () {
             Route::get('edit/{id}', [ProductCategoryController::class, 'editor'])->name('admin.product-category.edit');
             Route::post('save', [ProductCategoryController::class, 'save'])->name('admin.product-category.save');
             Route::post('delete/{id}', [ProductCategoryController::class, 'delete'])->name('admin.product-category.delete');
+        });
+
+        Route::prefix('finance-accounts')->group(function () {
+            Route::get('', [FinanceAccountController::class, 'index'])->name('admin.finance-account.index');
+            Route::get('data', [FinanceAccountController::class, 'data'])->name('admin.finance-account.data');
+            Route::get('add', [FinanceAccountController::class, 'editor'])->name('admin.finance-account.add');
+            Route::get('duplicate/{id}', [FinanceAccountController::class, 'duplicate'])->name('admin.finance-account.duplicate');
+            Route::get('edit/{id}', [FinanceAccountController::class, 'editor'])->name('admin.finance-account.edit');
+            Route::get('detail/{id}', [FinanceAccountController::class, 'detail'])->name('admin.finance-account.detail');
+            Route::post('save', [FinanceAccountController::class, 'save'])->name('admin.finance-account.save');
+            Route::post('delete/{id}', [FinanceAccountController::class, 'delete'])->name('admin.finance-account.delete');
         });
 
         Route::prefix('customers')->group(function () {

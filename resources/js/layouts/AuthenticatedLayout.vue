@@ -196,8 +196,8 @@ onMounted(() => {
 
           <q-separator />
 
-          <q-expansion-item v-if="$page.props.auth.user.role == $CONSTANTS.USER_ROLE_ADMIN" expand-separator icon="wallet"
-            label="Dompet Santri"
+          <q-expansion-item v-if="$page.props.auth.user.role == $CONSTANTS.USER_ROLE_ADMIN" expand-separator
+            icon="wallet" label="Dompet Santri"
             :default-opened="$page.url.startsWith('/admin/customer-wallet-transactions') || $page.url.startsWith('/admin/customers')">
             <q-item class="subnav" clickable v-ripple
               :active="$page.url.startsWith('/admin/customer-wallet-transaction')"
@@ -220,9 +220,31 @@ onMounted(() => {
             </q-item>
           </q-expansion-item>
 
-
-
           <q-separator />
+
+          <q-expansion-item v-if="$page.props.auth.user.role == $CONSTANTS.USER_ROLE_ADMIN" expand-separator
+            icon="finance" label="Keuangan"
+            :default-opened="$page.url.startsWith('/admin/finance-accounts') || $page.url.startsWith('/admin/finance-transactions')">
+            <q-item class="subnav" clickable v-ripple
+              :active="$page.url.startsWith('/admin/finance-transactions')"
+              @click="router.get(route('admin.finance-transaction.index'))">
+              <q-item-section avatar>
+                <q-icon name="moving" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Transaksi</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item class="subnav" clickable v-ripple :active="$page.url.startsWith('/admin/finance-accounts')"
+              @click="router.get(route('admin.finance-account.index'))">
+              <q-item-section avatar>
+                <q-icon name="groups_2" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Akun Kas</q-item-label>
+              </q-item-section>
+            </q-item>
+          </q-expansion-item>
 
           <q-expansion-item v-if="$page.props.auth.user.role == $CONSTANTS.USER_ROLE_ADMIN" expand-separator icon="paid"
             label="Operasional"
@@ -247,7 +269,7 @@ onMounted(() => {
               </q-item-section>
             </q-item>
           </q-expansion-item>
-
+          <q-separator />
           <q-expansion-item expand-separator icon="settings" :label="$t('settings')"
             :default-opened="$page.url.startsWith('/admin/settings')">
             <q-item v-if="$page.props.auth.user.role == $CONSTANTS.USER_ROLE_ADMIN" class="subnav" clickable v-ripple

@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class FinanceTransactions extends Model
+class FinanceTransaction extends Model
 {
     use HasFactory;
 
@@ -15,10 +15,6 @@ class FinanceTransactions extends Model
         'amount',
         'ref_id',
         'ref_type',
-        // 'source_account_id',
-        // 'source_account_type',
-        // 'destination_account_id',
-        // 'destination_account_type',
         'notes',
     ];
 
@@ -61,14 +57,6 @@ class FinanceTransactions extends Model
     public static function refTypeLabel($model): string
     {
         switch (get_class($model)) {
-            // case \App\Models\SalesOrder::class:
-            //     return 'Penjualan';
-            // case \App\Models\SalesOrderReturn::class:
-            //     return 'Retur Penjualan';
-            // case \App\Models\PurchaseOrder::class:
-            //     return 'Pembelian';
-            // case \App\Models\PurchaseOrderReturn::class:
-            //     return 'Retur Pembelian';
             case \App\Models\CustomerWalletTransaction::class:
                 return 'Transaksi Dompet Santri';
             case \App\Models\OperationalCost::class:

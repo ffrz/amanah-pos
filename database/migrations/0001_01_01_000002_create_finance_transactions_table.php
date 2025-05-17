@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\FinanceTransactions;
+use App\Models\FinanceTransaction;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -17,7 +17,7 @@ return new class extends Migration
             $table->unsignedBigInteger('account_id')->nullable();
             $table->nullableMorphs('ref');
             $table->datetime('datetime')->nullable();
-            $table->enum('type', array_keys(FinanceTransactions::Types));
+            $table->enum('type', array_keys(FinanceTransaction::Types));
             $table->decimal('amount', 12, 2);
             $table->text('notes')->nullable();
 
