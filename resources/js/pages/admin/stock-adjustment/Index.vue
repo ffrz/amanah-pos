@@ -96,7 +96,7 @@ onMounted(() => {
 
 const deleteItem = (row) =>
   handleDelete({
-    message: `Hapus order #${row.id}?`,
+    message: `Hapus Transaksi #${row.id}?`,
     url: route("admin.stock-adjustment.delete", row.id),
     fetchItemsCallback: fetchItems,
     loading,

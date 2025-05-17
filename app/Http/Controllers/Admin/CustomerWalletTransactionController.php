@@ -7,15 +7,14 @@ use App\Models\Customer;
 use App\Models\CustomerWalletTransaction;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CustomerWalletTransactionController extends Controller
 {
 
     public function index()
     {
-        return inertia('admin/customer-wallet-transaction/Index', [
-
-        ]);
+        return inertia('admin/customer-wallet-transaction/Index', []);
     }
 
     public function data(Request $request)
@@ -57,21 +56,10 @@ class CustomerWalletTransactionController extends Controller
         return response()->json($items);
     }
 
-    // public function duplicate($id)
-    // {
-    //     allowed_roles([User::Role_Admin]);
-    //     $item = CustomerWalletTransaction::findOrFail($id);
-    //     $item->id = null;
-    //     return inertia('admin/customer-wallet-transaction/Editor', [
-    //         'data' => $item,
-    //     ]);
-    // }
-
     public function editor($id = 0)
     {
         allowed_roles([User::Role_Admin, User::Role_Cashier]);
         $item = $id ? CustomerWalletTransaction::findOrFail($id) : new CustomerWalletTransaction(['datetime' => date('Y-m-d H:i:s')]);
-        dd(Customer::where('active', '=', true)->orderBy('nis', 'asc')->get());
         return inertia('admin/customer-wallet-transaction/Editor', [
             'data' => $item,
             'customers' => Customer::where('active', '=', true)->orderBy('nis', 'asc')->get()
@@ -80,50 +68,48 @@ class CustomerWalletTransactionController extends Controller
 
     public function save(Request $request)
     {
-        $rules = [
-            'date' => 'required|date',
-            'category_id' => 'nullable',
-            'description' => 'required|max:255',
-            'amount' => 'required|numeric|gt:0',
-            'notes' => 'nullable|max:1000',
-        ];
+        $validated = $request->validate([
+            'customer_id' => 'required|exists:customers,id',
+            'datetime'    => 'required|date',
+            'type'        => 'required|in:' . implode(',', array_keys(CustomerWalletTransaction::Types)),
+            'amount'      => 'required|numeric|min:0.01',
+            'notes'       => 'nullable|string|max:255',
+        ]);
 
-        $item = null;
-        $message = '';
-        $fields = ['date', 'description', 'amount', 'notes', 'category_id'];
-
-        $request->validate($rules);
-
-        if (!$request->id) {
-            $item = new CustomerWalletTransaction();
-            $message = 'customer-wallet-transaction-created';
-        } else {
-            $item = CustomerWalletTransaction::findOrFail($request->post('id', 0));
-            $message = 'customer-wallet-transaction-updated';
+        if ($validated['type'] == CustomerWalletTransaction::Type_Purchase
+            || $validated['type'] == CustomerWalletTransaction::Type_Withdrawal) {
+                $validated['amount'] *= -1;
         }
 
-        $data = $request->only($fields);
-        $data['notes'] = $data['notes'] ?? '';
+        $validated['notes'] ?? '';
 
-        // todo, update balance
-
-        $item->fill($data);
+        DB::beginTransaction();
+        $item = new CustomerWalletTransaction();
+        $item->fill($validated);
         $item->save();
 
+        $item->customer->balance += $item->amount;
+        $item->customer->save();
+
+        DB::commit();
+
         return redirect(route('admin.customer-wallet-transaction.index'))
-            ->with('success', __("messages.$message", ['description' => $item->description]));
+            ->with('success', "Transaksi $item->id telah disimpan.");
     }
 
     public function delete($id)
     {
         allowed_roles([User::Role_Admin]);
 
+        DB::beginTransaction();
         $item = CustomerWalletTransaction::findOrFail($id);
-        // todo, restore balance
+        $item->customer->balance -= $item->amount;
+        $item->customer->save();
         $item->delete();
+        DB::commit();
 
         return response()->json([
-            'message' => __('messages.customer-wallet-transaction-deleted', ['description' => $item->description])
+            'message' => "Transaksi #$item->id telah dihapus."
         ]);
     }
 }

@@ -2,31 +2,27 @@
 import { router, useForm, usePage } from "@inertiajs/vue3";
 import { handleSubmit } from "@/helpers/client-req-handler";
 import { useCustomerFilter } from '@/helpers/useCustomerFilter';
-import { create_options_from_operational_cost_categories, scrollToFirstErrorField } from "@/helpers/utils";
+import { scrollToFirstErrorField } from "@/helpers/utils";
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
 import DateTimePicker from "@/components/DateTimePicker.vue";
-import { ref } from "vue";
 import dayjs from "dayjs";
 const page = usePage();
 const title = (!!page.props.data.id ? "Edit" : "Catat") + " Transaksi Dompet Santri";
 
-// todo: ambil dari konstanta
-
-const { filteredCustomers, filterCustomersFn } = useCustomerFilter(page.props.data.customers, false);
+const { filteredCustomers, filterCustomersFn } = useCustomerFilter(page.props.customers, false);
 
 const types = [
   { label: 'Deposit (+)', value: 'deposit' },
   { label: 'Pembelian (-)', value: 'purchase' },
-  { label: 'Penarikan (+)', value: 'withdrawal' },
-  { label: 'Refund (-)', value: 'refund' },
+  { label: 'Penarikan (-)', value: 'withdrawal' },
+  { label: 'Refund (+)', value: 'refund' },
 ];
 
 const form = useForm({
   id: page.props.data.id,
   customer_id: page.props.data.customer_id,
   type: page.props.data.type,
-  datetime: page.props.data.datetime ?? dayjs().format('YYYY-MM-DD HH:mm:ss'),
-  description: page.props.data.description,
+  datetime: dayjs(page.props.data.datetime).format('YYYY-MM-DD HH:mm:ss'),
   notes: page.props.data.notes,
   amount: parseFloat(page.props.data.amount),
 });
@@ -45,22 +41,27 @@ const submit = () => handleSubmit({ form, url: route('admin.customer-wallet-tran
           <q-card square flat bordered class="col">
             <q-card-section class="q-pt-none">
               <input type="hidden" name="id" v-model="form.id" />
-              <q-select v-model="form.customer_id" label="Santri" :options="customers" map-options emit-value
-                :error="!!form.errors.customer_id" :disable="form.processing">
+              <q-select autofocus class="custom-select" v-model="form.customer_id" label="Santri" use-input
+                input-debounce="300" clearable :options="filteredCustomers" map-options emit-value :errorMessage="form.errors.customer_id"
+                @filter="filterCustomersFn" :error="!!form.errors.customer_id" :disable="form.processing">
+                <template v-slot:no-option>
+                  <q-item>
+                    <q-item-section>Santri tidak ditemukan</q-item-section>
+                  </q-item>
+                </template>
               </q-select>
               <q-select autofocus v-model="form.type" label="Jenis" :options="types" map-options emit-value
-                :error="!!form.errors.type" :disable="form.processing">
+                :error="!!form.errors.type" :disable="form.processing" :errorMessage="form.errors.type">
               </q-select>
-              <date-time-picker v-model="form.date" label="Tanggal" :error="!!form.errors.date"
+              <date-time-picker v-model="form.datetime" label="Tanggal" :error="!!form.errors.datetime"
                 :disable="form.processing" />
-              <q-input v-model.trim="form.description" label="Deskripsi" lazy-rules :error="!!form.errors.description"
-                :disable="form.processing" :error-message="form.errors.description" :rules="[
-                  (val) => (val && val.length > 0) || 'Deskripsi harus diisi.',
-                ]" />
               <LocaleNumberInput v-model:modelValue="form.amount" label="Jumlah" lazyRules :disable="form.processing"
                 :error="!!form.errors.amount" :errorMessage="form.errors.amount" :rules="[]" />
-              <q-input v-model.trim="form.notes" type="textarea" autogrow counter maxlength="1000" label="Catatan"
-                lazy-rules :disable="form.processing" :error="!!form.errors.notes" :error-message="form.errors.notes" />
+              <q-input v-model.trim="form.notes" type="textarea" autogrow counter maxlength="255" label="Catatan"
+                lazy-rules :disable="form.processing" :error="!!form.errors.notes" :error-message="form.errors.notes"
+                :rules="[
+                  (val) => (val && val.length > 0) || 'Catatan harus diisi.',
+                ]" />
             </q-card-section>
             <q-card-section class="q-gutter-sm">
               <q-btn icon="save" type="submit" label="Simpan" color="primary" :disable="form.processing" />

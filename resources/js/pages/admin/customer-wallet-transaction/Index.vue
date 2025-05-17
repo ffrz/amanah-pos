@@ -97,7 +97,7 @@ onMounted(() => {
 
 const deleteItem = (row) =>
   handleDelete({
-    message: `Hapus Biaya ${row.description}?`,
+    message: `Hapus transaksi #-${row.id}?`,
     url: route("admin.customer-wallet-transaction.delete", row.id),
     fetchItemsCallback: fetchItems,
     loading,
@@ -180,15 +180,13 @@ watch(() => filter.year, (newVal) => {
               {{ props.row.id }}
             </q-td>
             <q-td key="datetime" :props="props" class="wrap-column">
-              <div class="flex items-center q-gutter-xs">
-                <q-icon name="calendar_today" />
-                <div>{{ props.row.datetime }}</div>
-              </div>
-              <div><q-icon name="category" />{{ $CONSTANTS.CUSTOMER_WALLET_TRANSACTION_TYPES[props.row.type] }}</div>
+              <div><q-icon name="calendar_today" /> {{ props.row.datetime }}</div>
+              <div><q-icon name="category" /> {{ $CONSTANTS.CUSTOMER_WALLET_TRANSACTION_TYPES[props.row.type] }}</div>
               <template v-if="!$q.screen.gt.sm">
-                <div><q-icon name="notes" /> {{ props.row.description }}</div>
+                <div><q-icon name="notes" /> {{ props.row.notes }}</div>
                 <div v-if="props.row.category"><q-icon name="category" /> {{ props.row.category.name }}</div>
-                <div><q-icon name="money" /> Rp. {{ plusMinusSymbol(props.row.amount) + formatNumber(props.row.amount) }}</div>
+                <div><q-icon name="money" /> Rp. {{ plusMinusSymbol(props.row.amount) + formatNumber(props.row.amount)
+                  }}</div>
               </template>
             </q-td>
             <q-td key="customer" :props="props">

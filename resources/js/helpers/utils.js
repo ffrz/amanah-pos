@@ -11,7 +11,7 @@ export const getQueryParams = (...args) => {
 }
 
 export function plusMinusSymbol(amount) {
-  return amount > 0 ? '+' : (amount < 0) ? '-' : '';
+  return amount > 0 ? '+' : '';
 }
 
 /**

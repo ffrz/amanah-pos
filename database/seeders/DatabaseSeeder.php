@@ -15,12 +15,11 @@ class DatabaseSeeder extends Seeder
         DB::transaction(function () {
             $this->call([
                 UserSeeder::class,
+                FinanceAccountSeeder::class,
                 CustomerSeeder::class,
                 SupplierSeeder::class,
-
                 ProductCategorySeeder::class,
                 ProductSeeder::class,
-
                 OperationalCostCategorySeeder::class,
                 OperationalCostSeeder::class,
             ]);

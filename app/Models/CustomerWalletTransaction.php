@@ -13,8 +13,8 @@ class CustomerWalletTransaction extends Model
         'datetime',
         'type',
         'amount',
+        'ref_type',
         'ref_id',
-        'method',
         'notes',
     ];
 
@@ -24,8 +24,8 @@ class CustomerWalletTransaction extends Model
     const Type_Deposit = 'deposit';
     const Type_Refund = 'refund';
     const Type_Purchase = 'purchase';
-    const Type_Withdrawal = 'penarikan';
-    const Type_Adjustment = 'penyesuaian';
+    const Type_Withdrawal = 'withdrawal';
+    const Type_Adjustment = 'adjustment';
 
     const Types = [
         self::Type_Deposit => 'Deposit',
