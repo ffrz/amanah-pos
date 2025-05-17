@@ -27,6 +27,7 @@
           'STOCKADJUSTMENT_STATUSES' => \App\Models\StockAdjustment::Statuses,
           'CUSTOMER_WALLET_TRANSACTION_TYPES' => \App\Models\CustomerWalletTransaction::Types,
           'FINANCE_ACCOUNT_TYPES' => \App\Models\FinanceAccount::Types,
+          'FINANCE_TRANSACTION_TYPES' => \App\Models\FinanceTransaction::Types,
       ]) ?>;
     window.CONSTANTS.USER_ROLE_ADMIN = "{{ \App\Models\User::Role_Admin }}";
     window.CONSTANTS.USER_ROLE_CASHIER = "{{ \App\Models\User::Role_Cashier }}";

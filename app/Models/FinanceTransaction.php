@@ -18,6 +18,11 @@ class FinanceTransaction extends Model
         'notes',
     ];
 
+    protected $appends = [
+        'ref_type_label',
+        'type_label',
+    ];
+
     /**
      * Transaction types.
      */
@@ -33,6 +38,37 @@ class FinanceTransaction extends Model
         self::Type_Adjustment => 'Penyesuaian',
     ];
 
+    const RefType_FinanceTransaction = 'finance_transaction';
+    const RefType_CustomerWalletTransaction = 'customer_wallet_transaction';
+
+    const RefTypes = [
+        self::RefType_FinanceTransaction => 'Transaksi Keuangan',
+        self::RefType_CustomerWalletTransaction => 'Transaksi Dompet Santri',
+    ];
+
+    const RefTypeModels = [
+        self::RefType_FinanceTransaction => \App\Models\FinanceTransaction::class,
+        self::RefType_CustomerWalletTransaction => \App\Models\CustomerWalletTransaction::class,
+    ];
+
+    public function getTypeLabelAttribute()
+    {
+        return self::Types[$this->type] ?? '-';
+    }
+
+    public function getRefTypeLabelAttribute()
+    {
+        return self::RefTypes[$this->ref_type] ?? '-';
+    }
+
+    public function getRefModelAttribute()
+    {
+        $modelClass = self::RefTypeModels[$this->ref_type] ?? null;
+        if ($modelClass && $this->ref_id) {
+            return $modelClass::find($this->ref_id);
+        }
+        return null;
+    }
 
     public function account()
     {

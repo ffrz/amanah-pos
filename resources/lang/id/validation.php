@@ -8,6 +8,7 @@ return [
     'unique' => ':attribute sudah digunakan.',
     'numeric' => ':attribute sudah digunakan.',
     'current_password' => ':attribute tidak valid.',
+    'different' => ':attribute tidak boleh sama.',
     'confirmed' => 'Konfirmasi :attribute tidak cocok.',
     'max' => [
         'string' => ':attribute terlalu panjang, maksimal :max karakter.',
@@ -44,7 +45,6 @@ return [
         'company_address' => 'Alamat',
         'password' => 'Kata sandi',
         'current_password' => 'Kata sandi sekarang',
-        'vehicle_description' => 'Deskripsi Kendaraan',
-        'vehicle_plate_number' => 'Nomor Plat Kendaraan',
+        'to_account_id' => 'Akun tujuan',
     ],
 ];

@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\CustomerWalletTransactionController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\FinanceAccountController;
+use App\Http\Controllers\Admin\FinanceTransactionController;
 use App\Http\Controllers\Admin\OperationalCostCategoryController;
 use App\Http\Controllers\Admin\ProductCategoryController;
 use App\Http\Controllers\Admin\OperationalCostController;
@@ -88,6 +89,16 @@ Route::middleware([Auth::class])->group(function () {
             Route::get('detail/{id}', [FinanceAccountController::class, 'detail'])->name('admin.finance-account.detail');
             Route::post('save', [FinanceAccountController::class, 'save'])->name('admin.finance-account.save');
             Route::post('delete/{id}', [FinanceAccountController::class, 'delete'])->name('admin.finance-account.delete');
+        });
+
+        Route::prefix('finance-transactions')->group(function () {
+            Route::get('', [FinanceTransactionController::class, 'index'])->name('admin.finance-transaction.index');
+            Route::get('data', [FinanceTransactionController::class, 'data'])->name('admin.finance-transaction.data');
+            Route::get('add', [FinanceTransactionController::class, 'editor'])->name('admin.finance-transaction.add');
+            Route::get('edit/{id}', [FinanceTransactionController::class, 'editor'])->name('admin.finance-transaction.edit');
+            Route::get('detail/{id}', [FinanceTransactionController::class, 'detail'])->name('admin.finance-transaction.detail');
+            Route::post('save', [FinanceTransactionController::class, 'save'])->name('admin.finance-transaction.save');
+            Route::post('delete/{id}', [FinanceTransactionController::class, 'delete'])->name('admin.finance-transaction.delete');
         });
 
         Route::prefix('customers')->group(function () {
