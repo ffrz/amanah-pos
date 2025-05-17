@@ -1,6 +1,6 @@
 {
-  "_vendor1-Dy5WUAeK.js": {
-    "file": "assets/vendor1-Dy5WUAeK.js",
+  "_vendor1-BzN6LaZP.js": {
+    "file": "assets/vendor1-BzN6LaZP.js",
     "name": "vendor1",
     "css": [
       "assets/vendor1-OoAx3i2x.css"
@@ -13,18 +13,18 @@
     "file": "assets/vendor1-OoAx3i2x.css",
     "src": "_vendor1-OoAx3i2x.css"
   },
-  "_vendor2-BXmD8pym.js": {
-    "file": "assets/vendor2-BXmD8pym.js",
+  "_vendor2-CQbONiz4.js": {
+    "file": "assets/vendor2-CQbONiz4.js",
     "name": "vendor2",
     "imports": [
-      "_vendor1-Dy5WUAeK.js"
+      "_vendor1-BzN6LaZP.js"
     ]
   },
-  "_vendor3-CDBsEOEC.js": {
-    "file": "assets/vendor3-CDBsEOEC.js",
+  "_vendor3-DkAtcSwm.js": {
+    "file": "assets/vendor3-DkAtcSwm.js",
     "name": "vendor3",
     "imports": [
-      "_vendor2-BXmD8pym.js"
+      "_vendor2-CQbONiz4.js"
     ]
   },
   "node_modules/@quasar/extras/fontawesome-v6/fa-brands-400.ttf": {
@@ -93,17 +93,17 @@
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-nICm0Tb-.js",
+    "file": "assets/app-DXlMB30W.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
     "imports": [
-      "_vendor1-Dy5WUAeK.js",
-      "_vendor3-CDBsEOEC.js",
-      "_vendor2-BXmD8pym.js"
+      "_vendor1-BzN6LaZP.js",
+      "_vendor3-DkAtcSwm.js",
+      "_vendor2-CQbONiz4.js"
     ],
     "css": [
-      "assets/app-CfOU4eai.css"
+      "assets/app-DIknQSdf.css"
     ],
     "assets": [
       "assets/flUhRq6tzZclQEJ-Vdg-IuiaDsNcIhQ8tQ-D-x-0Q06.woff2",
