@@ -1,6 +1,6 @@
 TODO LIST
 =========
-- Integrasikan modul dompet santri ke modul keuangan
+- Integrasikan modul dompet santri ke modul keuangan (done)
 - Implementasikan modul untuk wali santri, login, monitoring saldo kas (in progress)
 - Buat dashboard dan reporting untuk wali santri, brainstorming, misalnya (rata-rata pengeluaran harian)
 - Buat fitur analisis santri bersangkutan, uangnya digunakan untuk apa saja
@@ -13,5 +13,5 @@ TODO LIST
 - Pertimbangkan untuk menyimpan state searching dan filtering agar ketika pindah halaman
   sehingga kembali ke halaman sebelumnya user tidak kehilangan state.
 
-- Penyesuaian saldo santri
-- Update data santri, sertakan nama wali
+- Penyesuaian saldo santri (done)
+- Update data santri, sertakan nama wali (done)
