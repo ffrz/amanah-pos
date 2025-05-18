@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('customers', function (Blueprint $table) {
             $table->id();
             $table->string('nis', 40)->unique();
-            $table->string('name', 100);
+            $table->string('name', 255);
+            $table->string('parent_name', 255)->default('');
             $table->string('phone', 100);
             $table->string('address', 200);
             $table->decimal('balance', 15, 0);

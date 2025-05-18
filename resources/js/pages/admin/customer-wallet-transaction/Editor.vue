@@ -13,14 +13,20 @@ const { filteredCustomers, filterCustomersFn } = useCustomerFilter(page.props.cu
 
 const types = [
   { label: 'Deposit (+)', value: 'deposit' },
-  { label: 'Pembelian (-)', value: 'purchase' },
   { label: 'Penarikan (-)', value: 'withdrawal' },
+  { label: 'Pembelian (-)', value: 'purchase' },
   { label: 'Refund (+)', value: 'refund' },
 ];
+
+const finance_accounts = page.props.finance_accounts.map((account) => ({
+  label: account.name,
+  value: account.id,
+}));
 
 const form = useForm({
   id: page.props.data.id,
   customer_id: page.props.data.customer_id,
+  finance_account_id: page.props.data.finance_account_id,
   type: page.props.data.type,
   datetime: dayjs(page.props.data.datetime).format('YYYY-MM-DD HH:mm:ss'),
   notes: page.props.data.notes,
@@ -41,8 +47,10 @@ const submit = () => handleSubmit({ form, url: route('admin.customer-wallet-tran
           <q-card square flat bordered class="col">
             <q-card-section class="q-pt-none">
               <input type="hidden" name="id" v-model="form.id" />
-              <q-select autofocus class="custom-select" v-model="form.customer_id" label="Santri" use-input
-                input-debounce="300" clearable :options="filteredCustomers" map-options emit-value :errorMessage="form.errors.customer_id"
+              <date-time-picker autofocus v-model="form.datetime" label="Tanggal" :error="!!form.errors.datetime"
+                :disable="form.processing" />
+              <q-select class="custom-select" v-model="form.customer_id" label="Santri" use-input input-debounce="300"
+                clearable :options="filteredCustomers" map-options emit-value :errorMessage="form.errors.customer_id"
                 @filter="filterCustomersFn" :error="!!form.errors.customer_id" :disable="form.processing">
                 <template v-slot:no-option>
                   <q-item>
@@ -53,8 +61,11 @@ const submit = () => handleSubmit({ form, url: route('admin.customer-wallet-tran
               <q-select autofocus v-model="form.type" label="Jenis" :options="types" map-options emit-value
                 :error="!!form.errors.type" :disable="form.processing" :errorMessage="form.errors.type">
               </q-select>
-              <date-time-picker v-model="form.datetime" label="Tanggal" :error="!!form.errors.datetime"
-                :disable="form.processing" />
+              <q-select v-if="form.type == 'deposit' || form.type == 'withdrawal'" autofocus v-model="form.finance_account_id"
+                :label="form.type == 'deposit' ? 'Kas Tujuan' : 'Kas Asal' "
+                :options="finance_accounts" map-options emit-value :error="!!form.errors.finance_account_id"
+                :disable="form.processing" :errorMessage="form.errors.finance_account_id">
+              </q-select>
               <LocaleNumberInput v-model:modelValue="form.amount" label="Jumlah" lazyRules :disable="form.processing"
                 :error="!!form.errors.amount" :errorMessage="form.errors.amount" :rules="[]" />
               <q-input v-model.trim="form.notes" type="textarea" autogrow counter maxlength="255" label="Catatan"

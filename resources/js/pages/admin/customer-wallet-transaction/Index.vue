@@ -59,6 +59,13 @@ const columns = [
     sortable: true,
   },
   {
+    name: "finance_account",
+    label: "Kas",
+    field: "finance_account",
+    align: "left",
+    sortable: true,
+  },
+  {
     name: "customer",
     label: "Santri",
     field: "customer",
@@ -84,12 +91,6 @@ const columns = [
     align: "right",
   },
 ];
-
-// const categories = [
-//   { value: "all", label: "Semua" },
-//   { value: 'null', label: "Tanpa Kategori" },
-//   ...create_options_from_operational_cost_categories(page.props.categories),
-// ];
 
 onMounted(() => {
   fetchItems();
@@ -147,9 +148,6 @@ watch(() => filter.year, (newVal) => {
             emit-value map-options @update:model-value="onFilterChange" />
           <q-select v-model="filter.month" :options="months" label="Bulan" dense outlined class="col-xs-6 col-sm-2"
             emit-value map-options :disable="filter.year === null" @update:model-value="onFilterChange" />
-          <!-- <q-select v-model="filter.category_id" :options="categories" label="Kategori" dense
-            class="custom-select col-xs-12 col-sm-3" map-options emit-value outlined
-            @update:model-value="onFilterChange" /> -->
           <q-input class="col" outlined dense debounce="300" v-model="filter.search" placeholder="Cari" clearable>
             <template v-slot:append>
               <q-icon name="search" />
@@ -181,13 +179,14 @@ watch(() => filter.year, (newVal) => {
             </q-td>
             <q-td key="datetime" :props="props" class="wrap-column">
               <div><q-icon name="calendar_today" /> {{ props.row.datetime }}</div>
-              <div><q-icon name="category" /> {{ $CONSTANTS.CUSTOMER_WALLET_TRANSACTION_TYPES[props.row.type] }}</div>
+              <div><q-icon name="category" /> {{ props.row.type_label }} : {{ props.row.finance_account.name }}</div>
               <template v-if="!$q.screen.gt.sm">
+                <div><q-icon name="money" /> Rp. {{ plusMinusSymbol(props.row.amount) + formatNumber(props.row.amount) }}</div>
                 <div><q-icon name="notes" /> {{ props.row.notes }}</div>
-                <div v-if="props.row.category"><q-icon name="category" /> {{ props.row.category.name }}</div>
-                <div><q-icon name="money" /> Rp. {{ plusMinusSymbol(props.row.amount) + formatNumber(props.row.amount)
-                  }}</div>
               </template>
+            </q-td>
+            <q-td key="finance_account" :props="props">
+              {{ props.row.finance_account.name }}
             </q-td>
             <q-td key="customer" :props="props">
               {{ props.row.customer.nis }} - {{ props.row.customer.name }}

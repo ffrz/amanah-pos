@@ -10,12 +10,17 @@ class CustomerWalletTransaction extends Model
 
     protected $fillable = [
         'customer_id',
+        'finance_account_id',
         'datetime',
         'type',
         'amount',
         'ref_type',
         'ref_id',
         'notes',
+    ];
+
+    protected $appends = [
+        'type_label',
     ];
 
     /**
@@ -35,6 +40,11 @@ class CustomerWalletTransaction extends Model
         self::Type_Adjustment => 'Penyesuaian',
     ];
 
+    public function getTypeLabelAttribute()
+    {
+        return self::Types[$this->type] ?? '-';
+    }
+
     public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by_uid');
@@ -48,5 +58,10 @@ class CustomerWalletTransaction extends Model
     public function customer()
     {
         return $this->belongsTo(Customer::class, 'customer_id');
+    }
+
+    public function financeAccount()
+    {
+        return $this->belongsTo(FinanceAccount::class, 'finance_account_id');
     }
 }

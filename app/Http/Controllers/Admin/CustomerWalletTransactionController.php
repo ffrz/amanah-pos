@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Models\CustomerWalletTransaction;
+use App\Models\FinanceAccount;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -23,7 +24,7 @@ class CustomerWalletTransactionController extends Controller
         $orderType = $request->get('order_type', 'desc');
         $filter = $request->get('filter', []);
 
-        $q = CustomerWalletTransaction::with('customer');
+        $q = CustomerWalletTransaction::with(['customer', 'financeAccount']);
 
         if (!empty($filter['search'])) {
             $q->where(function ($q) use ($filter) {
@@ -52,7 +53,8 @@ class CustomerWalletTransactionController extends Controller
         $item = $id ? CustomerWalletTransaction::findOrFail($id) : new CustomerWalletTransaction(['datetime' => date('Y-m-d H:i:s')]);
         return inertia('admin/customer-wallet-transaction/Editor', [
             'data' => $item,
-            'customers' => Customer::where('active', '=', true)->orderBy('nis', 'asc')->get()
+            'customers' => Customer::where('active', '=', true)->orderBy('nis', 'asc')->get(),
+            'finance_accounts' => FinanceAccount::where('active', '=', true)->orderBy('name', 'asc')->get(),
         ]);
     }
 
@@ -60,16 +62,23 @@ class CustomerWalletTransactionController extends Controller
     {
         $validated = $request->validate([
             'customer_id' => 'required|exists:customers,id',
-            'datetime'    => 'required|date',
-            'type'        => 'required|in:' . implode(',', array_keys(CustomerWalletTransaction::Types)),
-            'amount'      => 'required|numeric|min:0.01',
-            'notes'       => 'nullable|string|max:255',
+            'finance_account_id' => 'required|exists:finance_accounts,id',
+            'datetime' => 'required|date',
+            'type' => 'required|in:' . implode(',', array_keys(CustomerWalletTransaction::Types)),
+            'amount' => 'required|numeric|min:0.01',
+            'notes' => 'nullable|string|max:255',
         ]);
 
-        if ($validated['type'] == CustomerWalletTransaction::Type_Purchase
-            || $validated['type'] == CustomerWalletTransaction::Type_Withdrawal) {
-                $validated['amount'] *= -1;
+        if (
+            in_array($validated['type'], [
+                CustomerWalletTransaction::Type_Purchase,
+                CustomerWalletTransaction::Type_Withdrawal,
+            ])
+        ) {
+            $validated['amount'] *= -1;
         }
+
+        $amount = $validated['amount'];
 
         $validated['notes'] ?? '';
 
@@ -78,8 +87,21 @@ class CustomerWalletTransactionController extends Controller
         $item->fill($validated);
         $item->save();
 
-        $item->customer->balance += $item->amount;
-        $item->customer->save();
+        $customer = $item->customer;
+        $customer->balance += $amount;
+        $customer->save();
+
+        // hanya digunakan ketika mempengaruhi kas koperasi
+        if (in_array($validated['type'], [
+            CustomerWalletTransaction::Type_Deposit,
+            CustomerWalletTransaction::Type_Withdrawal,
+        ])) {
+            $account = FinanceAccount::findOrFail($validated['finance_account_id']);
+            // jika deposit, maka kas koperasi juga ikut bertambah\
+            // jika withdraw, kas koperasi juga akan berkurang
+            $account->balance += $amount;
+            $account->save();
+        }
 
         DB::commit();
 

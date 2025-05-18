@@ -7,10 +7,13 @@ const page = usePage();
 const title = (!!page.props.data.id ? "Edit" : "Tambah") + " Santri";
 const form = useForm({
   id: page.props.data.id,
+  nis: page.props.data.nis,
   name: page.props.data.name,
+  parent_name: page.props.data.parent_name,
   phone: page.props.data.phone,
   address: page.props.data.address,
   active: !!page.props.data.active,
+  password: page.props.data.password,
 });
 
 const submit = () =>
@@ -31,8 +34,16 @@ const submit = () =>
             </q-card-section>
             <q-card-section class="q-pt-none">
               <input type="hidden" name="id" v-model="form.id" />
-              <q-input autofocus v-model.trim="form.name" label="Nama Santri" lazy-rules :error="!!form.errors.name"
+              <q-input autofocus v-model.trim="form.nis" label="NIS" lazy-rules :error="!!form.errors.nis"
+                :disable="form.processing" :error-message="form.errors.nis" :rules="[
+                  (val) => (val && val.length > 0) || 'NIS harus diisi.',
+                ]" />
+              <q-input v-model.trim="form.name" label="Nama Santri" lazy-rules :error="!!form.errors.name"
                 :disable="form.processing" :error-message="form.errors.name" :rules="[
+                  (val) => (val && val.length > 0) || 'Nama harus diisi.',
+                ]" />
+              <q-input v-model.trim="form.parent_name" label="Nama Wali Santri" lazy-rules
+                :error="!!form.errors.parent_name" :disable="form.processing" :error-message="form.errors.name" :rules="[
                   (val) => (val && val.length > 0) || 'Nama harus diisi.',
                 ]" />
               <q-input v-model.trim="form.phone" type="text" label="No HP" lazy-rules :disable="form.processing"
@@ -44,6 +55,8 @@ const submit = () =>
                 :error-message="form.errors.address" :rules="[
                   (val) => (val && val.length > 0) || 'Alamat harus diisi.',
                 ]" />
+              <q-input v-model="form.password" type="password" label="Kata Sandi (Isi untuk mengatur ulang kata sandi)" lazy-rules :disable="form.processing"
+                :error="!!form.errors.password" :error-message="form.errors.password" />
               <div style="margin-left: -10px;">
                 <q-checkbox class="full-width q-pl-none" v-model="form.active" :disable="form.processing"
                   label="Aktif" />

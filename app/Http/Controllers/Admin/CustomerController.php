@@ -5,8 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Models\User;
+use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class CustomerController extends Controller
 {
@@ -71,41 +72,43 @@ class CustomerController extends Controller
 
     public function save(Request $request)
     {
-        $rules = [
+        $validated = $request->validate([
+            'nis' => 'required|string|max:40|unique:customers,nis' . ($request->id ? ',' . $request->id : ''),
             'name' => 'required|max:255',
+            'parent_name' => 'nullable|max:255',
             'phone' => 'required|max:100',
             'address' => 'required|max:1000',
-        ];
+            'active'   => 'required|boolean',
+            'password' => (!$request->id ? 'required|' : '') . 'min:5|max:40',
+        ]);
 
-        $item = null;
-        $message = '';
-        $fields = ['name', 'phone', 'address', 'active'];
-
-        $request->validate($rules);
-
+        $item = !$request->id ? new Customer() : Customer::findOrFail($request->id);
         if (!$request->id) {
-            $item = new Customer();
-            $message = 'customer-created';
-        } else {
-            $item = Customer::findOrFail($request->post('id', 0));
-            $message = 'customer-updated';
+            $validated['balance'] = 0;
+        }
+        
+        if (!empty($validated['password'])) {
+            $validated['password'] = Hash::make($validated['password']);
         }
 
-        $item->fill($request->only($fields));
+        $item->fill($validated);
         $item->save();
 
-        return redirect(route('admin.customer.index'))->with('success', __("messages.$message", ['name' => $item->name]));
+        return redirect(route('admin.customer.index'))->with('success', "Santri $item->name telah disimpan.");
     }
 
     public function delete($id)
     {
+        throw new Exception('Fitur sementara waktu dinonaktifkan, silahkan hubungi developer!');
+
+        // boleh dihapus??? 
         allowed_roles([User::Role_Admin]);
 
         $item = Customer::findOrFail($id);
         $item->delete();
 
         return response()->json([
-            'message' => __('messages.customer-deleted', ['name' => $item->name])
+            'message' => "Santri $item->name telah dihapus."
         ]);
     }
 }

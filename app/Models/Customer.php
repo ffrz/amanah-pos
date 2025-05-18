@@ -18,6 +18,7 @@ class Customer extends Authenticatable
         'nis',
         'password',
         'name',
+        'parent_name',
         'phone',
         'address',
         'balance',
