@@ -75,10 +75,10 @@ onMounted(() => {
                   </q-item-label>
                 </q-item-section>
               </q-item>
+
               <q-separator />
               <q-item v-close-popup class="subnav" clickable v-ripple
-                :active="$page.url.startsWith('/customer/profile')"
-                @click="router.get(route('customer.profile.edit'))">
+                :active="$page.url.startsWith('/customer/profile')" @click="router.get(route('customer.profile.edit'))">
                 <q-item-section>
                   <q-item-label><q-icon name="manage_accounts" class="q-mr-sm" />Profil Saya</q-item-label>
                 </q-item-section>
@@ -104,17 +104,26 @@ onMounted(() => {
               <q-icon name="dashboard" />
             </q-item-section>
             <q-item-section>
-              <q-item-label>{{ $t("dashboard") }}</q-item-label>
+              <q-item-label>Dashboard</q-item-label>
             </q-item-section>
           </q-item>
           <q-separator />
+              <q-item clickable v-ripple :active="$page.url.startsWith('/customer/wallet-transactions')"
+                @click="router.get(route('customer.wallet-transaction.index'))">
+                <q-item-section avatar>
+                  <q-icon name="history" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>Riwayat Transaksi</q-item-label>
+                </q-item-section>
+              </q-item>
           <q-item clickable v-ripple :active="$page.url.startsWith('/customer/profile')"
             @click="router.get(route('customer.profile.edit'))">
             <q-item-section avatar>
               <q-icon name="manage_accounts" />
             </q-item-section>
             <q-item-section>
-              <q-item-label>{{ $t("my_profile") }}</q-item-label>
+              <q-item-label>Profil</q-item-label>
             </q-item-section>
           </q-item>
           <div class="absolute-bottom text-grey-6 q-pa-md">

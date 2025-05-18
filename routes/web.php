@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Customer\AuthController as CustomerAuthController;
 use App\Http\Controllers\Customer\DashboardController as CustomerDashboardController;
 use App\Http\Controllers\Customer\ProfileController as CustomerProfileController;
+use App\Http\Controllers\Customer\WalletTransactionController as WalletTransactionController;
 
 
 use App\Http\Middleware\Auth;
@@ -205,6 +206,12 @@ Route::middleware([CustomerAuth::class])->prefix('customer')->group(function () 
     Route::get('about', function () {
         return inertia('customer/About');
     })->name('customer.about');
+
+    Route::prefix('wallet-transactions')->group(function () {
+        Route::get('', [WalletTransactionController::class, 'index'])->name('customer.wallet-transaction.index');
+        Route::get('data', [WalletTransactionController::class, 'data'])->name('customer.wallet-transaction.data');
+        Route::get('detail/{id}', [WalletTransactionController::class, 'detail'])->name('customer.wallet-transaction.detail');
+    });
 
     Route::get('profile/edit', [CustomerProfileController::class, 'edit'])->name('customer.profile.edit');
     Route::post('profile/update', [CustomerProfileController::class, 'update'])->name('customer.profile.update');
