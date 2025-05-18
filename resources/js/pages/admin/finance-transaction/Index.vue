@@ -16,16 +16,16 @@ const rows = ref([]);
 const loading = ref(true);
 
 const currentYear = new Date().getFullYear();
-const currentMonth = new Date().getMonth();  // months are 0-based, so adding 1 to get correct month number
+const currentMonth = new Date().getMonth() + 1;
 
 const years = [
-  { label: "Semua Tahun", value: null },
+  { label: "Semua Tahun", value: 'all' },
   { label: `${currentYear}`, value: currentYear },
   ...create_year_options(currentYear - 2, currentYear - 1).reverse(),
 ];
 
 const months = [
-  { value: null, label: "Semua Bulan" },
+  { value: 'all', label: "Semua Bulan" },
   ...create_month_options(),
 ];
 
@@ -177,12 +177,13 @@ watch(() => filter.year, (newVal) => {
             <q-td key="datetime" :props="props" class="wrap-column">
               <div><q-icon name="calendar_today" /> {{ props.row.datetime }}</div>
               <div><q-icon name="category" /> {{ props.row.type_label }}</div>
-              <div v-if="props.row.ref_type"><q-icon name="link" /> {{ props.row.ref_type_label }} #{{ props.row.ref_id }}</div>
+              <div v-if="props.row.ref_type"><q-icon name="link" /> {{ props.row.ref_type_label }} #{{ props.row.ref_id
+                }}</div>
               <template v-if="!$q.screen.gt.sm">
                 <div v-if="props.row.notes"><q-icon name="notes" /> {{ props.row.notes }}</div>
                 <div v-if="props.row.category"><q-icon name="category" /> {{ props.row.category.name }}</div>
                 <div><q-icon name="money" /> Rp. {{ plusMinusSymbol(props.row.amount) + formatNumber(props.row.amount)
-                }}</div>
+                  }}</div>
               </template>
             </q-td>
             <q-td key="account" :props="props">

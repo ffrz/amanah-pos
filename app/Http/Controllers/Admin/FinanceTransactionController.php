@@ -32,22 +32,13 @@ class FinanceTransactionController extends Controller
             });
         }
 
-        // if (!empty($filter['category_id'])) {
-        //     if ($filter['category_id'] === 'null') {
-        //         $q->whereNull('category_id');
-        //     } else if ($filter['category_id'] !== 'all') {
-        //         $q->where('category_id', '=', $filter['category_id']);
-        //     }
-        // }
+        if (!empty($filter['year']) && $filter['year'] !== 'all') {
+            $q->whereYear('datetime', $filter['year']);
 
-        // Tambahan filter tahun
-        // if (!empty($filter['year']) && $filter['year'] !== 'null') {
-        //     $q->whereYear('date', $filter['year']);
-
-        //     if (!empty($filter['month']) && $filter['month'] !== 'null') {
-        //         $q->whereMonth('date', $filter['month']);
-        //     }
-        // }
+            if (!empty($filter['month']) && $filter['month'] !== 'all') {
+                $q->whereMonth('datetime', $filter['month']);
+            }
+        }
 
         $q->orderBy($orderBy, $orderType);
 
@@ -140,7 +131,7 @@ class FinanceTransactionController extends Controller
                 'datetime'    => $validated['datetime'],
                 'type'        => $validated['type'],
                 'amount'      => $amount,
-                'description' => $validated['notes'],
+                'notes' => $validated['notes'],
             ]);
             $transaction->save();
 

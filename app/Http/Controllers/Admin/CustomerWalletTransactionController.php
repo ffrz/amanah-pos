@@ -27,27 +27,17 @@ class CustomerWalletTransactionController extends Controller
 
         if (!empty($filter['search'])) {
             $q->where(function ($q) use ($filter) {
-                // $q->where('description', 'like', '%' . $filter['search'] . '%');
                 $q->orWhere('notes', 'like', '%' . $filter['search'] . '%');
             });
         }
 
-        // if (!empty($filter['category_id'])) {
-        //     if ($filter['category_id'] === 'null') {
-        //         $q->whereNull('category_id');
-        //     } else if ($filter['category_id'] !== 'all') {
-        //         $q->where('category_id', '=', $filter['category_id']);
-        //     }
-        // }
+        if (!empty($filter['year']) && $filter['year'] !== 'all') {
+            $q->whereYear('datetime', $filter['year']);
 
-        // Tambahan filter tahun
-        // if (!empty($filter['year']) && $filter['year'] !== 'null') {
-        //     $q->whereYear('date', $filter['year']);
-
-        //     if (!empty($filter['month']) && $filter['month'] !== 'null') {
-        //         $q->whereMonth('date', $filter['month']);
-        //     }
-        // }
+            if (!empty($filter['month']) && $filter['month'] !== 'all') {
+                $q->whereMonth('datetime', $filter['month']);
+            }
+        }
 
         $q->orderBy($orderBy, $orderType);
 

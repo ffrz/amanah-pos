@@ -16,16 +16,16 @@ const rows = ref([]);
 const loading = ref(true);
 
 const currentYear = new Date().getFullYear();
-const currentMonth = new Date().getMonth();  // months are 0-based, so adding 1 to get correct month number
+const currentMonth = new Date().getMonth() + 1;
 
 const years = [
-  { label: "Semua Tahun", value: null },
+  { label: "Semua Tahun", value: 'all' },
   { label: `${currentYear}`, value: currentYear },
   ...create_year_options(currentYear - 2, currentYear - 1).reverse(),
 ];
 
 const months = [
-  { value: null, label: "Semua Bulan" },
+  { value: 'all', label: "Semua Bulan" },
   ...create_month_options(),
 ];
 
