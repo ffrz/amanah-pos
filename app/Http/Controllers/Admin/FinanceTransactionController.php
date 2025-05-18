@@ -7,6 +7,7 @@ use App\Models\FinanceAccount;
 use App\Models\FinanceTransaction;
 use App\Models\User;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -150,9 +151,15 @@ class FinanceTransactionController extends Controller
     {
         allowed_roles([User::Role_Admin]);
 
-        DB::beginTransaction();
         $item = FinanceTransaction::findOrFail($id);
+        if ($item->ref_type == FinanceTransaction::RefType_CustomerWalletTransaction) {
+            // TODO: FIX apakah boleh hapus transaksi ??
+            return response()->json([
+                'message' => "Transaksi #$item->id tidak dapat dihapus karena berkaitan dengan transaksi wallet."
+            ]);
+        }
 
+        DB::beginTransaction();
         $item->account->balance -= $item->amount;
         $item->account->save();
 
