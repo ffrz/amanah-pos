@@ -16,10 +16,10 @@ class Customer extends Authenticatable
 
     protected $fillable = [
         'nis',
+        'password',
         'name',
         'phone',
         'address',
-        'active',
         'balance',
         'active',
         'last_login_datetime',
