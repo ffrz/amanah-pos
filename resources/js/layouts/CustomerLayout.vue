@@ -70,10 +70,8 @@ onMounted(() => {
                 <q-avatar style="margin-left: -15px"><q-icon name="person" /></q-avatar>
                 <q-item-section>
                   <q-item-label>
-                    <div class="text-bold">{{ page.props.auth.customer.name }}</div>
-                    <div class="text-grey-8 text-caption">
-                      {{ page.props.company.name }}
-                    </div>
+                    <div class="text-bold">NIS: {{ page.props.auth.customer.nis }}</div>
+                    <div>{{ page.props.auth.customer.name }}</div>
                   </q-item-label>
                 </q-item-section>
               </q-item>

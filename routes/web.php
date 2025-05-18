@@ -25,11 +25,21 @@ use App\Http\Controllers\Customer\ProfileController as CustomerProfileController
 use App\Http\Middleware\Auth;
 use App\Http\Middleware\CustomerAuth;
 use App\Http\Middleware\NonAuthenticated;
+use App\Models\Setting;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('homepage');
+    return view('homepage', [
+        'company_name' => Setting::value('company_name', 'Nama Koperasi'),
+        'company_phone' => Setting::value('company_phone', '081xxxxxxxxx'),
+        'company_email' => Setting::value('company_email', 'namakoperasi@abc.com'),
+        'company_address' => Setting::value('company_address', 'Indonesia'),
+    ]);
 })->name('home');
+
+Route::get('/landing-page', function () {
+    return view('landing-page');
+})->name('landing-page');
 
 Route::middleware(NonAuthenticated::class)->group(function () {
     Route::prefix('/admin/auth')->group(function () {

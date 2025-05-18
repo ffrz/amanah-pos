@@ -44,8 +44,4 @@ return [
     'cant-delete-item-with-different-company' => 'Akses ditolak, tidak bisa menghapus item berbeda perusahaan.',
 
     'service-order_order-status_active' => 'Aktif',
-
-    'wash-service-created' => 'Layanan cuci :name telah dibuat.',
-    'wash-service-updated' => 'Layanan cuci :name telah diperbarui.',
-    'wash-service-deleted' => 'Layanan cuci :name telah dihapus.',
 ];
