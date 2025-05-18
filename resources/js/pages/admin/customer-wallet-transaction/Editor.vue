@@ -58,10 +58,10 @@ const submit = () => handleSubmit({ form, url: route('admin.customer-wallet-tran
                   </q-item>
                 </template>
               </q-select>
-              <q-select autofocus v-model="form.type" label="Jenis" :options="types" map-options emit-value
+              <q-select v-model="form.type" label="Jenis" :options="types" map-options emit-value
                 :error="!!form.errors.type" :disable="form.processing" :errorMessage="form.errors.type">
               </q-select>
-              <q-select v-if="form.type == 'deposit' || form.type == 'withdrawal'" autofocus v-model="form.finance_account_id"
+              <q-select v-if="form.type == 'deposit' || form.type == 'withdrawal'" v-model="form.finance_account_id"
                 :label="form.type == 'deposit' ? 'Kas Tujuan' : 'Kas Asal' "
                 :options="finance_accounts" map-options emit-value :error="!!form.errors.finance_account_id"
                 :disable="form.processing" :errorMessage="form.errors.finance_account_id">

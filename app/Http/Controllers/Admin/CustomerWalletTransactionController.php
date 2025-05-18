@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Models\CustomerWalletTransaction;
 use App\Models\FinanceAccount;
+use App\Models\FinanceTransaction;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -101,6 +102,17 @@ class CustomerWalletTransactionController extends Controller
             // jika withdraw, kas koperasi juga akan berkurang
             $account->balance += $amount;
             $account->save();
+
+            // Tambah entri transaksi keuangan
+            FinanceTransaction::create([
+                'datetime' => $validated['datetime'],
+                'account_id' => $validated['finance_account_id'],
+                'amount' => $amount,
+                'type' => $amount >= 0 ? FinanceTransaction::Type_Income : FinanceTransaction::Type_Expense,
+                'notes' => 'Transaksi wallet customer #' . $customer->id,
+                'ref_type' => FinanceTransaction::RefType_CustomerWalletTransaction,
+                'ref_id' => $item->id,
+            ]);
         }
 
         DB::commit();
@@ -118,6 +130,21 @@ class CustomerWalletTransactionController extends Controller
         $item->customer->balance -= $item->amount;
         $item->customer->save();
         $item->delete();
+
+        // Jika transaksi menyentuh kas, kembalikan saldo kas
+        if (in_array($item->type, [
+            CustomerWalletTransaction::Type_Deposit,
+            CustomerWalletTransaction::Type_Withdrawal
+        ]) && $item->finance_account_id) {
+            $kas = $item->financeAccount;
+            $kas->balance -= $item->amount;
+            $kas->save();
+            FinanceTransaction::where([
+                'ref_type' => FinanceTransaction::RefType_CustomerWalletTransaction,
+                'ref_id' => $item->id,
+            ])->delete();
+        }
+
         DB::commit();
 
         return response()->json([
