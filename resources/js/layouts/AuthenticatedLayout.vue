@@ -60,7 +60,7 @@ onMounted(() => {
             justify-content: space-between;
           ">
           <q-btn-dropdown v-model="isDropdownOpen" class="profile-btn text-bold" flat
-            :label="page.props.auth.user.company_name" style="
+            :label="page.props.company.name" style="
               justify-content: space-between;
               flex-grow: 1;
               overflow: hidden;
@@ -73,7 +73,7 @@ onMounted(() => {
                     <div class="text-bold">{{ page.props.auth.user.name }}</div>
                     <div class="text-grey-8 text-caption">
                       {{ $CONSTANTS.USER_ROLES[page.props.auth.user.role] }} @
-                      {{ page.props.auth.user.company_name }}
+                      {{ page.props.company.name }}
                     </div>
                   </q-item-label>
                 </q-item-section>

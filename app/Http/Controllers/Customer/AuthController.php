@@ -46,6 +46,8 @@ class AuthController extends Controller
 
         // extra validations
         $data = $request->only(['username', 'password']);
+        $data['nis'] = $data['username'];
+        unset($data['username']);
 
         if (!Auth::guard('customer')->attempt($data, $request->has('remember'))) {
             $validator->errors()->add('username', 'Username atau password salah!');
@@ -53,10 +55,10 @@ class AuthController extends Controller
             $validator->errors()->add('username', 'Akun anda tidak aktif. Silahkan hubungi administrator!');
             $this->_logout($request);
         } else {
-            /** @var \App\Models\User $user */
+            /** @var \App\Models\Customer $user */
             $user = Auth::guard('customer')->user();
-            // $user->setLastLogin();
-            // $user->setLastActivity('Login');
+            $user->setLastLogin();
+            $user->setLastActivity('Login');
             $request->session()->regenerate();
             return redirect(route('customer.dashboard'));
         }

@@ -17,7 +17,10 @@ use App\Http\Controllers\Admin\StockMovementController;
 use App\Http\Controllers\Admin\SupplierController;
 use App\Http\Controllers\Admin\UserController;
 
+use App\Http\Controllers\Customer\AuthController as CustomerAuthController;
+
 use App\Http\Middleware\Auth;
+use App\Http\Middleware\CustomerAuth;
 use App\Http\Middleware\NonAuthenticated;
 use Illuminate\Support\Facades\Route;
 
@@ -30,6 +33,12 @@ Route::middleware(NonAuthenticated::class)->group(function () {
         Route::match(['get', 'post'], 'login', [AuthController::class, 'login'])->name('admin.auth.login');
         Route::match(['get', 'post'], 'register', [AuthController::class, 'register'])->name('admin.auth.register');
         Route::match(['get', 'post'], 'forgot-password', [AuthController::class, 'forgotPassword'])->name('admin.auth.forgot-password');
+    });
+
+    Route::prefix('/customer/auth')->group(function () {
+        Route::match(['get', 'post'], 'login', [CustomerAuthController::class, 'login'])->name('customer.auth.login');
+        Route::match(['get', 'post'], 'register', [CustomerAuthController::class, 'register'])->name('customer.auth.register');
+        Route::match(['get', 'post'], 'forgot-password', [CustomerAuthController::class, 'forgotPassword'])->name('customer.auth.forgot-password');
     });
 });
 
@@ -174,4 +183,8 @@ Route::middleware([Auth::class])->group(function () {
             });
         });
     });
+});
+
+Route::middleware([CustomerAuth::class])->group(function () {
+    Route::match(['get', 'post'], 'customer/auth/logout', [AuthController::class, 'logout'])->name('admin.auth.logout');
 });

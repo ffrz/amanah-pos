@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Schema;
 class Customer extends Authenticatable
 {
     use HasFactory;
-    
+
     public $timestamps = false;
 
     protected $fillable = [
@@ -26,6 +26,41 @@ class Customer extends Authenticatable
         'last_activity_description',
         'last_activity_datetime'
     ];
+
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var array<int, string>
+     */
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'password' => 'hashed',
+        ];
+    }
+
+    public function setLastLogin()
+    {
+        $this->last_login_datetime = now();
+        $this->save();
+    }
+
+    public function setLastActivity($description)
+    {
+        $this->last_activity_description = $description;
+        $this->last_activity_datetime = now();
+        $this->save();
+    }
 
     public static function activeCustomerCount()
     {

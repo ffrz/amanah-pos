@@ -16,9 +16,20 @@ class NonAuthenticated
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $user = Auth::user();
-        if ($user) {
+        $path = $request->path();
+
+        // Cek prefix url
+        $isAdminRoute = str_starts_with($path, 'admin');
+        $isCustomerRoute = str_starts_with($path, 'customer');
+
+        // Redirect jika sudah login sebagai admin
+        if ($isAdminRoute && Auth::check()) {
             return redirect()->route('admin.dashboard');
+        }
+
+        // Redirect jika sudah login sebagai customer
+        if ($isCustomerRoute && Auth::guard('customer')->check()) {
+            return redirect()->route('customer.dashboard');
         }
 
         return $next($request);
