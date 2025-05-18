@@ -31,7 +31,6 @@ const months = [
 
 const filter = reactive({
   search: "",
-  category_id: "all",
   year: currentYear,
   month: currentMonth,
   ...getQueryParams(),
@@ -45,23 +44,9 @@ const pagination = ref({
 });
 const columns = [
   {
-    name: "id",
-    label: "ID",
-    field: "id",
-    align: "left",
-    sortable: true,
-  },
-  {
     name: "datetime",
     label: "Waktu",
     field: "datetime",
-    align: "left",
-    sortable: true,
-  },
-  {
-    name: "finance_account",
-    label: "Kas",
-    field: "finance_account",
     align: "left",
     sortable: true,
   },
@@ -70,21 +55,18 @@ const columns = [
     label: "Santri",
     field: "customer",
     align: "left",
-    sortable: true,
   },
   {
     name: "notes",
     label: "Catatan",
     field: "notes",
     align: "left",
-    sortable: true,
   },
   {
     name: "amount",
     label: "Jumlah (Rp.)",
     field: "amount",
     align: "right",
-    sortable: true,
   },
   {
     name: "action",
@@ -174,19 +156,16 @@ watch(() => filter.year, (newVal) => {
         </template>
         <template v-slot:body="props">
           <q-tr :props="props">
-            <q-td key="id" :props="props" class="wrap-column">
-              {{ props.row.id }}
-            </q-td>
             <q-td key="datetime" :props="props" class="wrap-column">
-              <div><q-icon name="calendar_today" /> {{ props.row.datetime }}</div>
-              <div><q-icon name="category" /> {{ props.row.type_label }} : {{ props.row.finance_account.name }}</div>
+              <div>#{{ props.row.id }} - <q-icon name="calendar_today" /> {{ props.row.datetime }}</div>
+              <div>
+                <q-badge><q-icon name="category" /> {{ props.row.type_label }}</q-badge> : {{ props.row.finance_account ? props.row.finance_account.name : '-' }}
+              </div>
               <template v-if="!$q.screen.gt.sm">
+                <div>{{ props.row.customer.nis }} - {{ props.row.customer.name }}</div>
                 <div><q-icon name="money" /> Rp. {{ plusMinusSymbol(props.row.amount) + formatNumber(props.row.amount) }}</div>
                 <div><q-icon name="notes" /> {{ props.row.notes }}</div>
               </template>
-            </q-td>
-            <q-td key="finance_account" :props="props">
-              {{ props.row.finance_account.name }}
             </q-td>
             <q-td key="customer" :props="props">
               {{ props.row.customer.nis }} - {{ props.row.customer.name }}

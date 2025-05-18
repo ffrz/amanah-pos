@@ -59,8 +59,8 @@ onMounted(() => {
             display: flex;
             justify-content: space-between;
           ">
-          <q-btn-dropdown v-model="isDropdownOpen" class="profile-btn text-bold" flat
-            :label="page.props.company.name" style="
+          <q-btn-dropdown v-model="isDropdownOpen" class="profile-btn text-bold" flat :label="page.props.company.name"
+            style="
               justify-content: space-between;
               flex-grow: 1;
               overflow: hidden;
@@ -200,13 +200,23 @@ onMounted(() => {
             icon="wallet" label="Dompet Santri"
             :default-opened="$page.url.startsWith('/admin/customer-wallet-transactions') || $page.url.startsWith('/admin/customers')">
             <q-item class="subnav" clickable v-ripple
-              :active="$page.url.startsWith('/admin/customer-wallet-transaction')"
+              :active="$page.url == '/admin/customer-wallet-transactions'"
               @click="router.get(route('admin.customer-wallet-transaction.index'))">
               <q-item-section avatar>
                 <q-icon name="moving" />
               </q-item-section>
               <q-item-section>
                 <q-item-label>Transaksi</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item class="subnav" clickable v-ripple
+              :active="$page.url.startsWith('/admin/customer-wallet-transactions/adjustment')"
+              @click="router.get(route('admin.customer-wallet-transaction.adjustment'))">
+              <q-item-section avatar>
+                <q-icon name="vertical_align_center" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Penyesuaian Saldo</q-item-label>
               </q-item-section>
             </q-item>
             <q-item class="subnav" clickable v-ripple :active="$page.url.startsWith('/admin/customers')"
@@ -225,8 +235,7 @@ onMounted(() => {
           <q-expansion-item v-if="$page.props.auth.user.role == $CONSTANTS.USER_ROLE_ADMIN" expand-separator
             icon="finance" label="Keuangan"
             :default-opened="$page.url.startsWith('/admin/finance-accounts') || $page.url.startsWith('/admin/finance-transactions')">
-            <q-item class="subnav" clickable v-ripple
-              :active="$page.url.startsWith('/admin/finance-transactions')"
+            <q-item class="subnav" clickable v-ripple :active="$page.url.startsWith('/admin/finance-transactions')"
               @click="router.get(route('admin.finance-transaction.index'))">
               <q-item-section avatar>
                 <q-icon name="moving" />

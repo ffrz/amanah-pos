@@ -8,6 +8,7 @@ use App\Models\CustomerWalletTransaction;
 use App\Models\FinanceAccount;
 use App\Models\FinanceTransaction;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -39,6 +40,10 @@ class CustomerWalletTransactionController extends Controller
             if (!empty($filter['month']) && $filter['month'] !== 'all') {
                 $q->whereMonth('datetime', $filter['month']);
             }
+        }
+
+        if (!empty($filter['customer_id']) && $filter['customer_id'] != 'all') {
+            $q->where('customer_id', '=', $filter['customer_id']);
         }
 
         $q->orderBy($orderBy, $orderType);
@@ -119,6 +124,45 @@ class CustomerWalletTransactionController extends Controller
 
         return redirect(route('admin.customer-wallet-transaction.index'))
             ->with('success', "Transaksi $item->id telah disimpan.");
+    }
+
+    public function adjustment(Request $request)
+    {
+        if ($request->getMethod() === 'GET') {
+            return inertia('admin/customer-wallet-transaction/Adjustment', [
+                'data' => [
+                ],
+                'customers' => Customer::where('active', '=', true)->orderBy('nis', 'asc')->get(),
+            ]);
+        }
+
+        $validated = $request->validate([
+            'customer_id' => 'required|exists:customers,id',
+            'new_balance' => 'required|numeric',
+            'notes' => 'nullable|string|max:255',
+        ]);
+
+        DB::beginTransaction();
+
+        $customer = Customer::findOrFail($request->customer_id);
+
+        $old_balance = $customer->balance;
+        $customer->balance = $validated['new_balance'];
+        $customer->save();
+
+        $item  = new CustomerWalletTransaction([
+            'customer_id' => $customer->id,
+            'datetime' => Carbon::now(),
+            'type' => CustomerWalletTransaction::Type_Adjustment,
+            'amount' => $validated['new_balance'] - $old_balance,
+            'notes' => $validated['notes'],
+        ]);
+        $item->save();
+
+        DB::commit();
+
+        return redirect(route('admin.customer-wallet-transaction.index'))
+            ->with('success', "Penyesuaian saldo $item->id telah disimpan.");
     }
 
     public function delete($id)

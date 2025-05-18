@@ -1,19 +1,17 @@
 <script setup>
 import { handleFetchItems } from "@/helpers/client-req-handler";
-import { formatNumber, getQueryParams } from "@/helpers/utils";
-import { router, usePage } from "@inertiajs/vue3";
+import { formatNumber, getQueryParams, plusMinusSymbol } from "@/helpers/utils";
+import {  usePage } from "@inertiajs/vue3";
 import { useQuasar } from "quasar";
 import { computed, onMounted, reactive, ref } from "vue";
+
 const page = usePage();
 const title = "Rincian Santri";
 const tab = ref("main");
 const rows = ref([]);
 const loading = ref(true);
 const filter = reactive({
-  // search: "",
-  // order_status: "all",
-  // payment_status: "all",
-  // service_status: "all",
+  customer_id: page.props.data.id,
   ...getQueryParams()
 });
 const pagination = ref({
@@ -30,21 +28,18 @@ const columns = [
     label: "#",
     field: "id",
     align: "left",
-    sortable: true,
   },
   {
-    name: "type",
-    label: "Jenis",
-    field: "type",
-    align: "center",
-    sortable: true,
+    name: "notes",
+    label: "Catatan",
+    field: "notes",
+    align: "left",
   },
   {
-    name: "quantity",
+    name: "amount",
     label: "Jumlah",
-    field: "quantity",
-    align: "center",
-    sortable: true,
+    field: "amount",
+    align: "right",
   },
 
 ];
@@ -59,7 +54,7 @@ const fetchItems = (props = null) =>
     filter,
     props,
     rows,
-    // url: route("admin.customer-wallet-transaction.data", { customer_id: page.props.data.id }),
+    url: route("admin.customer-wallet-transaction.data"),
     loading,
   });
 
@@ -194,32 +189,25 @@ const computedColumns = computed(() => {
                   <template v-slot:body="props">
                     <q-tr :props="props">
                       <q-td key="id" :props="props">
-                        <div class="flex q-gutter-sm">
-                          <div><b>#{{ props.row.id }}</b></div>
-                          <div>- {{ $dayjs(new Date(props.row.created_datetime)).format("DD/MM/YYYY hh:mm:ss") }}</div>
-                          <div>- {{ props.row.created_by ? props.row.created_by.username : '--' }}</div>
-                        </div>
+                        <div><b>#{{ props.row.id }}</b>- {{ $dayjs(new Date(props.row.created_datetime)).format("DD/MM/YYYY hh:mm:ss") }}</div>
+                        <q-badge size="xs"><q-icon name="category" /> {{ props.row.type_label }}</q-badge>
                         <template v-if="$q.screen.lt.md">
-                          <div class="">
-                            {{ $CONSTANTS.STOCKMOVEMENT_REFTYPES[props.row.ref_type] }}
+                          <div>
+                            <q-icon name="money" />
+                            <span :class="props.row.amount < 0 ? 'text-red-10' : (props.row.amount > 0 ? 'text-green-10' : '')">
+                              {{ plusMinusSymbol(props.row.amount) }} {{ formatNumber(props.row.amount) }}
+                            </span>
                           </div>
-                          <div
-                            :class="props.row.quantity < 0 ? 'text-red-10' : (props.row.quantity > 0 ? 'text-green-10' : '')">
-                            <q-icon
-                              :name="props.row.quantity < 0 ? 'arrow_downward' : (props.row.quantity > 0 ? 'arrow_upward' : '')" />
-                            {{ formatNumber(props.row.quantity) }}
-                          </div>
+                          <div class="text-grey-8"><q-icon name="notes" /> {{ props.row.notes }}</div>
                         </template>
                       </q-td>
-                      <q-td key="type" :props="props">
-                        {{ $CONSTANTS.STOCKMOVEMENT_REFTYPES[props.row.ref_type] }}
+                      <q-td key="notes" :props="props">
+                        {{ props.row.notes }}
                       </q-td>
-                      <q-td key="quantity" :props="props">
+                      <q-td key="amount" :props="props">
                         <div
-                          :class="props.row.quantity < 0 ? 'text-red-10' : (props.row.quantity > 0 ? 'text-green-10' : '')">
-                          <q-icon
-                            :name="props.row.quantity < 0 ? 'arrow_downward' : (props.row.quantity > 0 ? 'arrow_upward' : '')" />
-                          {{ formatNumber(props.row.quantity) }}
+                          :class="props.row.amount < 0 ? 'text-red-10' : (props.row.amount > 0 ? 'text-green-10' : '')">
+                          {{ plusMinusSymbol(props.row.amount) }} {{ formatNumber(props.row.amount) }}
                         </div>
                       </q-td>
                     </q-tr>

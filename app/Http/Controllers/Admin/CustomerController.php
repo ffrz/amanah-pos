@@ -86,7 +86,7 @@ class CustomerController extends Controller
         if (!$request->id) {
             $validated['balance'] = 0;
         }
-        
+
         if (!empty($validated['password'])) {
             $validated['password'] = Hash::make($validated['password']);
         }
@@ -110,5 +110,11 @@ class CustomerController extends Controller
         return response()->json([
             'message' => "Santri $item->name telah dihapus."
         ]);
+    }
+
+    public function getBalance(Request $request)
+    {
+        $customer = Customer::findOrFail($request->id);
+        return response()->json(['balance' => $customer->balance]);
     }
 }

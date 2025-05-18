@@ -132,6 +132,7 @@ Route::middleware([Auth::class])->prefix('admin')->group(function () {
         Route::get('detail/{id}', [CustomerController::class, 'detail'])->name('admin.customer.detail');
         Route::post('save', [CustomerController::class, 'save'])->name('admin.customer.save');
         Route::post('delete/{id}', [CustomerController::class, 'delete'])->name('admin.customer.delete');
+        Route::get('balance', [CustomerController::class, 'getBalance'])->name('admin.customer.balance');
     });
 
     Route::prefix('customer-wallet-transactions')->group(function () {
@@ -141,6 +142,7 @@ Route::middleware([Auth::class])->prefix('admin')->group(function () {
         Route::get('edit/{id}', [CustomerWalletTransactionController::class, 'editor'])->name('admin.customer-wallet-transaction.edit');
         Route::get('detail/{id}', [CustomerWalletTransactionController::class, 'detail'])->name('admin.customer-wallet-transaction.detail');
         Route::post('save', [CustomerWalletTransactionController::class, 'save'])->name('admin.customer-wallet-transaction.save');
+        Route::match(['get', 'post'], 'adjustment', [CustomerWalletTransactionController::class, 'adjustment'])->name('admin.customer-wallet-transaction.adjustment');
         Route::post('delete/{id}', [CustomerWalletTransactionController::class, 'delete'])->name('admin.customer-wallet-transaction.delete');
     });
 

@@ -45,16 +45,11 @@ const pagination = ref({
 });
 const columns = [
   {
-    name: "id",
-    label: "ID",
-    field: "id",
-    align: "left",
-  },
-  {
     name: "datetime",
     label: "Waktu",
     field: "datetime",
     align: "left",
+    sortable: true,
   },
   {
     name: "account",
@@ -171,14 +166,10 @@ watch(() => filter.year, (newVal) => {
         </template>
         <template v-slot:body="props">
           <q-tr :props="props">
-            <q-td key="id" :props="props" class="wrap-column">
-              {{ props.row.id }}
-            </q-td>
             <q-td key="datetime" :props="props" class="wrap-column">
-              <div><q-icon name="calendar_today" /> {{ props.row.datetime }}</div>
-              <div><q-icon name="category" /> {{ props.row.type_label }}</div>
-              <div v-if="props.row.ref_type"><q-icon name="link" /> {{ props.row.ref_type_label }} #{{ props.row.ref_id
-                }}</div>
+              <div>#{{ props.row.id }} - <q-icon name="calendar_today" /> {{ props.row.datetime }}</div>
+              <q-badge><q-icon name="category" /> {{ props.row.type_label }}</q-badge>
+              <div v-if="props.row.ref_type"><q-icon name="link" /> {{ props.row.ref_type_label }} #{{ props.row.ref_id }}</div>
               <template v-if="!$q.screen.gt.sm">
                 <div v-if="props.row.notes"><q-icon name="notes" /> {{ props.row.notes }}</div>
                 <div v-if="props.row.category"><q-icon name="category" /> {{ props.row.category.name }}</div>

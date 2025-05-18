@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 
 class User extends Authenticatable
 {
@@ -71,5 +72,12 @@ class User extends Authenticatable
         $this->last_activity_description = $description;
         $this->last_activity_datetime = now();
         $this->save();
+    }
+
+    public static function activeUserCount()
+    {
+        return DB::select(
+            'select count(0) as count from users where active=1'
+        )[0]->count;
     }
 }

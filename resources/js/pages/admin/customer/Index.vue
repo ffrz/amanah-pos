@@ -176,13 +176,6 @@ const computedColumns = computed(() => {
                   <q-menu anchor="bottom right" self="top right" transition-show="scale" transition-hide="scale">
                     <q-list style="width: 200px">
                       <q-item clickable v-ripple v-close-popup
-                        @click.stop="router.get(route('admin.customer.duplicate', props.row.id))">
-                        <q-item-section avatar>
-                          <q-icon name="file_copy" />
-                        </q-item-section>
-                        <q-item-section icon="copy"> Duplikat </q-item-section>
-                      </q-item>
-                      <q-item clickable v-ripple v-close-popup
                         @click.stop="router.get(route('admin.customer.edit', props.row.id))">
                         <q-item-section avatar>
                           <q-icon name="edit" />

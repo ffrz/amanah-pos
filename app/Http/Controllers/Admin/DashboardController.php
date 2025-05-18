@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
+use App\Models\FinanceAccount;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -15,11 +17,9 @@ class DashboardController extends Controller
         $start_date = new Carbon(date('Y-m-01'));
         if ($month === 'prev_month') {
             $start_date = $start_date->copy()->subMonth()->startOfMonth();
-        }
-        else if ($month === 'prev_2month') {
+        } else if ($month === 'prev_2month') {
             $start_date = $start_date->copy()->subMonth(2)->startOfMonth();
-        }
-        else if ($month === 'prev_3month') {
+        } else if ($month === 'prev_3month') {
             $start_date = $start_date->copy()->subMonth(3)->startOfMonth();
         }
         $end_date = $start_date->copy()->endOfMonth();
@@ -55,17 +55,13 @@ class DashboardController extends Controller
 
         return inertia('admin/dashboard/Index', [
             'data' => [
-                'active_order_count' => 0,
-                'received_order_count' => 0,
-                'in_progress_order_count' => 0,
-                'pickable_order_count' => 0,
-                'total_billable_order' => 0,
-                'total_active_bill' =>0,
-                'total_active_downpayment' => 0,
                 'active_customer_count' => Customer::activeCustomerCount(),
-                'active_technician_count' => 0,
-                'top_customers' => 0,
-                'top_technicians' => 0,
+                'active_user_count' => User::activeUserCount(),
+                'total_finance_account_balance' => FinanceAccount::totalActiveBalance(),
+                'total_customer_balance' => Customer::totalActiveBalance(),
+                'total_customer_debt' => Customer::totalActiveDebt(),
+                'total_customer_credit' => Customer::totalActiveCredit(),
+
                 'chart1_data' => [
                     'x_axis_label_data' => array_keys($monthly_opened_orders),
                     'data' => [

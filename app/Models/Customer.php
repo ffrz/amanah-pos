@@ -90,4 +90,25 @@ class Customer extends Authenticatable
             return true;
         });
     }
+
+    public static function totalActiveBalance()
+    {
+        return DB::select(
+            'select sum(balance) as sum from customers where active=1'
+        )[0]->sum;
+    }
+
+    public static function totalActiveDebt()
+    {
+        return DB::select(
+            'select sum(balance) as sum from customers where active=1 and balance < 0'
+        )[0]->sum;
+    }
+
+    public static function totalActiveCredit()
+    {
+        return DB::select(
+            'select sum(balance) as sum from customers where active=1 and balance > 0'
+        )[0]->sum;
+    }
 }
