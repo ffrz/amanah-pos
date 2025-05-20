@@ -12,6 +12,8 @@ use App\Http\Controllers\Admin\ProductCategoryController;
 use App\Http\Controllers\Admin\OperationalCostController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ProfileController;
+use App\Http\Controllers\Admin\PurchaseOrderController;
+use App\Http\Controllers\Admin\SalesOrderController;
 use App\Http\Controllers\Admin\StockAdjustmentController;
 use App\Http\Controllers\Admin\StockMovementController;
 use App\Http\Controllers\Admin\SupplierController;
@@ -177,6 +179,25 @@ Route::middleware([Auth::class])->prefix('admin')->group(function () {
         Route::post('delete/{id}', [OperationalCostController::class, 'delete'])->name('admin.operational-cost.delete');
     });
 
+    Route::prefix('purchase-orders')->group(function () {
+        Route::get('', [PurchaseOrderController::class, 'index'])->name('admin.purchase-order.index');
+        Route::get('data', [PurchaseOrderController::class, 'data'])->name('admin.purchase-order.data');
+        Route::get('add', [PurchaseOrderController::class, 'editor'])->name('admin.purchase-order.add');
+        Route::get('edit/{id}', [PurchaseOrderController::class, 'editor'])->name('admin.purchase-order.edit');
+        Route::get('detail/{id}', [PurchaseOrderController::class, 'detail'])->name('admin.purchase-order.detail');
+        Route::post('save', [PurchaseOrderController::class, 'save'])->name('admin.purchase-order.save');
+        Route::post('delete/{id}', [PurchaseOrderController::class, 'delete'])->name('admin.purchase-order.delete');
+    });
+
+        Route::prefix('sales-orders')->group(function () {
+        Route::get('', [SalesOrderController::class, 'index'])->name('admin.sales-order.index');
+        Route::get('data', [SalesOrderController::class, 'data'])->name('admin.sales-order.data');
+        Route::get('add', [SalesOrderController::class, 'editor'])->name('admin.sales-order.add');
+        Route::get('edit/{id}', [SalesOrderController::class, 'editor'])->name('admin.sales-order.edit');
+        Route::get('detail/{id}', [SalesOrderController::class, 'detail'])->name('admin.sales-order.detail');
+        Route::post('save', [SalesOrderController::class, 'save'])->name('admin.sales-order.save');
+        Route::post('delete/{id}', [SalesOrderController::class, 'delete'])->name('admin.sales-order.delete');
+    });
 
     Route::prefix('settings')->group(function () {
         Route::get('profile/edit', [ProfileController::class, 'edit'])->name('admin.profile.edit');

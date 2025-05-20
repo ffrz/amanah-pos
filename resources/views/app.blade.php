@@ -28,6 +28,9 @@
           'CUSTOMER_WALLET_TRANSACTION_TYPES' => \App\Models\CustomerWalletTransaction::Types,
           'FINANCE_ACCOUNT_TYPES' => \App\Models\FinanceAccount::Types,
           'FINANCE_TRANSACTION_TYPES' => \App\Models\FinanceTransaction::Types,
+          'PURCHASE_ORDER_STATUSES' => \App\Models\PurchaseOrder::Statuses,
+          'PURCHASE_ORDER_PAYMENT_STATUSES' => \App\Models\PurchaseOrder::PaymentStatuses,
+          'PURCHASE_ORDER_DELIVERY_STATUSES' => \App\Models\PurchaseOrder::DeliveryStatuses,
       ]) ?>;
     window.CONSTANTS.USER_ROLE_ADMIN = "{{ \App\Models\User::Role_Admin }}";
     window.CONSTANTS.USER_ROLE_CASHIER = "{{ \App\Models\User::Role_Cashier }}";
