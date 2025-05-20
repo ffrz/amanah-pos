@@ -4,46 +4,30 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class PurchaseOrder extends Model
+class SalesOrder extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
-        'supplier_id',
+        'customer_id',
         'datetime',
         'due_date',
         'status',
         'payment_status',
         'delivery_status',
-        'total',
+        'total_cost',
+        'total_price',
         'total_paid',
         'notes',
     ];
 
     // === Status Order ===
     public const Status_Draft     = 'draft';
-    public const Status_Approved  = 'approved';
     public const Status_Closed    = 'closed';
     public const Status_Cancelled = 'cancelled';
 
     public const Statuses = [
         self::Status_Draft     => 'Draft',
-        self::Status_Approved  => 'Disetujui',
         self::Status_Closed    => 'Selesai',
         self::Status_Cancelled => 'Dibatalkan',
-    ];
-
-    // === Status Pengiriman ===
-    public const DeliveryStatus_NotSent  = 'not_sent';
-    public const DeliveryStatus_Sent     = 'sent';
-    public const DeliveryStatus_Received = 'received';
-    public const DeliveryStatus_Failed   = 'failed';
-
-    public const DeliveryStatuses = [
-        self::DeliveryStatus_NotSent  => 'Belum Dikirim',
-        self::DeliveryStatus_Sent     => 'Terkirim',
-        self::DeliveryStatus_Received => 'Diterima',
-        self::DeliveryStatus_Failed   => 'Gagal',
     ];
 
     // === Status Pembayaran ===
@@ -59,6 +43,19 @@ class PurchaseOrder extends Model
         self::PaymentStatus_Refunded       => 'Dikembalikan',
     ];
 
+    // === Status Pengiriman ===
+    public const DeliveryStatus_NotSent  = 'not_sent';
+    public const DeliveryStatus_Sent     = 'sent';
+    public const DeliveryStatus_Received = 'received';
+    public const DeliveryStatus_Failed   = 'failed';
+
+    public const DeliveryStatuses = [
+        self::DeliveryStatus_NotSent  => 'Belum Dikirim',
+        self::DeliveryStatus_Sent     => 'Terkirim',
+        self::DeliveryStatus_Received => 'Diterima',
+        self::DeliveryStatus_Failed   => 'Gagal',
+    ];
+
     public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by_uid');
@@ -71,6 +68,6 @@ class PurchaseOrder extends Model
 
     public function details()
     {
-        return $this->hasMany(PurchaseOrderDetail::class, 'parent_id');
+        return $this->hasMany(SalesOrderDetail::class, 'parent_id');
     }
 }
