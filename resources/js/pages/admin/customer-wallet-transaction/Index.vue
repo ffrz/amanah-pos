@@ -147,11 +147,9 @@ watch(() => filter.year, (newVal) => {
         </template>
         <template v-slot:no-data="{ icon, message, filter }">
           <div class="full-width row flex-center text-grey-8 q-gutter-sm">
-            <q-icon size="2em" name="sentiment_dissatisfied" />
             <span>
               {{ message }}
               {{ filter ? " with term " + filter : "" }}</span>
-            <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
           </div>
         </template>
         <template v-slot:body="props">
@@ -159,11 +157,13 @@ watch(() => filter.year, (newVal) => {
             <q-td key="datetime" :props="props" class="wrap-column">
               <div>#{{ props.row.id }} - <q-icon name="calendar_today" /> {{ props.row.datetime }}</div>
               <div>
-                <q-badge><q-icon name="category" /> {{ props.row.type_label }}</q-badge> : {{ props.row.finance_account ? props.row.finance_account.name : '-' }}
+                <q-badge><q-icon name="category" /> {{ props.row.type_label }}</q-badge> : {{ props.row.finance_account
+                  ? props.row.finance_account.name : '-' }}
               </div>
               <template v-if="!$q.screen.gt.sm">
                 <div>{{ props.row.customer.nis }} - {{ props.row.customer.name }}</div>
-                <div><q-icon name="money" /> Rp. {{ plusMinusSymbol(props.row.amount) + formatNumber(props.row.amount) }}</div>
+                <div><q-icon name="money" /> Rp. {{ plusMinusSymbol(props.row.amount) + formatNumber(props.row.amount)
+                }}</div>
                 <div><q-icon name="notes" /> {{ props.row.notes }}</div>
               </template>
             </q-td>

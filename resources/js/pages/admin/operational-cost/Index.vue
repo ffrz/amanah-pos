@@ -153,11 +153,9 @@ watch(() => filter.year, (newVal) => {
         </template>
         <template v-slot:no-data="{ icon, message, filter }">
           <div class="full-width row flex-center text-grey-8 q-gutter-sm">
-            <q-icon size="2em" name="sentiment_dissatisfied" />
             <span>
               {{ message }}
               {{ filter ? " with term " + filter : "" }}</span>
-            <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
           </div>
         </template>
         <template v-slot:body="props">

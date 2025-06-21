@@ -248,21 +248,19 @@ const computedColumns = computed(() => {
               </q-tab-panel>
 
               <q-tab-panel name="history">
-                <q-table flat bordered square color="primary"
-                  class="full-height-table full-height-table2" row-key="id" virtual-scroll
-                  v-model:pagination="pagination" :filter="filter.search" :loading="loading" :columns="computedColumns"
-                  :rows="rows" :rows-per-page-options="[10, 25, 50]" @request="fetchItems" binary-state-sort>
+                <q-table flat bordered square color="primary" class="full-height-table full-height-table2" row-key="id"
+                  virtual-scroll v-model:pagination="pagination" :filter="filter.search" :loading="loading"
+                  :columns="computedColumns" :rows="rows" :rows-per-page-options="[10, 25, 50]" @request="fetchItems"
+                  binary-state-sort>
                   <template v-slot:loading>
                     <q-inner-loading showing color="red" />
                   </template>
 
                   <template v-slot:no-data="{ icon, message, filter }">
                     <div class="full-width row flex-center text-grey-8 q-gutter-sm">
-                      <q-icon size="2em" name="sentiment_dissatisfied" />
                       <span>
                         {{ message }}
                         {{ filter ? " with term " + filter : "" }}</span>
-                      <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
                     </div>
                   </template>
 

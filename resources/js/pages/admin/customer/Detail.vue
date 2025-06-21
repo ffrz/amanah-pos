@@ -1,7 +1,7 @@
 <script setup>
 import { handleFetchItems } from "@/helpers/client-req-handler";
 import { formatNumber, getQueryParams, plusMinusSymbol } from "@/helpers/utils";
-import {  usePage } from "@inertiajs/vue3";
+import { usePage } from "@inertiajs/vue3";
 import { useQuasar } from "quasar";
 import { computed, onMounted, reactive, ref } from "vue";
 
@@ -178,23 +178,23 @@ const computedColumns = computed(() => {
 
                   <template v-slot:no-data="{ icon, message, filter }">
                     <div class="full-width row flex-center text-grey-8 q-gutter-sm">
-                      <q-icon size="2em" name="sentiment_dissatisfied" />
                       <span>
                         {{ message }}
                         {{ filter ? " with term " + filter : "" }}</span>
-                      <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
                     </div>
                   </template>
 
                   <template v-slot:body="props">
                     <q-tr :props="props">
                       <q-td key="id" :props="props">
-                        <div><b>#{{ props.row.id }}</b>- {{ $dayjs(new Date(props.row.created_datetime)).format("DD/MM/YYYY hh:mm:ss") }}</div>
+                        <div><b>#{{ props.row.id }}</b>- {{ $dayjs(new
+                          Date(props.row.created_datetime)).format("DD/MM/YYYY hh:mm:ss") }}</div>
                         <q-badge size="xs"><q-icon name="category" /> {{ props.row.type_label }}</q-badge>
                         <template v-if="$q.screen.lt.md">
                           <div>
                             <q-icon name="money" />
-                            <span :class="props.row.amount < 0 ? 'text-red-10' : (props.row.amount > 0 ? 'text-green-10' : '')">
+                            <span
+                              :class="props.row.amount < 0 ? 'text-red-10' : (props.row.amount > 0 ? 'text-green-10' : '')">
                               {{ plusMinusSymbol(props.row.amount) }} {{ formatNumber(props.row.amount) }}
                             </span>
                           </div>
