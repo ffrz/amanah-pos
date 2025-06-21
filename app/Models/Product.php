@@ -40,11 +40,15 @@ class Product extends Model
     const Type_Stocked = 'stocked';
     const Type_NonStocked = 'nonstocked';
     const Type_Service = 'service';
+    const Type_RawMaterial = 'raw_material';
+    const Type_Composite = 'composite';
 
     const Types = [
         self::Type_Stocked => 'Stok',
         self::Type_NonStocked => 'Non Stok',
         self::Type_Service => 'Servis',
+        self::Type_RawMaterial => 'Bahan Baku',
+        self::Type_Composite => 'Komposit',
     ];
 
     /**
