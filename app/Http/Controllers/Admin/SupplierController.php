@@ -70,29 +70,20 @@ class SupplierController extends Controller
 
     public function save(Request $request)
     {
-        $item = null;
-        $message = '';
         $validated = $request->validate([
             'name' => 'required|max:255',
-            'phone' => 'required|max:100',
+            'phone' => 'nullable|max:100',
             'bank_account_number' => 'nullable|max:40',
             'active' => 'required|boolean',
-            'address' => 'required|max:200',
+            'address' => 'nullable|max:200',
             'return_address' => 'nullable|max:200',
         ]);
 
-        if (!$request->id) {
-            $item = new Supplier();
-            $message = 'supplier-created';
-        } else {
-            $item = Supplier::findOrFail($request->post('id', 0));
-            $message = 'supplier-updated';
-        }
+        $item = !$request->filled('id') ? new Supplier() : Supplier::findOrFail($request->post('id'));
+        $item->fill($validated)->save();
 
-        $item->fill($validated);
-        $item->save();
-
-        return redirect(route('admin.supplier.index'))->with('success', __("messages.$message", ['name' => $item->name]));
+        return redirect()->route('admin.supplier.index')
+            ->with('success', "Supplier $item->name telah disimpan.");
     }
 
     public function delete($id)

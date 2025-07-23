@@ -84,19 +84,16 @@ class SalesOrderController extends Controller
 
     public function save(Request $request)
     {
-        $rules = [
+        $item = null;
+        $message = '';
+
+        $validated = $request->validate([
             'date' => 'required|date',
             'customer_id' => 'nullable',
             'description' => 'required|max:255',
             'amount' => 'required|numeric|gt:0',
             'notes' => 'nullable|max:1000',
-        ];
-
-        $item = null;
-        $message = '';
-        $fields = ['date', 'description', 'amount', 'notes', 'customer_id'];
-
-        $request->validate($rules);
+        ]);
 
         if (!$request->id) {
             $item = new SalesOrder();
@@ -106,10 +103,9 @@ class SalesOrderController extends Controller
             $message = 'sales-order-updated';
         }
 
-        $data = $request->only($fields);
-        $data['notes'] = $data['notes'] ?? '';
+        $validated['notes'] = $validated['notes'] ?? '';
 
-        $item->fill($data);
+        $item->fill($validated);
         $item->save();
 
         return redirect(route('admin.sales-order.index'))
