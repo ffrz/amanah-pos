@@ -15,7 +15,9 @@ return new class extends Migration
             $table->id();
             $table->string('name', 100);
             $table->string('phone', 100);
-            $table->string('address', 200);
+            $table->string('bank_account_number', 40)->nullable()->default('');
+            $table->string('address', 200)->nullable()->default('');
+            $table->string('return_address', 200)->nullable()->default('');
             $table->boolean('active')->default(true);
 
             $table->datetime('created_datetime')->nullable();

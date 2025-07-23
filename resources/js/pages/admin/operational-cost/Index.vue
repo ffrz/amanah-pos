@@ -3,8 +3,12 @@ import { computed, onMounted, reactive, ref, watch } from "vue";
 import { router, usePage } from "@inertiajs/vue3";
 import { handleDelete, handleFetchItems } from "@/helpers/client-req-handler";
 import {
-  check_role, create_options_from_operational_cost_categories,
-  formatNumber, getQueryParams, create_month_options, create_year_options
+  check_role,
+  create_options_from_operational_cost_categories,
+  formatNumber,
+  getQueryParams,
+  create_month_options,
+  create_year_options,
 } from "@/helpers/utils";
 import { useQuasar } from "quasar";
 
@@ -16,7 +20,7 @@ const rows = ref([]);
 const loading = ref(true);
 
 const currentYear = new Date().getFullYear();
-const currentMonth = new Date().getMonth();  // months are 0-based, so adding 1 to get correct month number
+const currentMonth = new Date().getMonth() + 1; // months are 0-based, so adding 1 to get correct month number
 
 const years = [
   { label: "Semua Tahun", value: null },
@@ -73,7 +77,7 @@ const columns = [
 
 const categories = [
   { value: "all", label: "Semua" },
-  { value: 'null', label: "Tanpa Kategori" },
+  { value: "null", label: "Tanpa Kategori" },
   ...create_options_from_operational_cost_categories(page.props.categories),
 ];
 
@@ -109,12 +113,14 @@ const computedColumns = computed(() => {
   return columns.filter((col) => col.name === "date" || col.name === "action");
 });
 
-watch(() => filter.year, (newVal) => {
-  if (newVal === null) {
-    filter.month = null;
+watch(
+  () => filter.year,
+  (newVal) => {
+    if (newVal === null) {
+      filter.month = null;
+    }
   }
-});
-
+);
 </script>
 
 <template>
@@ -122,21 +128,66 @@ watch(() => filter.year, (newVal) => {
   <authenticated-layout>
     <template #title>{{ title }}</template>
     <template #right-button>
-      <q-btn icon="add" dense color="primary" @click="router.get(route('admin.operational-cost.add'))" />
-      <q-btn class="q-ml-sm" :icon="!showFilter ? 'filter_alt' : 'filter_alt_off'" color="grey" dense
-        @click="showFilter = !showFilter" />
+      <q-btn
+        icon="add"
+        dense
+        color="primary"
+        @click="router.get(route('admin.operational-cost.add'))"
+      />
+      <q-btn
+        class="q-ml-sm"
+        :icon="!showFilter ? 'filter_alt' : 'filter_alt_off'"
+        color="grey"
+        dense
+        @click="showFilter = !showFilter"
+      />
     </template>
     <template #header v-if="showFilter">
       <q-toolbar class="filter-bar">
         <div class="row q-col-gutter-xs items-center q-pa-sm full-width">
-          <q-select v-model="filter.year" :options="years" label="Tahun" dense outlined class="col-xs-6 col-sm-2"
-            emit-value map-options @update:model-value="onFilterChange" />
-          <q-select v-model="filter.month" :options="months" label="Bulan" dense outlined class="col-xs-6 col-sm-2"
-            emit-value map-options :disable="filter.year === null" @update:model-value="onFilterChange" />
-          <q-select v-model="filter.category_id" :options="categories" label="Kategori" dense
-            class="custom-select col-xs-12 col-sm-3" map-options emit-value outlined
-            @update:model-value="onFilterChange" />
-          <q-input class="col" outlined dense debounce="300" v-model="filter.search" placeholder="Cari" clearable>
+          <q-select
+            v-model="filter.year"
+            :options="years"
+            label="Tahun"
+            dense
+            outlined
+            class="col-xs-6 col-sm-2"
+            emit-value
+            map-options
+            @update:model-value="onFilterChange"
+          />
+          <q-select
+            v-model="filter.month"
+            :options="months"
+            label="Bulan"
+            dense
+            outlined
+            class="col-xs-6 col-sm-2"
+            emit-value
+            map-options
+            :disable="filter.year === null"
+            @update:model-value="onFilterChange"
+          />
+          <q-select
+            v-model="filter.category_id"
+            :options="categories"
+            label="Kategori"
+            dense
+            class="custom-select col-xs-12 col-sm-3"
+            map-options
+            emit-value
+            outlined
+            @update:model-value="onFilterChange"
+          />
+          <q-input
+            class="col"
+            outlined
+            dense
+            debounce="300"
+            v-model="filter.search"
+            placeholder="Cari"
+            clearable
+          >
             <template v-slot:append>
               <q-icon name="search" />
             </template>
@@ -145,9 +196,23 @@ watch(() => filter.year, (newVal) => {
       </q-toolbar>
     </template>
     <div class="q-pa-sm">
-      <q-table class="full-height-table" flat bordered square color="primary" row-key="id" virtual-scroll
-        v-model:pagination="pagination" :filter="filter.search" :loading="loading" :columns="computedColumns"
-        :rows="rows" :rows-per-page-options="[10, 25, 50]" @request="fetchItems" binary-state-sort>
+      <q-table
+        class="full-height-table"
+        flat
+        bordered
+        square
+        color="primary"
+        row-key="id"
+        virtual-scroll
+        v-model:pagination="pagination"
+        :filter="filter.search"
+        :loading="loading"
+        :columns="computedColumns"
+        :rows="rows"
+        :rows-per-page-options="[10, 25, 50]"
+        @request="fetchItems"
+        binary-state-sort
+      >
         <template v-slot:loading>
           <q-inner-loading showing color="red" />
         </template>
@@ -155,58 +220,93 @@ watch(() => filter.year, (newVal) => {
           <div class="full-width row flex-center text-grey-8 q-gutter-sm">
             <span>
               {{ message }}
-              {{ filter ? " with term " + filter : "" }}</span>
+              {{ filter ? " with term " + filter : "" }}</span
+            >
           </div>
         </template>
         <template v-slot:body="props">
           <q-tr :props="props">
             <q-td key="date" :props="props" class="wrap-column">
-              <div class="flex items-center q-gutter-xs"><q-icon name="calendar_today" />
+              <div class="flex items-center q-gutter-xs">
+                <q-icon name="calendar_today" />
                 <div>{{ props.row.date }}</div>
               </div>
               <template v-if="!$q.screen.gt.sm">
                 <div><q-icon name="notes" /> {{ props.row.description }}</div>
-                <div v-if="props.row.category"><q-icon name="category" /> {{ props.row.category.name }}</div>
-                <div><q-icon name="paid" /> Rp. {{ formatNumber(props.row.amount) }}</div>
+                <div v-if="props.row.category">
+                  <q-icon name="category" /> {{ props.row.category.name }}
+                </div>
+                <div>
+                  <q-icon name="paid" /> Rp.
+                  {{ formatNumber(props.row.amount) }}
+                </div>
               </template>
             </q-td>
             <q-td key="description" :props="props">
               {{ props.row.description }}
-              <div v-if="props.row.category"><q-icon name="category" /> {{ props.row.category.name }}</div>
+              <div v-if="props.row.category">
+                <q-icon name="category" /> {{ props.row.category.name }}
+              </div>
             </q-td>
             <q-td key="amount" :props="props" style="text-align: right">
               {{ formatNumber(props.row.amount) }}
             </q-td>
             <q-td key="action" :props="props">
               <div class="flex justify-end">
-                <q-btn :disabled="!check_role($CONSTANTS.USER_ROLE_ADMIN)" icon="more_vert" dense flat
-                  style="height: 40px; width: 30px" @click.stop>
-                  <q-menu anchor="bottom right" self="top right" transition-show="scale" transition-hide="scale">
+                <q-btn
+                  :disabled="!check_role($CONSTANTS.USER_ROLE_ADMIN)"
+                  icon="more_vert"
+                  dense
+                  flat
+                  style="height: 40px; width: 30px"
+                  @click.stop
+                >
+                  <q-menu
+                    anchor="bottom right"
+                    self="top right"
+                    transition-show="scale"
+                    transition-hide="scale"
+                  >
                     <q-list style="width: 200px">
-                      <q-item clickable v-ripple v-close-popup @click.stop="
-                        router.get(
-                          route(
-                            'admin.operational-cost.duplicate',
-                            props.row.id
+                      <q-item
+                        clickable
+                        v-ripple
+                        v-close-popup
+                        @click.stop="
+                          router.get(
+                            route(
+                              'admin.operational-cost.duplicate',
+                              props.row.id
+                            )
                           )
-                        )
-                        ">
+                        "
+                      >
                         <q-item-section avatar>
                           <q-icon name="file_copy" />
                         </q-item-section>
                         <q-item-section icon="copy"> Duplikat </q-item-section>
                       </q-item>
-                      <q-item clickable v-ripple v-close-popup @click.stop="
-                        router.get(
-                          route('admin.operational-cost.edit', props.row.id)
-                        )
-                        ">
+                      <q-item
+                        clickable
+                        v-ripple
+                        v-close-popup
+                        @click.stop="
+                          router.get(
+                            route('admin.operational-cost.edit', props.row.id)
+                          )
+                        "
+                      >
                         <q-item-section avatar>
                           <q-icon name="edit" />
                         </q-item-section>
                         <q-item-section icon="edit">Edit</q-item-section>
                       </q-item>
-                      <q-item @click.stop="deleteItem(props.row)" clickable v-ripple v-close-popup>
+                      <q-item
+                        @click.stop="deleteItem(props.row)"
+                        clickable
+                        v-ripple
+                        v-close-popup
+                      >
                         <q-item-section avatar>
                           <q-icon name="delete_forever" />
                         </q-item-section>
