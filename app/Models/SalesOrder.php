@@ -56,6 +56,23 @@ class SalesOrder extends Model
         self::DeliveryStatus_Failed   => 'Gagal',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'customer_id'     => 'integer',
+            'datetime'        => 'datetime',
+            'due_date'        => 'datetime',
+            'status'          => 'string',
+            'payment_status'  => 'string',
+            'delivery_status' => 'string',
+            'total_cost'      => 'decimal:2',
+            'total_price'     => 'decimal:2',
+            'total_paid'      => 'decimal:2',
+            'notes'           => 'string',
+        ];
+    }
+
+
     public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by_uid');

@@ -59,6 +59,22 @@ class PurchaseOrder extends Model
         self::PaymentStatus_Refunded       => 'Dikembalikan',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'supplier_id'     => 'integer',
+            'datetime'        => 'datetime',
+            'due_date'        => 'date',
+            'status'          => 'string',
+            'payment_status'  => 'string',
+            'delivery_status' => 'string',
+            'total'           => 'decimal:2',
+            'total_paid'      => 'decimal:2',
+            'notes'           => 'string',
+        ];
+    }
+
+
     public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by_uid');

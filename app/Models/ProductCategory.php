@@ -9,7 +9,8 @@ class ProductCategory extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 'description'
+        'name',
+        'description'
     ];
 
     /**
@@ -20,4 +21,11 @@ class ProductCategory extends Model
         return $this->hasMany(Product::class);
     }
 
+    protected function casts(): array
+    {
+        return [
+            'name' => 'string',
+            'description' => 'string',
+        ];
+    }
 }

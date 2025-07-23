@@ -10,8 +10,26 @@ class Supplier extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 'phone', 'address', 'active', 'bank_account_number', 'return_address'
+        'name',
+        'phone',
+        'address',
+        'active',
+        'bank_account_number',
+        'return_address'
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'name'                 => 'string',
+            'phone'                => 'string',
+            'address'              => 'string',
+            'active'               => 'boolean',
+            'bank_account_number'  => 'string',
+            'return_address'       => 'string',
+        ];
+    }
+
 
     public static function activeSupplierCount()
     {

@@ -46,7 +46,19 @@ class Customer extends Authenticatable
     protected function casts(): array
     {
         return [
+            'nis' => 'string',
             'password' => 'hashed',
+            'name' => 'string',
+            'parent_name' => 'string',
+            'phone' => 'string',
+            'address' => 'string',
+            'balance' => 'decimal',
+            'active' => 'boolean',
+            'last_login_datetime' => 'datetime',
+            'last_activity_description' => 'string',
+            'last_activity_datetime' => 'datetime',
+            'created_datetime' => 'datetime',
+            'updated_datetime' => 'datetime',
         ];
     }
 

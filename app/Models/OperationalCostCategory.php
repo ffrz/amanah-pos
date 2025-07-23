@@ -9,7 +9,15 @@ class OperationalCostCategory extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 'description'
+        'name',
+        'description'
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'name' => 'string',
+            'description' => 'string',
+        ];
+    }
 }

@@ -51,6 +51,19 @@ class FinanceTransaction extends Model
         self::RefType_CustomerWalletTransaction => \App\Models\CustomerWalletTransaction::class,
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'account_id' => 'integer',
+            'datetime' => 'datetime',
+            'type' => 'string',
+            'amount' => 'decimal',
+            'ref_id' => 'integer',
+            'ref_type' => 'string',
+            'notes' => 'string',
+        ];
+    }
+
     public function getTypeLabelAttribute()
     {
         return self::Types[$this->type] ?? '-';

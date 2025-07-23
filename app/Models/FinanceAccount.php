@@ -37,4 +37,18 @@ class FinanceAccount extends Model
             'select sum(balance) as sum from finance_accounts where active=1'
         )[0]->sum;
     }
+
+    protected function casts(): array
+    {
+        return [
+            'name' => 'string',
+            'type' => 'string',
+            'bank' => 'string',
+            'number' => 'string',
+            'holder' => 'string',
+            'active' => 'boolean',
+            'balance' => 'decimal',
+            'notes' => 'string',
+        ];
+    }
 }

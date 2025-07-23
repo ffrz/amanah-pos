@@ -43,6 +43,19 @@ class StockAdjustment extends Model
         self::Status_Cancelled => 'Dibatalkan',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'datetime'     => 'datetime',
+            'status'       => 'string',
+            'type'         => 'string',
+            'total_cost'   => 'decimal:2',
+            'total_price'  => 'decimal:2',
+            'notes'        => 'string',
+        ];
+    }
+
+
     public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by_uid');
