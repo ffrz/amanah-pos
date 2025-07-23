@@ -52,9 +52,12 @@ class StockAdjustment extends Model
             'total_cost'   => 'decimal:2',
             'total_price'  => 'decimal:2',
             'notes'        => 'string',
+            'created_by_uid' => 'integer',
+            'updated_by_uid' => 'integer',
+            'created_datetime' => 'datetime',
+            'updated_datetime' => 'datetime',
         ];
     }
-
 
     public function createdBy()
     {

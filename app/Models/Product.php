@@ -70,6 +70,10 @@ class Product extends Model
             'min_stock'    => 'decimal',
             'max_stock'    => 'decimal',
             'notes'        => 'string',
+            'created_by_uid' => 'integer',
+            'updated_by_uid' => 'integer',
+            'created_datetime' => 'datetime',
+            'updated_datetime' => 'datetime',
         ];
     }
 

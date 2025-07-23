@@ -69,6 +69,10 @@ class SalesOrder extends Model
             'total_price'     => 'decimal:2',
             'total_paid'      => 'decimal:2',
             'notes'           => 'string',
+            'created_by_uid' => 'integer',
+            'updated_by_uid' => 'integer',
+            'created_datetime' => 'datetime',
+            'updated_datetime' => 'datetime',
         ];
     }
 

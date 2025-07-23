@@ -57,9 +57,21 @@ class Customer extends Authenticatable
             'last_login_datetime' => 'datetime',
             'last_activity_description' => 'string',
             'last_activity_datetime' => 'datetime',
+            'created_by_uid' => 'integer',
+            'updated_by_uid' => 'integer',
             'created_datetime' => 'datetime',
             'updated_datetime' => 'datetime',
         ];
+    }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by_uid');
+    }
+
+    public function updatedBy()
+    {
+        return $this->belongsTo(User::class, 'updated_by_uid');
     }
 
     public function setLastLogin()
