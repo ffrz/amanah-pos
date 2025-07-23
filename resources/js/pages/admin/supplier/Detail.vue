@@ -9,6 +9,30 @@ const title = "Rincian Pemasok";
   <i-head :title="title" />
   <authenticated-layout>
     <template #title>{{ title }}</template>
+    <template #left-button>
+      <div class="q-gutter-sm">
+        <q-btn
+          icon="arrow_back"
+          dense
+          color="grey-7"
+          flat
+          rounded
+          @click="router.get(route('admin.supplier.index'))"
+        />
+      </div>
+    </template>
+    <template #right-button>
+      <div class="q-gutter-sm">
+        <q-btn
+          icon="edit"
+          dense
+          color="primary"
+          @click="
+            router.get(route('admin.supplier.edit', { id: page.props.data.id }))
+          "
+        />
+      </div>
+    </template>
     <q-page class="row justify-center">
       <div class="col col-lg-6 q-pa-sm">
         <div class="row">
