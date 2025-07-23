@@ -10,7 +10,7 @@ class Supplier extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 'phone', 'address', 'active'
+        'name', 'phone', 'address', 'active', 'bank_account_number', 'return_address'
     ];
 
     public static function activeSupplierCount()

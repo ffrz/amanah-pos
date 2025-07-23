@@ -3,7 +3,6 @@ import { router, usePage } from "@inertiajs/vue3";
 
 const page = usePage();
 const title = "Rincian Pemasok";
-
 </script>
 
 <template>
@@ -15,31 +14,45 @@ const title = "Rincian Pemasok";
         <div class="row">
           <q-card square flat bordered class="col">
             <q-card-section>
-              <div class="text-subtitle1 text-bold text-grey-8">Info Pemasok</div>
+              <div class="text-subtitle1 text-bold text-grey-8">
+                Info Pemasok
+              </div>
               <table class="detail">
-                  <tbody>
-                    <tr>
-                      <td style="width:70px">Nama</td>
-                      <td style="width:1px">:</td>
-                      <td>{{ page.props.data.name }}</td>
-                    </tr>
-                    <tr>
-                      <td>Telepon</td>
-                      <td>:</td>
-                      <td>{{ page.props.data.phone }}</td>
-                    </tr>
-                    <tr>
-                      <td>Alamat</td>
-                      <td>:</td>
-                      <td>{{ page.props.data.address }}</td>
-                    </tr>
-                    <tr>
-                      <td>Status</td>
-                      <td>:</td>
-                      <td>{{ page.props.data.active ? 'Aktif' : 'Tidak Aktif' }}</td>
-                    </tr>
-                  </tbody>
-                </table>
+                <tbody>
+                  <tr>
+                    <td style="width: 70px">Nama</td>
+                    <td style="width: 1px">:</td>
+                    <td>{{ page.props.data.name }}</td>
+                  </tr>
+                  <tr>
+                    <td>Telepon</td>
+                    <td>:</td>
+                    <td>{{ page.props.data.phone }}</td>
+                  </tr>
+                  <tr>
+                    <td>Alamat</td>
+                    <td>:</td>
+                    <td>{{ page.props.data.address }}</td>
+                  </tr>
+                  <tr>
+                    <td>No. Rek</td>
+                    <td>:</td>
+                    <td>{{ page.props.data.bank_account_number }}</td>
+                  </tr>
+                  <tr>
+                    <td>Alamat Return</td>
+                    <td>:</td>
+                    <td>{{ page.props.data.return_address }}</td>
+                  </tr>
+                  <tr>
+                    <td>Status</td>
+                    <td>:</td>
+                    <td>
+                      {{ page.props.data.active ? "Aktif" : "Tidak Aktif" }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </q-card-section>
           </q-card>
         </div>

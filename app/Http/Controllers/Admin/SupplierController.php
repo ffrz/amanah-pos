@@ -70,17 +70,16 @@ class SupplierController extends Controller
 
     public function save(Request $request)
     {
-        $rules = [
-            'name' => 'required|max:255',
-            'phone' => 'required|max:100',
-            'address' => 'required|max:1000',
-        ];
-
         $item = null;
         $message = '';
-        $fields = ['name', 'phone', 'address', 'active'];
-
-        $request->validate($rules);
+        $validated = $request->validate([
+            'name' => 'required|max:255',
+            'phone' => 'required|max:100',
+            'bank_account_number' => 'nullable|max:40',
+            'active' => 'required|boolean',
+            'address' => 'required|max:200',
+            'return_address' => 'nullable|max:200',
+        ]);
 
         if (!$request->id) {
             $item = new Supplier();
@@ -90,7 +89,7 @@ class SupplierController extends Controller
             $message = 'supplier-updated';
         }
 
-        $item->fill($request->only($fields));
+        $item->fill($validated);
         $item->save();
 
         return redirect(route('admin.supplier.index'))->with('success', __("messages.$message", ['name' => $item->name]));
