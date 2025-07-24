@@ -16,10 +16,10 @@ return new class extends Migration
             $table->id();
             $table->string('name', 40)->unique();
             $table->enum('type', array_keys(FinanceAccount::Types));
-            $table->string('bank', 40)->nullable();
-            $table->string('number', 20)->nullable();
-            $table->string('holder', 100)->nullable();
-            $table->decimal('balance', 15, 0);
+            $table->string('bank', 40)->default('');
+            $table->string('number', 20)->default('');
+            $table->string('holder', 100)->default('');
+            $table->decimal('balance', 15, 0)->default(0.);
             $table->boolean('active')->default(true);
             $table->text('notes')->nullable();
 

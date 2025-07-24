@@ -18,15 +18,15 @@ return new class extends Migration
             $table->unsignedBigInteger('product_id');
             $table->string('product_name', 255)->default('');
 
-            $table->decimal('old_quantity', 10, 2)->nullable()->default(0);
-            $table->decimal('new_quantity', 10, 2)->nullable()->default(0);
-            $table->decimal('balance', 10, 2)->nullable()->default(0);
+            $table->decimal('old_quantity', 10, 2)->default(0.);
+            $table->decimal('new_quantity', 10, 2)->default(0.);
+            $table->decimal('balance', 10, 2)->default(0.);
 
             $table->string('uom', 100)->default('');
-            $table->decimal('cost', 10, 2)->nullable()->default(0);
-            $table->decimal('subtotal_cost', 10, 2)->nullable()->default(0);
-            $table->decimal('price', 10, 2)->nullable()->default(0);
-            $table->decimal('subtotal_price', 10, 2)->nullable()->default(0);
+            $table->decimal('cost', 10, 2)->default(0.);
+            $table->decimal('subtotal_cost', 10, 2)->default(0.);
+            $table->decimal('price', 10, 2)->default(0.);
+            $table->decimal('subtotal_price', 10, 2)->default(0.);
             $table->text('notes')->nullable();
 
             $table->foreign('product_id')->references('id')->on('products')->onDelete('restrict');

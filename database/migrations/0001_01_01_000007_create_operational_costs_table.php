@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('category_id')->nullable();
             $table->date('date');
-            $table->string('description', 100);
+            $table->string('description', 100)->default('');
             $table->decimal('amount', 8, 0)->default(0.);
             $table->text('notes');
             $table->datetime('created_datetime')->nullable();

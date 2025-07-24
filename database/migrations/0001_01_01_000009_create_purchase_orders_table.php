@@ -23,8 +23,8 @@ return new class extends Migration
 
             $table->datetime('datetime');
             $table->date('due_date')->nullable();
-            $table->decimal('total', 18, 2)->default(0);
-            $table->decimal('total_paid', 18, 2)->default(0);
+            $table->decimal('total', 18, 2)->default(0.);
+            $table->decimal('total_paid', 18, 2)->default(0.);
             $table->text('notes')->nullable();
 
             $table->datetime('created_datetime')->nullable();

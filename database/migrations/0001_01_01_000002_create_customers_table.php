@@ -16,9 +16,9 @@ return new class extends Migration
             $table->string('nis', 40)->unique();
             $table->string('name', 255);
             $table->string('parent_name', 255)->default('');
-            $table->string('phone', 100);
-            $table->string('address', 200);
-            $table->decimal('balance', 15, 0);
+            $table->string('phone', 100)->default('');
+            $table->string('address', 200)->default('');
+            $table->decimal('balance', 15, 0)->default(0.);
             $table->boolean('active')->default(true);
 
             $table->string('password');
@@ -58,6 +58,6 @@ return new class extends Migration
     {
         Schema::dropIfExists('customer_sessions');
         Schema::dropIfExists('customer_password_reset_tokens');
-        Schema::dropIfExists('customers');        
+        Schema::dropIfExists('customers');
     }
 };

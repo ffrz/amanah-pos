@@ -18,7 +18,7 @@ return new class extends Migration
             $table->nullableMorphs('ref');
             $table->datetime('datetime')->nullable();
             $table->enum('type', array_keys(FinanceTransaction::Types));
-            $table->decimal('amount', 12, 2);
+            $table->decimal('amount', 12, 2)->default(0.);
             $table->text('notes')->nullable();
 
             $table->datetime('created_datetime')->nullable();

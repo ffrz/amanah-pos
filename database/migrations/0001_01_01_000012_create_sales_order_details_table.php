@@ -16,13 +16,13 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('parent_id')->nullable();
             $table->unsignedBigInteger('product_id')->nullable();
-            $table->string('product_name', 100);
-            $table->string('uom', 40);
-            $table->decimal('quantity', 18, 2);
-            $table->decimal('cost', 18, 2);
-            $table->decimal('price', 18, 2);
-            $table->decimal('subtotal_cost', 18, 2);
-            $table->decimal('subtotal_price', 18, 2);
+            $table->string('product_name', 100)->default('');
+            $table->string('uom', 40)->default('');
+            $table->decimal('quantity', 18, 2)->default(0.);
+            $table->decimal('cost', 18, 2)->default(0.);
+            $table->decimal('price', 18, 2)->default(0.);
+            $table->decimal('subtotal_cost', 18, 2)->default(0.);
+            $table->decimal('subtotal_price', 18, 2)->default(0.);
             $table->string('notes', 100)->nullable();
 
             $table->datetime('created_datetime')->nullable();

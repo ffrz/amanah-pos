@@ -18,10 +18,10 @@ return new class extends Migration
             $table->foreignId('product_id')->nullable()->constrained('products')->nullOnDelete();
 
             $table->string('product_name', 100);
-            $table->string('uom', 40);
-            $table->decimal('quantity', 18, 2)->default(0);
-            $table->decimal('cost', 18, 2)->default(0);
-            $table->decimal('subtotal_cost', 18, 2)->default(0);
+            $table->string('uom', 40)->default('');
+            $table->decimal('quantity', 18, 2)->default(0.);
+            $table->decimal('cost', 18, 2)->default(0.);
+            $table->decimal('subtotal_cost', 18, 2)->default(0.);
             $table->string('notes', 100)->nullable();
 
             $table->index(['parent_id']);
