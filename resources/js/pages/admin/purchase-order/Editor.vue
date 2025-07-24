@@ -1,7 +1,11 @@
 <script setup>
 import { router, useForm, usePage } from "@inertiajs/vue3";
 import { handleSubmit } from "@/helpers/client-req-handler";
-import { create_options, scrollToFirstErrorField } from "@/helpers/utils";
+import {
+  create_options,
+  formatNumber,
+  scrollToFirstErrorField,
+} from "@/helpers/utils";
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
 import DateTimePicker from "@/components/DateTimePicker.vue";
 import { ref, computed, onMounted, onUnmounted, nextTick } from "vue";
@@ -109,21 +113,17 @@ const subtotal = computed(() => {
 });
 
 // Methods
-const formatCurrency = (number) => {
-  return new Intl.NumberFormat("id-ID").format(number || 0);
-};
 
 const addItem = async () => {
   if (!barcode.value.trim()) {
     $q.notify({
       message: "Silakan masukkan barcode",
       color: "warning",
-      position: "top",
+      position: "bottom",
     });
     return;
   }
 
-  // TODO: cek format input, bolehkan dengan format QTY*KODE*HARGA atau QTY*KODE atau KODE saja
   let inputQuantity = 1;
   let inputBarcode = barcode.value.trim();
   let inputPrice = null; // Akan digunakan jika harga disediakan dalam input
@@ -141,7 +141,7 @@ const addItem = async () => {
       $q.notify({
         message: "Kuantitas tidak valid. Menggunakan default 1.",
         color: "warning",
-        position: "top",
+        position: "bottom",
       });
     }
 
@@ -152,7 +152,7 @@ const addItem = async () => {
       $q.notify({
         message: "Harga tidak valid. Menggunakan harga produk default.",
         color: "warning",
-        position: "top",
+        position: "bottom",
       });
     }
 
@@ -166,7 +166,7 @@ const addItem = async () => {
       $q.notify({
         message: "Kuantitas tidak valid. Menggunakan default 1.",
         color: "warning",
-        position: "top",
+        position: "bottom",
       });
     }
     inputBarcode = parts[1]; // Kode produk ada di bagian akhir
@@ -184,7 +184,7 @@ const addItem = async () => {
     $q.notify({
       message: `Quantity ${form.items[existingItemIndex].name} bertambah ${inputQuantity}`,
       color: "positive",
-      position: "top",
+      position: "bottom",
     });
   } else {
     isProcessing.value = true;
@@ -216,7 +216,7 @@ const addItem = async () => {
       $q.notify({
         message: `${newItem.name} berhasil ditambahkan`,
         color: "positive",
-        position: "top",
+        position: "bottom",
         icon: "add_shopping_cart",
       });
     } catch (error) {
@@ -224,7 +224,7 @@ const addItem = async () => {
       $q.notify({
         message: "Item tidak ditemukan atau gagal menambahkan item",
         color: "negative",
-        position: "top",
+        position: "bottom",
       });
     } finally {
       isProcessing.value = false;
@@ -253,7 +253,7 @@ const removeItem = () => {
       $q.notify({
         message: `${removedItem.name} dihapus dari keranjang`,
         color: "info",
-        position: "top",
+        position: "bottom",
         icon: "remove_shopping_cart",
       });
     }
@@ -273,7 +273,7 @@ const processPayment = () => {
     $q.notify({
       message: "Tidak ada item dalam keranjang",
       color: "warning",
-      position: "top",
+      position: "bottom",
     });
     return;
   }
@@ -291,7 +291,7 @@ const processPayment = () => {
       $q.notify({
         message: "Transaksi berhasil disimpan",
         color: "positive",
-        position: "top",
+        position: "bottom",
         icon: "check_circle",
       });
       // Reset form
@@ -315,7 +315,7 @@ const clearTransaction = () => {
     $q.notify({
       message: "Transaksi dibersihkan",
       color: "info",
-      position: "top",
+      position: "bottom",
     });
   });
 };
@@ -339,12 +339,12 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <i-head title="Kasir POS - AMANAH" />
+  <i-head title="Order Pembelian" />
   <authenticated-layout>
-    <template #title>Kasir POS - AMANAH</template>
+    <template #title>Order Pembelian</template>
     <q-page class="bg-grey-2 q-pa-sm column fit">
       <q-card square flat bordered class="full-width col column">
-        <q-card-section class="row items-center q-pa-md">
+        <div class="row items-center q-px-md q-py-xs">
           <div class="col-4">
             <div class="text-bold">
               Info Supplier
@@ -358,12 +358,24 @@ onUnmounted(() => {
                 @click="showSupplierEditor = true"
               />
             </div>
-            <div class="text-grey-8">Supplier belum ditetapkan</div>
+            <div class="text-grey-8 text-italic">Supplier belum dipilih.</div>
           </div>
 
           <div class="col-4">
             <div class="text-h6 text-weight-bold text-grey-8 text-center">
-              {{ $config.APP_NAME }}
+              {{ page.props.company.name }}
+            </div>
+            <div
+              v-if="page.props.company.address"
+              class="text-subtitle2 text-weight-bold text-grey-8 text-center"
+            >
+              {{ page.props.company.address }}
+            </div>
+            <div
+              v-if="page.props.company.phone"
+              class="text-subtitle2 text-weight-bold text-grey-8 text-center"
+            >
+              {{ page.props.company.phone }}
             </div>
           </div>
 
@@ -378,11 +390,12 @@ onUnmounted(() => {
               </div>
             </div>
           </div>
-        </q-card-section>
+        </div>
 
         <div class="row col **grow**">
           <div class="col-8 q-pa-sm column">
             <q-table
+              dense
               :rows="form.items"
               :columns="columns"
               row-key="id"
@@ -408,21 +421,6 @@ onUnmounted(() => {
                     {{ col.label }}
                   </q-th>
                 </q-tr>
-              </template>
-
-              <template v-slot:no-data="{ message }">
-                <div
-                  class="full-width row flex-center text-grey-5 q-gutter-sm"
-                  style="min-height: 400px"
-                >
-                  <q-icon size="3em" name="shopping_cart" />
-                  <div class="text-center">
-                    <div class="text-subtitle1">{{ message }}</div>
-                    <div class="text-caption">
-                      Scan barcode untuk menambah item
-                    </div>
-                  </div>
-                </div>
               </template>
 
               <template v-slot:body="props">
@@ -456,7 +454,7 @@ onUnmounted(() => {
                   <q-td key="subtotal" :props="props" class="text-center">
                     <div class="text-weight-bold text-primary">
                       Rp.
-                      {{ formatCurrency(props.row.price * props.row.quantity) }}
+                      {{ formatNumber(props.row.price * props.row.quantity) }}
                     </div>
                   </q-td>
                   <q-td key="action" :props="props" class="text-center">
@@ -519,11 +517,12 @@ onUnmounted(() => {
           </div>
 
           <div class="col-4 q-pa-sm">
-            <div class="row items-center justify-end q-gutter-sm">
-              <q-icon name="receipt" color="primary" />
-              <span class="text-weight-bold text-grey-8">SUBTOTAL:</span>
-              <span class="text-h6 text-weight-bold text-primary">
-                Rp. {{ formatCurrency(subtotal) }}
+            <div class="row justify-end q-gutter-sm">
+              <span class="text-weight-bold text-grey-8"
+                >GRAND TOTAL: Rp.
+              </span>
+              <span class="text-h4 text-weight-bold text-primary">
+                {{ formatNumber(subtotal) }}
               </span>
             </div>
             <div class="text-caption text-grey-6 q-mt-xs text-right">
