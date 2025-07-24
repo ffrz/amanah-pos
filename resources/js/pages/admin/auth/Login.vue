@@ -1,11 +1,13 @@
 <script setup>
 import { handleSubmit } from "@/helpers/client-req-handler";
-import { useForm } from "@inertiajs/vue3";
+import { useForm, usePage } from "@inertiajs/vue3";
 import { ref } from "vue";
 
+const page = usePage();
+
 let form = useForm({
-  username: "admin",
-  password: "12345",
+  username: page.props.data.username,
+  password: page.props.data.password,
   remember: true,
 });
 

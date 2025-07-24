@@ -36,7 +36,7 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'company' => [
-                'name' => Setting::value('company_name', env('APP_DISPLAY_NAME', 'Koperasiku')),
+                'name' => Setting::value('company_name', env('APP_NAME', 'Koperasiku')),
             ],
             'auth' => [
                 'user' => $user ? [
