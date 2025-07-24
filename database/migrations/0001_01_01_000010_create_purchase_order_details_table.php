@@ -19,7 +19,7 @@ return new class extends Migration
 
             $table->string('product_name', 100);
             $table->string('uom', 40)->default('');
-            $table->decimal('quantity', 18, 2)->default(0.);
+            $table->decimal('quantity', 18, 3)->default(0.);
             $table->decimal('cost', 18, 2)->default(0.);
             $table->decimal('subtotal_cost', 18, 2)->default(0.);
             $table->string('notes', 100)->nullable();

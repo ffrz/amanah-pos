@@ -52,7 +52,7 @@ class Customer extends Authenticatable
             'parent_name' => 'string',
             'phone' => 'string',
             'address' => 'string',
-            'balance' => 'decimal',
+            'balance' => 'decimal:2',
             'active' => 'boolean',
             'last_login_datetime' => 'datetime',
             'last_activity_description' => 'string',

@@ -26,9 +26,9 @@ return new class extends Migration
             $table->string('uom')->default('');
             $table->text('notes')->nullable();
 
-            $table->decimal('stock', 10, 2)->default(0.);
-            $table->decimal('min_stock', 10, 2)->default(0.);
-            $table->decimal('max_stock', 10, 2)->default(0.);
+            $table->decimal('stock', 10, 3)->default(0.);
+            $table->decimal('min_stock', 10, 3)->default(0.);
+            $table->decimal('max_stock', 10, 3)->default(0.);
 
             $table->datetime('created_datetime')->nullable();
             $table->datetime('updated_datetime')->nullable();

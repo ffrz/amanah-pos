@@ -20,9 +20,9 @@ class OperationalCost extends Model
     {
         return [
             'category_id' => 'integer',
-            'date' => 'date', // hanya tanggal, tanpa waktu
+            'date' => 'date',
             'description' => 'string',
-            'amount' => 'decimal',
+            'amount' => 'decimal:2',
             'notes' => 'string',
             'created_by_uid' => 'integer',
             'updated_by_uid' => 'integer',

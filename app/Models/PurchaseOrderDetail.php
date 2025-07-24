@@ -26,7 +26,7 @@ class PurchaseOrderDetail extends Model
             'parent_id'     => 'integer',
             'product_id'    => 'integer',
             'product_name'  => 'string',
-            'quantity'      => 'decimal:2',
+            'quantity'      => 'decimal:3',
             'uom'           => 'string',
             'cost'          => 'decimal:2',
             'subtotal_cost' => 'decimal:2',

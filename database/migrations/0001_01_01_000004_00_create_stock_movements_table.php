@@ -19,7 +19,7 @@ return new class extends Migration
 
             $table->unsignedBigInteger('ref_id')->nullable();
             $table->string('ref_type', 20)->default('');
-            $table->decimal('quantity', 10, 2)->default(0.);
+            $table->decimal('quantity', 10, 3)->default(0.);
 
             $table->datetime('created_datetime')->nullable();
             $table->unsignedBigInteger('created_by_uid')->nullable();

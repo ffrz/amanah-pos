@@ -44,7 +44,7 @@ class StockMovement extends Model
             'product_id'        => 'integer',
             'ref_id'            => 'integer',
             'ref_type'          => 'string',
-            'quantity'          => 'decimal',
+            'quantity'          => 'decimal:3',
             'created_datetime'  => 'datetime',
             'created_by_uid'    => 'integer',
         ];

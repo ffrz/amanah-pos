@@ -40,7 +40,7 @@ class FinanceAccount extends Model
             'number' => 'string',
             'holder' => 'string',
             'active' => 'boolean',
-            'balance' => 'decimal',
+            'balance' => 'decimal:2',
             'notes' => 'string',
             'created_by_uid' => 'integer',
             'updated_by_uid' => 'integer',

@@ -47,7 +47,7 @@ class CustomerWalletTransaction extends Model
             'finance_account_id' => 'integer',
             'datetime' => 'datetime',
             'type' => 'string',
-            'amount' => 'decimal',
+            'amount' => 'decimal:2',
             'ref_type' => 'string',
             'ref_id' => 'integer',
             'notes' => 'string',

@@ -18,9 +18,9 @@ return new class extends Migration
             $table->unsignedBigInteger('product_id');
             $table->string('product_name', 255)->default('');
 
-            $table->decimal('old_quantity', 10, 2)->default(0.);
-            $table->decimal('new_quantity', 10, 2)->default(0.);
-            $table->decimal('balance', 10, 2)->default(0.);
+            $table->decimal('old_quantity', 10, 3)->default(0.);
+            $table->decimal('new_quantity', 10, 3)->default(0.);
+            $table->decimal('balance', 10, 3)->default(0.);
 
             $table->string('uom', 100)->default('');
             $table->decimal('cost', 10, 2)->default(0.);

@@ -18,7 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('product_id')->nullable();
             $table->string('product_name', 100)->default('');
             $table->string('uom', 40)->default('');
-            $table->decimal('quantity', 18, 2)->default(0.);
+            $table->decimal('quantity', 18, 3)->default(0.);
             $table->decimal('cost', 18, 2)->default(0.);
             $table->decimal('price', 18, 2)->default(0.);
             $table->decimal('subtotal_cost', 18, 2)->default(0.);

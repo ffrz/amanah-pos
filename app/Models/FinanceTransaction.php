@@ -57,7 +57,7 @@ class FinanceTransaction extends Model
             'account_id' => 'integer',
             'datetime' => 'datetime',
             'type' => 'string',
-            'amount' => 'decimal',
+            'amount' => 'decimal:2',
             'ref_id' => 'integer',
             'ref_type' => 'string',
             'notes' => 'string',
