@@ -21,9 +21,9 @@ class CompanyProfileController extends Controller
     public function edit()
     {
         $data = [
-            'name' => Setting::value('company_name', 'Koperasiku'),
-            'phone' => Setting::value('company_phone', '-'),
-            'address' => Setting::value('company_address', '-'),
+            'name' => Setting::value('company_name', env('APP_DISPLAY_NAME', 'Koperasiku')),
+            'phone' => Setting::value('company_phone', ''),
+            'address' => Setting::value('company_address', ''),
         ];
         return inertia('admin/company-profile/Edit', compact('data'));
     }
