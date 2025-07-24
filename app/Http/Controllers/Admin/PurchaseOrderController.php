@@ -98,8 +98,6 @@ class PurchaseOrderController extends Controller
             'notes' => 'nullable|max:1000',
         ]);
 
-        $request->validate($rules);
-
         if (!$request->id) {
             $item = new PurchaseOrder();
             $message = 'purchase-order-created';
@@ -108,10 +106,9 @@ class PurchaseOrderController extends Controller
             $message = 'purchase-order-updated';
         }
 
-        $data = $request->only($fields);
-        $data['notes'] = $data['notes'] ?? '';
+        $validated['notes'] = $validated['notes'] ?? '';
 
-        $item->fill($data);
+        $item->fill($validated);
         $item->save();
 
         return redirect(route('admin.purchase-order.index'))

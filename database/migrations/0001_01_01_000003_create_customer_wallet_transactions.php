@@ -19,7 +19,7 @@ return new class extends Migration
             $table->nullableMorphs('ref');
             $table->datetime('datetime')->nullable(); // transaction date time
             $table->enum('type', array_keys(CustomerWalletTransaction::Types));
-            $table->decimal('amount', 12, 2);
+            $table->decimal('amount', 12, 2)->default(0.);
             $table->text('notes')->nullable();
 
             $table->datetime('created_datetime')->nullable();

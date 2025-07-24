@@ -3,17 +3,23 @@
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
-function allowed_roles($roles, $msg = 'FORBIDDEN', $code = 403)
+function allowed_roles(...$roles)
 {
-    if ($user = Auth::user()) {
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-
-        if (!in_array($user->role, $roles)) {
-            abort($code, $msg);
-        }
+    if (!Auth::check()) {
+        // Jika tidak ada user login, atau sesuai kebijakan Anda
+        abort(403, 'Unauthorized. Please login.');
     }
+
+    // Dapatkan user yang sedang login
+    /** @var \App\Models\User $user */
+    $user = Auth::user();
+
+    // Menggunakan Spatie untuk memeriksa apakah user memiliki salah satu dari peran yang diizinkan
+    if (!$user->hasAnyRole($roles)) {
+        abort(403, 'Unauthorized. Insufficient privileges.');
+    }
+
+    // Jika user memiliki peran yang diizinkan, lanjutkan eksekusi
 }
 
 function encrypt_id($string)
@@ -28,7 +34,7 @@ function decrypt_id($string)
 
 function wa_me_url($phone, $message = '')
 {
-    if (empty($phone) || strlen($phone) > 15 ) {
+    if (empty($phone) || strlen($phone) > 15) {
         return '#';
     }
 
@@ -158,13 +164,6 @@ function number_from_input($input)
 {
     return floatval(str_replace(',', '.', str_replace('.', '', $input)));
 }
-
-// function ensure_user_can_access($resource, $message = 'ACCESS DENIED', $code = 403)
-// {
-//     /** @disregard P1009 */
-//     if (!Auth::user()->canAccess($resource))
-//         abort($code, $message);
-// }
 
 function datetime_from_input($str)
 {

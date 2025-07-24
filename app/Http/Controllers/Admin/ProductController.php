@@ -90,7 +90,6 @@ class ProductController extends Controller
 
     public function duplicate($id)
     {
-        allowed_roles([User::Role_Admin]);
         $item = Product::findOrFail($id);
         $item->id = null;
         return inertia('admin/product/Editor', [
@@ -102,7 +101,6 @@ class ProductController extends Controller
 
     public function editor($id = 0)
     {
-        allowed_roles([User::Role_Admin]);
         $item = $id ? Product::findOrFail($id) : new Product(
             ['active' => 1, 'type' => Product::Type_Stocked]
         );
@@ -115,7 +113,7 @@ class ProductController extends Controller
 
     public function save(Request $request)
     {
-        $data = $request->validate([
+        $validated = $request->validate([
             'category_id' => [
                 'nullable',
                 Rule::exists('product_categories', 'id'),
@@ -147,22 +145,7 @@ class ProductController extends Controller
 
         $item = $request->id ? Product::findOrFail($request->id) : new Product();
 
-        $item->fill([
-            'category_id' => $data['category_id'] ?? null,
-            'supplier_id' => $data['supplier_id'] ?? null,
-            'type' => $data['type'] ?? Product::Type_Stocked,
-            'name' => $data['name'],
-            'description' => $data['description'] ?? '',
-            'barcode' => $data['barcode'] ?? '',
-            'uom' => $data['uom'] ?? '',
-            'stock' => $data['stock'] ?? 0,
-            'min_stock' => $data['min_stock'] ?? 0,
-            'max_stock' => $data['max_stock'] ?? 0,
-            'cost' => $data['cost'] ?? 0,
-            'price' => $data['price'] ?? 0,
-            'active' => $data['active'] ?? 0,
-            'notes' => $data['notes'] ?? '',
-        ]);
+        $item->fill($validated);
 
         DB::beginTransaction();
 
@@ -180,15 +163,14 @@ class ProductController extends Controller
                     'quantity' => $diff,
                 ]);
             }
-        }
-        else {
+        } else {
             StockMovement::create([
                 'ref_type' => StockMovement::RefType_InitialStock,
                 'product_id' => $item->id,
                 'quantity' => $item->stock,
             ]);
         }
-        
+
         DB::commit();
 
         $messageKey = $request->id ? 'product-updated' : 'product-created';
@@ -199,8 +181,6 @@ class ProductController extends Controller
 
     public function delete($id)
     {
-        allowed_roles([User::Role_Admin]);
-
         $item = Product::findOrFail($id);
         $item->delete();
 

@@ -40,6 +40,24 @@ class CustomerWalletTransaction extends Model
         self::Type_Adjustment => 'Penyesuaian',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'customer_id' => 'integer',
+            'finance_account_id' => 'integer',
+            'datetime' => 'datetime',
+            'type' => 'string',
+            'amount' => 'decimal:2',
+            'ref_type' => 'string',
+            'ref_id' => 'integer',
+            'notes' => 'string',
+            'created_by_uid' => 'integer',
+            'updated_by_uid' => 'integer',
+            'created_datetime' => 'datetime',
+            'updated_datetime' => 'datetime',
+        ];
+    }
+
     public function getTypeLabelAttribute()
     {
         return self::Types[$this->type] ?? '-';

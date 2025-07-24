@@ -38,6 +38,18 @@ class StockMovement extends Model
         return $this->belongsTo(User::class, 'created_by_uid');
     }
 
+    protected function casts(): array
+    {
+        return [
+            'product_id'        => 'integer',
+            'ref_id'            => 'integer',
+            'ref_type'          => 'string',
+            'quantity'          => 'decimal:3',
+            'created_datetime'  => 'datetime',
+            'created_by_uid'    => 'integer',
+        ];
+    }
+
     // hasil penyederhanaan, ini jadi tidak diperlukan
     // Define the ref relationship dynamically based on ref_type and ref_id
     // public function ref()
@@ -66,12 +78,12 @@ class StockMovement extends Model
         switch ($this->ref_detail_type) {
             case 'sales_order_detail':
                 return $this->belongsTo(SalesOrderDetail::class, 'ref_detail_id');
-            case 'sales_order_return_detail':
-                return $this->belongsTo(SalesOrderReturnDetail::class, 'ref_detail_id');
+                // case 'sales_order_return_detail':
+                //     return $this->belongsTo(SalesOrderReturnDetail::class, 'ref_detail_id');
             case 'purchase_order_detail':
                 return $this->belongsTo(PurchaseOrderDetail::class, 'ref_detail_id');
-            case 'purchase_order_return_detail':
-                return $this->belongsTo(PurchaseOrderReturnDetail::class, 'ref_detail_id');
+                // case 'purchase_order_return_detail':
+                //     return $this->belongsTo(PurchaseOrderReturnDetail::class, 'ref_detail_id');
             case 'stock_adjustment_detail':
                 return $this->belongsTo(StockAdjustmentDetail::class, 'ref_detail_id');
             default:

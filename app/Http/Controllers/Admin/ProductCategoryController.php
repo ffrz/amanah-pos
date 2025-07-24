@@ -39,7 +39,6 @@ class ProductCategoryController extends Controller
 
     public function duplicate($id)
     {
-        allowed_roles([User::Role_Admin]);
         $item = ProductCategory::findOrFail($id);
         $item->id = null;
         return inertia('admin/product-category/Editor', [
@@ -49,7 +48,6 @@ class ProductCategoryController extends Controller
 
     public function editor($id = 0)
     {
-        allowed_roles([User::Role_Admin]);
         $item = $id ? ProductCategory::findOrFail($id) : new ProductCategory();
         return inertia('admin/product-category/Editor', [
             'data' => $item,
@@ -69,24 +67,18 @@ class ProductCategoryController extends Controller
             'description' => 'nullable|max:1000',
         ]);
 
-        $item->fill([
-            'name' => $validated['name'],
-            'description' => $validated['description'] ?? '',
-        ]);
+        $validated['description'] = $validated['description'] ? $validated['description'] : '';
 
+        $item->fill($validated);
         $item->save();
-
-        $messageKey = $request->id ? 'product-category-updated' : 'product-category-created';
 
         return redirect()
             ->route('admin.product-category.index')
-            ->with('success', __("messages.$messageKey", ['name' => $item->name]));
+            ->with('success', "Kategori $item->name telah disimpan.");
     }
 
     public function delete($id)
     {
-        allowed_roles([User::Role_Admin]);
-
         $item = ProductCategory::findOrFail($id);
         $item->delete();
 

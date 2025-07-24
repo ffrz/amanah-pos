@@ -11,6 +11,7 @@ import {
   create_year_options,
 } from "@/helpers/utils";
 import { useQuasar } from "quasar";
+import dayjs from "dayjs";
 
 const title = "Biaya Operasional";
 const page = usePage();
@@ -229,7 +230,7 @@ watch(
             <q-td key="date" :props="props" class="wrap-column">
               <div class="flex items-center q-gutter-xs">
                 <q-icon name="calendar_today" />
-                <div>{{ props.row.date }}</div>
+                <div>{{ dayjs(props.row.date).format("DD/MM/YYYY") }}</div>
               </div>
               <template v-if="!$q.screen.gt.sm">
                 <div><q-icon name="notes" /> {{ props.row.description }}</div>

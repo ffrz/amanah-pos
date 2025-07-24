@@ -14,17 +14,17 @@ return new class extends Migration
         Schema::create('suppliers', function (Blueprint $table) {
             $table->id();
             $table->string('name', 100);
-            $table->string('phone', 100);
-            $table->string('bank_account_number', 40)->nullable()->default('');
-            $table->string('address', 200)->nullable()->default('');
-            $table->string('return_address', 200)->nullable()->default('');
+            $table->string('phone', 100)->default('');
+            $table->string('bank_account_number', 40)->default('');
+            $table->string('address', 200)->default('');
+            $table->string('return_address', 200)->default('');
             $table->boolean('active')->default(true);
 
             $table->datetime('created_datetime')->nullable();
             $table->datetime('updated_datetime')->nullable();
             $table->unsignedBigInteger('created_by_uid')->nullable();
             $table->unsignedBigInteger('updated_by_uid')->nullable();
-            
+
             $table->foreign('created_by_uid')->references('id')->on('users')->onDelete('set null');
             $table->foreign('updated_by_uid')->references('id')->on('users')->onDelete('set null');
         });

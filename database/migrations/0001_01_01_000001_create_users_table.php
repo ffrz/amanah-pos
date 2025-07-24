@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('username');
             $table->string('name');
             $table->string('password');
-            $table->enum('role', array_keys(User::Roles));
+            $table->enum('role', array_keys(User::Roles));  // TODO: remove jika sudah integrasi full pakai spatie laravel
             $table->boolean('active')->default(false);
             $table->datetime('last_login_datetime')->nullable();
             $table->string('last_activity_description')->default('');

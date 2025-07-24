@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
@@ -83,43 +84,43 @@ class UserController extends Controller
 
     public function save(Request $request)
     {
+        $isNew = empty($request->id);
+        $password = $request->get('password');
+
         $rules = [
-            'name' => 'required|max:255',
-            'password' => 'required|min:5|max:40',
-            'role' => 'required',
+            'name'     => 'required|max:255',
+            'role'     => 'required',
+            'username' => [
+                'required',
+                'alpha_num',
+                'max:255',
+                Rule::unique('users', 'username')->ignore($request->id),
+            ],
         ];
 
-        $user = null;
-        $message = '';
-        $fields = ['name', 'username', 'role', 'active'];
-        $password = $request->get('password');
-        if (!$request->id) {
-            // username harus unik
-            $rules['username'] = "required|alpha_num|max:255|unique:users,username,NULL,id";
-            $request->validate($rules);
-            $user = new User();
-        } else {
-            // username harus unik, exclude id
-            $rules['username'] = "required|alpha_num|max:255|unique:users,username,{$request->id},id";
-            if (empty($request->get('password'))) {
-                // kalau password tidak diisi, skip validation dan jangan update password
-                unset($rules['password']);
-                unset($fields['password']);
-            }
-            $request->validate($rules);
-            $user = User::findOrFail($request->id);
+        if ($isNew || !empty($password)) {
+            $rules['password'] = 'required|min:5|max:40';
         }
+
+        $request->validate($rules);
+
+        $user = $isNew ? new User() : User::findOrFail($request->id);
+
+        $fields = ['name', 'username', 'role', 'active'];
+        $user->fill($request->only($fields));
 
         if (!empty($password)) {
             $user->password = Hash::make($password);
         }
-        $user->fill($request->only($fields));
+
         $user->save();
 
-        $message = "Pengguna {$user->username} telah " . ($request->id ? 'diperbarui' : 'ditambahkan') . '.';
+        $action = $isNew ? 'ditambahkan' : 'diperbarui';
+        $message = "Pengguna {$user->username} telah {$action}.";
 
         return redirect(route('admin.user.index'))->with('success', $message);
     }
+
 
     public function delete($id)
     {

@@ -51,6 +51,33 @@ class Product extends Model
         self::Type_Composite => 'Komposit',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'product_id'   => 'integer',
+            'product_name' => 'string',
+            'category_id'  => 'integer',
+            'supplier_id'  => 'integer',
+            'name'         => 'string',
+            'barcode'      => 'string',
+            'description'  => 'string',
+            'active'       => 'boolean',
+            'type'         => 'string',
+            'cost'         => 'decimal:2',
+            'price'        => 'decimal:2',
+            'uom'          => 'string',
+            'stock'        => 'decimal:3',
+            'min_stock'    => 'decimal:3',
+            'max_stock'    => 'decimal:3',
+            'notes'        => 'string',
+            'created_by_uid' => 'integer',
+            'updated_by_uid' => 'integer',
+            'created_datetime' => 'datetime',
+            'updated_datetime' => 'datetime',
+        ];
+    }
+
+
     /**
      * Get the category for the product.
      */

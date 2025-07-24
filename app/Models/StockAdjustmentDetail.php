@@ -19,6 +19,25 @@ class StockAdjustmentDetail extends Model
         'notes',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'parent_id'       => 'integer',
+            'product_id'      => 'integer',
+            'product_name'    => 'string',
+            'old_quantity'    => 'decimal:3',
+            'new_quantity'    => 'decimal:3',
+            'balance'         => 'decimal:3',
+            'uom'             => 'string',
+            'cost'            => 'decimal:2',
+            'price'           => 'decimal:2',
+            'subtotal_cost'   => 'decimal:2',
+            'subtotal_price'  => 'decimal:2',
+            'notes'           => 'string',
+        ];
+    }
+
+
     public function parent()
     {
         return $this->belongsTo(StockAdjustment::class, 'parent_id');

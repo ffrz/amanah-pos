@@ -18,8 +18,8 @@ return new class extends Migration
             $table->unsignedBigInteger('product_id');
 
             $table->unsignedBigInteger('ref_id')->nullable();
-            $table->string('ref_type', 20)->nullable();
-            $table->decimal('quantity', 10, 2)->nullable()->default(0); 
+            $table->string('ref_type', 20)->default('');
+            $table->decimal('quantity', 10, 3)->default(0.);
 
             $table->datetime('created_datetime')->nullable();
             $table->unsignedBigInteger('created_by_uid')->nullable();

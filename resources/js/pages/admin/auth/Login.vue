@@ -1,18 +1,18 @@
 <script setup>
 import { handleSubmit } from "@/helpers/client-req-handler";
-import { useForm } from "@inertiajs/vue3";
+import { useForm, usePage } from "@inertiajs/vue3";
 import { ref } from "vue";
 
+const page = usePage();
 
 let form = useForm({
-  username: "admin",
-  password: "12345",
+  username: page.props.data.username,
+  password: page.props.data.password,
   remember: true,
 });
 
-const submit = () => handleSubmit({ form, url: route('admin.auth.login') });
+const submit = () => handleSubmit({ form, url: route("admin.auth.login") });
 const showPassword = ref(false);
-
 </script>
 
 <template>
@@ -27,17 +27,35 @@ const showPassword = ref(false);
                 <h5 class="q-my-sm text-center">Masuk</h5>
               </q-card-section>
               <q-card-section>
-                <q-input v-model.trim="form.username" label="ID Pengguna" lazy-rules
-                  :error="!!form.errors.username" autocomplete="username" :error-message="form.errors.username"
-                  :disable="form.processing" :rules="[(val) => (val && val.length > 0) || 'Masukkan ID Pengguna',]">
+                <q-input
+                  v-model.trim="form.username"
+                  label="ID Pengguna"
+                  lazy-rules
+                  autocomplete="username"
+                  :error="!!form.errors.username"
+                  :error-message="form.errors.username"
+                  :disable="form.processing"
+                  :rules="[
+                    (val) => (val && val.length > 0) || 'Masukkan ID Pengguna',
+                  ]"
+                >
                   <template v-slot:append>
                     <q-icon name="person" />
                   </template>
                 </q-input>
-                <q-input v-model="form.password" :type="showPassword ? 'text' : 'password'" label="Kata Sandi"
-                  :error="!!form.errors.password" autocomplete="current-password" :error-message="form.errors.password"
-                  lazy-rules :disable="form.processing"
-                  :rules="[(val) => (val && val.length > 0) || 'Masukkan kata sandi',]">
+                <q-input
+                  v-model="form.password"
+                  :type="showPassword ? 'text' : 'password'"
+                  label="Kata Sandi"
+                  :error="!!form.errors.password"
+                  autocomplete="current-password"
+                  :error-message="form.errors.password"
+                  lazy-rules
+                  :disable="form.processing"
+                  :rules="[
+                    (val) => (val && val.length > 0) || 'Masukkan kata sandi',
+                  ]"
+                >
                   <template v-slot:append>
                     <q-btn
                       dense
@@ -48,14 +66,24 @@ const showPassword = ref(false);
                     /></q-btn>
                   </template>
                 </q-input>
-                <q-checkbox class="q-mt-sm q-pl-none" style="margin-left: -10px;" v-model="form.remember"
-                  :disable="form.processing" label="Ingat saya di perangkat ini" />
+                <q-checkbox
+                  class="q-mt-sm q-pl-none"
+                  style="margin-left: -10px"
+                  v-model="form.remember"
+                  :disable="form.processing"
+                  label="Ingat saya di perangkat ini"
+                />
               </q-card-section>
               <q-card-actions>
-                <q-btn icon="login" type="submit" color="primary" class="full-width" label="Login"
-                  :disable="form.processing" />
+                <q-btn
+                  icon="login"
+                  type="submit"
+                  color="primary"
+                  class="full-width"
+                  label="Login"
+                  :disable="form.processing"
+                />
               </q-card-actions>
-              
             </q-card>
           </q-form>
         </div>

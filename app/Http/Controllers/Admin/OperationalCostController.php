@@ -84,36 +84,21 @@ class OperationalCostController extends Controller
 
     public function save(Request $request)
     {
-        $rules = [
+        $validated = $request->validate([
             'date' => 'required|date',
             'category_id' => 'nullable',
             'description' => 'required|max:255',
             'amount' => 'required|numeric|gt:0',
             'notes' => 'nullable|max:1000',
-        ];
+        ]);
 
-        $item = null;
-        $message = '';
-        $fields = ['date', 'description', 'amount', 'notes', 'category_id'];
-
-        $request->validate($rules);
-
-        if (!$request->id) {
-            $item = new OperationalCost();
-            $message = 'operational-cost-created';
-        } else {
-            $item = OperationalCost::findOrFail($request->post('id', 0));
-            $message = 'operational-cost-updated';
-        }
-
-        $data = $request->only($fields);
-        $data['notes'] = $data['notes'] ?? '';
-
-        $item->fill($data);
+        $item = $request->id ? OperationalCost::findOrFail($request->post('id', 0)) : new OperationalCost();
+        $validated['notes'] = $validated['notes'] ?? '';
+        $item->fill($validated);
         $item->save();
 
         return redirect(route('admin.operational-cost.index'))
-            ->with('success', __("messages.$message", ['description' => $item->description]));
+            ->with('success', "Biaya $item->description telah disimpan.");
     }
 
     public function delete($id)

@@ -21,9 +21,9 @@ return new class extends Migration
             $table->enum('delivery_status', array_keys(SalesOrder::DeliveryStatuses))->default(SalesOrder::DeliveryStatus_NotSent);
             $table->datetime('datetime');
             $table->date('due_date')->nullable();
-            $table->decimal('total_cost', 18, 2);
-            $table->decimal('total_price', 18, 2);
-            $table->decimal('total_paid', 18, 2);
+            $table->decimal('total_cost', 18, 2)->default(0.);
+            $table->decimal('total_price', 18, 2)->default(0.);
+            $table->decimal('total_paid', 18, 2)->default(0.);
             $table->text('notes')->nullable();
 
             $table->datetime('created_datetime')->nullable();

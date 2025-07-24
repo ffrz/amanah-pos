@@ -20,8 +20,8 @@ return new class extends Migration
             $table->enum('status', array_keys(StockAdjustment::Statuses))->default(StockAdjustment::Status_Draft);
             $table->enum('type', array_keys(StockAdjustment::Types))->default(StockAdjustment::Type_StockCorrection);
             $table->text('notes')->nullable();
-            $table->decimal('total_cost', 15, 4)->nullable();
-            $table->decimal('total_price', 15, 4)->nullable();
+            $table->decimal('total_cost', 15, 2)->default(0.);
+            $table->decimal('total_price', 15, 2)->default(0.);
 
             $table->datetime('created_datetime')->nullable();
             $table->datetime('updated_datetime')->nullable();

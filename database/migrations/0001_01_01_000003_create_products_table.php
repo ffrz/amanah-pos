@@ -17,18 +17,18 @@ return new class extends Migration
             $table->unsignedBigInteger('category_id')->nullable();
             $table->unsignedBigInteger('supplier_id')->nullable();
             $table->string('name', 100);
-            $table->string('barcode', 255)->nullable();
-            $table->text('description')->nullable(false);
-            $table->enum('type', array_keys(Product::Types))->nullable();
+            $table->string('barcode', 255)->default('');
+            $table->text('description')->nullable();
+            $table->enum('type', array_keys(Product::Types))->default(Product::Type_NonStocked);
             $table->boolean('active')->default(true);
-            $table->decimal('cost',  10, 2)->default(0);
-            $table->decimal('price', 10, 2)->default(0);
+            $table->decimal('cost',  10, 2)->default(0.);
+            $table->decimal('price', 10, 2)->default(0.);
             $table->string('uom')->default('');
-            $table->text('notes')->nullable(false);
+            $table->text('notes')->nullable();
 
-            $table->decimal('stock', 10, 2)->default(0);
-            $table->decimal('min_stock', 10, 2)->default(0);
-            $table->decimal('max_stock', 10, 2)->default(0);
+            $table->decimal('stock', 10, 3)->default(0.);
+            $table->decimal('min_stock', 10, 3)->default(0.);
+            $table->decimal('max_stock', 10, 3)->default(0.);
 
             $table->datetime('created_datetime')->nullable();
             $table->datetime('updated_datetime')->nullable();

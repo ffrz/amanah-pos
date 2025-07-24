@@ -21,8 +21,8 @@ const title = "Rincian Pengguna";
               <table class="detail">
                 <tbody>
                   <tr>
-                    <td style="width:125px;">ID Pengguna</td>
-                    <td style="width:1px;">:</td>
+                    <td style="width: 125px">ID Pengguna</td>
+                    <td style="width: 1px">:</td>
                     <td>{{ page.props.data.username }}</td>
                   </tr>
                   <tr>
@@ -40,7 +40,7 @@ const title = "Rincian Pengguna";
                     <td>:</td>
                     <td>
                       {{
-                        $dayjs(new Date(page.props.data.created_at)).format(
+                        $dayjs(page.props.data.created_datetime).format(
                           "DD MMMM YY HH:mm:ss"
                         )
                       }}
@@ -51,7 +51,7 @@ const title = "Rincian Pengguna";
                     <td>:</td>
                     <td>
                       {{
-                        $dayjs(new Date(page.props.data.updated_at)).format(
+                        $dayjs(page.props.data.updated_datetime).format(
                           "DD MMMM YY HH:mm:ss"
                         )
                       }}
@@ -61,11 +61,12 @@ const title = "Rincian Pengguna";
                     <td>Terakhir login</td>
                     <td>:</td>
                     <td>
-                      {{ page.props.data.last_login_datetime ?
-                        $dayjs(
-                          new Date(page.props.data.last_login_datetime)
-                        ).format("DD MMMM YY HH:mm:ss")
-                        : "Belum pernah login"
+                      {{
+                        page.props.data.last_login_datetime
+                          ? $dayjs(page.props.data.last_login_datetime).format(
+                              "DD MMMM YYYY HH:mm:ss"
+                            )
+                          : "Belum pernah login"
                       }}
                     </td>
                   </tr>
@@ -74,9 +75,9 @@ const title = "Rincian Pengguna";
                     <td>:</td>
                     <td>
                       {{
-                        $dayjs(
-                          new Date(page.props.data.last_activity_datetime)
-                        ).format("DD MMMM YY HH:mm:ss")
+                        $dayjs(page.props.data.last_activity_datetime).format(
+                          "DD MMMM YYYY HH:mm:ss"
+                        )
                       }}
                       <br />{{ page.props.data.last_activity_description }}
                     </td>

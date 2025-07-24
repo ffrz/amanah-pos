@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
@@ -21,7 +22,7 @@ class User extends Authenticatable
     ];
 
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -33,7 +34,7 @@ class User extends Authenticatable
         'username',
         'active',
         'password',
-        'role',
+        'role',  // TODO: remove jika sudah integrasi full pakai spatie laravel
         'last_login_datetime',
         'last_activity_description',
         'last_activity_datetime'
@@ -57,7 +58,14 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'password' => 'hashed',
+            'password'                  => 'hashed',
+            'name'                      => 'string',
+            'username'                  => 'string',
+            'active'                    => 'boolean',
+            'role'                      => 'string',
+            'last_login_datetime'       => 'datetime',
+            'last_activity_description' => 'string',
+            'last_activity_datetime'    => 'datetime',
         ];
     }
 

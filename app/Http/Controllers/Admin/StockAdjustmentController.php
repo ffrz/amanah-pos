@@ -139,15 +139,14 @@ class StockAdjustmentController extends Controller
 
     public function save(Request $request)
     {
-        $rules = [
+        $validated = $request->validate([
             'datetime' => ['required', 'date'], // atau gunakan: 'date_format:Y-m-d H:i:s'
             'type' => [
                 'required',
                 Rule::in(array_keys(StockAdjustment::Types)),
             ],
             'notes' => 'nullable|string|max:1000',
-        ];
-        $validated = $request->validate($rules);
+        ]);
 
         $item = StockAdjustment::findOrFail($request->id);
         $item->fill($validated);
