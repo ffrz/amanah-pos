@@ -27,11 +27,15 @@ const form = useForm({
 });
 
 // State untuk kasir
+const barcodeInputRef = ref();
 const barcode = ref("");
+
 const currentDateTime = ref(new Date());
 const isProcessing = ref(false);
 const showDeleteDialog = ref(false);
 const itemToDelete = ref(null);
+const showSupplierEditor = ref(false);
+
 let timeInterval = null;
 
 // Table columns untuk items
@@ -119,15 +123,66 @@ const addItem = async () => {
     return;
   }
 
+  // TODO: cek format input, bolehkan dengan format QTY*KODE*HARGA atau QTY*KODE atau KODE saja
+  let inputQuantity = 1;
+  let inputBarcode = barcode.value.trim();
+  let inputPrice = null; // Akan digunakan jika harga disediakan dalam input
+
+  const parts = inputBarcode.split("*");
+
+  if (parts.length === 3) {
+    // Format: QTY*KODE*HARGA
+    const parsedQty = parseInt(parts[0]);
+    const parsedPrice = parseFloat(parts[2]);
+
+    if (!isNaN(parsedQty) && parsedQty > 0) {
+      inputQuantity = parsedQty;
+    } else {
+      $q.notify({
+        message: "Kuantitas tidak valid. Menggunakan default 1.",
+        color: "warning",
+        position: "top",
+      });
+    }
+
+    if (!isNaN(parsedPrice) && parsedPrice >= 0) {
+      // Harga bisa 0
+      inputPrice = parsedPrice;
+    } else {
+      $q.notify({
+        message: "Harga tidak valid. Menggunakan harga produk default.",
+        color: "warning",
+        position: "top",
+      });
+    }
+
+    inputBarcode = parts[1]; // Kode produk ada di bagian tengah
+  } else if (parts.length === 2) {
+    // Format: QTY*KODE
+    const parsedQty = parseInt(parts[0]);
+    if (!isNaN(parsedQty) && parsedQty > 0) {
+      inputQuantity = parsedQty;
+    } else {
+      $q.notify({
+        message: "Kuantitas tidak valid. Menggunakan default 1.",
+        color: "warning",
+        position: "top",
+      });
+    }
+    inputBarcode = parts[1]; // Kode produk ada di bagian akhir
+  }
+  // Jika parts.length === 1, itu adalah format KODE saja,
+  // inputQuantity tetap 1 dan inputBarcode tetap nilai aslinya.
+
   // Check if item already exists
   const existingItemIndex = form.items.findIndex(
-    (item) => item.barcode === barcode.value.trim()
+    (item) => item.barcode === inputBarcode // Gunakan inputBarcode yang sudah di-parse
   );
 
   if (existingItemIndex !== -1) {
-    form.items[existingItemIndex].quantity += 1;
+    form.items[existingItemIndex].quantity += inputQuantity; // Tambahkan kuantitas yang di-parse
     $q.notify({
-      message: `Quantity ${form.items[existingItemIndex].name} bertambah`,
+      message: `Quantity ${form.items[existingItemIndex].name} bertambah ${inputQuantity}`,
       color: "positive",
       position: "top",
     });
@@ -135,15 +190,25 @@ const addItem = async () => {
     isProcessing.value = true;
 
     try {
-      // Simulate API call untuk get product by barcode
+      // Simulate API call untuk get product by barcode (gunakan inputBarcode)
       await new Promise((resolve) => setTimeout(resolve, 300));
 
+      // Asumsi API mengembalikan objek produk.
+      // Jika inputPrice disediakan, kita bisa menggunakannya, jika tidak, pakai harga dari API/default.
+      const fetchedProduct = {
+        id: Date.now(), // Ini biasanya dari backend
+        name: `Item ${inputBarcode}`, // Nama dari API
+        barcode: inputBarcode,
+        price:
+          inputPrice !== null
+            ? inputPrice
+            : Math.floor(Math.random() * 50000) + 10000, // Gunakan inputPrice jika ada, else random/default
+        // Tambahan: Jika API mengembalikan harga, Anda bisa menggunakannya di sini jika inputPrice null.
+      };
+
       const newItem = {
-        id: Date.now(),
-        name: `Item ${barcode.value}`,
-        barcode: barcode.value.trim(),
-        price: Math.floor(Math.random() * 50000) + 10000,
-        quantity: 1,
+        ...fetchedProduct, // Salin semua properti dari produk yang diambil
+        quantity: inputQuantity, // Gunakan kuantitas yang di-parse
       };
 
       form.items.push(newItem);
@@ -155,8 +220,9 @@ const addItem = async () => {
         icon: "add_shopping_cart",
       });
     } catch (error) {
+      console.error("Error fetching item:", error); // Log error untuk debugging
       $q.notify({
-        message: "Gagal menambahkan item",
+        message: "Item tidak ditemukan atau gagal menambahkan item",
         color: "negative",
         position: "top",
       });
@@ -169,12 +235,7 @@ const addItem = async () => {
   await nextTick();
 
   // Focus back to barcode input
-  const barcodeInput = document.querySelector(
-    'input[placeholder="Input Barcode"]'
-  );
-  if (barcodeInput) {
-    barcodeInput.focus();
-  }
+  barcodeInputRef.value.focus();
 };
 
 const confirmRemoveItem = (item) => {
@@ -266,12 +327,7 @@ onMounted(() => {
   }, 1000);
 
   nextTick(() => {
-    const barcodeInput = document.querySelector(
-      'input[placeholder="Input Barcode"]'
-    );
-    if (barcodeInput) {
-      barcodeInput.focus();
-    }
+    barcodeInputRef.value.focus();
   });
 });
 
@@ -286,47 +342,54 @@ onUnmounted(() => {
   <i-head title="Kasir POS - AMANAH" />
   <authenticated-layout>
     <template #title>Kasir POS - AMANAH</template>
-    <q-page class="bg-grey-2 q-pa-md">
-      <q-card class="full-width shadow-4">
-        <!-- Header -->
-        <q-card-section
-          class="row items-center justify-between q-pa-md bg-white"
-        >
-          <div class="row items-center q-gutter-md">
-            <q-chip color="grey-4" text-color="black" icon="check">
-              Info Pelanggan
-            </q-chip>
-            <div class="text-caption text-grey-6">
-              <div>Jenis Transaksi: Umum</div>
-              <div>Kasir: {{ $page.props.auth.user.name }}</div>
-              <div>Jam: {{ currentTime }}</div>
+    <q-page class="bg-grey-2 q-pa-sm column fit">
+      <q-card square flat bordered class="full-width col column">
+        <q-card-section class="row items-center q-pa-md">
+          <div class="col-4">
+            <div class="text-bold">
+              Info Supplier
+              <q-btn
+                icon="edit"
+                flat
+                rounded
+                dense
+                color="grey"
+                size="sm"
+                @click="showSupplierEditor = true"
+              />
+            </div>
+            <div class="text-grey-8">Supplier belum ditetapkan</div>
+          </div>
+
+          <div class="col-4">
+            <div class="text-h6 text-weight-bold text-grey-8 text-center">
+              {{ $config.APP_NAME }}
             </div>
           </div>
 
-          <div class="text-center">
-            <div class="text-h4 text-weight-bold text-grey-8">AMANAH</div>
-          </div>
-
-          <div class="text-right text-body2">
-            <div class="text-weight-bold">Nama: Kasir</div>
-            <div class="text-grey-6">{{ currentDate }}</div>
-            <div class="text-grey-6">{{ currentTime }}</div>
+          <div class="col-4">
+            <div class="text-right">
+              <div class="text-weight-bold">
+                {{ page.props.auth.user.username }} -
+                {{ page.props.auth.user.name }}
+              </div>
+              <div class="text-grey-6">
+                {{ currentDate }} - {{ currentTime }}
+              </div>
+            </div>
           </div>
         </q-card-section>
 
-        <q-separator />
-
-        <!-- Main Content -->
-        <div class="row no-wrap">
-          <!-- Left Side - Items Table -->
-          <div class="col q-pa-md">
+        <div class="row col **grow**">
+          <div class="col-8 q-pa-sm column">
             <q-table
               :rows="form.items"
               :columns="columns"
               row-key="id"
               flat
+              square
               bordered
-              class="bg-grey-1 pos-table"
+              class="bg-grey-1 pos-table q-pa-none col"
               :rows-per-page-options="[0]"
               hide-pagination
               :no-data-label="'Belum ada item'"
@@ -372,17 +435,18 @@ onUnmounted(() => {
                   </q-td>
                   <q-td key="price" :props="props" class="text-center">
                     <div class="text-weight-medium">
-                      Rp. {{ formatCurrency(props.row.price) }}
+                      <LocaleNumberInput
+                        :model-value="props.row.price"
+                        dense
+                        style="width: 80px; text-align: right"
+                      />
                     </div>
                   </q-td>
                   <q-td key="quantity" :props="props" class="text-center">
-                    <q-input
+                    <LocaleNumberInput
                       :model-value="props.row.quantity"
-                      type="number"
-                      min="1"
                       dense
-                      outlined
-                      style="width: 80px"
+                      style="width: 80px; text-align: right"
                       @update:model-value="
                         (val) => updateQuantity(props.row.id, val)
                       "
@@ -412,16 +476,15 @@ onUnmounted(() => {
             </q-table>
           </div>
 
-          <!-- Right Side - Promo Information -->
-          <div class="col-4 bg-grey-1 q-pa-md">
-            <q-card flat>
+          <div class="col-4 q-pa-sm column">
+            <q-card flat square bordered class="full-width col">
               <q-card-section
                 class="text-center text-weight-bold bg-grey-4 text-grey-8"
               >
                 <q-icon name="local_offer" class="q-mr-sm" />
-                Promo Information
+                Informasi Promosi
               </q-card-section>
-              <q-card-section class="bg-white" style="min-height: 400px">
+              <q-card-section class="bg-white col flex-center">
                 <div class="text-center text-grey-5 q-pt-xl">
                   <q-icon name="info" size="2em" class="q-mb-md" />
                   <div>Tidak ada promo aktif</div>
@@ -434,100 +497,72 @@ onUnmounted(() => {
           </div>
         </div>
 
-        <q-separator />
+        <div class="row">
+          <div class="col-8 q-pa-sm">
+            <q-input
+              v-model="form.notes"
+              type="textarea"
+              placeholder="Tambahkan catatan transaksi..."
+              square
+              outlined
+              class="bg-white"
+              :rows="3"
+              counter
+              maxlength="200"
+              :error="!!form.errors.notes"
+              :error-message="form.errors.notes"
+            >
+              <template v-slot:prepend>
+                <q-icon name="note" />
+              </template>
+            </q-input>
+          </div>
 
-        <!-- Bottom Section -->
-        <q-card-section class="bg-grey-1">
-          <div class="row items-end q-gutter-md">
-            <!-- Left - Note/Comment -->
-            <div class="col">
+          <div class="col-4 q-pa-sm">
+            <div class="row items-center justify-end q-gutter-sm">
+              <q-icon name="receipt" color="primary" />
+              <span class="text-weight-bold text-grey-8">SUBTOTAL:</span>
+              <span class="text-h6 text-weight-bold text-primary">
+                Rp. {{ formatCurrency(subtotal) }}
+              </span>
+            </div>
+            <div class="text-caption text-grey-6 q-mt-xs text-right">
+              {{ form.items.length }} item(s)
+            </div>
+
+            <div class="q-py-sm">
               <q-input
-                v-model="form.notes"
-                type="textarea"
-                placeholder="Tambahkan catatan transaksi..."
+                ref="barcodeInputRef"
+                v-model="barcode"
+                placeholder="<Input Barcode>"
                 outlined
-                class="bg-white"
-                :rows="3"
-                counter
-                maxlength="200"
-                :error="!!form.errors.notes"
-                :error-message="form.errors.notes"
+                square
+                class="col bg-white"
+                @keyup.enter="addItem"
+                :loading="isProcessing"
+                clearable
               >
                 <template v-slot:prepend>
-                  <q-icon name="note" />
+                  <q-icon name="qr_code_scanner" />
                 </template>
               </q-input>
             </div>
 
-            <!-- Right - Subtotal and Controls -->
-            <div class="col-auto">
-              <div class="column q-gutter-sm" style="min-width: 280px">
-                <!-- Subtotal Display -->
-                <q-card flat class="bg-white q-pa-md text-right shadow-2">
-                  <div class="row items-center justify-end q-gutter-sm">
-                    <q-icon name="receipt" color="primary" />
-                    <span class="text-weight-bold text-grey-8">SUBTOTAL:</span>
-                    <span class="text-h6 text-weight-bold text-primary">
-                      Rp. {{ formatCurrency(subtotal) }}
-                    </span>
-                  </div>
-                  <div class="text-caption text-grey-6 q-mt-xs">
-                    {{ form.items.length }} item(s)
-                  </div>
-                </q-card>
-
-                <!-- Barcode Input -->
-                <div class="row q-gutter-sm">
-                  <q-input
-                    v-model="barcode"
-                    placeholder="Input Barcode"
-                    outlined
-                    class="col bg-white"
-                    @keyup.enter="addItem"
-                    :loading="isProcessing"
-                    clearable
-                  >
-                    <template v-slot:prepend>
-                      <q-icon name="qr_code_scanner" />
-                    </template>
-                  </q-input>
-                  <q-btn
-                    label="Add"
-                    color="primary"
-                    icon="add"
-                    @click="addItem"
-                    :loading="isProcessing"
-                    :disable="!barcode.trim()"
-                  />
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="row q-gutter-sm">
-                  <q-btn
-                    label="Bayar"
-                    color="positive"
-                    icon="payment"
-                    class="col"
-                    @click="processPayment"
-                    :disable="form.items.length === 0"
-                    :loading="form.processing"
-                  />
-                  <q-btn
-                    label="Clear"
-                    color="warning"
-                    icon="clear_all"
-                    outline
-                    @click="clearTransaction"
-                    :disable="form.items.length === 0"
-                  />
-                </div>
-              </div>
+            <div class="q-py-sm">
+              <q-btn
+                class="full-width"
+                label="Bayar"
+                color="primary"
+                icon="payment"
+                @click="processPayment"
+                :disable="form.items.length === 0"
+                :loading="form.processing"
+              />
             </div>
           </div>
-        </q-card-section>
+        </div>
       </q-card>
 
-      <!-- Confirmation Dialog -->
       <q-dialog v-model="showDeleteDialog" persistent>
         <q-card>
           <q-card-section class="row items-center">
@@ -541,6 +576,35 @@ onUnmounted(() => {
               flat
               label="Hapus"
               color="negative"
+              @click="removeItem"
+              v-close-popup
+            />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
+
+      <q-dialog v-model="showSupplierEditor" persistent>
+        <q-card>
+          <q-card-section class="q-py-none q-pt-lg">
+            <div class="text-bold text-grey-8">Edit Info Supplier</div>
+          </q-card-section>
+          <q-card-section>
+            <q-input label="Nama Supplier" />
+            <q-input
+              label="Alamat"
+              type="textarea"
+              autogrow
+              counter
+              maxlength="200"
+            />
+          </q-card-section>
+
+          <q-card-actions align="right">
+            <q-btn flat label="Batal" color="primary" v-close-popup />
+            <q-btn
+              flat
+              label="Simpan"
+              color="primary"
               @click="removeItem"
               v-close-popup
             />
@@ -563,11 +627,11 @@ onUnmounted(() => {
 }
 
 .q-table tbody td {
-  padding: 12px 8px;
+  padding: 0px 8px;
 }
 
 .q-table thead th {
-  padding: 12px 8px;
+  padding: 0px 8px;
   font-weight: 600;
 }
 </style>
