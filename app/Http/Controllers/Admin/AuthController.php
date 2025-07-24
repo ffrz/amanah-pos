@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -120,8 +121,11 @@ class AuthController extends Controller
      */
     public function logout(Request $request): \Illuminate\Http\RedirectResponse
     {
+        $user = Auth::user();
         $this->_logout($request);
-        return redirect('/')->with('success', 'Anda telah logout.');
+
+        $url = $user instanceof User ? 'admin.auth.login' : 'customer.auth.login';
+        return redirect(route($url))->with('success', 'Anda telah logout.');
     }
 
     /**
