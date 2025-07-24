@@ -43,7 +43,11 @@ class HandleInertiaRequests extends Middleware
                     'id' => $user->id,
                     'name' => $user->name,
                     'username' => $user->username,
-                    'role' => $user->role,
+                    'role' => $user->role, // ini biarin aja dulu, entah dipakai atau tidak, untuk backward compatibility
+
+                    // spatie
+                    'roles' => $request->user()->getRoleNames()->toArray(),
+                    'permissions' => $request->user()->getAllPermissions()->pluck('name')->toArray(),
                 ] : null,
                 'customer' => $customer ? [
                     'id' => $customer->id,

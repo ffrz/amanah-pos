@@ -124,7 +124,7 @@ onMounted(() => {
               </q-item>
               <q-item
                 v-close-popup
-                v-if="$page.props.auth.user.role == $CONSTANTS.USER_ROLE_ADMIN"
+                v-if="$canAccess('admin.company-profile.edit')"
                 class="subnav"
                 clickable
                 v-ripple
@@ -282,6 +282,7 @@ onMounted(() => {
               </q-item-section>
             </q-item>
             <q-item
+              v-if="$canAccess('admin.product.index')"
               class="subnav"
               clickable
               v-ripple
@@ -296,6 +297,7 @@ onMounted(() => {
               </q-item-section>
             </q-item>
             <q-item
+              v-if="$canAccess('admin.product-category.index')"
               class="subnav"
               clickable
               v-ripple

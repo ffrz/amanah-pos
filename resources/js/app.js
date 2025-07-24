@@ -18,6 +18,7 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/id'; // Import the Indonesian locale
 import i18n from './i18n';
 import CustomerLayout from "./layouts/CustomerLayout.vue";
+import PermissionPlugin from './plugins/PermissionPlugin';
 
 // Set Indonesian as the global locale
 dayjs.locale('id');
@@ -40,6 +41,7 @@ createInertiaApp({
         }
       })
       .use(i18n)
+      .use(PermissionPlugin)
       .component('i-head', Head)
       .component('i-link', Link)
       .component('my-link', MyLink)
@@ -50,6 +52,7 @@ createInertiaApp({
     VueApp.config.globalProperties.$dayjs = dayjs;
     VueApp.config.globalProperties.$config = window.CONFIG;
     VueApp.config.globalProperties.$CONSTANTS = window.CONSTANTS;
+
     VueApp.mount(el);
   },
   progress: {
