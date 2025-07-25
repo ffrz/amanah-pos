@@ -17,7 +17,6 @@ class Product extends Model
      */
     protected $fillable = [
         'product_id',
-        'product_name',
         'category_id',
         'supplier_id',
         'name',
@@ -43,6 +42,10 @@ class Product extends Model
     const Type_RawMaterial = 'raw_material';
     const Type_Composite = 'composite';
 
+    /**
+     * Product types mapping.
+     * @var array
+     */
     const Types = [
         self::Type_Stocked => 'Stok',
         self::Type_NonStocked => 'Non Stok',
@@ -51,6 +54,15 @@ class Product extends Model
         self::Type_Composite => 'Komposit',
     ];
 
+    /**
+     * The attributes that should be cast to native types.
+     * @return array
+     * This method defines the data types for each attribute in the Product model.
+     * It ensures that when the model is retrieved from the database, the attributes are automatically cast
+     * to the specified types, such as integer, string, boolean, decimal, and datetime.
+     * This helps maintain data integrity and makes it easier to work with the model's attributes in
+     * a type-safe manner.
+     */
     protected function casts(): array
     {
         return [
@@ -77,9 +89,9 @@ class Product extends Model
         ];
     }
 
-
     /**
      * Get the category for the product.
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function category()
     {
@@ -88,6 +100,7 @@ class Product extends Model
 
     /**
      * Get the supplier for the product.
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function supplier()
     {
@@ -96,6 +109,7 @@ class Product extends Model
 
     /**
      * Get the author of the product.
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function createdBy()
     {
@@ -104,6 +118,7 @@ class Product extends Model
 
     /**
      * Get the updater of the product.
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function updatedBy()
     {
@@ -112,11 +127,39 @@ class Product extends Model
 
     /**
      * Get the number of active products.
+     * @return int
+     * This method retrieves the count of products that are currently active (where active = 1).
+     * It uses a raw SQL query to count the number of rows in the products table that
+     * have the active status set to 1.
+     * This is useful for quickly checking how many products are available for sale or use.
      */
     public static function activeProductCount()
     {
         return DB::select(
             'select count(0) as count from products where active = 1'
         )[0]->count;
+    }
+
+    /**
+     * Check if the product is used in any transactions.
+     * @return bool
+     * This method checks if the product is referenced in stock movements, stock adjustments, purchase orders, or sales orders.
+     * If the product is found in any of these tables, it returns true, indicating that the product is in use.
+     * Otherwise, it returns false.
+     */
+    public function isUsedInTransactions()
+    {
+        return DB::table('stock_movements')
+            ->where('product_id', $this->id)
+            ->exists()
+            || DB::table('stock_adjustment_details')
+            ->where('product_id', $this->id)
+            ->exists()
+            || DB::table('purchase_order_details')
+            ->where('product_id', $this->id)
+            ->exists()
+            || DB::table('sales_order_details')
+            ->where('product_id', $this->id)
+            ->exists();
     }
 }
