@@ -11,6 +11,7 @@ import DateTimePicker from "@/components/DateTimePicker.vue";
 import { ref, computed, onMounted, onUnmounted, nextTick } from "vue";
 import { useQuasar } from "quasar";
 import dayjs from "dayjs";
+import { useClock } from "./editor/components/useClock";
 
 const $q = useQuasar();
 const page = usePage();
@@ -33,14 +34,11 @@ const form = useForm({
 // State untuk kasir
 const barcodeInputRef = ref();
 const barcode = ref("");
-
-const currentDateTime = ref(new Date());
+const { currentDate, currentTime } = useClock();
 const isProcessing = ref(false);
 const showDeleteDialog = ref(false);
 const itemToDelete = ref(null);
 const showSupplierEditor = ref(false);
-
-let timeInterval = null;
 
 // Table columns untuk items
 const columns = [
@@ -84,24 +82,6 @@ const columns = [
     style: "width: 80px",
   },
 ];
-
-// Computed properties
-const currentDate = computed(() => {
-  return currentDateTime.value.toLocaleDateString("id-ID", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-});
-
-const currentTime = computed(() => {
-  return currentDateTime.value.toLocaleTimeString("id-ID", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false,
-  });
-});
 
 const subtotal = computed(() => {
   const total = form.items.reduce((sum, item) => {
@@ -301,40 +281,8 @@ const processPayment = () => {
   });
 };
 
-const clearTransaction = () => {
-  $q.dialog({
-    title: "Konfirmasi",
-    message: "Hapus semua item dalam transaksi?",
-    cancel: true,
-    persistent: true,
-  }).onOk(() => {
-    form.items = [];
-    form.notes = "";
-    barcode.value = "";
-
-    $q.notify({
-      message: "Transaksi dibersihkan",
-      color: "info",
-      position: "bottom",
-    });
-  });
-};
-
-// Lifecycle hooks
-onMounted(() => {
-  timeInterval = setInterval(() => {
-    currentDateTime.value = new Date();
-  }, 1000);
-
-  nextTick(() => {
-    barcodeInputRef.value.focus();
-  });
-});
-
-onUnmounted(() => {
-  if (timeInterval) {
-    clearInterval(timeInterval);
-  }
+nextTick(() => {
+  barcodeInputRef.value.focus();
 });
 </script>
 
