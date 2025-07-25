@@ -247,3 +247,5 @@ Route::middleware([CustomerAuth::class])->prefix('customer')->group(function () 
     Route::post('profile/update', [CustomerProfileController::class, 'update'])->name('customer.profile.update');
     Route::post('profile/update-password', [CustomerProfileController::class, 'updatePassword'])->name('customer.profile.update-password');
 });
+
+require_once __DIR__ . '/web-api.php'; // Rute Web API untuk AJAX yang

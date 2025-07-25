@@ -29,6 +29,7 @@ class ProductController extends Controller
      */
     public function index(GetProductsRequest $request): JsonResponse
     {
+
         $filters = $request->validated();
 
         $perPage = $filters['per_page'] ?? 10;
