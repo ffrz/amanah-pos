@@ -5,18 +5,24 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ProductCategory;
-use App\Models\StockMovement;
 use App\Models\Supplier;
-use App\Models\User;
+use App\Services\ProductService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 use Illuminate\Validation\Rule;
 
 class ProductController extends Controller
 {
+    protected $productService;
+
+    public function __construct(ProductService $productService)
+    {
+        $this->productService = $productService;
+    }
+
     public function index()
     {
-        return inertia('admin/product/Index', [
+        return Inertia::render('admin/product/Index', [
             'categories' => ProductCategory::all(['id', 'name']),
             'suppliers' => Supplier::all(['id', 'name', 'phone']),
         ]);
@@ -24,75 +30,41 @@ class ProductController extends Controller
 
     public function detail($id = 0)
     {
-        $item = Product::with(['category', 'supplier', 'createdBy', 'updatedBy'])->findOrFail($id);
-        return inertia('admin/product/Detail', [
+        $item = $this->productService->findProductById($id);
+
+        if (!$item) {
+            return redirect()->route('admin.product.index')
+                ->with('error', 'Produk tidak ditemukan.');
+        }
+
+        return Inertia::render('admin/product/Detail', [
             'data' => $item,
         ]);
     }
 
     public function data(Request $request)
     {
-        $orderBy = $request->get('order_by', 'date');
-        $orderType = $request->get('order_type', 'desc');
-        $filter = $request->get('filter', []);
+        $filters = $request->all();
 
-        $q = Product::with(['supplier', 'category']);
+        $productsQuery = $this->productService->getProductsQuery($filters, $filters);
 
-        if (!empty($filter['search'])) {
-            $q->where(function ($q) use ($filter) {
-                $q->where('name', 'like', '%' . $filter['search'] . '%');
-                $q->orWhere('description', 'like', '%' . $filter['search'] . '%');
-                $q->orWhere('notes', 'like', '%' . $filter['search'] . '%');
-            });
-        }
-
-        if (!empty($filter['type']) && $filter['type'] != 'all') {
-            $q->where('type', '=', $filter['type']);
-            if ($filter['type'] == Product::Type_Stocked) {
-                if (!empty($filter['stock_status']) && $filter['stock_status'] != 'all') {
-                    if ($filter['stock_status'] == 'low') {
-                        $q->whereColumn('stock', '<', 'min_stock');
-                        $q->where('stock', '!=', 0);
-                    } elseif ($filter['stock_status'] == 'out') {
-                        $q->where('stock', '=', 0);
-                    } elseif ($filter['stock_status'] == 'over') {
-                        $q->whereColumn('stock', '>', 'max_stock');
-                    } elseif ($filter['stock_status'] == 'ready') {
-                        $q->where('stock', '>', 0);
-                    }
-                }
-            }
-        }
-
-        if (!empty($filter['category_id']) && $filter['category_id'] != 'all') {
-            $q->where('category_id', '=', $filter['category_id']);
-        }
-
-        if (!empty($filter['supplier_id']) && $filter['supplier_id'] != 'all') {
-            $q->where('supplier_id', '=', $filter['supplier_id']);
-        }
-
-        if (!empty($filter['status']) && ($filter['status'] == 'active' || $filter['status'] == 'inactive')) {
-            $q->where('active', '=', $filter['status'] == 'active' ? true : false);
-        }
-
-        $q->orderBy($orderBy, $orderType);
-
-        $items = $q->paginate($request->get('per_page', 10))->withQueryString();
-
-        $items->getCollection()->transform(function ($item) {
-            $item->description = strlen($item->description) > 50 ? substr($item->description, 0, 50) . '...' : $item->description;
-            return $item;
-        });
-
-        return response()->json($items);
+        return $productsQuery->paginate($request->get('per_page', 10))->withQueryString();
     }
+
 
     public function duplicate($id)
     {
-        $item = Product::findOrFail($id);
+        $item = $this->productService->findProductById($id);
+
+        if (!$item) {
+            return redirect()->route('admin.product.index')->with('error', 'Product to duplicate not found.');
+        }
+
+        // Kloning item dan null-kan ID untuk dianggap baru
         $item->id = null;
-        return inertia('admin/product/Editor', [
+        $item->exists = false; // Penting agar Eloquent tahu ini objek baru
+
+        return Inertia::render('admin/product/Editor', [
             'data' => $item,
             'categories' => ProductCategory::all(['id', 'name']),
             'suppliers' => Supplier::all(['id', 'name', 'phone']),
@@ -101,10 +73,15 @@ class ProductController extends Controller
 
     public function editor($id = 0)
     {
-        $item = $id ? Product::findOrFail($id) : new Product(
+        $item = $id ? $this->productService->findProductById($id) : new Product(
             ['active' => 1, 'type' => Product::Type_Stocked]
         );
-        return inertia('admin/product/Editor', [
+
+        if ($id && !$item) {
+            return redirect()->route('admin.product.index')->with('error', 'Product not found for editing.');
+        }
+
+        return Inertia::render('admin/product/Editor', [
             'data' => $item,
             'categories' => ProductCategory::all(['id', 'name']),
             'suppliers' => Supplier::all(['id', 'name', 'phone']),
@@ -113,23 +90,14 @@ class ProductController extends Controller
 
     public function save(Request $request)
     {
-        $validated = $request->validate([
-            'category_id' => [
-                'nullable',
-                Rule::exists('product_categories', 'id'),
-            ],
-            'supplier_id' => [
-                'nullable',
-                Rule::exists('suppliers', 'id'),
-            ],
-            'type' => [
-                'nullable',
-                Rule::in(array_keys(Product::Types)),
-            ],
+        $validatedData = $request->validate([
+            'category_id' => ['nullable', Rule::exists('product_categories', 'id')],
+            'supplier_id' => ['nullable', Rule::exists('suppliers', 'id')],
+            'type' => ['nullable', Rule::in(array_keys(Product::Types))],
             'name' => [
                 'required',
                 'max:255',
-                Rule::unique('products', 'name')->ignore($request->id), // agar saat update tidak dianggap duplikat sendiri
+                Rule::unique('products', 'name')->ignore($request->id),
             ],
             'description' => 'nullable|max:1000',
             'barcode' => 'nullable|max:255',
@@ -143,49 +111,45 @@ class ProductController extends Controller
             'notes' => 'nullable|max:1000',
         ]);
 
-        $item = $request->id ? Product::findOrFail($request->id) : new Product();
-
-        $item->fill($validated);
-
-        DB::beginTransaction();
-
-        $item->save();
-
-        if ($request->id) {
-            $oldStock = $item->getOriginal('stock');
-            $newStock = $item->stock;
-            $diff = $newStock - $oldStock;
-
-            if ($oldStock != $newStock) {
-                StockMovement::create([
-                    'ref_type' => StockMovement::RefType_ManualAdjustment,
-                    'product_id' => $item->id,
-                    'quantity' => $diff,
-                ]);
+        try {
+            if ($request->id) {
+                $item = $this->productService->findProductById($request->id);
+                if (!$item) {
+                    return redirect()->back()->with('error', 'Produk tidak ditemukan.');
+                }
+                $item = $this->productService->updateProduct($item, $validatedData);
+            } else {
+                $item = $this->productService->createProduct($validatedData);
             }
-        } else {
-            StockMovement::create([
-                'ref_type' => StockMovement::RefType_InitialStock,
-                'product_id' => $item->id,
-                'quantity' => $item->stock,
-            ]);
+
+            return redirect(route('admin.product.index'))
+                ->with('success', "Produk $item->name telah disimpan.");
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Operation failed: ' . $e->getMessage());
         }
-
-        DB::commit();
-
-        $messageKey = $request->id ? 'product-updated' : 'product-created';
-
-        return redirect(route('admin.product.index'))
-            ->with('success', __("messages.$messageKey", ['name' => $item->name]));
     }
 
     public function delete($id)
     {
-        $item = Product::findOrFail($id);
-        $item->delete();
+        try {
+            $item = $this->productService->findProductById($id);
+            if (!$item) {
+                return redirect()->back()->with('error', 'Product tidak ditemukan.');
+            }
+            if ($item->isUsedInTransactions()) {
+                return redirect()->back()->with('error', 'Produk ini tidak dapat dihapus karena sedang digunakan dalam transaksi.');
+            }
+            $this->productService->deleteProduct($item);
 
-        return response()->json([
-            'message' => __('messages.product-deleted', ['name' => $item->name])
-        ]);
+            return redirect()->route('admin.product.index')
+                ->with('success', "Produk $item->name telah dihapus.");
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to delete product: ' . $e->getMessage());
+        }
+    }
+
+    private function findProductById($id)
+    {
+        return Product::find($id);
     }
 }

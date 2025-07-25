@@ -17,6 +17,7 @@ class Auth
     public function handle(Request $request, Closure $next): Response
     {
         $user = FacadesAuth::user();
+
         if (!$user) {
             return response()->redirectToRoute('admin.auth.login');
         }
