@@ -11,12 +11,17 @@ import DateTimePicker from "@/components/DateTimePicker.vue";
 import { ref, computed, onMounted, onUnmounted, nextTick } from "vue";
 import { useQuasar } from "quasar";
 import dayjs from "dayjs";
-import { useClock } from "./editor/components/useClock";
+import { useClock } from "@/composable/useClock";
+import TransactionHeader from "./editor/TransactionHeader.vue";
+import ItemListTable from "./editor/ItemsListTable.vue";
+import TransactionSummary from "./editor/TransactionSummary.vue";
+import ConfirmDeleteDialog from "./editor/ConfirmDeleteDialog.vue";
+import SupplierEditorDialog from "./editor/SupplierEditorDialog.vue";
 
 const $q = useQuasar();
 const page = usePage();
+const { currentDate, currentTime } = useClock();
 
-// Form untuk transaksi kasir
 const form = useForm({
   id: null,
   formatted_id: "Diisi Otomatis",
@@ -34,13 +39,10 @@ const form = useForm({
 // State untuk kasir
 const barcodeInputRef = ref();
 const barcode = ref("");
-const { currentDate, currentTime } = useClock();
 const isProcessing = ref(false);
 const showDeleteDialog = ref(false);
 const itemToDelete = ref(null);
 const showSupplierEditor = ref(false);
-
-// Table columns untuk items
 const columns = [
   {
     name: "name",
@@ -82,7 +84,6 @@ const columns = [
     style: "width: 80px",
   },
 ];
-
 const subtotal = computed(() => {
   const total = form.items.reduce((sum, item) => {
     return sum + item.price * item.quantity;
@@ -91,8 +92,6 @@ const subtotal = computed(() => {
   form.total = total + form.tax;
   return total;
 });
-
-// Methods
 
 const addItem = async () => {
   if (!barcode.value.trim()) {
@@ -149,18 +148,15 @@ const addItem = async () => {
         position: "bottom",
       });
     }
-    inputBarcode = parts[1]; // Kode produk ada di bagian akhir
+    inputBarcode = parts[1];
   }
-  // Jika parts.length === 1, itu adalah format KODE saja,
-  // inputQuantity tetap 1 dan inputBarcode tetap nilai aslinya.
 
-  // Check if item already exists
   const existingItemIndex = form.items.findIndex(
-    (item) => item.barcode === inputBarcode // Gunakan inputBarcode yang sudah di-parse
+    (item) => item.barcode === inputBarcode
   );
 
   if (existingItemIndex !== -1) {
-    form.items[existingItemIndex].quantity += inputQuantity; // Tambahkan kuantitas yang di-parse
+    form.items[existingItemIndex].quantity += inputQuantity;
     $q.notify({
       message: `Quantity ${form.items[existingItemIndex].name} bertambah ${inputQuantity}`,
       color: "positive",
@@ -187,8 +183,8 @@ const addItem = async () => {
       };
 
       const newItem = {
-        ...fetchedProduct, // Salin semua properti dari produk yang diambil
-        quantity: inputQuantity, // Gunakan kuantitas yang di-parse
+        ...fetchedProduct,
+        quantity: inputQuantity,
       };
 
       form.items.push(newItem);
@@ -200,7 +196,7 @@ const addItem = async () => {
         icon: "add_shopping_cart",
       });
     } catch (error) {
-      console.error("Error fetching item:", error); // Log error untuk debugging
+      console.error("Error fetching item:", error);
       $q.notify({
         message: "Item tidak ditemukan atau gagal menambahkan item",
         color: "negative",
@@ -214,7 +210,6 @@ const addItem = async () => {
   barcode.value = "";
   await nextTick();
 
-  // Focus back to barcode input
   barcodeInputRef.value.focus();
 };
 
@@ -258,12 +253,10 @@ const processPayment = () => {
     return;
   }
 
-  // Update form data
   form.datetime = dayjs().format("YYYY-MM-DD HH:mm:ss");
   form.status = "completed";
   form.payment_status = "paid";
 
-  // Submit transaction
   handleSubmit({
     form,
     url: route("admin.transaction.save"),
@@ -274,13 +267,11 @@ const processPayment = () => {
         position: "bottom",
         icon: "check_circle",
       });
-      // Reset form
       form.reset();
       form.items = [];
     },
   });
 };
-
 nextTick(() => {
   barcodeInputRef.value.focus();
 });
@@ -292,137 +283,25 @@ nextTick(() => {
     <template #title>Order Pembelian</template>
     <q-page class="bg-grey-2 q-pa-sm column fit">
       <q-card square flat bordered class="full-width col column">
-        <div class="row items-center q-px-md q-py-xs">
-          <div class="col-4">
-            <div class="text-bold">
-              Info Supplier
-              <q-btn
-                icon="edit"
-                flat
-                rounded
-                dense
-                color="grey"
-                size="sm"
-                @click="showSupplierEditor = true"
-              />
-            </div>
-            <div class="text-grey-8 text-italic">Supplier belum dipilih.</div>
-          </div>
-
-          <div class="col-4">
-            <div class="text-h6 text-weight-bold text-grey-8 text-center">
-              {{ page.props.company.name }}
-            </div>
-            <div
-              v-if="page.props.company.address"
-              class="text-subtitle2 text-weight-bold text-grey-8 text-center"
-            >
-              {{ page.props.company.address }}
-            </div>
-            <div
-              v-if="page.props.company.phone"
-              class="text-subtitle2 text-weight-bold text-grey-8 text-center"
-            >
-              {{ page.props.company.phone }}
-            </div>
-          </div>
-
-          <div class="col-4">
-            <div class="text-right">
-              <div class="text-weight-bold">
-                {{ page.props.auth.user.username }} -
-                {{ page.props.auth.user.name }}
-              </div>
-              <div class="text-grey-6">
-                {{ currentDate }} - {{ currentTime }}
-              </div>
-            </div>
-          </div>
-        </div>
+        <TransactionHeader
+          :user="page.props.auth.user"
+          :company="page.props.company"
+          :currentDate="currentDate"
+          :currentTime="currentTime"
+          @edit-supplier="showSupplierEditor = true"
+        />
 
         <div class="row col **grow**">
-          <div class="col-8 q-pa-sm column">
-            <q-table
-              dense
-              :rows="form.items"
+          <div class="col-12 q-pa-sm column">
+            <ItemListTable
+              :items="form.items"
               :columns="columns"
-              row-key="id"
-              flat
-              square
-              bordered
-              class="bg-grey-1 pos-table q-pa-none col"
-              :rows-per-page-options="[0]"
-              hide-pagination
-              :no-data-label="'Belum ada item'"
-              virtual-scroll
-              :virtual-scroll-item-size="48"
-              :virtual-scroll-sticky-size-start="48"
-            >
-              <template v-slot:header="props">
-                <q-tr :props="props" class="bg-grey-4">
-                  <q-th
-                    v-for="col in props.cols"
-                    :key="col.name"
-                    :props="props"
-                    class="text-weight-bold text-grey-8"
-                  >
-                    {{ col.label }}
-                  </q-th>
-                </q-tr>
-              </template>
-
-              <template v-slot:body="props">
-                <q-tr :props="props" class="hover-highlight">
-                  <q-td key="name" :props="props" class="text-left">
-                    <div class="text-weight-medium">{{ props.row.name }}</div>
-                    <div class="text-caption text-grey-6">
-                      Barcode: {{ props.row.barcode }}
-                    </div>
-                  </q-td>
-                  <q-td key="price" :props="props" class="text-center">
-                    <div class="text-weight-medium">
-                      <LocaleNumberInput
-                        :model-value="props.row.price"
-                        dense
-                        style="width: 80px; text-align: right"
-                      />
-                    </div>
-                  </q-td>
-                  <q-td key="quantity" :props="props" class="text-center">
-                    <LocaleNumberInput
-                      :model-value="props.row.quantity"
-                      dense
-                      style="width: 80px; text-align: right"
-                      @update:model-value="
-                        (val) => updateQuantity(props.row.id, val)
-                      "
-                      @keyup.enter="$event.target.blur()"
-                    />
-                  </q-td>
-                  <q-td key="subtotal" :props="props" class="text-center">
-                    <div class="text-weight-bold text-primary">
-                      Rp.
-                      {{ formatNumber(props.row.price * props.row.quantity) }}
-                    </div>
-                  </q-td>
-                  <q-td key="action" :props="props" class="text-center">
-                    <q-btn
-                      icon="delete"
-                      color="negative"
-                      flat
-                      round
-                      size="sm"
-                      @click="confirmRemoveItem(props.row)"
-                    >
-                      <q-tooltip>Hapus Item</q-tooltip>
-                    </q-btn>
-                  </q-td>
-                </q-tr>
-              </template>
-            </q-table>
+              @update-quantity="({ id, value }) => updateQuantity(id, value)"
+              @remove-item="confirmRemoveItem"
+            />
           </div>
 
-          <div class="col-4 q-pa-sm column">
+          <!-- <div class="col-4 q-pa-sm column">
             <q-card flat square bordered class="full-width col">
               <q-card-section
                 class="text-center text-weight-bold bg-grey-4 text-grey-8"
@@ -440,7 +319,7 @@ nextTick(() => {
                 </div>
               </q-card-section>
             </q-card>
-          </div>
+          </div> -->
         </div>
 
         <div class="row">
@@ -465,99 +344,29 @@ nextTick(() => {
           </div>
 
           <div class="col-4 q-pa-sm">
-            <div class="row justify-end q-gutter-sm">
-              <span class="text-weight-bold text-grey-8"
-                >GRAND TOTAL: Rp.
-              </span>
-              <span class="text-h4 text-weight-bold text-primary">
-                {{ formatNumber(subtotal) }}
-              </span>
-            </div>
-            <div class="text-caption text-grey-6 q-mt-xs text-right">
-              {{ form.items.length }} item(s)
-            </div>
-
-            <div class="q-py-sm">
-              <q-input
-                ref="barcodeInputRef"
-                v-model="barcode"
-                placeholder="<Input Barcode>"
-                outlined
-                square
-                class="col bg-white"
-                @keyup.enter="addItem"
-                :loading="isProcessing"
-                clearable
-              >
-                <template v-slot:prepend>
-                  <q-icon name="qr_code_scanner" />
-                </template>
-              </q-input>
-            </div>
-
-            <div class="q-py-sm">
-              <q-btn
-                class="full-width"
-                label="Bayar"
-                color="primary"
-                icon="payment"
-                @click="processPayment"
-                :disable="form.items.length === 0"
-                :loading="form.processing"
-              />
-            </div>
+            <TransactionSummary
+              v-model:barcode="barcode"
+              :subtotal="subtotal"
+              :item-count="form.items.length"
+              :is-processing="isProcessing"
+              :form-processing="form.processing"
+              @add-item="addItem(barcode, barcodeInputRef)"
+              @process-payment="processPayment"
+            />
           </div>
         </div>
       </q-card>
 
-      <q-dialog v-model="showDeleteDialog" persistent>
-        <q-card>
-          <q-card-section class="row items-center">
-            <q-avatar icon="delete" color="negative" text-color="white" />
-            <span class="q-ml-sm">Hapus item "{{ itemToDelete?.name }}"?</span>
-          </q-card-section>
+      <ConfirmDeleteDialog
+        v-model="showDeleteDialog"
+        :item="itemToDelete"
+        @confirm="removeItem"
+      />
 
-          <q-card-actions align="right">
-            <q-btn flat label="Batal" color="primary" v-close-popup />
-            <q-btn
-              flat
-              label="Hapus"
-              color="negative"
-              @click="removeItem"
-              v-close-popup
-            />
-          </q-card-actions>
-        </q-card>
-      </q-dialog>
-
-      <q-dialog v-model="showSupplierEditor" persistent>
-        <q-card>
-          <q-card-section class="q-py-none q-pt-lg">
-            <div class="text-bold text-grey-8">Edit Info Supplier</div>
-          </q-card-section>
-          <q-card-section>
-            <q-input label="Nama Supplier" />
-            <q-input
-              label="Alamat"
-              type="textarea"
-              autogrow
-              counter
-              maxlength="200"
-            />
-          </q-card-section>
-
-          <q-card-actions align="right">
-            <q-btn flat label="Batal" color="primary" v-close-popup />
-            <q-btn
-              flat
-              label="Simpan"
-              color="primary"
-              @click="removeItem"
-              v-close-popup
-            />
-          </q-card-actions>
-        </q-card>
-      </q-dialog>
+      <SupplierEditorDialog
+        v-model="showSupplierEditor"
+        @save="handleSaveSupplier"
+      />
     </q-page>
   </authenticated-layout>
 </template>
