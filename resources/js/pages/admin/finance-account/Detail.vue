@@ -14,7 +14,7 @@ const filter = reactive({
   // order_status: "all",
   // payment_status: "all",
   // service_status: "all",
-  ...getQueryParams()
+  ...getQueryParams(),
 });
 const pagination = ref({
   page: 1,
@@ -46,7 +46,6 @@ const columns = [
     align: "center",
     sortable: true,
   },
-
 ];
 
 onMounted(() => {
@@ -74,6 +73,32 @@ const computedColumns = computed(() => {
   <i-head :title="title" />
   <authenticated-layout>
     <template #title>{{ title }}</template>
+    <template #left-button>
+      <div class="q-gutter-sm">
+        <q-btn
+          icon="arrow_back"
+          dense
+          color="grey-7"
+          flat
+          rounded
+          @click="$inertia.get(route('admin.finance-account.index'))"
+        />
+      </div>
+    </template>
+    <template #right-button>
+      <div class="q-gutter-sm">
+        <q-btn
+          icon="edit"
+          dense
+          color="primary"
+          @click="
+            router.get(
+              route('admin.finance-account.edit', { id: page.props.data.id })
+            )
+          "
+        />
+      </div>
+    </template>
     <q-page class="row justify-center">
       <div class="col col-lg-6 q-pa-sm">
         <div class="row">
@@ -87,14 +112,18 @@ const computedColumns = computed(() => {
                 <table class="detail">
                   <tbody>
                     <tr>
-                      <td style="width:100px">Nama</td>
-                      <td style="width:1px">:</td>
+                      <td style="width: 100px">Nama</td>
+                      <td style="width: 1px">:</td>
                       <td>{{ page.props.data.name }}</td>
                     </tr>
                     <tr>
                       <td>Jenis</td>
                       <td>:</td>
-                      <td>{{ $CONSTANTS.FINANCE_ACCOUNT_TYPES[page.props.data.type] }}</td>
+                      <td>
+                        {{
+                          $CONSTANTS.FINANCE_ACCOUNT_TYPES[page.props.data.type]
+                        }}
+                      </td>
                     </tr>
                     <template v-if="page.props.data.type == 'bank'">
                       <tr>
@@ -116,7 +145,9 @@ const computedColumns = computed(() => {
                     <tr>
                       <td>Status</td>
                       <td>:</td>
-                      <td>{{ page.props.data.active ? 'Aktif' : 'Tidak Aktif' }}</td>
+                      <td>
+                        {{ page.props.data.active ? "Aktif" : "Tidak Aktif" }}
+                      </td>
                     </tr>
                     <tr>
                       <td>Saldo</td>
@@ -133,19 +164,35 @@ const computedColumns = computed(() => {
               </q-tab-panel>
 
               <q-tab-panel name="history">
-                <q-table flat bordered square color="primary" class="full-height-table full-height-table2" row-key="id"
-                  virtual-scroll v-model:pagination="pagination" :filter="filter.search" :loading="loading"
-                  :columns="computedColumns" :rows="rows" :rows-per-page-options="[10, 25, 50]" @request="fetchItems"
-                  binary-state-sort>
+                <q-table
+                  flat
+                  bordered
+                  square
+                  color="primary"
+                  class="full-height-table full-height-table2"
+                  row-key="id"
+                  virtual-scroll
+                  v-model:pagination="pagination"
+                  :filter="filter.search"
+                  :loading="loading"
+                  :columns="computedColumns"
+                  :rows="rows"
+                  :rows-per-page-options="[10, 25, 50]"
+                  @request="fetchItems"
+                  binary-state-sort
+                >
                   <template v-slot:loading>
                     <q-inner-loading showing color="red" />
                   </template>
 
                   <template v-slot:no-data="{ icon, message, filter }">
-                    <div class="full-width row flex-center text-grey-8 q-gutter-sm">
+                    <div
+                      class="full-width row flex-center text-grey-8 q-gutter-sm"
+                    >
                       <span>
                         {{ message }}
-                        {{ filter ? " with term " + filter : "" }}</span>
+                        {{ filter ? " with term " + filter : "" }}</span
+                      >
                     </div>
                   </template>
 
@@ -153,40 +200,88 @@ const computedColumns = computed(() => {
                     <q-tr :props="props">
                       <q-td key="id" :props="props">
                         <div class="flex q-gutter-sm">
-                          <div><b>#{{ props.row.id }}</b></div>
-                          <div>- {{ $dayjs(new Date(props.row.created_datetime)).format("DD/MM/YYYY hh:mm:ss") }}</div>
-                          <div>- {{ props.row.created_by ? props.row.created_by.username : '--' }}</div>
+                          <div>
+                            <b>#{{ props.row.id }}</b>
+                          </div>
+                          <div>
+                            -
+                            {{
+                              $dayjs(
+                                new Date(props.row.created_datetime)
+                              ).format("DD/MM/YYYY hh:mm:ss")
+                            }}
+                          </div>
+                          <div>
+                            -
+                            {{
+                              props.row.created_by
+                                ? props.row.created_by.username
+                                : "--"
+                            }}
+                          </div>
                         </div>
                         <template v-if="$q.screen.lt.md">
                           <div class="">
-                            {{ $CONSTANTS.STOCKMOVEMENT_REFTYPES[props.row.ref_type] }}
+                            {{
+                              $CONSTANTS.STOCKMOVEMENT_REFTYPES[
+                                props.row.ref_type
+                              ]
+                            }}
                           </div>
                           <div
-                            :class="props.row.quantity < 0 ? 'text-red-10' : (props.row.quantity > 0 ? 'text-green-10' : '')">
+                            :class="
+                              props.row.quantity < 0
+                                ? 'text-red-10'
+                                : props.row.quantity > 0
+                                ? 'text-green-10'
+                                : ''
+                            "
+                          >
                             <q-icon
-                              :name="props.row.quantity < 0 ? 'arrow_downward' : (props.row.quantity > 0 ? 'arrow_upward' : '')" />
+                              :name="
+                                props.row.quantity < 0
+                                  ? 'arrow_downward'
+                                  : props.row.quantity > 0
+                                  ? 'arrow_upward'
+                                  : ''
+                              "
+                            />
                             {{ formatNumber(props.row.quantity) }}
                           </div>
                         </template>
                       </q-td>
                       <q-td key="type" :props="props">
-                        {{ $CONSTANTS.STOCKMOVEMENT_REFTYPES[props.row.ref_type] }}
+                        {{
+                          $CONSTANTS.STOCKMOVEMENT_REFTYPES[props.row.ref_type]
+                        }}
                       </q-td>
                       <q-td key="quantity" :props="props">
                         <div
-                          :class="props.row.quantity < 0 ? 'text-red-10' : (props.row.quantity > 0 ? 'text-green-10' : '')">
+                          :class="
+                            props.row.quantity < 0
+                              ? 'text-red-10'
+                              : props.row.quantity > 0
+                              ? 'text-green-10'
+                              : ''
+                          "
+                        >
                           <q-icon
-                            :name="props.row.quantity < 0 ? 'arrow_downward' : (props.row.quantity > 0 ? 'arrow_upward' : '')" />
+                            :name="
+                              props.row.quantity < 0
+                                ? 'arrow_downward'
+                                : props.row.quantity > 0
+                                ? 'arrow_upward'
+                                : ''
+                            "
+                          />
                           {{ formatNumber(props.row.quantity) }}
                         </div>
                       </q-td>
                     </q-tr>
                   </template>
                 </q-table>
-
               </q-tab-panel>
             </q-tab-panels>
-
           </q-card>
         </div>
       </div>

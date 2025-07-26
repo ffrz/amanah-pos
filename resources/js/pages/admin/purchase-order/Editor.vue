@@ -281,6 +281,19 @@ nextTick(() => {
   <i-head title="Order Pembelian" />
   <authenticated-layout>
     <template #title>Order Pembelian</template>
+
+    <template #left-button>
+      <div class="q-gutter-sm">
+        <q-btn
+          icon="arrow_back"
+          dense
+          color="grey-7"
+          flat
+          rounded
+          @click="router.get(route('admin.purchase-order.index'))"
+        />
+      </div>
+    </template>
     <q-page class="bg-grey-2 q-pa-sm column fit">
       <q-card square flat bordered class="full-width col column">
         <TransactionHeader
@@ -323,7 +336,7 @@ nextTick(() => {
         </div>
 
         <div class="row">
-          <div class="col-8 q-pa-sm">
+          <div class="col-8 q-pa-sm q-mb-md">
             <q-input
               v-model="form.notes"
               type="textarea"
@@ -336,6 +349,7 @@ nextTick(() => {
               maxlength="200"
               :error="!!form.errors.notes"
               :error-message="form.errors.notes"
+              style="margin-bottom: 16px; padding-top: 57px"
             >
               <template v-slot:prepend>
                 <q-icon name="note" />
