@@ -1,4 +1,6 @@
 <script setup>
+import DigitalClock from "@/components/DigitalClock.vue";
+
 defineProps({
   user: {
     type: Object,
@@ -6,14 +8,6 @@ defineProps({
   },
   company: {
     type: Object,
-    required: true,
-  },
-  currentDate: {
-    type: String,
-    required: true,
-  },
-  currentTime: {
-    type: String,
     required: true,
   },
 });
@@ -62,7 +56,7 @@ defineEmits(["edit-supplier"]);
         <div class="text-weight-bold">
           {{ user.username }} - {{ user.name }}
         </div>
-        <div class="text-grey-6">{{ currentDate }} - {{ currentTime }}</div>
+        <DigitalClock />
       </div>
     </div>
   </div>

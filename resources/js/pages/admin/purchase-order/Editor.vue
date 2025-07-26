@@ -1,17 +1,11 @@
 <script setup>
 import { router, useForm, usePage } from "@inertiajs/vue3";
 import { handleSubmit } from "@/helpers/client-req-handler";
-import {
-  create_options,
-  formatNumber,
-  scrollToFirstErrorField,
-} from "@/helpers/utils";
-import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
-import DateTimePicker from "@/components/DateTimePicker.vue";
-import { ref, computed, onMounted, onUnmounted, nextTick } from "vue";
+
+import { ref, computed, nextTick } from "vue";
 import { useQuasar } from "quasar";
 import dayjs from "dayjs";
-import { useClock } from "@/composable/useClock";
+
 import TransactionHeader from "./editor/TransactionHeader.vue";
 import ItemListTable from "./editor/ItemsListTable.vue";
 import TransactionSummary from "./editor/TransactionSummary.vue";
@@ -20,7 +14,8 @@ import SupplierEditorDialog from "./editor/SupplierEditorDialog.vue";
 
 const $q = useQuasar();
 const page = usePage();
-const { currentDate, currentTime } = useClock();
+
+const transactionSummaryRef = ref(null);
 
 const form = useForm({
   id: null,
@@ -37,7 +32,6 @@ const form = useForm({
 });
 
 // State untuk kasir
-const barcodeInputRef = ref();
 const barcode = ref("");
 const isProcessing = ref(false);
 const showDeleteDialog = ref(false);
@@ -210,7 +204,9 @@ const addItem = async () => {
   barcode.value = "";
   await nextTick();
 
-  barcodeInputRef.value.focus();
+  // TODO: fokus kembali ke input barcode
+  // gimana caranya manggil focusOnBarcodeInput dari komponen TransactionSummary
+  transactionSummaryRef.value.focusOnBarcodeInput();
 };
 
 const confirmRemoveItem = (item) => {
@@ -272,9 +268,6 @@ const processPayment = () => {
     },
   });
 };
-nextTick(() => {
-  barcodeInputRef.value.focus();
-});
 </script>
 
 <template>
@@ -299,8 +292,6 @@ nextTick(() => {
         <TransactionHeader
           :user="page.props.auth.user"
           :company="page.props.company"
-          :currentDate="currentDate"
-          :currentTime="currentTime"
           @edit-supplier="showSupplierEditor = true"
         />
 
@@ -336,7 +327,7 @@ nextTick(() => {
         </div>
 
         <div class="row">
-          <div class="col-8 q-pa-sm q-mb-md">
+          <div class="col-8 q-pa-sm">
             <q-input
               v-model="form.notes"
               type="textarea"
@@ -349,7 +340,7 @@ nextTick(() => {
               maxlength="200"
               :error="!!form.errors.notes"
               :error-message="form.errors.notes"
-              style="margin-bottom: 16px; padding-top: 57px"
+              style="margin-bottom: 16px"
             >
               <template v-slot:prepend>
                 <q-icon name="note" />
@@ -359,12 +350,13 @@ nextTick(() => {
 
           <div class="col-4 q-pa-sm">
             <TransactionSummary
+              ref="transactionSummaryRef"
               v-model:barcode="barcode"
               :subtotal="subtotal"
               :item-count="form.items.length"
               :is-processing="isProcessing"
               :form-processing="form.processing"
-              @add-item="addItem(barcode, barcodeInputRef)"
+              @add-item="addItem(barcode)"
               @process-payment="processPayment"
             />
           </div>
@@ -377,10 +369,7 @@ nextTick(() => {
         @confirm="removeItem"
       />
 
-      <SupplierEditorDialog
-        v-model="showSupplierEditor"
-        @save="handleSaveSupplier"
-      />
+      <SupplierEditorDialog v-model="showSupplierEditor" />
     </q-page>
   </authenticated-layout>
 </template>
