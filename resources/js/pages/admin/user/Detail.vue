@@ -9,6 +9,30 @@ const title = "Rincian Pengguna";
   <i-head :title="title" />
   <authenticated-layout>
     <template #title>{{ title }}</template>
+    <template #left-button>
+      <div class="q-gutter-sm">
+        <q-btn
+          icon="arrow_back"
+          dense
+          color="grey-7"
+          flat
+          rounded
+          @click="$inertia.get(route('admin.user.index'))"
+        />
+      </div>
+    </template>
+    <template #right-button>
+      <div class="q-gutter-sm">
+        <q-btn
+          icon="edit"
+          dense
+          color="primary"
+          @click="
+            $inertia.get(route('admin.user.edit', { id: page.props.data.id }))
+          "
+        />
+      </div>
+    </template>
     <div class="row justify-center">
       <div class="col col-lg-6 q-pa-sm">
         <div class="row">

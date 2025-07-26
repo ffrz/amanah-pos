@@ -23,6 +23,18 @@ const submit = () => handleSubmit({ form, url: route("admin.user.save") });
   <i-head :title="title" />
   <authenticated-layout>
     <template #title>{{ title }}</template>
+    <template #left-button>
+      <div class="q-gutter-sm">
+        <q-btn
+          icon="arrow_back"
+          dense
+          color="grey-7"
+          flat
+          rounded
+          @click="$inertia.get(route('admin.user.index'))"
+        />
+      </div>
+    </template>
     <div class="row justify-center">
       <div class="col col-lg-6 q-pa-sm">
         <q-form class="row" @submit.prevent="submit">

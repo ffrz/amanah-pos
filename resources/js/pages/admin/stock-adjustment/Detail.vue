@@ -10,10 +10,10 @@ const rows = page.props.details;
 
 const columns = [
   {
-    name: 'no',
-    label: '#',
-    field: 'no',
-    align: 'left',
+    name: "no",
+    label: "#",
+    field: "no",
+    align: "left",
   },
   {
     name: "product_name",
@@ -32,21 +32,21 @@ const columns = [
     label: "Stok Lama",
     field: "old_quantity",
     align: "right",
-    format: (val) => formatNumber(val)
+    format: (val) => formatNumber(val),
   },
   {
     name: "new_quantity",
     label: "Stok Baru",
     field: "new_quantity",
     align: "right",
-    format: (val) => formatNumber(val)
+    format: (val) => formatNumber(val),
   },
   {
     name: "balance",
     label: "Selisih Stok",
     field: "balance",
     align: "right",
-    format: (val) => formatNumber(val)
+    format: (val) => formatNumber(val),
   },
   {
     name: "cost_balance",
@@ -73,13 +73,25 @@ const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return columns;
   return columns.filter((col) => col.name === "no");
 });
-
 </script>
 
 <template>
   <i-head :title="title" />
   <authenticated-layout>
     <template #title>{{ title }}</template>
+
+    <template #left-button>
+      <div class="q-gutter-sm">
+        <q-btn
+          icon="arrow_back"
+          dense
+          color="grey-7"
+          flat
+          rounded
+          @click="$inertia.get(route('admin.stock-adjustment.index'))"
+        />
+      </div>
+    </template>
     <div class="row justify-center">
       <div class="col col-lg-8 q-pa-sm">
         <div class="row">
@@ -91,29 +103,39 @@ const computedColumns = computed(() => {
               <table class="detail">
                 <tbody>
                   <tr>
-                    <td style="width:120px">ID</td>
-                    <td style="width:1px">:</td>
+                    <td style="width: 120px">ID</td>
+                    <td style="width: 1px">:</td>
                     <td># {{ page.props.data.id }}</td>
                   </tr>
                   <tr>
                     <td>Jenis</td>
                     <td>:</td>
                     <td>
-                      {{ $CONSTANTS.STOCKADJUSTMENT_TYPES[page.props.data.type] }}
+                      {{
+                        $CONSTANTS.STOCKADJUSTMENT_TYPES[page.props.data.type]
+                      }}
                     </td>
                   </tr>
                   <tr>
                     <td>Status</td>
                     <td>:</td>
                     <td>
-                      {{ $CONSTANTS.STOCKADJUSTMENT_STATUSES[page.props.data.status] }}
+                      {{
+                        $CONSTANTS.STOCKADJUSTMENT_STATUSES[
+                          page.props.data.status
+                        ]
+                      }}
                     </td>
                   </tr>
                   <tr>
                     <td>Waktu</td>
                     <td>:</td>
                     <td>
-                      {{ $dayjs(page.props.data.datetime).format("dddd, D MMMM YYYY pukul HH:mm:ss") }}
+                      {{
+                        $dayjs(page.props.data.datetime).format(
+                          "dddd, D MMMM YYYY pukul HH:mm:ss"
+                        )
+                      }}
                     </td>
                   </tr>
                   <tr v-if="!!page.props.data.created_datetime">
@@ -121,12 +143,22 @@ const computedColumns = computed(() => {
                     <td>:</td>
                     <td>
                       <template v-if="page.props.data.created_by">
-                        <i-link :href="route('admin.user.detail', { id: page.props.data.created_by_uid })">
-                          {{ page.props.data.created_by.username }} - {{ page.props.data.created_by.name }}
+                        <i-link
+                          :href="
+                            route('admin.user.detail', {
+                              id: page.props.data.created_by_uid,
+                            })
+                          "
+                        >
+                          {{ page.props.data.created_by.username }} -
+                          {{ page.props.data.created_by.name }}
                         </i-link>
                         -
                       </template>
-                      {{ $dayjs(new Date(page.props.data.created_datetime)).format("dddd, D MMMM YYYY pukul HH:mm:ss")
+                      {{
+                        $dayjs(
+                          new Date(page.props.data.created_datetime)
+                        ).format("dddd, D MMMM YYYY pukul HH:mm:ss")
                       }}
                     </td>
                   </tr>
@@ -135,12 +167,22 @@ const computedColumns = computed(() => {
                     <td>:</td>
                     <td>
                       <template v-if="page.props.data.updated_by">
-                        <i-link :href="route('admin.user.detail', { id: page.props.data.updated_by_uid })">
-                          {{ page.props.data.updated_by.username }} - {{ page.props.data.updated_by.name }}
+                        <i-link
+                          :href="
+                            route('admin.user.detail', {
+                              id: page.props.data.updated_by_uid,
+                            })
+                          "
+                        >
+                          {{ page.props.data.updated_by.username }} -
+                          {{ page.props.data.updated_by.name }}
                         </i-link>
                         -
                       </template>
-                      {{ $dayjs(new Date(page.props.data.updated_datetime)).format("dddd, D MMMM YYYY pukul HH:mm:ss")
+                      {{
+                        $dayjs(
+                          new Date(page.props.data.updated_datetime)
+                        ).format("dddd, D MMMM YYYY pukul HH:mm:ss")
                       }}
                     </td>
                   </tr>
@@ -149,7 +191,14 @@ const computedColumns = computed(() => {
                     <td>:</td>
                     <td>
                       <div
-                        :class="page.props.data.total_cost < 0 ? 'text-red-10' : (page.props.data.total_cost > 0 ? 'text-green-10' : '')">
+                        :class="
+                          page.props.data.total_cost < 0
+                            ? 'text-red-10'
+                            : page.props.data.total_cost > 0
+                            ? 'text-green-10'
+                            : ''
+                        "
+                      >
                         Rp. {{ formatNumber(page.props.data.total_cost) }}
                       </div>
                     </td>
@@ -159,7 +208,14 @@ const computedColumns = computed(() => {
                     <td>:</td>
                     <td>
                       <div
-                        :class="page.props.data.total_price < 0 ? 'text-red-10' : (page.props.data.total_price > 0 ? 'text-green-10' : '')">
+                        :class="
+                          page.props.data.total_price < 0
+                            ? 'text-red-10'
+                            : page.props.data.total_price > 0
+                            ? 'text-green-10'
+                            : ''
+                        "
+                      >
                         Rp. {{ formatNumber(page.props.data.total_price) }}
                       </div>
                     </td>
@@ -178,28 +234,55 @@ const computedColumns = computed(() => {
               <div class="text-subtitle1 text-bold text-grey-9 q-pt-md">
                 Rincian
               </div>
-              <q-table flat bordered square color="primary" class="full-height-table" row-key="id" virtual-scroll dense
-                :columns="computedColumns" :rows="rows" :hide-pagination="true" :rows-per-page-options="[0]">
+              <q-table
+                flat
+                bordered
+                square
+                color="primary"
+                class="full-height-table"
+                row-key="id"
+                virtual-scroll
+                dense
+                :columns="computedColumns"
+                :rows="rows"
+                :hide-pagination="true"
+                :rows-per-page-options="[0]"
+              >
                 <template v-slot:body-cell-no="props">
                   <q-td :props="props">
                     <template v-if="!$q.screen.lt.md">
                       {{ props.rowIndex + 1 }}
                     </template>
                     <template v-else>
-                      <div class="text-grey-9"><b>#{{ props.rowIndex + 1 }}</b> - {{ props.row.product_name }}</div>
+                      <div class="text-grey-9">
+                        <b>#{{ props.rowIndex + 1 }}</b> -
+                        {{ props.row.product_name }}
+                      </div>
                       <div>
-                        Stok Lama: {{ formatNumber(props.row.old_quantity) }} {{ props.row.uom }}<br>
-                        Stok Baru: {{ formatNumber(props.row.new_quantity) }} {{ props.row.uom }}<br>
+                        Stok Lama: {{ formatNumber(props.row.old_quantity) }}
+                        {{ props.row.uom }}<br />
+                        Stok Baru: {{ formatNumber(props.row.new_quantity) }}
+                        {{ props.row.uom }}<br />
 
                         <div
-                          :class="props.row.balance < 0 ? 'text-red-10' : (props.row.balance > 0 ? 'text-green-10' : '')">
-                          Selisih: {{
-                            (props.row.balance > 0 ? '+' : '') + formatNumber(props.row.balance) }} {{ props.row.uom
-                          }}<br>
-                          (Rp. {{ formatNumber(props.row.subtotal_cost) }} / Rp. {{
-                            formatNumber(props.row.subtotal_price) }})
+                          :class="
+                            props.row.balance < 0
+                              ? 'text-red-10'
+                              : props.row.balance > 0
+                              ? 'text-green-10'
+                              : ''
+                          "
+                        >
+                          Selisih:
+                          {{
+                            (props.row.balance > 0 ? "+" : "") +
+                            formatNumber(props.row.balance)
+                          }}
+                          {{ props.row.uom }}<br />
+                          (Rp. {{ formatNumber(props.row.subtotal_cost) }} / Rp.
+                          {{ formatNumber(props.row.subtotal_price) }})
                         </div>
-                        <br>
+                        <br />
                         {{ props.row.notes }}
                       </div>
                     </template>
@@ -208,15 +291,32 @@ const computedColumns = computed(() => {
                 <template v-slot:body-cell-balance="props">
                   <q-td :props="props">
                     <div
-                      :class="props.row.balance < 0 ? 'text-red-10' : (props.row.balance > 0 ? 'text-green-10' : '')">
-                      {{ (props.row.balance > 0 ? '+' : '') + formatNumber(props.row.balance) }}
+                      :class="
+                        props.row.balance < 0
+                          ? 'text-red-10'
+                          : props.row.balance > 0
+                          ? 'text-green-10'
+                          : ''
+                      "
+                    >
+                      {{
+                        (props.row.balance > 0 ? "+" : "") +
+                        formatNumber(props.row.balance)
+                      }}
                     </div>
                   </q-td>
                 </template>
                 <template v-slot:body-cell-cost_balance="props">
                   <q-td :props="props">
                     <div
-                      :class="props.row.balance < 0 ? 'text-red-10' : (props.row.balance > 0 ? 'text-green-10' : '')">
+                      :class="
+                        props.row.balance < 0
+                          ? 'text-red-10'
+                          : props.row.balance > 0
+                          ? 'text-green-10'
+                          : ''
+                      "
+                    >
                       {{ formatNumber(props.row.subtotal_cost) }}
                     </div>
                   </q-td>
@@ -224,7 +324,14 @@ const computedColumns = computed(() => {
                 <template v-slot:body-cell-price_balance="props">
                   <q-td :props="props">
                     <div
-                      :class="props.row.balance < 0 ? 'text-red-10' : (props.row.balance > 0 ? 'text-green-10' : '')">
+                      :class="
+                        props.row.balance < 0
+                          ? 'text-red-10'
+                          : props.row.balance > 0
+                          ? 'text-green-10'
+                          : ''
+                      "
+                    >
                       {{ formatNumber(props.row.subtotal_price) }}
                     </div>
                   </q-td>
