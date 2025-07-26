@@ -9,6 +9,7 @@ use Illuminate\Session\Middleware\StartSession; // Import ini
 use Illuminate\Cookie\Middleware\EncryptCookies; // Import ini
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse; // Import ini
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken; // Import ini
+use Illuminate\Http\Request;
 use Illuminate\Routing\Middleware\SubstituteBindings; // Import ini
 use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful; // Import ini
@@ -29,38 +30,31 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
         ]);
 
-        // --- Perbaikan untuk Middleware API ---
         $middleware->api(prepend: [
-            // 1. Middleware untuk menangani Cookies (Enkripsi/Dekripsi)
-            EncryptCookies::class, // Penting untuk mendekripsi cookie sesi
-            AddQueuedCookiesToResponse::class, // Untuk menambahkan cookie ke respons
-
-            // 2. Middleware untuk Memulai Sesi
-            StartSession::class, // KRUSIAL: Ini yang membaca cookie sesi dan memuat data sesi
-
-            // 3. Middleware untuk Sanctum (jika Anda menggunakan SPA yang berbagi sesi)
-            // Ini membantu Laravel memperlakukan permintaan dari frontend tertentu sebagai stateful.
-            EnsureFrontendRequestsAreStateful::class,
-
-            // 4. Middleware untuk CSRF (Direkomendasikan jika API berbagi sesi web)
-            // Hanya aktifkan ini jika Anda mengirimkan X-CSRF-TOKEN dari frontend Anda
-            // untuk request POST/PUT/DELETE. Tanpa ini, request tersebut akan ditolak.
-            VerifyCsrfToken::class,
-
-            // 5. Middleware lainnya (penting untuk Route Model Binding)
-            SubstituteBindings::class,
-
-            // 6. Rate Limiting (sesuai kebutuhan Anda)
-            // 'throttle:api', // Aktifkan jika Anda ingin rate limiting default API
+            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ]);
-        // ------------------------------------
 
+        $middleware->redirectGuestsTo(function (Request $request) {
+            if ($request->is('api/*') || $request->is('web-api/*') || $request->expectsJson()) {
+                return null;
+            }
+
+            if ($request->is('admin/*') || $request->expectsJson()) {
+                return route('admin.auth.login');
+            }
+
+            if ($request->is('customer/*') || $request->expectsJson()) {
+                return route('customer.auth.login');
+            }
+
+            return null;
+        });
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        // --- LOGIKA PENANGANAN EXCEPTION DIPINDAH DI SINI ---
         $exceptions->renderable(function (Throwable $e, $request) {
             // Periksa jika request adalah untuk API dan/atau mengharapkan JSON
-            if ($request->is('api/*') || $request->expectsJson()) {
+            if ($request->is('api/*') || $request->is('web-api/*') || $request->expectsJson()) {
                 // Tangani 404 Not Found
                 if ($e instanceof NotFoundHttpException) {
                     return response()->json([
