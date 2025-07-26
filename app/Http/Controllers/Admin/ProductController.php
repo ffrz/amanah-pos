@@ -3,28 +3,33 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\Product\GetProductsRequest;
+use App\Http\Requests\Api\Product\SaveProductRequest; // Import SaveProductRequest
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\Supplier;
+use App\Services\CommonDataService;
 use App\Services\ProductService;
-use Illuminate\Http\Request;
+use Illuminate\Http\Request; // Masih diperlukan untuk method 'data' jika GetProductsRequest tidak digunakan
 use Inertia\Inertia;
-use Illuminate\Validation\Rule;
+// use Illuminate\Validation\Rule; // Tidak lagi diperlukan karena validasi dipindahkan ke SaveProductRequest
 
 class ProductController extends Controller
 {
     protected $productService;
+    protected $commonDataService;
 
-    public function __construct(ProductService $productService)
+    public function __construct(ProductService $productService, CommonDataService $commonDataService) // Inject CommonDataService
     {
         $this->productService = $productService;
+        $this->commonDataService = $commonDataService;
     }
 
     public function index()
     {
         return Inertia::render('admin/product/Index', [
-            'categories' => ProductCategory::all(['id', 'name']),
-            'suppliers' => Supplier::all(['id', 'name', 'phone']),
+            'categories' => $this->commonDataService->getCategories(),
+            'suppliers' => $this->commonDataService->getSuppliers(),
         ]);
     }
 
@@ -42,15 +47,18 @@ class ProductController extends Controller
         ]);
     }
 
-    public function data(Request $request)
+    /**
+     * Get paginated product data for Inertia table.
+     *
+     * @param \App\Http\Requests\Api\Product\GetProductsRequest $request
+     * @return \Illuminate\Pagination\LengthAwarePaginator
+     */
+    public function data(GetProductsRequest $request)
     {
-        $filters = $request->all();
-
-        $productsQuery = $this->productService->getProductsQuery($filters, $filters);
-
-        return $productsQuery->paginate($request->get('per_page', 10))->withQueryString();
+        $options = $request->validated();
+        $productsQuery = $this->productService->getProductsQuery($options['filter'] ?? [], $options);
+        return $productsQuery->paginate($options['per_page'] ?? 10)->withQueryString();
     }
-
 
     public function duplicate($id)
     {
@@ -66,8 +74,8 @@ class ProductController extends Controller
 
         return Inertia::render('admin/product/Editor', [
             'data' => $item,
-            'categories' => ProductCategory::all(['id', 'name']),
-            'suppliers' => Supplier::all(['id', 'name', 'phone']),
+            'categories' => $this->commonDataService->getCategories(),
+            'suppliers' => $this->commonDataService->getSuppliers(),
         ]);
     }
 
@@ -83,44 +91,33 @@ class ProductController extends Controller
 
         return Inertia::render('admin/product/Editor', [
             'data' => $item,
-            'categories' => ProductCategory::all(['id', 'name']),
-            'suppliers' => Supplier::all(['id', 'name', 'phone']),
+            'categories' => $this->commonDataService->getCategories(),
+            'suppliers' => $this->commonDataService->getSuppliers(),
         ]);
     }
 
-    public function save(Request $request)
+    /**
+     * Save (create or update) a product.
+     *
+     * @param \App\Http\Requests\Api\Product\SaveProductRequest $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function save(SaveProductRequest $request) // Menggunakan SaveProductRequest
     {
-        $validatedData = $request->validate([
-            'category_id' => ['nullable', Rule::exists('product_categories', 'id')],
-            'supplier_id' => ['nullable', Rule::exists('suppliers', 'id')],
-            'type' => ['nullable', Rule::in(array_keys(Product::Types))],
-            'name' => [
-                'required',
-                'max:255',
-                Rule::unique('products', 'name')->ignore($request->id),
-            ],
-            'description' => 'nullable|max:1000',
-            'barcode' => 'nullable|max:255',
-            'uom' => 'nullable|max:255',
-            'stock' => 'nullable|numeric',
-            'min_stock' => 'nullable|numeric',
-            'max_stock' => 'nullable|numeric',
-            'cost' => 'nullable|numeric',
-            'price' => 'nullable|numeric',
-            'active' => 'nullable|boolean',
-            'notes' => 'nullable|max:1000',
-        ]);
-
         try {
-            if ($request->id) {
-                $item = $this->productService->findProductById($request->id);
-                if (!$item) {
+            $validatedData = $request->validated();
+            $product = null;
+
+            // Jika ada ID dalam request, coba temukan produk yang ada
+            if ($request->has('id') && $request->input('id')) {
+                $product = $this->productService->findProductById($request->input('id'));
+                if (!$product) {
                     return redirect()->back()->with('error', 'Produk tidak ditemukan.');
                 }
-                $item = $this->productService->updateProduct($item, $validatedData);
-            } else {
-                $item = $this->productService->createProduct($validatedData);
             }
+
+            // Memanggil saveProduct di ProductService untuk create atau update
+            $item = $this->productService->saveProduct($validatedData, $product);
 
             return redirect(route('admin.product.index'))
                 ->with('success', "Produk $item->name telah disimpan.");
@@ -136,7 +133,8 @@ class ProductController extends Controller
             if (!$item) {
                 return redirect()->back()->with('error', 'Product tidak ditemukan.');
             }
-            if ($item->isUsedInTransactions()) {
+
+            if ($this->productService->isProductUsedInTransactions($item)) {
                 return redirect()->back()->with('error', 'Produk ini tidak dapat dihapus karena sedang digunakan dalam transaksi.');
             }
             $this->productService->deleteProduct($item);
@@ -146,10 +144,5 @@ class ProductController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Failed to delete product: ' . $e->getMessage());
         }
-    }
-
-    private function findProductById($id)
-    {
-        return Product::find($id);
     }
 }

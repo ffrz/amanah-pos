@@ -63,34 +63,6 @@ export function create_options_from_operational_cost_categories(items) {
   });
 }
 
-// TODO: remove this function
-export function create_options_from_users(items) {
-  return items.map((user) => {
-    return { 'value': user.id, 'label': `${user.username} - ${user.name}` };
-  });
-}
-
-// TODO: remove this function
-export function create_options_from_technicians(items) {
-  return items.map((technician) => {
-    return { 'value': technician.id, 'label': `#${technician.id} - ${technician.name}` };
-  });
-}
-
-// TODO: remove this function
-export function create_options_from_customers(items) {
-  return items.map((customer) => {
-    return { 'value': customer.id, 'label': `#${customer.id}: ${customer.name}` };
-  });
-}
-
-// TODO: remove this function
-export function create_options_from_customers_with_phone(items) {
-  return items.map((customer) => {
-    return { 'value': customer.id, 'label': `#${customer.id}: ${customer.name} - ${customer.phone}` };
-  });
-}
-
 export async function scrollToFirstErrorField(ref) {
   const element = ref.getNativeElement();
   if (element) {

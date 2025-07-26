@@ -4,18 +4,20 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
-use App\Services\ProductService; // Import ProductService
+use App\Services\ProductService;
 use App\Http\Requests\Api\Product\GetProductsRequest;
-use App\Http\Requests\Api\Product\StoreProductRequest; // Asumsi Anda membuat ini
-use App\Http\Requests\Api\Product\UpdateProductRequest; // Asumsi Anda membuat ini
+use App\Http\Requests\Api\Product\SaveProductRequest; // Import SaveProductRequest
 use Illuminate\Http\JsonResponse;
-// use App\Http\Resources\ProductResource; // Impor jika Anda menggunakan API Resources
+use App\Http\Resources\ProductResource;
+
+// Hapus StoreProductRequest dan UpdateProductRequest karena sudah tidak digunakan
+// use App\Http\Requests\Api\Product\StoreProductRequest;
+// use App\Http\Requests\Api\Product\UpdateProductRequest;
 
 class ProductController extends Controller
 {
     protected $productService;
 
-    // Inject ProductService melalui constructor
     public function __construct(ProductService $productService)
     {
         $this->productService = $productService;
@@ -29,32 +31,23 @@ class ProductController extends Controller
      */
     public function index(GetProductsRequest $request): JsonResponse
     {
-
         $filters = $request->validated();
-
         $perPage = $filters['per_page'] ?? 10;
 
+        // Ekstrak opsi pengurutan dari filters untuk diteruskan ke ProductService
+        $options = [
+            'order_by' => $filters['order_by'] ?? null,
+            'order_type' => $filters['order_type'] ?? null,
+        ];
+
         // Memanggil ProductService untuk mendapatkan query builder
-        $productsQuery = $this->productService->getProductsQuery($filters, $filters); // Melewatkan filters dan options yang sama
+        $productsQuery = $this->productService->getProductsQuery($filters, $options);
 
-        $items = $productsQuery->paginate($perPage);
+        // Paginasi hasil
+        $products = $productsQuery->paginate($perPage);
 
-        // Transformasi deskripsi tetap di sini jika hanya untuk output API ini
-        $items->getCollection()->transform(function ($item) {
-            $item->description = strlen($item->description) > 50 ? substr($item->description, 0, 50) . '...' : $item->description;
-            return $item;
-        });
-
-        // If using ProductResource, uncomment this
-        // return ProductResource::collection($items);
-
-        return response()->json([
-            'data' => $items->items(),
-            'current_page' => $items->currentPage(),
-            'per_page' => $items->perPage(),
-            'total' => $items->total(),
-            'last_page' => $items->lastPage(),
-        ]);
+        // Menggunakan ProductResource::collection untuk mengembalikan data dengan format yang konsisten
+        return ProductResource::collection($products)->response();
     }
 
     /**
@@ -65,8 +58,24 @@ class ProductController extends Controller
      */
     public function show(Product $product): JsonResponse
     {
-        // Product sudah di-load oleh Route Model Binding, service hanya untuk memastikan relasi
-        $product = $this->productService->findProductById($product->id);
+        // Product sudah di-load oleh Route Model Binding.
+        // Eager load relasi yang diperlukan untuk resource
+        $product->load(['category', 'supplier']);
+
+        // Mengembalikan single ProductResource
+        return (new ProductResource($product))->response();
+    }
+
+    /**
+     * Display the specified product by barcode or product code.
+     *
+     * @param  string  $identifier
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function findByBarcode(string $identifier): JsonResponse
+    {
+        // Menggunakan ProductService untuk menemukan produk
+        $product = $this->productService->findProductByIdentifier($identifier);
 
         if (!$product) {
             return response()->json([
@@ -76,64 +85,31 @@ class ProductController extends Controller
             ], 404);
         }
 
-        // If using ProductResource, uncomment this
-        // return new ProductResource($product);
+        // Eager load relasi jika diperlukan untuk resource
+        $product->load(['category', 'supplier']);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Product detail fetched successfully.',
-            'data' => $product,
-        ]);
-    }
-
-    /**
-     * Display the specified product by barcode or product code.
-     *
-     * @param  string  $identifier
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function showByBarcode(string $identifier): JsonResponse
-    {
-        $product = $this->productService->findProductByIdentifier($identifier);
-
-        if ($product) {
-            // If using ProductResource, uncomment this
-            // return new ProductResource($product);
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Product found.',
-                'data' => $product,
-            ]);
-        }
-
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Product not found.',
-            'data' => null,
-        ], 404);
+        // Mengembalikan single ProductResource
+        return (new ProductResource($product))->response();
     }
 
     /**
      * Store a newly created product in storage.
      *
-     * @param  \App\Http\Requests\Api\Product\StoreProductRequest  $request
+     * @param  \App\Http\Requests\Api\Product\SaveProductRequest  $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function store(StoreProductRequest $request): JsonResponse
+    public function store(SaveProductRequest $request): JsonResponse
     {
         try {
-            $product = $this->productService->createProduct($request->validated());
-            $product->load(['category', 'supplier']); // Eager load for response
+            // Memanggil saveProduct tanpa instance produk untuk membuat yang baru
+            $product = $this->productService->saveProduct($request->validated());
+            $product->load(['category', 'supplier']); // Eager load untuk response resource
 
-            // If using ProductResource, uncomment this
-            // return new ProductResource($product);
-
-            return response()->json([
-                'status' => 'success',
-                'message' => __("messages.product-created", ['name' => $product->name]),
-                'data' => $product,
-            ], 201);
+            // Mengembalikan single ProductResource dengan status 201 Created
+            return (new ProductResource($product))
+                ->response()
+                ->setStatusCode(201)
+                ->header('Location', route('products.show', $product->id)); // Opsional: Tambahkan header Location
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
@@ -145,24 +121,19 @@ class ProductController extends Controller
     /**
      * Update the specified product in storage.
      *
-     * @param  \App\Http\Requests\Api\Product\UpdateProductRequest  $request
+     * @param  \App\Http\Requests\Api\Product\SaveProductRequest  $request
      * @param  \App\Models\Product  $product
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update(UpdateProductRequest $request, Product $product): JsonResponse
+    public function update(SaveProductRequest $request, Product $product): JsonResponse
     {
         try {
-            $updatedProduct = $this->productService->updateProduct($product, $request->validated());
-            $updatedProduct->load(['category', 'supplier']); // Eager load for response
+            // Memanggil saveProduct dengan instance produk untuk memperbarui
+            $updatedProduct = $this->productService->saveProduct($request->validated(), $product);
+            $updatedProduct->load(['category', 'supplier']); // Eager load untuk response resource
 
-            // If using ProductResource, uncomment this
-            // return new ProductResource($updatedProduct);
-
-            return response()->json([
-                'status' => 'success',
-                'message' => __("messages.product-updated", ['name' => $updatedProduct->name]),
-                'data' => $updatedProduct,
-            ]);
+            // Mengembalikan single ProductResource
+            return (new ProductResource($updatedProduct))->response();
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
@@ -180,14 +151,11 @@ class ProductController extends Controller
     public function destroy(Product $product): JsonResponse
     {
         try {
-            $productName = $product->name;
+            $productName = $product->name; // Simpan nama sebelum dihapus
             $this->productService->deleteProduct($product);
 
-            return response()->json([
-                'status' => 'success',
-                'message' => __("messages.product-deleted", ['name' => $productName]),
-                'data' => null,
-            ], 204);
+            // Mengembalikan response 204 No Content
+            return response()->json(null, 204);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',

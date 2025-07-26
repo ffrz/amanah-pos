@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api\Product;
 
+use App\Models\Product;
 use Illuminate\Foundation\Http\FormRequest;
 
 class GetProductsRequest extends FormRequest
@@ -13,10 +14,6 @@ class GetProductsRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // Secara default, Form Request hanya bisa diotorisasi jika pengguna yang request sudah login.
-        // Jika API ini hanya untuk pengguna terotentikasi (seperti yang kita diskusikan),
-        // maka Auth::check() atau $this->user() !== null adalah cara yang tepat.
-        // Jika Anda ingin mengizinkan akses publik (tanpa login) ke endpoint ini, ubah menjadi 'return true;'.
         return $this->user() !== null;
     }
 
@@ -28,25 +25,23 @@ class GetProductsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // Pagination
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'order_by' => ['nullable', 'string', 'in:id,name,barcode,price,cost,type'], // Kolom yang bisa diurutkan
+            'order_type' => ['nullable', 'string', 'in:asc,desc'],
 
-            // Sorting
-            'order_by' => ['nullable', 'string', 'in:id,name,barcode,kode_barang,price,created_at'], // Kolom yang bisa diurutkan
-            'order_type' => ['nullable', 'string', 'in:asc,desc'], // Arah pengurutan
+            // Filters (semua filter, termasuk search, ada di sini)
+            'filter' => [
+                'nullable',
+                'array',
+            ],
 
-            // General Search (opsional, jika beda dengan 'query')
-            'search' => ['nullable', 'string', 'max:255'],
-
-            // Live Search (mencari di berbagai kolom)
-            'query' => ['nullable', 'string', 'max:255'],
-
-            // Filters
-            'category_id' => ['nullable', 'integer', 'exists:product_categories,id'], // Memastikan category_id ada di tabel product_categories
-            'supplier_id' => ['nullable', 'integer', 'exists:suppliers,id'],     // Memastikan supplier_id ada di tabel suppliers
-            'type' => ['nullable', 'string', 'in:stocked,non_stocked'], // Sesuaikan dengan nilai konstanta Product::Types Anda
-            'stock_status' => ['nullable', 'string', 'in:low,out,over,ready'], // Filter status stok
-            'status' => ['nullable', 'string', 'in:active,inactive'], // Filter status aktif produk
+            // ini gak jalan, skip aja dulu karena di product service juga sudah ada validasi
+            // 'filter.category_id' => ['nullable', 'integer', 'exists:product_categories,id'],
+            // 'filter.supplier_id' => ['nullable', 'integer', 'exists:suppliers,id'],
+            // 'filter.type' => ['nullable', 'string', 'in:' . implode(',', array_keys(Product::Types))],
+            // 'filter.stock_status' => ['nullable', 'string', 'in:low,out,over,ready'],
+            // 'filter.status' => ['nullable', 'string', 'in:active,inactive'],
+            // 'filter.search' => ['nullable', 'string', 'max:255'],
         ];
     }
 
@@ -58,11 +53,10 @@ class GetProductsRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'category_id.exists' => 'The selected category does not exist.',
-            'supplier_id.exists' => 'The selected supplier does not exist.',
+            'filter.category_id.exists' => 'The selected category does not exist.', // Perubahan di sini
+            'filter.supplier_id.exists' => 'The selected supplier does not exist.', // Perubahan di sini
             'order_by.in' => 'The selected sort by option is invalid.',
             'order_type.in' => 'The selected order type is invalid.',
-            // Anda bisa menambahkan pesan kustom lain di sini
         ];
     }
 }

@@ -5,10 +5,25 @@ namespace App\Services;
 use App\Models\Product;
 use App\Models\StockMovement;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class ProductService
 {
+    // Definisikan konstanta untuk kolom yang diizinkan untuk pengurutan
+    public const ALLOWED_SORT_COLUMNS = [
+        'id',
+        'name',
+        'barcode',
+        'price',
+        'cost',
+        'type',
+        'created_at',
+        'updated_at',
+        'category_id',
+        'supplier_id'
+    ];
+
     /**
      * Get a query builder for products with various filters and options.
      *
@@ -31,18 +46,17 @@ class ProductService
 
         if (isset($filters['type']) && $filters['type'] != 'all') {
             $query->where('type', '=', $filters['type']);
-            if ($filters['type'] == Product::Type_Stocked) {
-                if (isset($filters['stock_status']) && $filters['stock_status'] != 'all') {
-                    if ($filters['stock_status'] == 'low') {
-                        $query->whereColumn('stock', '<', 'min_stock')->where('stock', '!=', 0);
-                    } elseif ($filters['stock_status'] == 'out') {
-                        $query->where('stock', '=', 0);
-                    } elseif ($filters['stock_status'] == 'over') {
-                        $query->whereColumn('stock', '>', 'max_stock');
-                    } elseif ($filters['stock_status'] == 'ready') {
-                        $query->where('stock', '>', 0);
-                    }
-                }
+        }
+
+        if (isset($filters['stock_status']) && $filters['stock_status'] != 'all') {
+            if ($filters['stock_status'] == 'low') {
+                $query->whereColumn('stock', '<', 'min_stock')->where('stock', '!=', 0);
+            } elseif ($filters['stock_status'] == 'out') {
+                $query->where('stock', '=', 0);
+            } elseif ($filters['stock_status'] == 'over') {
+                $query->whereColumn('stock', '>', 'max_stock');
+            } elseif ($filters['stock_status'] == 'ready') {
+                $query->where('stock', '>', 0);
             }
         }
 
@@ -61,8 +75,19 @@ class ProductService
             $query->where('active', '=', $filters['status'] == 'active');
         }
 
-        $orderBy = $options['order_by'] ?? 'name';
-        $orderType = $options['order_type'] ?? 'asc';
+        $orderBy = $options['order_by'] ?? 'name'; // Default sort column
+        $orderType = strtolower($options['order_type'] ?? 'asc'); // Default sort type, pastikan lowercase
+
+        // Validasi kolom pengurutan menggunakan konstanta
+        if (!in_array($orderBy, self::ALLOWED_SORT_COLUMNS)) {
+            $orderBy = 'name'; // Fallback ke default jika kolom tidak valid
+        }
+
+        // Validasi tipe pengurutan
+        if (!in_array($orderType, ['asc', 'desc'])) {
+            $orderType = 'asc'; // Fallback ke default jika tipe tidak valid
+        }
+
         $query->orderBy($orderBy, $orderType);
 
         return $query;
@@ -87,16 +112,65 @@ class ProductService
      */
     public function findProductByIdentifier(string $identifier): ?Product
     {
-        $product = Product::with(['category', 'supplier'])
+        return Product::with(['category', 'supplier'])
             ->where('barcode', $identifier)
             ->first();
+    }
 
-        if (!$product) {
-            $product = Product::with(['category', 'supplier'])
-                ->where('kode_barang', $identifier) // Assuming 'kode_barang' column exists
-                ->first();
+    /**
+     * Create or update a product and handle stock movement.
+     *
+     * @param array $data Data for the product.
+     * @param \App\Models\Product|null $product Optional: Product instance to update. If null, a new product will be created.
+     * @return \App\Models\Product
+     * @throws \Exception
+     */
+    public function saveProduct(array $data, ?Product $product = null): Product
+    {
+        DB::beginTransaction();
+        try {
+            $oldStock = $product ? $product->stock : 0; // Get old stock if updating, else 0 for new product
+
+            if ($product) {
+                // Update existing product
+                $product->update($data);
+                $isNewProduct = false;
+            } else {
+                // Create new product
+                $product = Product::create($data);
+                $isNewProduct = true;
+            }
+
+            $newStock = $product->stock;
+
+            // Handle stock movement only if stock is provided in data and it's a stocked product
+            if (isset($data['stock']) && $product->type === Product::Type_Stocked) {
+                if ($isNewProduct) {
+                    // Initial stock for new product
+                    StockMovement::create([
+                        'ref_type' => StockMovement::RefType_InitialStock,
+                        'product_id' => $product->id,
+                        'quantity' => $newStock, // Use newStock directly for initial
+                        'user_id' => Auth::user()->id,
+                    ]);
+                } elseif ($oldStock != $newStock) {
+                    // Manual adjustment for updated product
+                    $diff = $newStock - $oldStock;
+                    StockMovement::create([
+                        'ref_type' => StockMovement::RefType_ManualAdjustment,
+                        'product_id' => $product->id,
+                        'quantity' => $diff,
+                        'user_id' => Auth::user()->id,
+                    ]);
+                }
+            }
+
+            DB::commit();
+            return $product;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
         }
-        return $product;
     }
 
     /**
@@ -108,25 +182,7 @@ class ProductService
      */
     public function createProduct(array $data): Product
     {
-        DB::beginTransaction();
-        try {
-            $product = Product::create($data);
-
-            if (isset($data['stock']) && $data['stock'] !== null) {
-                StockMovement::create([
-                    'ref_type' => StockMovement::RefType_InitialStock,
-                    'product_id' => $product->id,
-                    'quantity' => $data['stock'],
-                    'user_id' => auth()->id(),
-                ]);
-            }
-
-            DB::commit();
-            return $product;
-        } catch (\Exception $e) {
-            DB::rollBack();
-            throw $e;
-        }
+        return $this->saveProduct($data);
     }
 
     /**
@@ -139,28 +195,7 @@ class ProductService
      */
     public function updateProduct(Product $product, array $data): Product
     {
-        DB::beginTransaction();
-        try {
-            $oldStock = $product->stock;
-            $product->update($data);
-            $newStock = $product->stock;
-
-            if ($oldStock != $newStock) {
-                $diff = $newStock - $oldStock;
-                StockMovement::create([
-                    'ref_type' => StockMovement::RefType_ManualAdjustment,
-                    'product_id' => $product->id,
-                    'quantity' => $diff,
-                    'user_id' => auth()->id(),
-                ]);
-            }
-
-            DB::commit();
-            return $product;
-        } catch (\Exception $e) {
-            DB::rollBack();
-            throw $e;
-        }
+        return $this->saveProduct($data, $product);
     }
 
     /**
@@ -184,5 +219,10 @@ class ProductService
             DB::rollBack();
             throw $e;
         }
+    }
+
+    public function isProductUsedInTransactions(Product $product): bool
+    {
+        return $product->isUsedInTransactions();
     }
 }
