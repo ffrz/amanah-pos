@@ -22,6 +22,19 @@ const submit = () => handleSubmit({ form, url: route("admin.supplier.save") });
   <i-head :title="title" />
   <authenticated-layout>
     <template #title>{{ title }}</template>
+
+    <template #left-button>
+      <div class="q-gutter-sm">
+        <q-btn
+          icon="arrow_back"
+          dense
+          color="grey-7"
+          flat
+          rounded
+          @click="router.get(route('admin.supplier.index'))"
+        />
+      </div>
+    </template>
     <q-page class="row justify-center">
       <div class="col col-lg-6 q-pa-sm">
         <q-form
