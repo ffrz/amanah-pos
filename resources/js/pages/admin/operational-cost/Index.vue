@@ -71,6 +71,7 @@ const columns = [
 const categories = [
   { value: "all", label: "Semua" },
   { value: "null", label: "Tanpa Kategori" },
+
   // FIXME: ganti ini dengan composables
   ...createOptions_from_operational_cost_categories(page.props.categories),
 ];

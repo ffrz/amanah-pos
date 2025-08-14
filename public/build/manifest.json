@@ -3,8 +3,8 @@
     "file": "assets/vendor1-B66eveH2.css",
     "src": "_vendor1-B66eveH2.css"
   },
-  "_vendor1-Bo4aNo1y.js": {
-    "file": "assets/vendor1-Bo4aNo1y.js",
+  "_vendor1-Be4gSlrd.js": {
+    "file": "assets/vendor1-Be4gSlrd.js",
     "name": "vendor1",
     "css": [
       "assets/vendor1-B66eveH2.css"
@@ -16,18 +16,18 @@
       "assets/MaterialIcons-Regular-DEUTIz1o.ttf"
     ]
   },
-  "_vendor2-G53q-SMK.js": {
-    "file": "assets/vendor2-G53q-SMK.js",
+  "_vendor2-BsCixxAw.js": {
+    "file": "assets/vendor2-BsCixxAw.js",
     "name": "vendor2",
     "imports": [
-      "_vendor1-Bo4aNo1y.js"
+      "_vendor1-Be4gSlrd.js"
     ]
   },
-  "_vendor3-9LZhtI5K.js": {
-    "file": "assets/vendor3-9LZhtI5K.js",
+  "_vendor3-CgouVVDz.js": {
+    "file": "assets/vendor3-CgouVVDz.js",
     "name": "vendor3",
     "imports": [
-      "_vendor2-G53q-SMK.js"
+      "_vendor2-BsCixxAw.js"
     ]
   },
   "node_modules/@quasar/extras/fontawesome-v6/fa-brands-400.ttf": {
@@ -103,22 +103,22 @@
     "src": "node_modules/material-design-icons-iconfont/dist/fonts/MaterialIcons-Regular.woff2"
   },
   "resources/css/app.css": {
-    "file": "assets/app-D2BxLLbj.css",
+    "file": "assets/app-B-zRk8ZN.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-CNsjsd6G.js",
+    "file": "assets/app-Bg0L5LZg.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
     "imports": [
-      "_vendor1-Bo4aNo1y.js",
-      "_vendor3-9LZhtI5K.js",
-      "_vendor2-G53q-SMK.js"
+      "_vendor1-Be4gSlrd.js",
+      "_vendor3-CgouVVDz.js",
+      "_vendor2-BsCixxAw.js"
     ],
     "css": [
-      "assets/app-B8atqE7c.css"
+      "assets/app-CpGaZRR4.css"
     ],
     "assets": [
       "assets/flUhRq6tzZclQEJ-Vdg-IuiaDsNcIhQ8tQ-D-x-0Q06.woff2",
