@@ -1,15 +1,16 @@
 <script setup>
 import { router, useForm, usePage } from "@inertiajs/vue3";
 import { handleSubmit } from "@/helpers/client-req-handler";
-import { create_options, scrollToFirstErrorField } from "@/helpers/utils";
+import { scrollToFirstErrorField } from "@/helpers/utils";
 import { computed, ref } from "vue";
-import { useProductCategoryFilter } from "@/helpers/useProductCategoryFilter";
-import { useSupplierFilter } from "@/helpers/useSupplierFilter";
+import { useProductCategoryFilter } from "@/composables/useProductCategoryFilter";
+import { useSupplierFilter } from "@/composables/useSupplierFilter";
+import { createOptions } from "@/helpers/options";
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
 
 const page = usePage();
 const title = (!!page.props.data.id ? "Edit" : "Tambah") + " Produk";
-const types = create_options(window.CONSTANTS.PRODUCT_TYPES);
+const types = createOptions(window.CONSTANTS.PRODUCT_TYPES);
 
 const form = useForm({
   id: page.props.data.id,

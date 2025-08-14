@@ -1,31 +1,30 @@
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from "vue";
-import { usePage } from "@inertiajs/vue3";
 import { handleFetchItems } from "@/helpers/client-req-handler";
-import {
-  formatNumber, getQueryParams, create_month_options, create_year_options, plusMinusSymbol
-} from "@/helpers/utils";
+import { getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
+import { formatNumber, plusMinusSymbol } from "@/helpers/formatter";
+import { createMonthOptions, createYearOptions } from "@/helpers/options";
+import { getCurrentMonth, getCurrentYear } from "@/helpers/datetime";
 
 const title = "Riwayat Transaksi";
-const page = usePage();
 const $q = useQuasar();
 const showFilter = ref(false);
 const rows = ref([]);
 const loading = ref(true);
 
-const currentYear = new Date().getFullYear();
-const currentMonth = new Date().getMonth() + 1;
+const currentYear = getCurrentYear();
+const currentMonth = getCurrentMonth();
 
 const years = [
-  { label: "Semua Tahun", value: 'all' },
+  { label: "Semua Tahun", value: "all" },
   { label: `${currentYear}`, value: currentYear },
-  ...create_year_options(currentYear - 2, currentYear - 1).reverse(),
+  ...createYearOptions(currentYear - 2, currentYear - 1).reverse(),
 ];
 
 const months = [
-  { value: 'all', label: "Semua Bulan" },
-  ...create_month_options(),
+  { value: "all", label: "Semua Bulan" },
+  ...createMonthOptions(),
 ];
 
 const filter = reactive({
@@ -45,9 +44,15 @@ const pagination = ref({
 
 const columns = [
   { name: "id", label: "ID", field: "id", align: "left", sortable: true },
-  { name: "datetime", label: "Waktu", field: "datetime", align: "left", sortable: true },
+  {
+    name: "datetime",
+    label: "Waktu",
+    field: "datetime",
+    align: "left",
+    sortable: true,
+  },
   { name: "notes", label: "Catatan", field: "notes", align: "left" },
-  { name: "amount", label: "Jumlah (Rp.)", field: "amount", align: "right" }
+  { name: "amount", label: "Jumlah (Rp.)", field: "amount", align: "right" },
 ];
 
 onMounted(() => {
@@ -71,15 +76,19 @@ const onFilterChange = () => {
 
 const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return columns;
-  return columns.filter((col) => col.name === "datetime" || col.name === "action");
+  return columns.filter(
+    (col) => col.name === "datetime" || col.name === "action"
+  );
 });
 
-watch(() => filter.year, (newVal) => {
-  if (newVal === null) {
-    filter.month = null;
+watch(
+  () => filter.year,
+  (newVal) => {
+    if (newVal === null) {
+      filter.month = null;
+    }
   }
-});
-
+);
 </script>
 
 <template>
@@ -87,17 +96,49 @@ watch(() => filter.year, (newVal) => {
   <customer-layout>
     <template #title>{{ title }}</template>
     <template #right-button>
-      <q-btn class="q-ml-sm" :icon="!showFilter ? 'filter_alt' : 'filter_alt_off'" color="grey" dense
-        @click="showFilter = !showFilter" />
+      <q-btn
+        class="q-ml-sm"
+        :icon="!showFilter ? 'filter_alt' : 'filter_alt_off'"
+        color="grey"
+        dense
+        @click="showFilter = !showFilter"
+      />
     </template>
     <template #header v-if="showFilter">
       <q-toolbar class="filter-bar">
         <div class="row q-col-gutter-xs items-center q-pa-sm full-width">
-          <q-select v-model="filter.year" :options="years" label="Tahun" dense outlined class="col-xs-6 col-sm-2"
-            emit-value map-options @update:model-value="onFilterChange" />
-          <q-select v-model="filter.month" :options="months" label="Bulan" dense outlined class="col-xs-6 col-sm-2"
-            emit-value map-options :disable="filter.year === null" @update:model-value="onFilterChange" />
-          <q-input class="col" outlined dense debounce="300" v-model="filter.search" placeholder="Cari" clearable>
+          <q-select
+            v-model="filter.year"
+            :options="years"
+            label="Tahun"
+            dense
+            outlined
+            class="col-xs-6 col-sm-2"
+            emit-value
+            map-options
+            @update:model-value="onFilterChange"
+          />
+          <q-select
+            v-model="filter.month"
+            :options="months"
+            label="Bulan"
+            dense
+            outlined
+            class="col-xs-6 col-sm-2"
+            emit-value
+            map-options
+            :disable="filter.year === null"
+            @update:model-value="onFilterChange"
+          />
+          <q-input
+            class="col"
+            outlined
+            dense
+            debounce="300"
+            v-model="filter.search"
+            placeholder="Cari"
+            clearable
+          >
             <template v-slot:append>
               <q-icon name="search" />
             </template>
@@ -106,9 +147,23 @@ watch(() => filter.year, (newVal) => {
       </q-toolbar>
     </template>
     <div class="q-pa-sm">
-      <q-table class="full-height-table" flat bordered square color="primary" row-key="id" virtual-scroll
-        v-model:pagination="pagination" :filter="filter.search" :loading="loading" :columns="computedColumns"
-        :rows="rows" :rows-per-page-options="[10, 25, 50]" @request="fetchItems" binary-state-sort>
+      <q-table
+        class="full-height-table"
+        flat
+        bordered
+        square
+        color="primary"
+        row-key="id"
+        virtual-scroll
+        v-model:pagination="pagination"
+        :filter="filter.search"
+        :loading="loading"
+        :columns="computedColumns"
+        :rows="rows"
+        :rows-per-page-options="[10, 25, 50]"
+        @request="fetchItems"
+        binary-state-sort
+      >
         <template v-slot:loading>
           <q-inner-loading showing color="red" />
         </template>
@@ -116,7 +171,8 @@ watch(() => filter.year, (newVal) => {
           <div class="full-width row flex-center text-grey-8 q-gutter-sm">
             <span>
               {{ message }}
-              {{ filter ? " with term " + filter : "" }}</span>
+              {{ filter ? " with term " + filter : "" }}</span
+            >
           </div>
         </template>
         <template v-slot:body="props">
@@ -125,20 +181,29 @@ watch(() => filter.year, (newVal) => {
               {{ props.row.id }}
             </q-td>
             <q-td key="datetime" :props="props" class="wrap-column">
-              <div><q-icon name="calendar_today" /> {{ props.row.datetime }}</div>
+              <div>
+                <q-icon name="calendar_today" /> {{ props.row.datetime }}
+              </div>
               <template v-if="!$q.screen.gt.sm">
                 <div><q-icon name="notes" /> {{ props.row.notes }}</div>
-                <div><q-icon name="money" /> Rp. {{ plusMinusSymbol(props.row.amount) + formatNumber(props.row.amount)
-                }}</div>
+                <div>
+                  <q-icon name="money" /> Rp.
+                  {{
+                    plusMinusSymbol(props.row.amount) +
+                    formatNumber(props.row.amount)
+                  }}
+                </div>
               </template>
             </q-td>
             <q-td key="notes" :props="props">
               {{ props.row.notes }}
             </q-td>
             <q-td key="amount" :props="props" style="text-align: right">
-              {{ plusMinusSymbol(props.row.amount) + formatNumber(props.row.amount) }}
+              {{
+                plusMinusSymbol(props.row.amount) +
+                formatNumber(props.row.amount)
+              }}
             </q-td>
-
           </q-tr>
         </template>
       </q-table>

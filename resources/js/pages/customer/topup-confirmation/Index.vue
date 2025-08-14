@@ -1,20 +1,20 @@
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from "vue";
-import { router } from "@inertiajs/vue3";
-import { handleDelete, handleFetchItems } from "@/helpers/client-req-handler";
-import { check_role, getQueryParams } from "@/helpers/utils";
+import { handleFetchItems } from "@/helpers/client-req-handler";
+import { getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
-import { createMonthOptions, createYearOptions } from "@/helpers/options";
 import { formatNumber, plusMinusSymbol } from "@/helpers/formatter";
+import { getCurrentMonth, getCurrentYear } from "@/helpers/datetime";
+import { createMonthOptions, createYearOptions } from "@/helpers/options";
 
-const title = "Transaksi Dompet Santri";
+const title = "Riwayat Transaksi";
 const $q = useQuasar();
 const showFilter = ref(false);
 const rows = ref([]);
 const loading = ref(true);
 
-const currentYear = new Date().getFullYear();
-const currentMonth = new Date().getMonth() + 1;
+const currentYear = getCurrentYear();
+const currentMonth = getCurrentMonth();
 
 const years = [
   { label: "Semua Tahun", value: "all" },
@@ -33,6 +33,7 @@ const filter = reactive({
   month: currentMonth,
   ...getQueryParams(),
 });
+
 const pagination = ref({
   page: 1,
   rowsPerPage: 10,
@@ -40,7 +41,9 @@ const pagination = ref({
   sortBy: "datetime",
   descending: true,
 });
+
 const columns = [
+  { name: "id", label: "ID", field: "id", align: "left", sortable: true },
   {
     name: "datetime",
     label: "Waktu",
@@ -48,41 +51,13 @@ const columns = [
     align: "left",
     sortable: true,
   },
-  {
-    name: "customer",
-    label: "Santri",
-    field: "customer",
-    align: "left",
-  },
-  {
-    name: "notes",
-    label: "Catatan",
-    field: "notes",
-    align: "left",
-  },
-  {
-    name: "amount",
-    label: "Jumlah (Rp.)",
-    field: "amount",
-    align: "right",
-  },
-  {
-    name: "action",
-    align: "right",
-  },
+  { name: "notes", label: "Catatan", field: "notes", align: "left" },
+  { name: "amount", label: "Jumlah (Rp.)", field: "amount", align: "right" },
 ];
 
 onMounted(() => {
   fetchItems();
 });
-
-const deleteItem = (row) =>
-  handleDelete({
-    message: `Hapus transaksi #-${row.id}?`,
-    url: route("admin.customer-wallet-transaction.delete", row.id),
-    fetchItemsCallback: fetchItems,
-    loading,
-  });
 
 const fetchItems = (props = null) => {
   handleFetchItems({
@@ -90,7 +65,7 @@ const fetchItems = (props = null) => {
     filter,
     props,
     rows,
-    url: route("admin.customer-wallet-transaction.data"),
+    url: route("customer.wallet-transaction.data"),
     loading,
   });
 };
@@ -118,15 +93,9 @@ watch(
 
 <template>
   <i-head :title="title" />
-  <authenticated-layout>
+  <customer-layout>
     <template #title>{{ title }}</template>
     <template #right-button>
-      <q-btn
-        icon="add"
-        dense
-        color="primary"
-        @click="router.get(route('admin.customer-wallet-transaction.add'))"
-      />
       <q-btn
         class="q-ml-sm"
         :icon="!showFilter ? 'filter_alt' : 'filter_alt_off'"
@@ -208,27 +177,15 @@ watch(
         </template>
         <template v-slot:body="props">
           <q-tr :props="props">
+            <q-td key="id" :props="props" class="wrap-column">
+              {{ props.row.id }}
+            </q-td>
             <q-td key="datetime" :props="props" class="wrap-column">
               <div>
-                #{{ props.row.id }} - <q-icon name="calendar_today" />
-                {{ props.row.datetime }}
-              </div>
-              <div>
-                <q-badge
-                  ><q-icon name="category" />
-                  {{ props.row.type_label }}</q-badge
-                >
-                :
-                {{
-                  props.row.finance_account
-                    ? props.row.finance_account.name
-                    : "-"
-                }}
+                <q-icon name="calendar_today" /> {{ props.row.datetime }}
               </div>
               <template v-if="!$q.screen.gt.sm">
-                <div>
-                  {{ props.row.customer.nis }} - {{ props.row.customer.name }}
-                </div>
+                <div><q-icon name="notes" /> {{ props.row.notes }}</div>
                 <div>
                   <q-icon name="money" /> Rp.
                   {{
@@ -236,11 +193,7 @@ watch(
                     formatNumber(props.row.amount)
                   }}
                 </div>
-                <div><q-icon name="notes" /> {{ props.row.notes }}</div>
               </template>
-            </q-td>
-            <q-td key="customer" :props="props">
-              {{ props.row.customer.nis }} - {{ props.row.customer.name }}
             </q-td>
             <q-td key="notes" :props="props">
               {{ props.row.notes }}
@@ -251,42 +204,9 @@ watch(
                 formatNumber(props.row.amount)
               }}
             </q-td>
-            <q-td key="action" :props="props">
-              <div class="flex justify-end">
-                <q-btn
-                  :disabled="!check_role($CONSTANTS.USER_ROLE_ADMIN)"
-                  icon="more_vert"
-                  dense
-                  flat
-                  style="height: 40px; width: 30px"
-                  @click.stop
-                >
-                  <q-menu
-                    anchor="bottom right"
-                    self="top right"
-                    transition-show="scale"
-                    transition-hide="scale"
-                  >
-                    <q-list style="width: 200px">
-                      <q-item
-                        @click.stop="deleteItem(props.row)"
-                        clickable
-                        v-ripple
-                        v-close-popup
-                      >
-                        <q-item-section avatar>
-                          <q-icon name="delete_forever" />
-                        </q-item-section>
-                        <q-item-section>Hapus</q-item-section>
-                      </q-item>
-                    </q-list>
-                  </q-menu>
-                </q-btn>
-              </div>
-            </q-td>
           </q-tr>
         </template>
       </q-table>
     </div>
-  </authenticated-layout>
+  </customer-layout>
 </template>

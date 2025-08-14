@@ -4,13 +4,13 @@ import UpdateProfileInformationForm from "./partials/UpdateProfileInformationFor
 </script>
 
 <template>
-  <i-head :title="title" />
+  <i-head title="Edit Profil" />
   <customer-layout>
-    <template #title>Profil</template>
+    <template #title>Profil Wali Santri</template>
     <div class="q-pa-sm">
       <div class="row justify-center">
         <div class="col col-lg-6">
-          <UpdateProfileInformationForm class="q-mb-md" />
+          <UpdateProfileInformationForm />
           <UpdatePasswordForm />
         </div>
       </div>

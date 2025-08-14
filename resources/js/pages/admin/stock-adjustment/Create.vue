@@ -1,11 +1,9 @@
 <script setup>
 import { router, useForm, usePage } from "@inertiajs/vue3";
 import { handleSubmit } from "@/helpers/client-req-handler";
-import {
-  create_options,
-  formatNumber,
-  scrollToFirstErrorField,
-} from "@/helpers/utils";
+import { formatNumber } from "@/helpers/formatter";
+import { scrollToFirstErrorField } from "@/helpers/utils";
+import { createOptions } from "@/helpers/options";
 import DateTimePicker from "@/components/DateTimePicker.vue";
 import dayjs from "dayjs";
 import { useQuasar } from "quasar";
@@ -40,7 +38,7 @@ const columns = [
   },
 ];
 
-const types = create_options(window.CONSTANTS.STOCKADJUSTMENT_TYPES);
+const types = createOptions(window.CONSTANTS.STOCKADJUSTMENT_TYPES);
 
 const submit = () => {
   form.product_ids = selectedProducts.value.map((p) => p.id);

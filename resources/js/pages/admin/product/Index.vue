@@ -2,11 +2,12 @@
 import { computed, onMounted, reactive, ref } from "vue";
 import { router, usePage } from "@inertiajs/vue3";
 import { handleDelete, handleFetchItems } from "@/helpers/client-req-handler";
-import { check_role, getQueryParams, formatNumber } from "@/helpers/utils";
+import { check_role, getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
-import { create_options } from "@/helpers/utils";
-import { useProductCategoryFilter } from "@/helpers/useProductCategoryFilter";
-import { useSupplierFilter } from "@/helpers/useSupplierFilter";
+import { useProductCategoryFilter } from "@/composables/useProductCategoryFilter";
+import { useSupplierFilter } from "@/composables/useSupplierFilter";
+import { formatNumber } from "@/helpers/formatter";
+import { createOptions } from "@/helpers/options";
 
 const page = usePage();
 
@@ -14,7 +15,7 @@ const showCostColumn = ref(false);
 
 const types = [
   { value: "all", label: "Semua" },
-  ...create_options(window.CONSTANTS.PRODUCT_TYPES),
+  ...createOptions(window.CONSTANTS.PRODUCT_TYPES),
 ];
 
 const statuses = [

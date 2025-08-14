@@ -1,9 +1,11 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from "vue";
-import { router, usePage } from "@inertiajs/vue3";
+import { router } from "@inertiajs/vue3";
 import { handleDelete, handleFetchItems } from "@/helpers/client-req-handler";
-import { create_options, check_role, getQueryParams, formatNumber } from "@/helpers/utils";
+import { check_role, getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
+import { formatNumber } from "@/helpers/formatter";
+import { createOptions } from "@/helpers/options";
 
 const title = "Penyesuaian Stok";
 const rows = ref([]);
@@ -14,16 +16,16 @@ const filter = reactive({
   search: "",
   status: "all",
   type: "all",
-  ...getQueryParams()
+  ...getQueryParams(),
 });
 
 const statuses = [
   { value: "all", label: "Semua" },
-  ...create_options(window.CONSTANTS.STOCKADJUSTMENT_STATUSES),
+  ...createOptions(window.CONSTANTS.STOCKADJUSTMENT_STATUSES),
 ];
 const types = [
   { value: "all", label: "Semua" },
-  ...create_options(window.CONSTANTS.STOCKADJUSTMENT_TYPES),
+  ...createOptions(window.CONSTANTS.STOCKADJUSTMENT_TYPES),
 ];
 
 const pagination = ref({
@@ -117,10 +119,9 @@ const onFilterChange = () => {
 };
 
 const onRowClicked = (row) => {
-  if (row.status == 'draft')
+  if (row.status == "draft")
     router.get(route("admin.stock-adjustment.editor", row.id));
-  else
-    router.get(route("admin.stock-adjustment.detail", row.id));
+  else router.get(route("admin.stock-adjustment.detail", row.id));
 };
 
 const $q = useQuasar();
@@ -134,20 +135,56 @@ const computedColumns = computed(() => {
   <i-head :title="title" />
   <authenticated-layout>
     <template #right-button>
-      <q-btn icon="add" dense color="primary" @click="router.get(route('admin.stock-adjustment.create'))" />
-      <q-btn class="q-ml-sm" :icon="!showFilter ? 'filter_alt' : 'filter_alt_off'" color="grey" dense
-        @click="showFilter = !showFilter" />
+      <q-btn
+        icon="add"
+        dense
+        color="primary"
+        @click="router.get(route('admin.stock-adjustment.create'))"
+      />
+      <q-btn
+        class="q-ml-sm"
+        :icon="!showFilter ? 'filter_alt' : 'filter_alt_off'"
+        color="grey"
+        dense
+        @click="showFilter = !showFilter"
+      />
     </template>
     <template #title>{{ title }}</template>
     <template #header v-if="showFilter">
       <q-toolbar class="filter-bar">
         <div class="row q-col-gutter-xs items-center q-pa-sm full-width">
-          <q-select v-model="filter.status" :options="statuses" label="Status" dense map-options
-            class="custom-select col-xs-12 col-sm-2" emit-value outlined @update:model-value="onFilterChange" />
-          <q-select v-model="filter.type" :options="types" label="Jenis" dense class="custom-select col-xs-12 col-sm-2"
-            map-options emit-value outlined @update:model-value="onFilterChange" />
+          <q-select
+            v-model="filter.status"
+            :options="statuses"
+            label="Status"
+            dense
+            map-options
+            class="custom-select col-xs-12 col-sm-2"
+            emit-value
+            outlined
+            @update:model-value="onFilterChange"
+          />
+          <q-select
+            v-model="filter.type"
+            :options="types"
+            label="Jenis"
+            dense
+            class="custom-select col-xs-12 col-sm-2"
+            map-options
+            emit-value
+            outlined
+            @update:model-value="onFilterChange"
+          />
 
-          <q-input class="col" outlined dense debounce="300" v-model="filter.search" placeholder="Cari" clearable>
+          <q-input
+            class="col"
+            outlined
+            dense
+            debounce="300"
+            v-model="filter.search"
+            placeholder="Cari"
+            clearable
+          >
             <template v-slot:append>
               <q-icon name="search" />
             </template>
@@ -156,10 +193,23 @@ const computedColumns = computed(() => {
       </q-toolbar>
     </template>
     <div class="q-pa-sm">
-      <q-table flat bordered square color="primary" class="full-height-table stock-adjustment-list" row-key="id"
-        virtual-scroll v-model:pagination="pagination" :filter="filter.search" :loading="loading"
-        :columns="computedColumns" :rows="rows" :rows-per-page-options="[10, 25, 50]" @request="fetchItems"
-        binary-state-sort>
+      <q-table
+        flat
+        bordered
+        square
+        color="primary"
+        class="full-height-table stock-adjustment-list"
+        row-key="id"
+        virtual-scroll
+        v-model:pagination="pagination"
+        :filter="filter.search"
+        :loading="loading"
+        :columns="computedColumns"
+        :rows="rows"
+        :rows-per-page-options="[10, 25, 50]"
+        @request="fetchItems"
+        binary-state-sort
+      >
         <template v-slot:loading>
           <q-inner-loading showing color="red" />
         </template>
@@ -168,48 +218,107 @@ const computedColumns = computed(() => {
           <div class="full-width row flex-center text-grey-8 q-gutter-sm">
             <span>
               {{ message }}
-              {{ filter ? " with term " + filter : "" }}</span>
+              {{ filter ? " with term " + filter : "" }}</span
+            >
           </div>
         </template>
 
         <template v-slot:body="props">
-          <q-tr :props="props" @click="onRowClicked(props.row)" class="cursor-pointer">
+          <q-tr
+            :props="props"
+            @click="onRowClicked(props.row)"
+            class="cursor-pointer"
+          >
             <q-td key="id" :props="props">
               <template v-if="!$q.screen.lt.md">
                 <div class="flex q-gutter-xs">
-                  <div><b>#{{ props.row.id }}</b></div>
+                  <div>
+                    <b>#{{ props.row.id }}</b>
+                  </div>
                 </div>
               </template>
               <template v-else>
                 <div class="flex q-col-gutter-xs">
-                  <div><b>#{{ props.row.id }}</b></div>
-                  <div><q-icon name="history" /> {{ $dayjs(new Date(props.row.datetime)).format("DD/MM/YYYY HH:mm") }}
+                  <div>
+                    <b>#{{ props.row.id }}</b>
                   </div>
-                  <q-chip dense size="sm"
-                    :color="props.row.status === 'draft' ? 'orange' : (props.row.status === 'closed' ? 'green' : (props.row.status === 'canceled' ? 'red' : ''))"
-                    :icon="props.row.status === 'draft' ? 'emergency' : (props.row.status === 'closed' ? 'check' : (props.row.status === 'canceled' ? 'close' : ''))">{{
-                      $CONSTANTS.STOCKADJUSTMENT_STATUSES[props.row.status] }}</q-chip>
+                  <div>
+                    <q-icon name="history" />
+                    {{
+                      $dayjs(new Date(props.row.datetime)).format(
+                        "DD/MM/YYYY HH:mm"
+                      )
+                    }}
+                  </div>
+                  <q-chip
+                    dense
+                    size="sm"
+                    :color="
+                      props.row.status === 'draft'
+                        ? 'orange'
+                        : props.row.status === 'closed'
+                        ? 'green'
+                        : props.row.status === 'canceled'
+                        ? 'red'
+                        : ''
+                    "
+                    :icon="
+                      props.row.status === 'draft'
+                        ? 'emergency'
+                        : props.row.status === 'closed'
+                        ? 'check'
+                        : props.row.status === 'canceled'
+                        ? 'close'
+                        : ''
+                    "
+                    >{{
+                      $CONSTANTS.STOCKADJUSTMENT_STATUSES[props.row.status]
+                    }}</q-chip
+                  >
                 </div>
                 <div>
-                  <q-icon name="category" /> {{ $CONSTANTS.STOCKADJUSTMENT_TYPES[props.row.type] }}
+                  <q-icon name="category" />
+                  {{ $CONSTANTS.STOCKADJUSTMENT_TYPES[props.row.type] }}
                 </div>
                 <div v-if="props.row.created_by">
-                  <q-icon name="person" /> Dibuat: <b>{{ props.row.created_by.username }}</b> <q-icon name="history" />
-                  {{ $dayjs(new Date(props.row.created_datetime)).format("DD/MM/YYYY HH:mm") }}
+                  <q-icon name="person" /> Dibuat:
+                  <b>{{ props.row.created_by.username }}</b>
+                  <q-icon name="history" />
+                  {{
+                    $dayjs(new Date(props.row.created_datetime)).format(
+                      "DD/MM/YYYY HH:mm"
+                    )
+                  }}
                 </div>
                 <div v-if="props.row.updated_by">
-                  <q-icon name="person" /> Diperbarui: <b>{{ props.row.updated_by.username }}</b> <q-icon
-                    name="history" /> {{ $dayjs(new Date(props.row.updated_datetime)).format("DD/MM/YYYY HH:mm") }}
+                  <q-icon name="person" /> Diperbarui:
+                  <b>{{ props.row.updated_by.username }}</b>
+                  <q-icon name="history" />
+                  {{
+                    $dayjs(new Date(props.row.updated_datetime)).format(
+                      "DD/MM/YYYY HH:mm"
+                    )
+                  }}
                 </div>
                 <div
-                  :class="props.row.total_cost < 0 ? 'text-red-10' : (props.row.total_cost > 0 ? 'text-green-10' : '')">
-                  <q-icon name="money" /> Rp. {{ formatNumber(props.row.total_cost) }} / Rp. {{
-                    formatNumber(props.row.total_price) }}
+                  :class="
+                    props.row.total_cost < 0
+                      ? 'text-red-10'
+                      : props.row.total_cost > 0
+                      ? 'text-green-10'
+                      : ''
+                  "
+                >
+                  <q-icon name="money" /> Rp.
+                  {{ formatNumber(props.row.total_cost) }} / Rp.
+                  {{ formatNumber(props.row.total_price) }}
                 </div>
               </template>
             </q-td>
             <q-td key="datetime" :props="props">
-              {{ $dayjs(new Date(props.row.datetime)).format("DD/MM/YYYY HH:mm") }}
+              {{
+                $dayjs(new Date(props.row.datetime)).format("DD/MM/YYYY HH:mm")
+              }}
             </q-td>
             <q-td key="status" :props="props" class="text-center">
               {{ $CONSTANTS.STOCKADJUSTMENT_STATUSES[props.row.status] }}
@@ -219,13 +328,27 @@ const computedColumns = computed(() => {
             </q-td>
             <q-td key="total_cost" :props="props">
               <div
-                :class="props.row.total_cost < 0 ? 'text-red-10' : (props.row.total_cost > 0 ? 'text-green-10' : '')">
+                :class="
+                  props.row.total_cost < 0
+                    ? 'text-red-10'
+                    : props.row.total_cost > 0
+                    ? 'text-green-10'
+                    : ''
+                "
+              >
                 {{ formatNumber(props.row.total_cost) }}
               </div>
             </q-td>
             <q-td key="total_price" :props="props">
               <div
-                :class="props.row.total_price < 0 ? 'text-red-10' : (props.row.total_price > 0 ? 'text-green-10' : '')">
+                :class="
+                  props.row.total_price < 0
+                    ? 'text-red-10'
+                    : props.row.total_price > 0
+                    ? 'text-green-10'
+                    : ''
+                "
+              >
                 {{ formatNumber(props.row.total_price) }}
               </div>
             </q-td>
@@ -234,11 +357,27 @@ const computedColumns = computed(() => {
             </q-td>
             <q-td key="action" :props="props">
               <div class="flex justify-end">
-                <q-btn icon="more_vert" dense flat style="height: 40px; width: 30px" @click.stop>
-                  <q-menu anchor="bottom right" self="top right" transition-show="scale" transition-hide="scale">
+                <q-btn
+                  icon="more_vert"
+                  dense
+                  flat
+                  style="height: 40px; width: 30px"
+                  @click.stop
+                >
+                  <q-menu
+                    anchor="bottom right"
+                    self="top right"
+                    transition-show="scale"
+                    transition-hide="scale"
+                  >
                     <q-list style="width: 200px">
-                      <q-item @click.stop="deleteItem(props.row)" clickable
-                        :disabled="!check_role($CONSTANTS.USER_ROLE_ADMIN)" v-ripple v-close-popup>
+                      <q-item
+                        @click.stop="deleteItem(props.row)"
+                        clickable
+                        :disabled="!check_role($CONSTANTS.USER_ROLE_ADMIN)"
+                        v-ripple
+                        v-close-popup
+                      >
                         <q-item-section avatar>
                           <q-icon name="delete_forever" />
                         </q-item-section>

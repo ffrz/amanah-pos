@@ -1,5 +1,5 @@
 <script setup>
-import { formatNumber } from "@/helpers/utils";
+import { formatNumber } from "@/helpers/formatter";
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
 
 defineProps({

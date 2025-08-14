@@ -2,16 +2,11 @@
 import { computed, onMounted, reactive, ref, watch } from "vue";
 import { router, usePage } from "@inertiajs/vue3";
 import { handleDelete, handleFetchItems } from "@/helpers/client-req-handler";
-import {
-  check_role,
-  create_options_from_operational_cost_categories,
-  formatNumber,
-  getQueryParams,
-  create_month_options,
-  create_year_options,
-} from "@/helpers/utils";
+import { check_role, getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
 import dayjs from "dayjs";
+import { formatNumber } from "@/helpers/formatter";
+import { createMonthOptions, createYearOptions } from "@/helpers/options";
 
 const title = "Biaya Operasional";
 const page = usePage();
@@ -26,13 +21,10 @@ const currentMonth = new Date().getMonth() + 1; // months are 0-based, so adding
 const years = [
   { label: "Semua Tahun", value: null },
   { label: `${currentYear}`, value: currentYear },
-  ...create_year_options(currentYear - 2, currentYear - 1).reverse(),
+  ...createYearOptions(currentYear - 2, currentYear - 1).reverse(),
 ];
 
-const months = [
-  { value: null, label: "Semua Bulan" },
-  ...create_month_options(),
-];
+const months = [{ value: null, label: "Semua Bulan" }, ...createMonthOptions()];
 
 const filter = reactive({
   search: "",
@@ -79,7 +71,8 @@ const columns = [
 const categories = [
   { value: "all", label: "Semua" },
   { value: "null", label: "Tanpa Kategori" },
-  ...create_options_from_operational_cost_categories(page.props.categories),
+  // FIXME: ganti ini dengan composables
+  ...createOptions_from_operational_cost_categories(page.props.categories),
 ];
 
 onMounted(() => {

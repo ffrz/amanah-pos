@@ -1,19 +1,18 @@
 <script setup>
 import { router, useForm, usePage } from "@inertiajs/vue3";
 import { handleSubmit } from "@/helpers/client-req-handler";
-import {
-  create_options_from_operational_cost_categories,
-  scrollToFirstErrorField,
-} from "@/helpers/utils";
+import { scrollToFirstErrorField } from "@/helpers/utils";
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
 import DatePicker from "@/components/DatePicker.vue";
 import { ref } from "vue";
+import { useCostCategoryFilter } from "@/composables/useCostCategoryOptions";
 
 const page = usePage();
 const title = (!!page.props.data.id ? "Edit" : "Tambah") + " Biaya Operasional";
-const categories = ref(
-  create_options_from_operational_cost_categories(page.props.categories)
-);
+
+const { costCategoryOptions } = useCostCategoryFilter(page.props.categories);
+
+const categories = ref(costCategoryOptions);
 const filteredCategories = ref([...categories.value]);
 const form = useForm({
   id: page.props.data.id,

@@ -1,9 +1,10 @@
 <script setup>
 import { handleFetchItems } from "@/helpers/client-req-handler";
-import { formatNumber, getQueryParams } from "@/helpers/utils";
+import { getQueryParams } from "@/helpers/utils";
 import { router, usePage } from "@inertiajs/vue3";
 import { useQuasar } from "quasar";
 import { computed, onMounted, reactive, ref } from "vue";
+import { formatNumber } from "@/helpers/formatter";
 
 const page = usePage();
 const title = `Rincian Produk #${page.props.data.id}`;

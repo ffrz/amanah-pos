@@ -1,7 +1,6 @@
 <script setup>
 import { defineProps } from "vue";
-import { usePage, router } from "@inertiajs/vue3";
-import { formatNumber } from "@/helpers/utils";
+import { formatNumber } from "@/helpers/formatter";
 
 const props = defineProps({
   summaryData: {

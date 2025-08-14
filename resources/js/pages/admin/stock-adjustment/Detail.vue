@@ -1,5 +1,5 @@
 <script setup>
-import { formatNumber } from "@/helpers/utils";
+import { formatNumber } from "@/helpers/formatter";
 import { usePage } from "@inertiajs/vue3";
 import { useQuasar } from "quasar";
 import { computed } from "vue";

@@ -1,5 +1,5 @@
 <script setup>
-import { formatNumber } from "@/helpers/utils";
+import { formatNumber } from "@/helpers/formatter";
 import { nextTick, onMounted, ref } from "vue";
 
 const barcodeInputRef = ref(null);

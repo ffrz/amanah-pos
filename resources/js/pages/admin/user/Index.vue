@@ -2,13 +2,13 @@
 import { computed, onMounted, reactive, ref } from "vue";
 import { router, usePage } from "@inertiajs/vue3";
 import { handleFetchItems, handleDelete } from "@/helpers/client-req-handler";
-import { create_options } from "@/helpers/utils";
+import { createOptions } from "@/helpers/options";
 import i18n from "@/i18n";
 import { useQuasar } from "quasar";
 
 const roles = [
   { value: "all", label: "Semua" },
-  ...create_options(window.CONSTANTS.USER_ROLES),
+  ...createOptions(window.CONSTANTS.USER_ROLES),
 ];
 
 const statuses = [
@@ -92,11 +92,12 @@ const deleteItem = (row) =>
 
 const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return columns;
-  return columns.filter((col) => col.name === "username" || col.name === "action");
+  return columns.filter(
+    (col) => col.name === "username" || col.name === "action"
+  );
 });
 
 const onRowClicked = (row) => router.get(route("admin.user.detail", row.id));
-
 </script>
 
 <template>
@@ -190,12 +191,20 @@ const onRowClicked = (row) => router.get(route("admin.user.detail", row.id));
         </template>
 
         <template v-slot:body="props">
-          <q-tr :props="props" :class="!props.row.active ? 'bg-red-1' : ''" @click="onRowClicked(props.row)" class="cursor-pointer">
+          <q-tr
+            :props="props"
+            :class="!props.row.active ? 'bg-red-1' : ''"
+            @click="onRowClicked(props.row)"
+            class="cursor-pointer"
+          >
             <q-td key="username" :props="props">
               <div>{{ props.row.username }}</div>
               <template v-if="!$q.screen.gt.sm">
-                <div><q-icon name="person"/> {{ props.row.name }}</div>
-                <div class="elipsis" style="max-width: 200px;"><q-icon name="group"/> <span>{{ $CONSTANTS.USER_ROLES[props.row.role] }}</span></div>
+                <div><q-icon name="person" /> {{ props.row.name }}</div>
+                <div class="elipsis" style="max-width: 200px">
+                  <q-icon name="group" />
+                  <span>{{ $CONSTANTS.USER_ROLES[props.row.role] }}</span>
+                </div>
               </template>
             </q-td>
             <q-td key="name" :props="props">
@@ -204,13 +213,13 @@ const onRowClicked = (row) => router.get(route("admin.user.detail", row.id));
             <q-td key="role" :props="props" align="center">
               <span>{{ $CONSTANTS.USER_ROLES[props.row.role] }}</span>
             </q-td>
-            <q-td
-              key="action"
-              :props="props"
-            >
+            <q-td key="action" :props="props">
               <div class="flex justify-end">
                 <q-btn
-                  :disable="props.row.id == currentUser.id || props.row.username == 'admin'"
+                  :disable="
+                    props.row.id == currentUser.id ||
+                    props.row.username == 'admin'
+                  "
                   icon="more_vert"
                   dense
                   flat
@@ -228,7 +237,11 @@ const onRowClicked = (row) => router.get(route("admin.user.detail", row.id));
                         clickable
                         v-ripple
                         v-close-popup
-                        @click.stop="router.get(route('admin.user.duplicate', props.row.id))"
+                        @click.stop="
+                          router.get(
+                            route('admin.user.duplicate', props.row.id)
+                          )
+                        "
                       >
                         <q-item-section avatar>
                           <q-icon name="file_copy" />
@@ -239,12 +252,16 @@ const onRowClicked = (row) => router.get(route("admin.user.detail", row.id));
                         clickable
                         v-ripple
                         v-close-popup
-                        @click.stop="router.get(route('admin.user.edit', props.row.id))"
+                        @click.stop="
+                          router.get(route('admin.user.edit', props.row.id))
+                        "
                       >
                         <q-item-section avatar>
                           <q-icon name="edit" />
                         </q-item-section>
-                        <q-item-section icon="edit">{{ $t("edit_user") }}</q-item-section>
+                        <q-item-section icon="edit">{{
+                          $t("edit_user")
+                        }}</q-item-section>
                       </q-item>
                       <q-item
                         @click.stop="deleteItem(props.row)"

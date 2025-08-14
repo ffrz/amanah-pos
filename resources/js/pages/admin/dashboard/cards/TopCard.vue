@@ -1,5 +1,5 @@
 <script setup>
-import { formatNumber } from '@/helpers/utils';
+import { formatNumber } from "@/helpers/formatter";
 
 const props = defineProps({
   items: Array,
@@ -15,7 +15,11 @@ const props = defineProps({
       <div>
         <div v-for="item in props.items" :key="item.id">
           <div class="flex items-center justify-between">
-            <span><i-link :href="route(props.route_url, {id: item.id})">{{ item.name }}</i-link></span>
+            <span
+              ><i-link :href="route(props.route_url, { id: item.id })">{{
+                item.name
+              }}</i-link></span
+            >
             <span>Rp. {{ formatNumber(item.total) }}</span>
           </div>
         </div>

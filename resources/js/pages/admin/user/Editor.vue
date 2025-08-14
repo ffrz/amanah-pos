@@ -1,10 +1,10 @@
 <script setup>
 import { handleSubmit } from "@/helpers/client-req-handler";
-import { create_options } from "@/helpers/utils";
+import { createOptions } from "@/helpers/options";
 import { validateUsername } from "@/helpers/validations";
 import { router, useForm, usePage } from "@inertiajs/vue3";
 
-const roles = create_options(window.CONSTANTS.USER_ROLES);
+const roles = createOptions(window.CONSTANTS.USER_ROLES);
 const page = usePage();
 const title = !!page.props.data.id ? "Edit Pengguna" : "Tambah Pengguna";
 const form = useForm({

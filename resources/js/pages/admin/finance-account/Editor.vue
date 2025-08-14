@@ -1,7 +1,8 @@
 <script setup>
 import { router, useForm, usePage } from "@inertiajs/vue3";
 import { handleSubmit } from "@/helpers/client-req-handler";
-import { scrollToFirstErrorField, create_options } from "@/helpers/utils";
+import { scrollToFirstErrorField } from "@/helpers/utils";
+import { createOptions } from "@/helpers/options";
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
 
 const page = usePage();
@@ -18,7 +19,7 @@ const form = useForm({
   notes: page.props.data.notes,
 });
 
-const types = create_options(window.CONSTANTS.FINANCE_ACCOUNT_TYPES);
+const types = createOptions(window.CONSTANTS.FINANCE_ACCOUNT_TYPES);
 
 const submit = () =>
   handleSubmit({ form, url: route("admin.finance-account.save") });
