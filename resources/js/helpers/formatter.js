@@ -37,7 +37,7 @@ export function formatDateTime(val, fmt = 'DD/MM/YYYY HH:mm:ss', locale = 'id-ID
     throw new Error('val must be string or Date object');
   }
 
-  return dayjs(this.currentDate).format(fmt);
+  return dayjs(date).format(fmt);
 }
 
 export function formatDate(val, fmt = 'DD/MM/YYYY', locale = 'id-ID') {
