@@ -117,8 +117,8 @@ onMounted(() => {
               >
                 <q-item-section>
                   <q-item-label
-                    ><q-icon name="manage_accounts" class="q-mr-sm" />
-                    {{ $t("my_profile") }}</q-item-label
+                    ><q-icon name="manage_accounts" class="q-mr-sm" /> Profil
+                    Saya</q-item-label
                   >
                 </q-item-section>
               </q-item>
@@ -135,8 +135,8 @@ onMounted(() => {
               >
                 <q-item-section>
                   <q-item-label
-                    ><q-icon name="home_work" class="q-mr-sm" />
-                    {{ $t("company_profile") }}</q-item-label
+                    ><q-icon name="home_work" class="q-mr-sm" /> Profil
+                    Perusahaan</q-item-label
                   >
                 </q-item-section>
               </q-item>

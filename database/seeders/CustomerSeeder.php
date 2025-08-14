@@ -18,7 +18,7 @@ class CustomerSeeder extends Seeder
 
         for ($i = 1; $i <= 100; $i++) {
             $phone = $faker->unique()->numerify('08##########');
-            $nis = $faker->randomElement(['2023', '2024', '2025']) . str_pad($i, 3, '0', STR_PAD_LEFT);
+            $nis = $faker->randomElement(['2025']) . str_pad($i, 3, '0', STR_PAD_LEFT);
 
             Customer::create([
                 'nis' => $nis,
