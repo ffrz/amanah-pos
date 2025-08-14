@@ -7,6 +7,7 @@ import { useQuasar } from "quasar";
 import dayjs from "dayjs";
 import { formatNumber } from "@/helpers/formatter";
 import { createMonthOptions, createYearOptions } from "@/helpers/options";
+import { useCostCategoryFilter } from "@/composables/useCostCategoryOptions";
 
 const title = "Biaya Operasional";
 const page = usePage();
@@ -14,7 +15,6 @@ const $q = useQuasar();
 const showFilter = ref(false);
 const rows = ref([]);
 const loading = ref(true);
-
 const currentYear = new Date().getFullYear();
 const currentMonth = new Date().getMonth() + 1; // months are 0-based, so adding 1 to get correct month number
 
@@ -25,6 +25,14 @@ const years = [
 ];
 
 const months = [{ value: null, label: "Semua Bulan" }, ...createMonthOptions()];
+
+const { costCategoryOptions } = useCostCategoryFilter(page.props.categories);
+const categories = [
+  { value: "all", label: "Semua" },
+  { value: "null", label: "Tanpa Kategori" },
+
+  ...costCategoryOptions,
+];
 
 const filter = reactive({
   search: "",
@@ -66,14 +74,6 @@ const columns = [
     name: "action",
     align: "right",
   },
-];
-
-const categories = [
-  { value: "all", label: "Semua" },
-  { value: "null", label: "Tanpa Kategori" },
-
-  // FIXME: ganti ini dengan composables
-  ...createOptions_from_operational_cost_categories(page.props.categories),
 ];
 
 onMounted(() => {
