@@ -3,7 +3,7 @@
 </template>
 
 <script setup>
-import { useClock } from "@/composable/useClock";
+import { useClock } from "@/composables/useClock";
 
 const { currentDate, currentTime } = useClock();
 </script>
