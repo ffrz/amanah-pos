@@ -1,12 +1,7 @@
 <template>
   <div class="row q-col-gutter-sm">
     <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-      <q-card
-        square
-        class="no-shadow"
-        bordered
-        style="background-color: #fff"
-      >
+      <q-card square class="no-shadow" bordered style="background-color: #fff">
         <q-card-section class="q-pa-none">
           <ECharts
             :option="monthly_orders_chart"
@@ -19,12 +14,7 @@
       </q-card>
     </div>
     <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-      <q-card
-        class="no-shadow"
-        square
-        bordered
-        style="background-color: #fff"
-      >
+      <q-card class="no-shadow" square bordered style="background-color: #fff">
         <q-card-section class="q-pa-none">
           <ECharts
             :option="monthly_closed_orders_chart"
@@ -125,9 +115,7 @@ const monthly_closed_orders_chart = {
   },
   legend: {
     top: "10%",
-    data: [
-      page.props.data.chart2_data.data[0].label,
-    ],
+    data: [page.props.data.chart2_data.data[0].label],
   },
   grid: { containLabel: true, left: "5px", bottom: "5px", right: "5px" },
   xAxis: {
@@ -163,7 +151,7 @@ const monthly_closed_orders_chart = {
       itemStyle: { color: "#007bff" },
       smooth: true,
       data: page.props.data.chart2_data.data[0].data,
-    }
+    },
   ],
   color: ["white"],
 };

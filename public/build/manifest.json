@@ -16,18 +16,18 @@
       "assets/MaterialIcons-Regular-DEUTIz1o.ttf"
     ]
   },
-  "_vendor2-BsCixxAw.js": {
-    "file": "assets/vendor2-BsCixxAw.js",
+  "_vendor2-DcnCi21o.js": {
+    "file": "assets/vendor2-DcnCi21o.js",
     "name": "vendor2",
     "imports": [
       "_vendor1-Be4gSlrd.js"
     ]
   },
-  "_vendor3-CgouVVDz.js": {
-    "file": "assets/vendor3-CgouVVDz.js",
+  "_vendor3-0IN7Kc8d.js": {
+    "file": "assets/vendor3-0IN7Kc8d.js",
     "name": "vendor3",
     "imports": [
-      "_vendor2-BsCixxAw.js"
+      "_vendor2-DcnCi21o.js"
     ]
   },
   "node_modules/@quasar/extras/fontawesome-v6/fa-brands-400.ttf": {
@@ -108,17 +108,17 @@
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-8hO9OazU.js",
+    "file": "assets/app-CtIFFEde.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
     "imports": [
       "_vendor1-Be4gSlrd.js",
-      "_vendor3-CgouVVDz.js",
-      "_vendor2-BsCixxAw.js"
+      "_vendor2-DcnCi21o.js",
+      "_vendor3-0IN7Kc8d.js"
     ],
     "css": [
-      "assets/app-CREHW_1D.css"
+      "assets/app-kpRV_v4I.css"
     ],
     "assets": [
       "assets/flUhRq6tzZclQEJ-Vdg-IuiaDsNcIhQ8tQ-D-x-0Q06.woff2",
