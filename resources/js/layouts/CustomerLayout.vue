@@ -174,7 +174,9 @@ onMounted(() => {
             :active="
               $page.url.startsWith('/customer/wallet-topup-confirmations')
             "
-            @click="router.get(route('customer.wallet-topup-confirmations'))"
+            @click="
+              router.get(route('customer.wallet-topup-confirmation.index'))
+            "
           >
             <q-item-section avatar>
               <q-icon name="add_task" />

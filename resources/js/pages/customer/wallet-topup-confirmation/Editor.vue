@@ -4,38 +4,32 @@ import { handleSubmit } from "@/helpers/client-req-handler";
 import { scrollToFirstErrorField } from "@/helpers/utils";
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
 import DateTimePicker from "@/components/DateTimePicker.vue";
-import dayjs from "dayjs";
+import { formatDateTime } from "@/helpers/formatter";
+
 const page = usePage();
-const title = (!!page.props.data.id ? "Edit" : "Catat") + " Transaksi Keuangan";
+const title = " Konfirmasi Topup";
 
-const accounts = page.props.accounts.map((account) => ({
-  label: account.name,
-  value: account.id,
-}));
-
-const types = [
-  { label: "Pemasukan (+)", value: "income" },
-  { label: "Pengeluaran (-)", value: "expense" },
-  { label: "Transfer", value: "transfer" },
+const destinationAccounts = [
+  { label: "Rekening Koperasi", value: "rek_koperasi" },
+  { label: "Rekening Bendahara", value: "rek_bendahara" },
 ];
 
 const form = useForm({
-  id: page.props.data.id,
-  account_id: page.props.data.account_id,
-  to_account_id: page.props.data.to_account_id ?? null,
-  type: page.props.data.type,
-  datetime: dayjs(page.props.data.datetime).format("YYYY-MM-DD HH:mm:ss"),
-  notes: page.props.data.notes,
-  amount: parseFloat(page.props.data.amount),
+  parent_name: page.props.data.parent_name,
+  student_name: page.props.data.student_name,
+  destination_account_id: null,
+  topup_date: formatDateTime(new Date(), "YYYY-MM-DD HH:mm:ss"),
+  amount: 0,
+  notes: "",
 });
 
 const submit = () =>
-  handleSubmit({ form, url: route("admin.finance-transaction.save") });
+  handleSubmit({ form, url: route("customer.wallet-topup-confirmation.save") });
 </script>
 
 <template>
   <i-head :title="title" />
-  <authenticated-layout>
+  <customer-layout>
     <template #title>{{ title }}</template>
     <template #left-button>
       <div class="q-gutter-sm">
@@ -45,7 +39,9 @@ const submit = () =>
           color="grey-7"
           flat
           rounded
-          @click="$inertia.get(route('admin.finance-transaction.index'))"
+          @click="
+            $inertia.get(route('customer.wallet-topup-confirmation.index'))
+          "
         />
       </div>
     </template>
@@ -59,79 +55,88 @@ const submit = () =>
           <q-card square flat bordered class="col">
             <q-card-section class="q-pt-none">
               <input type="hidden" name="id" v-model="form.id" />
-              <date-time-picker
-                v-model="form.datetime"
-                label="Tanggal"
-                :error="!!form.errors.datetime"
+
+              <q-input
+                v-if="form.parent_name"
+                readonly
+                v-model.trim="form.parent_name"
+                label="Nama Wali Santri"
                 :disable="form.processing"
               />
-              <q-select
-                autofocus
-                v-model="form.type"
-                label="Jenis Transaksi"
-                :options="types"
-                map-options
-                emit-value
-                :error="!!form.errors.type"
+
+              <q-input
+                readonly
+                v-model.trim="form.student_name"
+                label="Nama Santri"
                 :disable="form.processing"
-                :errorMessage="form.errors.type"
-              >
-              </q-select>
+              />
+
               <q-select
                 class="custom-select"
-                v-model="form.account_id"
-                label="Akun Asal"
-                :options="accounts"
-                map-options
-                emit-value
-                :errorMessage="form.errors.account_id"
-                :error="!!form.errors.account_id"
-                :disable="form.processing"
-              >
-              </q-select>
-              <q-select
-                v-if="form.type == 'transfer'"
-                class="custom-select"
-                v-model="form.to_account_id"
+                v-model="form.destination_account_id"
                 label="Akun Tujuan"
-                :options="accounts"
+                :options="destinationAccounts"
                 map-options
                 emit-value
-                :errorMessage="form.errors.to_account_id"
-                :error="!!form.errors.to_account_id"
+                :errorMessage="form.errors.destination_account_id"
+                :error="!!form.errors.destination_account_id"
                 :disable="form.processing"
-              >
-              </q-select>
+                hide-bottom-space
+              />
+
+              <date-time-picker
+                v-model="form.topup_date"
+                label="Tanggal & Waktu Transfer"
+                :error="!!form.errors.topup_date"
+                :disable="form.processing"
+                hide-bottom-space
+              />
+
               <LocaleNumberInput
                 v-model:modelValue="form.amount"
-                label="Jumlah"
+                label="Jumlah (Rp.)"
                 lazyRules
                 :disable="form.processing"
                 :error="!!form.errors.amount"
                 :errorMessage="form.errors.amount"
                 :rules="[]"
+                hide-bottom-space
               />
+
+              <q-file
+                v-model="form.image"
+                label="Unggah Bukti Transfer"
+                accept=".jpg, image/*"
+                :disable="form.processing"
+                :error="!!form.errors.image"
+                :error-message="form.errors.image"
+                clearable
+                hide-bottom-space
+              >
+                <template v-slot:prepend>
+                  <q-icon name="attach_file" />
+                </template>
+              </q-file>
+
               <q-input
                 v-model.trim="form.notes"
                 type="textarea"
                 autogrow
                 counter
-                maxlength="255"
-                label="Catatan"
+                maxlength="100"
+                label="Catatan (Opsional)"
                 lazy-rules
                 :disable="form.processing"
                 :error="!!form.errors.notes"
                 :error-message="form.errors.notes"
-                :rules="[
-                  (val) => (val && val.length > 0) || 'Catatan harus diisi.',
-                ]"
+                hide-bottom-space
               />
             </q-card-section>
             <q-card-section class="q-gutter-sm">
               <q-btn
                 icon="save"
                 type="submit"
-                label="Simpan"
+                label="Simpan Konfirmasi"
                 color="primary"
                 :disable="form.processing"
               />
@@ -139,12 +144,14 @@ const submit = () =>
                 icon="cancel"
                 label="Batal"
                 :disable="form.processing"
-                @click="router.get(route('admin.finance-transaction.index'))"
+                @click="
+                  router.get(route('customer.wallet-topup-confirmation.index'))
+                "
               />
             </q-card-section>
           </q-card>
         </q-form>
       </div>
     </q-page>
-  </authenticated-layout>
+  </customer-layout>
 </template>

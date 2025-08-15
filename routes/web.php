@@ -22,7 +22,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Customer\AuthController as CustomerAuthController;
 use App\Http\Controllers\Customer\DashboardController as CustomerDashboardController;
 use App\Http\Controllers\Customer\ProfileController as CustomerProfileController;
-use App\Http\Controllers\Customer\TopUpConfirmationController;
+use App\Http\Controllers\Customer\WalletTopUpConfirmationController;
 use App\Http\Controllers\Customer\WalletTransactionController as WalletTransactionController;
 
 
@@ -244,10 +244,12 @@ Route::middleware([CustomerAuth::class])->prefix('customer')->group(function () 
         Route::get('detail/{id}', [WalletTransactionController::class, 'detail'])->name('customer.wallet-transaction.detail');
     });
 
-    Route::prefix('topup-confirmations')->group(function () {
-        Route::get('', [TopUpConfirmationController::class, 'index'])->name('customer.topup-confirmation.index');
-        Route::get('data', [TopUpConfirmationController::class, 'data'])->name('customer.topup-confirmation.data');
-        Route::get('detail/{id}', [TopUpConfirmationController::class, 'detail'])->name('customer.topup-confirmation.detail');
+    Route::prefix('wallet-topup-confirmations')->group(function () {
+        Route::get('', [WalletTopUpConfirmationController::class, 'index'])->name('customer.wallet-topup-confirmation.index');
+        Route::get('add', [WalletTopUpConfirmationController::class, 'add'])->name('customer.wallet-topup-confirmation.add');
+        Route::post('save', [WalletTopUpConfirmationController::class, 'save'])->name('customer.wallet-topup-confirmation.save');
+        Route::get('data', [WalletTopUpConfirmationController::class, 'data'])->name('customer.wallet-topup-confirmation.data');
+        Route::get('detail/{id}', [WalletTopUpConfirmationController::class, 'detail'])->name('customer.wallet-topup-confirmation.detail');
     });
 
     Route::get('profile/edit', [CustomerProfileController::class, 'edit'])->name('customer.profile.edit');

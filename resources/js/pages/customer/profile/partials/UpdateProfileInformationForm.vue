@@ -60,6 +60,7 @@ const submit = () =>
           label="Nama Wali Santri"
           lazy-rules
           :disable="form.processing"
+          hide-bottom-space
           :error="!!form.errors.parent_name"
           :error-message="form.errors.parent_name"
           :rules="[(val) => (val && val.length > 0) || 'Nama harus diisi.']"
@@ -70,6 +71,7 @@ const submit = () =>
           label="No HP"
           lazy-rules
           :disable="form.processing"
+          hide-bottom-space
           :error="!!form.errors.phone"
           :error-message="form.errors.phone"
           :rules="[(val) => (val && val.length > 0) || 'No HP harus diisi.']"
@@ -83,6 +85,7 @@ const submit = () =>
           label="Alamat"
           lazy-rules
           :disable="form.processing"
+          hide-bottom-space
           :error="!!form.errors.address"
           :error-message="form.errors.address"
           :rules="[(val) => (val && val.length > 0) || 'Alamat harus diisi.']"

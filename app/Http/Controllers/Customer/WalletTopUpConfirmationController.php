@@ -7,12 +7,23 @@ use App\Models\CustomerWalletTransaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class TopUpConfirmationController extends Controller
+class WalletTopUpConfirmationController extends Controller
 {
 
     public function index()
     {
-        return inertia('customer/topup-confirmation/Index', []);
+        return inertia('customer/wallet-topup-confirmation/Index', []);
+    }
+
+    public function add()
+    {
+        $currentUser = Auth::guard('customer')->user();
+        return inertia('customer/wallet-topup-confirmation/Editor', [
+            'data' => [
+                'parent_name' => $currentUser->parent_name,
+                'student_name' => $currentUser->name,
+            ]
+        ]);
     }
 
     public function data(Request $request)
@@ -43,5 +54,11 @@ class TopUpConfirmationController extends Controller
         $items = $q->paginate($request->get('per_page', 10))->withQueryString();
 
         return response()->json($items);
+    }
+
+    public function save(Request $request)
+    {
+        return redirect(route('customer.wallet-topup-confirmation.index'))
+            ->with('success', 'Konfirmasi topup telah disimpan.');
     }
 }
