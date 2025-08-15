@@ -7,6 +7,11 @@ import { getCurrentMonth, getCurrentYear } from "@/helpers/datetime";
 import { createMonthOptions, createYearOptions } from "@/helpers/options";
 import { router } from "@inertiajs/vue3";
 
+// TODO:
+// - Tambahkan kolom ID Konfirmasi misal #TP-00000011 untuk mudah melacak di sistem ketika followup
+// - tambahkan halaman detail untuk melihat rincian status, kapan dikonfirmasi, dll.
+// - method dibawah ini masih dummy, jadi perlu diimeplementasikan dan dirancang dari mulai database
+
 const title = "Daftar Konfirmasi Pembayaran";
 const $q = useQuasar();
 const showFilter = ref(false);

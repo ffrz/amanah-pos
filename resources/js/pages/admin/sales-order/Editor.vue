@@ -10,8 +10,9 @@ import TransactionHeader from "./editor/TransactionHeader.vue";
 import ItemListTable from "./editor/ItemsListTable.vue";
 import TransactionSummary from "./editor/TransactionSummary.vue";
 import ConfirmDeleteDialog from "./editor/ConfirmDeleteDialog.vue";
-import SupplierEditorDialog from "./editor/SupplierEditorDialog.vue";
+import CustomerEditorDialog from "./editor/CustomerEditorDialog.vue";
 
+const title = "Penjualan";
 const $q = useQuasar();
 const page = usePage();
 
@@ -36,48 +37,82 @@ const barcode = ref("");
 const isProcessing = ref(false);
 const showDeleteDialog = ref(false);
 const itemToDelete = ref(null);
-const showSupplierEditor = ref(false);
-const columns = [
-  {
-    name: "name",
-    required: true,
-    label: "Item Information",
-    align: "left",
-    field: "name",
-    sortable: false,
-    style: "width: 300px",
-  },
-  {
-    name: "price",
-    label: "Harga",
-    align: "center",
-    field: "price",
-    sortable: false,
-    style: "width: 120px",
-  },
-  {
-    name: "quantity",
-    label: "Quantity",
-    align: "center",
-    field: "quantity",
-    sortable: false,
-    style: "width: 100px",
-  },
-  {
-    name: "subtotal",
-    label: "SubTotal",
-    align: "center",
-    sortable: false,
-    style: "width: 140px",
-  },
-  {
-    name: "action",
-    label: "Action",
-    align: "center",
-    sortable: false,
-    style: "width: 80px",
-  },
-];
+const showCustomerEditor = ref(false);
+const showPaymentDialog = ref(false);
+
+// Tambahkan state baru untuk data santri
+const studentName = ref(null);
+const studentWalletBalance = ref(null);
+
+const tableColumns = computed(() => {
+  if ($q.screen.gt.sm) {
+    return [
+      {
+        name: "name",
+        required: true,
+        label: "Item Information",
+        align: "left",
+        field: "name",
+        sortable: false,
+        style: "width: 300px",
+      },
+      {
+        name: "price",
+        label: "Harga",
+        align: "center",
+        field: "price",
+        sortable: false,
+        style: "width: 120px",
+      },
+      {
+        name: "quantity",
+        label: "Quantity",
+        align: "center",
+        field: "quantity",
+        sortable: false,
+        style: "width: 100px",
+      },
+      {
+        name: "subtotal",
+        label: "SubTotal",
+        align: "center",
+        sortable: false,
+        style: "width: 140px",
+      },
+      {
+        name: "action",
+        label: "Action",
+        align: "center",
+        sortable: false,
+        style: "width: 80px",
+      },
+    ];
+  } else {
+    return [
+      {
+        name: "name",
+        required: true,
+        label: "Item",
+        align: "left",
+        field: "name",
+        sortable: false,
+      },
+      {
+        name: "subtotal",
+        label: "Total",
+        align: "right",
+        sortable: false,
+      },
+      {
+        name: "action",
+        label: "Aksi",
+        align: "center",
+        sortable: false,
+      },
+    ];
+  }
+});
+
 const subtotal = computed(() => {
   const total = form.items.reduce((sum, item) => {
     return sum + item.price * item.quantity;
@@ -92,19 +127,18 @@ const addItem = async () => {
     $q.notify({
       message: "Silakan masukkan barcode",
       color: "warning",
-      position: "bottom",
+      position: "top",
     });
     return;
   }
 
   let inputQuantity = 1;
   let inputBarcode = barcode.value.trim();
-  let inputPrice = null; // Akan digunakan jika harga disediakan dalam input
+  let inputPrice = null;
 
   const parts = inputBarcode.split("*");
 
   if (parts.length === 3) {
-    // Format: QTY*KODE*HARGA
     const parsedQty = parseInt(parts[0]);
     const parsedPrice = parseFloat(parts[2]);
 
@@ -114,24 +148,22 @@ const addItem = async () => {
       $q.notify({
         message: "Kuantitas tidak valid. Menggunakan default 1.",
         color: "warning",
-        position: "bottom",
+        position: "top",
       });
     }
 
     if (!isNaN(parsedPrice) && parsedPrice >= 0) {
-      // Harga bisa 0
       inputPrice = parsedPrice;
     } else {
       $q.notify({
         message: "Harga tidak valid. Menggunakan harga produk default.",
         color: "warning",
-        position: "bottom",
+        position: "top",
       });
     }
 
-    inputBarcode = parts[1]; // Kode produk ada di bagian tengah
+    inputBarcode = parts[1];
   } else if (parts.length === 2) {
-    // Format: QTY*KODE
     const parsedQty = parseInt(parts[0]);
     if (!isNaN(parsedQty) && parsedQty > 0) {
       inputQuantity = parsedQty;
@@ -139,7 +171,7 @@ const addItem = async () => {
       $q.notify({
         message: "Kuantitas tidak valid. Menggunakan default 1.",
         color: "warning",
-        position: "bottom",
+        position: "top",
       });
     }
     inputBarcode = parts[1];
@@ -154,39 +186,31 @@ const addItem = async () => {
     $q.notify({
       message: `Quantity ${form.items[existingItemIndex].name} bertambah ${inputQuantity}`,
       color: "positive",
-      position: "bottom",
+      position: "top",
     });
   } else {
     isProcessing.value = true;
-
     try {
-      // Simulate API call untuk get product by barcode (gunakan inputBarcode)
       await new Promise((resolve) => setTimeout(resolve, 300));
-
-      // Asumsi API mengembalikan objek produk.
-      // Jika inputPrice disediakan, kita bisa menggunakannya, jika tidak, pakai harga dari API/default.
       const fetchedProduct = {
-        id: Date.now(), // Ini biasanya dari backend
-        name: `Item ${inputBarcode}`, // Nama dari API
+        id: Date.now(),
+        name: `Item ${inputBarcode}`,
         barcode: inputBarcode,
         price:
           inputPrice !== null
             ? inputPrice
-            : Math.floor(Math.random() * 50000) + 10000, // Gunakan inputPrice jika ada, else random/default
-        // Tambahan: Jika API mengembalikan harga, Anda bisa menggunakannya di sini jika inputPrice null.
+            : Math.floor(Math.random() * 50000) + 10000,
       };
-
       const newItem = {
         ...fetchedProduct,
         quantity: inputQuantity,
       };
-
       form.items.push(newItem);
 
       $q.notify({
         message: `${newItem.name} berhasil ditambahkan`,
         color: "positive",
-        position: "bottom",
+        position: "top",
         icon: "add_shopping_cart",
       });
     } catch (error) {
@@ -194,7 +218,7 @@ const addItem = async () => {
       $q.notify({
         message: "Item tidak ditemukan atau gagal menambahkan item",
         color: "negative",
-        position: "bottom",
+        position: "top",
       });
     } finally {
       isProcessing.value = false;
@@ -203,10 +227,7 @@ const addItem = async () => {
 
   barcode.value = "";
   await nextTick();
-
-  // TODO: fokus kembali ke input barcode
-  // gimana caranya manggil focusOnBarcodeInput dari komponen TransactionSummary
-  transactionSummaryRef.value.focusOnBarcodeInput();
+  transactionSummaryRef.value?.focusOnBarcodeInput();
 };
 
 const confirmRemoveItem = (item) => {
@@ -224,7 +245,7 @@ const removeItem = () => {
       $q.notify({
         message: `${removedItem.name} dihapus dari keranjang`,
         color: "info",
-        position: "bottom",
+        position: "top",
         icon: "remove_shopping_cart",
       });
     }
@@ -239,19 +260,47 @@ const updateQuantity = (id, newQuantity) => {
   }
 };
 
-const processPayment = () => {
+const processPayment = async () => {
   if (form.items.length === 0) {
     $q.notify({
       message: "Tidak ada item dalam keranjang",
       color: "warning",
-      position: "bottom",
+      position: "top",
     });
     return;
   }
+  await fetchStudentData(); // Panggil fungsi untuk mengambil data santri
+  showPaymentDialog.value = true;
+};
+
+const fetchStudentData = async () => {
+  // Simulasi pengambilan data santri dari backend
+  // Dalam implementasi nyata, Anda akan menggunakan ID pelanggan untuk mencari data
+  try {
+    // Misalnya, ambil data dari API:
+    // const response = await api.get(`/students/${form.customer_id}`);
+    // studentName.value = response.data.name;
+    // studentWalletBalance.value = response.data.wallet_balance;
+
+    // Untuk demo, kita gunakan data dummy:
+    studentName.value =
+      form.customer_name === "Pelanggan Umum"
+        ? "Pelanggan Umum"
+        : "Nama Santri Demo";
+    studentWalletBalance.value = Math.floor(Math.random() * 500000) + 10000;
+  } catch (error) {
+    console.error("Gagal mengambil data santri:", error);
+    studentName.value = "Data tidak ditemukan";
+    studentWalletBalance.value = 0;
+  }
+};
+
+const handlePayment = (method) => {
+  if (form.items.length === 0) return;
 
   form.datetime = dayjs().format("YYYY-MM-DD HH:mm:ss");
   form.status = "completed";
-  form.payment_status = "paid";
+  form.payment_status = method === "wallet" ? "paid_wallet" : "paid_cash";
 
   handleSubmit({
     form,
@@ -260,20 +309,23 @@ const processPayment = () => {
       $q.notify({
         message: "Transaksi berhasil disimpan",
         color: "positive",
-        position: "bottom",
+        position: "top",
         icon: "check_circle",
       });
       form.reset();
       form.items = [];
+    },
+    onFinish: () => {
+      showPaymentDialog.value = false;
     },
   });
 };
 </script>
 
 <template>
-  <i-head title="Order Pembelian" />
+  <i-head :title="title" />
   <authenticated-layout>
-    <template #title>Order Pembelian</template>
+    <template #title>{{ title }}</template>
 
     <template #left-button>
       <div class="q-gutter-sm">
@@ -292,38 +344,18 @@ const processPayment = () => {
         <TransactionHeader
           :user="page.props.auth.user"
           :company="page.props.company"
-          @edit-supplier="showSupplierEditor = true"
+          @edit-customer="showCustomerEditor = true"
         />
 
-        <div class="row col **grow**">
+        <div class="row col grow">
           <div class="col-12 q-pa-sm column">
             <ItemListTable
               :items="form.items"
-              :columns="columns"
+              :columns="tableColumns"
               @update-quantity="({ id, value }) => updateQuantity(id, value)"
               @remove-item="confirmRemoveItem"
             />
           </div>
-
-          <!-- <div class="col-4 q-pa-sm column">
-            <q-card flat square bordered class="full-width col">
-              <q-card-section
-                class="text-center text-weight-bold bg-grey-4 text-grey-8"
-              >
-                <q-icon name="local_offer" class="q-mr-sm" />
-                Informasi Promosi
-              </q-card-section>
-              <q-card-section class="bg-white col flex-center">
-                <div class="text-center text-grey-5 q-pt-xl">
-                  <q-icon name="info" size="2em" class="q-mb-md" />
-                  <div>Tidak ada promo aktif</div>
-                  <div class="text-caption q-mt-sm">
-                    Promo akan ditampilkan di sini
-                  </div>
-                </div>
-              </q-card-section>
-            </q-card>
-          </div> -->
         </div>
 
         <div class="row">
@@ -347,7 +379,6 @@ const processPayment = () => {
               </template>
             </q-input>
           </div>
-
           <div class="col-md-4 col-xs-12 q-pa-sm">
             <TransactionSummary
               ref="transactionSummaryRef"
@@ -369,7 +400,63 @@ const processPayment = () => {
         @confirm="removeItem"
       />
 
-      <SupplierEditorDialog v-model="showSupplierEditor" />
+      <CustomerEditorDialog v-model="showCustomerEditor" />
+
+      <q-dialog v-model="showPaymentDialog" persistent>
+        <q-card style="min-width: 350px">
+          <q-card-section>
+            <div class="text-h6 text-center">Pilih Metode Pembayaran</div>
+          </q-card-section>
+
+          <q-card-section class="q-pt-none">
+            <div v-if="studentName" class="text-center q-mb-md text-grey-8">
+              <div class="text-subtitle1 text-weight-medium">
+                {{ studentName }}
+              </div>
+              <div v-if="studentWalletBalance !== null" class="text-body1">
+                Saldo: Rp. {{ studentWalletBalance.toLocaleString("id-ID") }}
+              </div>
+            </div>
+
+            <div class="text-h4 text-center text-primary q-pb-md">
+              Rp. {{ form.total.toLocaleString("id-ID") }}
+            </div>
+            <div class="row q-col-gutter-sm justify-center">
+              <div class="col-12">
+                <q-btn
+                  label="Tunai"
+                  icon="attach_money"
+                  color="primary"
+                  class="full-width"
+                  @click="handlePayment('cash')"
+                  :loading="form.processing"
+                  :disable="form.processing"
+                />
+              </div>
+              <div class="col-12">
+                <q-btn
+                  label="Dompet Santri"
+                  icon="wallet"
+                  color="green-6"
+                  class="full-width"
+                  @click="handlePayment('wallet')"
+                  :loading="form.processing"
+                  :disable="form.processing"
+                />
+              </div>
+            </div>
+          </q-card-section>
+
+          <q-card-actions align="right" class="q-py-md">
+            <q-btn
+              flat
+              label="Batal"
+              color="grey"
+              @click="showPaymentDialog = false"
+            />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
     </q-page>
   </authenticated-layout>
 </template>

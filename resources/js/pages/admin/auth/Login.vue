@@ -6,8 +6,8 @@ import { ref } from "vue";
 const page = usePage();
 
 let form = useForm({
-  username: page.props.data.username,
-  password: page.props.data.password,
+  username: "admin",
+  password: "12345",
   remember: true,
 });
 
