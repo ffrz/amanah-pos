@@ -33,7 +33,7 @@ class CheckAdminRoutePermission
         $user = Auth::user();
 
         // Admin Bypass: Jika pengguna adalah 'admin', izinkan akses tanpa pemeriksaan lebih lanjut
-        if ($user->hasRole(User::Role_Admin)) {
+        if ($user->role === User::Role_Admin) {
             return $next($request);
         }
 

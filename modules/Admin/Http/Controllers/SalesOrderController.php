@@ -24,7 +24,7 @@ class SalesOrderController extends Controller
 
     public function data(Request $request)
     {
-        $orderBy = $request->get('order_by', 'date');
+        $orderBy = $request->get('order_by', 'datetime');
         $orderType = $request->get('order_type', 'desc');
         $filter = $request->get('filter', []);
 
@@ -47,10 +47,10 @@ class SalesOrderController extends Controller
 
         // Tambahan filter tahun
         if (!empty($filter['year']) && $filter['year'] !== 'null') {
-            $q->whereYear('date', $filter['year']);
+            $q->whereYear('datetime', $filter['year']);
 
             if (!empty($filter['month']) && $filter['month'] !== 'null') {
-                $q->whereMonth('date', $filter['month']);
+                $q->whereMonth('datetime', $filter['month']);
             }
         }
 
