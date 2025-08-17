@@ -13,18 +13,13 @@ return new class extends Migration
     {
         Schema::create('operational_costs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('category_id')->nullable()->constrained('operational_cost_categories')->nullOnDelete();
-            $table->foreignId('finance_account_id')->nullable()->constrained('finance_accounts')->nullOnDelete();
+            $table->foreignId('category_id')->nullable()->constrained('operational_cost_categories')->onDelete('set null');
+            $table->foreignId('finance_account_id')->nullable()->constrained('finance_accounts')->onDelete('set null');
             $table->date('date');
             $table->string('description', 100)->default('');
             $table->decimal('amount', 8, 0)->default(0.);
             $table->text('notes');
-            $table->datetime('created_datetime')->nullable();
-            $table->datetime('updated_datetime')->nullable();
-            $table->unsignedBigInteger('created_by_uid')->nullable();
-            $table->unsignedBigInteger('updated_by_uid')->nullable();
-            $table->foreign('created_by_uid')->references('id')->on('users')->onDelete('set null');
-            $table->foreign('updated_by_uid')->references('id')->on('users')->onDelete('set null');
+            $table->createdUpdatedTimestamps();
         });
     }
 

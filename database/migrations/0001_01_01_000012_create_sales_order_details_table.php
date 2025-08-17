@@ -14,8 +14,8 @@ return new class extends Migration
     {
         Schema::create('sales_order_details', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('parent_id')->nullable();
-            $table->unsignedBigInteger('product_id')->nullable();
+            $table->foreignId('parent_id')->nullable()->constrained('sales_orders')->onDelete('cascade');
+            $table->foreignId('product_id')->nullable()->constrained('products')->onDelete('set null');
             $table->string('product_name', 100)->default('');
             $table->string('uom', 40)->default('');
             $table->decimal('quantity', 18, 3)->default(0.);
@@ -24,15 +24,7 @@ return new class extends Migration
             $table->decimal('subtotal_cost', 18, 2)->default(0.);
             $table->decimal('subtotal_price', 18, 2)->default(0.);
             $table->string('notes', 100)->nullable();
-
-            $table->datetime('created_datetime')->nullable();
-            $table->datetime('updated_datetime')->nullable();
-            $table->unsignedBigInteger('created_by_uid')->nullable();
-            $table->unsignedBigInteger('updated_by_uid')->nullable();
-
-            $table->foreign('parent_id')->references('id')->on('sales_orders')->onDelete('cascade');
-            $table->foreign('created_by_uid')->references('id')->on('users')->onDelete('set null');
-            $table->foreign('updated_by_uid')->references('id')->on('users')->onDelete('set null');
+            $table->createdUpdatedTimestamps();
         });
     }
 

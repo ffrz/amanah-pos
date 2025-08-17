@@ -34,10 +34,10 @@ class CustomerSeeder extends Seeder
                 'last_activity_description' => '',
                 'last_activity_datetime' => null,
 
-                'created_datetime' => now(),
-                'updated_datetime' => now(),
-                'created_by_uid' => 1,
-                'updated_by_uid' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+                'created_by' => 1,
+                'updated_by' => 1,
             ]);
         }
     }

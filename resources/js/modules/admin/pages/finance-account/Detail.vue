@@ -208,9 +208,9 @@ const computedColumns = computed(() => {
                           <div>
                             -
                             {{
-                              $dayjs(
-                                new Date(props.row.created_datetime)
-                              ).format("DD/MM/YYYY hh:mm:ss")
+                              $dayjs(new Date(props.row.created_at)).format(
+                                "DD/MM/YYYY hh:mm:ss"
+                              )
                             }}
                           </div>
                           <div>

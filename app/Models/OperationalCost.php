@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class OperationalCost extends Model
+class OperationalCost extends BaseModel
 {
     use HasFactory;
 
@@ -24,25 +24,15 @@ class OperationalCost extends Model
             'description' => 'string',
             'amount' => 'decimal:2',
             'notes' => 'string',
-            'created_by_uid' => 'integer',
-            'updated_by_uid' => 'integer',
-            'created_datetime' => 'datetime',
-            'updated_datetime' => 'datetime',
+            'created_by' => 'integer',
+            'updated_by' => 'integer',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
         ];
     }
 
     public function category()
     {
         return $this->belongsTo(OperationalCostCategory::class);
-    }
-
-    public function createdBy()
-    {
-        return $this->belongsTo(User::class, 'created_by_uid');
-    }
-
-    public function updatedBy()
-    {
-        return $this->belongsTo(User::class, 'updated_by_uid');
     }
 }

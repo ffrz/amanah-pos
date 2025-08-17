@@ -285,7 +285,7 @@ const computedColumns = computed(() => {
                   <b>{{ props.row.created_by.username }}</b>
                   <q-icon name="history" />
                   {{
-                    $dayjs(new Date(props.row.created_datetime)).format(
+                    $dayjs(new Date(props.row.created_at)).format(
                       "DD/MM/YYYY HH:mm"
                     )
                   }}
@@ -295,7 +295,7 @@ const computedColumns = computed(() => {
                   <b>{{ props.row.updated_by.username }}</b>
                   <q-icon name="history" />
                   {{
-                    $dayjs(new Date(props.row.updated_datetime)).format(
+                    $dayjs(new Date(props.row.updated_at)).format(
                       "DD/MM/YYYY HH:mm"
                     )
                   }}

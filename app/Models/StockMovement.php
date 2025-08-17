@@ -5,7 +5,7 @@ namespace App\Models;
 /**
  * StockMovement Model
  */
-class StockMovement extends Model
+class StockMovement extends BaseModel
 {
     /**
      * The attributes that are mass assignable.
@@ -16,8 +16,8 @@ class StockMovement extends Model
         'ref_id',
         'ref_type',
         'quantity',
-        'created_datetime',
-        'created_by_uid',
+        'created_at',
+        'created_by',
     ];
 
     /**
@@ -33,11 +33,6 @@ class StockMovement extends Model
         self::RefType_StockAdjustment  => 'Penyesuaian Stok'
     ];
 
-    public function createdBy()
-    {
-        return $this->belongsTo(User::class, 'created_by_uid');
-    }
-
     protected function casts(): array
     {
         return [
@@ -45,8 +40,8 @@ class StockMovement extends Model
             'ref_id'            => 'integer',
             'ref_type'          => 'string',
             'quantity'          => 'decimal:3',
-            'created_datetime'  => 'datetime',
-            'created_by_uid'    => 'integer',
+            'created_at'  => 'datetime',
+            'created_by'    => 'integer',
         ];
     }
 

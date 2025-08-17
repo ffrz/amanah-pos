@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 /**
  * Product Model
  */
-class Product extends Model
+class Product extends BaseModel
 {
     use HasFactory;
 
@@ -41,6 +41,7 @@ class Product extends Model
     const Type_Service = 'service';
     const Type_RawMaterial = 'raw_material';
     const Type_Composite = 'composite';
+    const Type_Consignment = 'consignment';
 
     /**
      * Product types mapping.
@@ -52,6 +53,7 @@ class Product extends Model
         self::Type_Service => 'Servis',
         self::Type_RawMaterial => 'Bahan Baku',
         self::Type_Composite => 'Komposit',
+        self::Type_Consignment => 'Konsinyasi',
     ];
 
     /**
@@ -82,10 +84,10 @@ class Product extends Model
             'min_stock'    => 'decimal:3',
             'max_stock'    => 'decimal:3',
             'notes'        => 'string',
-            'created_by_uid' => 'integer',
-            'updated_by_uid' => 'integer',
-            'created_datetime' => 'datetime',
-            'updated_datetime' => 'datetime',
+            'created_by' => 'integer',
+            'updated_by' => 'integer',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
         ];
     }
 
@@ -105,24 +107,6 @@ class Product extends Model
     public function supplier()
     {
         return $this->belongsTo(Supplier::class);
-    }
-
-    /**
-     * Get the author of the product.
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function createdBy()
-    {
-        return $this->belongsTo(User::class, 'created_by_uid');
-    }
-
-    /**
-     * Get the updater of the product.
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function updatedBy()
-    {
-        return $this->belongsTo(User::class, 'updated_by_uid');
     }
 
     /**

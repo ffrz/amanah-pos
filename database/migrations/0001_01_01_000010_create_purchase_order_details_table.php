@@ -14,18 +14,17 @@ return new class extends Migration
     {
         Schema::create('purchase_order_details', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('parent_id')->constrained('purchase_orders')->cascadeOnDelete();
-            $table->foreignId('product_id')->nullable()->constrained('products')->nullOnDelete();
-
+            $table->foreignId('parent_id')->nullable()->constrained('purchase_orders')->onDelete('cascade');
+            $table->foreignId('product_id')->nullable()->constrained('products')->onDelete('set null');
             $table->string('product_name', 100);
             $table->string('uom', 40)->default('');
             $table->decimal('quantity', 18, 3)->default(0.);
             $table->decimal('cost', 18, 2)->default(0.);
             $table->decimal('subtotal_cost', 18, 2)->default(0.);
             $table->string('notes', 100)->nullable();
-
             $table->index(['parent_id']);
             $table->index(['product_id']);
+            $table->createdUpdatedTimestamps();
         });
     }
 

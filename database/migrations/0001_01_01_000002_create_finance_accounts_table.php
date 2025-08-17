@@ -15,20 +15,14 @@ return new class extends Migration
         Schema::create('finance_accounts', function (Blueprint $table) {
             $table->id();
             $table->string('name', 40)->unique();
-            $table->enum('type', array_keys(FinanceAccount::Types));
+            $table->string('type', 30);
             $table->string('bank', 40)->default('');
             $table->string('number', 20)->default('');
             $table->string('holder', 100)->default('');
             $table->decimal('balance', 15, 0)->default(0.);
             $table->boolean('active')->default(true);
             $table->text('notes')->nullable();
-
-            $table->datetime('created_datetime')->nullable();
-            $table->datetime('updated_datetime')->nullable();
-            $table->unsignedBigInteger('created_by_uid')->nullable();
-            $table->unsignedBigInteger('updated_by_uid')->nullable();
-            $table->foreign('created_by_uid')->references('id')->on('users')->onDelete('set null');
-            $table->foreign('updated_by_uid')->references('id')->on('users')->onDelete('set null');
+            $table->createdUpdatedTimestamps();
         });
     }
 

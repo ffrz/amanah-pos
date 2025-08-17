@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-class StockAdjustmentDetail extends Model
+class StockAdjustmentDetail extends BaseModel
 {
     protected $fillable = [
         'parent_id',

@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-class Setting extends Model
+class Setting extends BaseModel
 {
     protected $primaryKey = 'key';
     public $incrementing = false;

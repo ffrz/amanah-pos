@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Product;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -14,31 +13,21 @@ return new class extends Migration
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('category_id')->nullable();
-            $table->unsignedBigInteger('supplier_id')->nullable();
+            $table->foreignId('category_id')->nullable()->constrained('product_categories')->onDelete('set null');
+            $table->foreignId('supplier_id')->nullable()->constrained('suppliers')->onDelete('set null');
             $table->string('name', 100);
             $table->string('barcode', 255)->default('');
             $table->text('description')->nullable();
-            $table->enum('type', array_keys(Product::Types))->default(Product::Type_NonStocked);
+            $table->text('type', 20);
             $table->boolean('active')->default(true);
             $table->decimal('cost',  10, 2)->default(0.);
             $table->decimal('price', 10, 2)->default(0.);
             $table->string('uom')->default('');
             $table->text('notes')->nullable();
-
             $table->decimal('stock', 10, 3)->default(0.);
             $table->decimal('min_stock', 10, 3)->default(0.);
             $table->decimal('max_stock', 10, 3)->default(0.);
-
-            $table->datetime('created_datetime')->nullable();
-            $table->datetime('updated_datetime')->nullable();
-            $table->unsignedBigInteger('created_by_uid')->nullable();
-            $table->unsignedBigInteger('updated_by_uid')->nullable();
-            $table->foreign('created_by_uid')->references('id')->on('users')->onDelete('set null');
-            $table->foreign('updated_by_uid')->references('id')->on('users')->onDelete('set null');
-
-            $table->foreign('category_id')->references('id')->on('product_categories')->onDelete('set null');
-            $table->foreign('supplier_id')->references('id')->on('suppliers')->onDelete('set null');
+            $table->createdUpdatedTimestamps();
         });
     }
 

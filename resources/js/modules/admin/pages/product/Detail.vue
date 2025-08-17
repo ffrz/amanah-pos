@@ -177,7 +177,7 @@ const computedColumns = computed(() => {
                         {{ page.props.data.active ? "Aktif" : "Tidak Aktif" }}
                       </td>
                     </tr>
-                    <tr v-if="!!page.props.data.created_datetime">
+                    <tr v-if="!!page.props.data.created_at">
                       <td>Dibuat Oleh</td>
                       <td>:</td>
                       <td>
@@ -185,7 +185,7 @@ const computedColumns = computed(() => {
                           <i-link
                             :href="
                               route('admin.user.detail', {
-                                id: page.props.data.created_by_uid,
+                                id: page.props.data.created_by,
                               })
                             "
                           >
@@ -195,13 +195,13 @@ const computedColumns = computed(() => {
                           -
                         </template>
                         {{
-                          $dayjs(
-                            new Date(page.props.data.created_datetime)
-                          ).format("dddd, D MMMM YYYY pukul HH:mm:ss")
+                          $dayjs(new Date(page.props.data.created_at)).format(
+                            "dddd, D MMMM YYYY pukul HH:mm:ss"
+                          )
                         }}
                       </td>
                     </tr>
-                    <tr v-if="!!page.props.data.updated_datetime">
+                    <tr v-if="!!page.props.data.updated_at">
                       <td>Diperbarui oleh</td>
                       <td>:</td>
                       <td>
@@ -209,7 +209,7 @@ const computedColumns = computed(() => {
                           <i-link
                             :href="
                               route('admin.user.detail', {
-                                id: page.props.data.updated_by_uid,
+                                id: page.props.data.updated_by,
                               })
                             "
                           >
@@ -219,9 +219,9 @@ const computedColumns = computed(() => {
                           -
                         </template>
                         {{
-                          $dayjs(
-                            new Date(page.props.data.updated_datetime)
-                          ).format("dddd, D MMMM YYYY pukul HH:mm:ss")
+                          $dayjs(new Date(page.props.data.updated_at)).format(
+                            "dddd, D MMMM YYYY pukul HH:mm:ss"
+                          )
                         }}
                       </td>
                     </tr>
@@ -369,9 +369,9 @@ const computedColumns = computed(() => {
                           <div>
                             -
                             {{
-                              $dayjs(
-                                new Date(props.row.created_datetime)
-                              ).format("DD/MM/YYYY hh:mm:ss")
+                              $dayjs(new Date(props.row.created_at)).format(
+                                "DD/MM/YYYY hh:mm:ss"
+                              )
                             }}
                           </div>
                           <div>

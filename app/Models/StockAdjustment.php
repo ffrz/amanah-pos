@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class StockAdjustment extends Model
+class StockAdjustment extends BaseModel
 {
     use HasFactory;
 
@@ -52,21 +52,11 @@ class StockAdjustment extends Model
             'total_cost'   => 'decimal:2',
             'total_price'  => 'decimal:2',
             'notes'        => 'string',
-            'created_by_uid' => 'integer',
-            'updated_by_uid' => 'integer',
-            'created_datetime' => 'datetime',
-            'updated_datetime' => 'datetime',
+            'created_by' => 'integer',
+            'updated_by' => 'integer',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
         ];
-    }
-
-    public function createdBy()
-    {
-        return $this->belongsTo(User::class, 'created_by_uid');
-    }
-
-    public function updatedBy()
-    {
-        return $this->belongsTo(User::class, 'updated_by_uid');
     }
 
     public function details()

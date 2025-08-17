@@ -13,7 +13,7 @@ class CustomerController extends Controller
 {
     public function index()
     {
-        return inertia('Index');
+        return inertia('customer/Index');
     }
 
     public function detail($id = 0)
@@ -56,7 +56,7 @@ class CustomerController extends Controller
         $item = Customer::findOrFail($id);
         $item->id = null;
         $item->created_at = null;
-        return inertia('Editor', [
+        return inertia('customer/Editor', [
             'data' => $item,
         ]);
     }
@@ -65,7 +65,7 @@ class CustomerController extends Controller
     {
         allowed_roles([User::Role_Admin, User::Role_Cashier]);
         $item = $id ? Customer::findOrFail($id) : new Customer(['active' => true]);
-        return inertia('Editor', [
+        return inertia('customer/Editor', [
             'data' => $item,
         ]);
     }

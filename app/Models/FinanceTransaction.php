@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class FinanceTransaction extends Model
+class FinanceTransaction extends BaseModel
 {
     use HasFactory;
 
@@ -61,10 +61,10 @@ class FinanceTransaction extends Model
             'ref_id' => 'integer',
             'ref_type' => 'string',
             'notes' => 'string',
-            'created_by_uid' => 'integer',
-            'updated_by_uid' => 'integer',
-            'created_datetime' => 'datetime',
-            'updated_datetime' => 'datetime',
+            'created_by' => 'integer',
+            'updated_by' => 'integer',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
         ];
     }
 
@@ -92,15 +92,6 @@ class FinanceTransaction extends Model
         return $this->belongsTo(FinanceAccount::class, 'account_id');
     }
 
-    public function createdBy()
-    {
-        return $this->belongsTo(User::class, 'created_by_uid');
-    }
-
-    public function updatedBy()
-    {
-        return $this->belongsTo(User::class, 'updated_by_uid');
-    }
 
     public function ref()
     {

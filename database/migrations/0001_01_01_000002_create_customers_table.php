@@ -27,12 +27,7 @@ return new class extends Migration
             $table->datetime('last_activity_datetime')->nullable();
             $table->rememberToken();
 
-            $table->datetime('created_datetime')->nullable();
-            $table->datetime('updated_datetime')->nullable();
-            $table->unsignedBigInteger('created_by_uid')->nullable();
-            $table->unsignedBigInteger('updated_by_uid')->nullable();
-            $table->foreign('created_by_uid')->references('id')->on('users')->onDelete('set null');
-            $table->foreign('updated_by_uid')->references('id')->on('users')->onDelete('set null');
+            $table->createdUpdatedTimestamps();
         });
 
         Schema::create('customer_password_reset_tokens', function (Blueprint $table) {

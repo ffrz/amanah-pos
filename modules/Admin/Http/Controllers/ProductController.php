@@ -27,7 +27,7 @@ class ProductController extends Controller
 
     public function index()
     {
-        return Inertia::render('admin/product/Index', [
+        return Inertia::render('product/Index', [
             'categories' => $this->commonDataService->getCategories(),
             'suppliers' => $this->commonDataService->getSuppliers(),
         ]);
@@ -42,7 +42,7 @@ class ProductController extends Controller
                 ->with('error', 'Produk tidak ditemukan.');
         }
 
-        return Inertia::render('admin/product/Detail', [
+        return Inertia::render('product/Detail', [
             'data' => $item,
         ]);
     }
@@ -72,7 +72,7 @@ class ProductController extends Controller
         $item->id = null;
         $item->exists = false; // Penting agar Eloquent tahu ini objek baru
 
-        return Inertia::render('admin/product/Editor', [
+        return Inertia::render('product/Editor', [
             'data' => $item,
             'categories' => $this->commonDataService->getCategories(),
             'suppliers' => $this->commonDataService->getSuppliers(),
@@ -89,7 +89,7 @@ class ProductController extends Controller
             return redirect()->route('admin.product.index')->with('error', 'Product not found for editing.');
         }
 
-        return Inertia::render('admin/product/Editor', [
+        return Inertia::render('product/Editor', [
             'data' => $item,
             'categories' => $this->commonDataService->getCategories(),
             'suppliers' => $this->commonDataService->getSuppliers(),

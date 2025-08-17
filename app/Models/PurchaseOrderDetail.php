@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-class PurchaseOrderDetail extends Model
+class PurchaseOrderDetail extends BaseModel
 {
     protected $fillable = [
         'parent_id',

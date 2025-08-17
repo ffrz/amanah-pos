@@ -63,7 +63,7 @@ const title = "Rincian Pengguna";
                     <td>:</td>
                     <td>
                       {{
-                        $dayjs(page.props.data.created_datetime).format(
+                        $dayjs(page.props.data.created_at).format(
                           "DD MMMM YY HH:mm:ss"
                         )
                       }}
@@ -74,7 +74,7 @@ const title = "Rincian Pengguna";
                     <td>:</td>
                     <td>
                       {{
-                        $dayjs(page.props.data.updated_datetime).format(
+                        $dayjs(page.props.data.updated_at).format(
                           "DD MMMM YY HH:mm:ss"
                         )
                       }}

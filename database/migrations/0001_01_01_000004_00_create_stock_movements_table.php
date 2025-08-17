@@ -14,21 +14,12 @@ return new class extends Migration
     {
         Schema::create('stock_movements', function (Blueprint $table) {
             $table->id();
-
-            $table->unsignedBigInteger('product_id');
-
+            $table->foreignId('product_id')->nullable()->constrained('products')->onDelete('set null');
             $table->unsignedBigInteger('ref_id')->nullable();
             $table->string('ref_type', 20)->default('');
             $table->decimal('quantity', 10, 3)->default(0.);
-
-            $table->datetime('created_datetime')->nullable();
-            $table->unsignedBigInteger('created_by_uid')->nullable();
-
-            $table->foreign('created_by_uid')->references('id')->on('users')->onDelete('set null');
-            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
-
+            $table->createdUpdatedTimestamps();
             $table->index(['ref_id', 'ref_type']);
-            $table->index('created_by_uid');
         });
     }
 
