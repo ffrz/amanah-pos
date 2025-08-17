@@ -26,7 +26,7 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         if ($request->getMethod() === 'GET') {
-            return inertia('customer/auth/Login');
+            return inertia('auth/Login');
         }
 
         // kode dibawah ini untuk handle post
@@ -72,10 +72,10 @@ class AuthController extends Controller
         return redirect('/')->with('success', 'Anda telah logout.');
     }
 
-    public function forgotPassword(Request $request) {
+    public function forgotPassword(Request $request)
+    {
         if ($request->getMethod() === 'GET') {
-            return inertia('admin/auth/ForgotPassword');
+            return inertia('auth/ForgotPassword');
         }
-
     }
 }

@@ -124,7 +124,7 @@ onMounted(() => {
               </q-item>
               <q-item
                 v-close-popup
-                v-if="$canAccess('admin.company-profile.edit')"
+                v-if="$can('admin.company-profile.edit')"
                 class="subnav"
                 clickable
                 v-ripple
@@ -151,7 +151,7 @@ onMounted(() => {
                 <q-item-section>
                   <q-item-label
                     ><q-icon name="logout" class="q-mr-sm" />
-                    {{ $t("logout") }}</q-item-label
+                    Logout</q-item-label
                   >
                 </q-item-section>
               </q-item>
@@ -180,7 +180,7 @@ onMounted(() => {
               <q-icon name="dashboard" />
             </q-item-section>
             <q-item-section>
-              <q-item-label>{{ $t("dashboard") }}</q-item-label>
+              <q-item-label>Dashboard</q-item-label>
             </q-item-section>
           </q-item>
           <q-separator />
@@ -207,7 +207,7 @@ onMounted(() => {
                 <q-icon name="shopping_cart" />
               </q-item-section>
               <q-item-section>
-                <q-item-label>{{ $t("sales_orders") }}</q-item-label>
+                <q-item-label>Order Penjualan</q-item-label>
               </q-item-section>
             </q-item>
           </q-expansion-item>
@@ -235,7 +235,7 @@ onMounted(() => {
                 <q-icon name="shopping_cart" />
               </q-item-section>
               <q-item-section>
-                <q-item-label>{{ $t("purchase_orders") }}</q-item-label>
+                <q-item-label>Order Pembelian</q-item-label>
               </q-item-section>
             </q-item>
             <q-item
@@ -249,7 +249,7 @@ onMounted(() => {
                 <q-icon name="people" />
               </q-item-section>
               <q-item-section>
-                <q-item-label>{{ $t("suppliers") }}</q-item-label>
+                <q-item-label>Supplier</q-item-label>
               </q-item-section>
             </q-item>
           </q-expansion-item>
@@ -278,11 +278,11 @@ onMounted(() => {
                 <q-icon name="swap_vert" />
               </q-item-section>
               <q-item-section>
-                <q-item-label>{{ $t("stock_adjustment") }}</q-item-label>
+                <q-item-label>Penyesuaian Stok</q-item-label>
               </q-item-section>
             </q-item>
             <q-item
-              v-if="$canAccess('admin.product.index')"
+              v-if="$can('admin.product.index')"
               class="subnav"
               clickable
               v-ripple
@@ -293,11 +293,11 @@ onMounted(() => {
                 <q-icon name="box" />
               </q-item-section>
               <q-item-section>
-                <q-item-label>{{ $t("products") }}</q-item-label>
+                <q-item-label>Produk</q-item-label>
               </q-item-section>
             </q-item>
             <q-item
-              v-if="$canAccess('admin.product-category.index')"
+              v-if="$can('admin.product-category.index')"
               class="subnav"
               clickable
               v-ripple
@@ -308,7 +308,7 @@ onMounted(() => {
                 <q-icon name="category" />
               </q-item-section>
               <q-item-section>
-                <q-item-label>{{ $t("product_categories") }}</q-item-label>
+                <q-item-label>Kategori Produk</q-item-label>
               </q-item-section>
             </q-item>
           </q-expansion-item>
@@ -373,7 +373,7 @@ onMounted(() => {
                 <q-icon name="groups_2" />
               </q-item-section>
               <q-item-section>
-                <q-item-label>{{ $t("customers") }}</q-item-label>
+                <q-item-label>Santri</q-item-label>
               </q-item-section>
             </q-item>
           </q-expansion-item>
@@ -464,7 +464,7 @@ onMounted(() => {
           <q-separator />
           <q-expansion-item
             icon="settings"
-            :label="$t('settings')"
+            label="Pengaturan"
             :default-opened="$page.url.startsWith('/admin/settings')"
           >
             <q-item
@@ -479,7 +479,7 @@ onMounted(() => {
                 <q-icon name="group" />
               </q-item-section>
               <q-item-section>
-                <q-item-label>{{ $t("users") }}</q-item-label>
+                <q-item-label>Pengguna</q-item-label>
               </q-item-section>
             </q-item>
             <q-item
@@ -493,7 +493,7 @@ onMounted(() => {
                 <q-icon name="manage_accounts" />
               </q-item-section>
               <q-item-section>
-                <q-item-label>{{ $t("my_profile") }}</q-item-label>
+                <q-item-label>Profil Saya</q-item-label>
               </q-item-section>
             </q-item>
             <q-item
@@ -508,7 +508,7 @@ onMounted(() => {
                 <q-icon name="apartment" />
               </q-item-section>
               <q-item-section>
-                <q-item-label>{{ $t("company_profile") }}</q-item-label>
+                <q-item-label>Profil Maqsof</q-item-label>
               </q-item-section>
             </q-item>
           </q-expansion-item>

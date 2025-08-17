@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Http\Controllers\Admin;
+namespace Modules\Admin\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
@@ -53,7 +53,7 @@ class DashboardController extends Controller
             $monthly_closed_orders[(int)substr($order->order_date, 8, 2)] = $order->total_order;
         }
 
-        return inertia('admin/dashboard/Index', [
+        return inertia('dashboard/Index', [
             'data' => [
                 'active_customer_count' => Customer::activeCustomerCount(),
                 'active_user_count' => User::activeUserCount(),
@@ -97,6 +97,6 @@ class DashboardController extends Controller
      */
     public function test()
     {
-        return inertia('admin/dashboard/Test');
+        return inertia('dashboard/Test');
     }
 }

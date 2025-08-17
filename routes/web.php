@@ -70,7 +70,7 @@ Route::get('/landing-page', function () {
 //     Route::get('dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
 //     Route::get('test', [DashboardController::class, 'test'])->name('admin.test');
 //     Route::get('about', function () {
-//         return inertia('admin/About');
+//         return inertia('About');
 //     })->name('admin.about');
 
 //     Route::prefix('settings')->group(function () {
@@ -235,7 +235,7 @@ Route::middleware([CustomerAuth::class])->prefix('customer')->group(function () 
     Route::get('dashboard', [CustomerDashboardController::class, 'index'])->name('customer.dashboard');
     Route::get('test', [CustomerDashboardController::class, 'test'])->name('customer.test');
     Route::get('about', function () {
-        return inertia('customer/About');
+        return inertia('About');
     })->name('customer.about');
 
     Route::prefix('wallet-transactions')->group(function () {

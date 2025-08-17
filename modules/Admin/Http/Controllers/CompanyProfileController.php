@@ -41,7 +41,7 @@ class CompanyProfileController extends Controller
         ];
 
         // Mengirim data ke komponen Inertia
-        return inertia('admin/company-profile/Edit', compact('data'));
+        return inertia('company-profile/Edit', compact('data'));
     }
 
     /**

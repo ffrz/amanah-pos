@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Http\Controllers\Admin;
+namespace Modules\Admin\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\FinanceAccount;
@@ -14,12 +14,12 @@ class FinanceAccountController extends Controller
 {
     public function index()
     {
-        return inertia('admin/finance-account/Index');
+        return inertia('finance-account/Index');
     }
 
     public function detail($id = 0)
     {
-        return inertia('admin/finance-account/Detail', [
+        return inertia('finance-account/Detail', [
             'data' => FinanceAccount::findOrFail($id),
         ]);
     }
@@ -63,7 +63,7 @@ class FinanceAccountController extends Controller
         $item = FinanceAccount::findOrFail($id);
         $item->id = null;
         $item->created_at = null;
-        return inertia('admin/finance-account/Editor', [
+        return inertia('finance-account/Editor', [
             'data' => $item,
         ]);
     }
@@ -72,7 +72,7 @@ class FinanceAccountController extends Controller
     {
         allowed_roles([User::Role_Admin]);
         $item = $id ? FinanceAccount::findOrFail($id) : new FinanceAccount(['active' => true]);
-        return inertia('admin/finance-account/Editor', [
+        return inertia('finance-account/Editor', [
             'data' => $item,
         ]);
     }

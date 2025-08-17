@@ -12,7 +12,7 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         $customer = Customer::findOrFail(Auth::guard('customer')->user()->id);
-        return inertia('customer/dashboard/Index', [
+        return inertia('dashboard/Index', [
             'data' => [
                 'actual_balance' => $customer->balance
             ]

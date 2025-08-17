@@ -16,7 +16,7 @@ class FinanceTransactionController extends Controller
 
     public function index()
     {
-        return inertia('admin/finance-transaction/Index', []);
+        return inertia('finance-transaction/Index', []);
     }
 
     public function data(Request $request)
@@ -52,7 +52,7 @@ class FinanceTransactionController extends Controller
     {
         allowed_roles([User::Role_Admin]);
         $item = $id ? FinanceTransaction::findOrFail($id) : new FinanceTransaction(['datetime' => Carbon::now()]);
-        return inertia('admin/finance-transaction/Editor', [
+        return inertia('finance-transaction/Editor', [
             'data' => $item,
             'accounts' => FinanceAccount::where('active', '=', true)->orderBy('name', 'asc')->get()
         ]);

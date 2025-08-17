@@ -259,9 +259,7 @@ const onRowClicked = (row) => router.get(route("admin.user.detail", row.id));
                         <q-item-section avatar>
                           <q-icon name="edit" />
                         </q-item-section>
-                        <q-item-section icon="edit">{{
-                          $t("edit_user")
-                        }}</q-item-section>
+                        <q-item-section icon="edit">Edit</q-item-section>
                       </q-item>
                       <q-item
                         @click.stop="deleteItem(props.row)"
@@ -272,7 +270,7 @@ const onRowClicked = (row) => router.get(route("admin.user.detail", row.id));
                         <q-item-section avatar>
                           <q-icon name="delete_forever" />
                         </q-item-section>
-                        <q-item-section>{{ $t("delete_user") }}</q-item-section>
+                        <q-item-section>Hapus</q-item-section>
                       </q-item>
                     </q-list>
                   </q-menu>

@@ -36,69 +36,69 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ]);
 
-        $middleware->redirectGuestsTo(function (Request $request) {
-            if ($request->is('api/*') || $request->is('web-api/*') || $request->expectsJson()) {
-                return null;
-            }
+        // $middleware->redirectGuestsTo(function (Request $request) {
+        //     if ($request->is('api/*') || $request->is('web-api/*') || $request->expectsJson()) {
+        //         return null;
+        //     }
 
-            if ($request->is('admin/*') || $request->expectsJson()) {
-                return route('admin.auth.login');
-            }
+        //     if ($request->is('admin/*') || $request->expectsJson()) {
+        //         return route('admin.auth.login');
+        //     }
 
-            if ($request->is('customer/*') || $request->expectsJson()) {
-                return route('customer.auth.login');
-            }
+        //     if ($request->is('customer/*') || $request->expectsJson()) {
+        //         return route('customer.auth.login');
+        //     }
 
-            return null;
-        });
+        //     return null;
+        // });
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        $exceptions->renderable(function (Throwable $e, $request) {
-            // Periksa jika request adalah untuk API dan/atau mengharapkan JSON
-            if ($request->is('api/*') || $request->is('web-api/*') || $request->expectsJson()) {
-                // Tangani 404 Not Found
-                if ($e instanceof NotFoundHttpException) {
-                    return response()->json([
-                        'message' => 'Resource not found.'
-                    ], 404);
-                }
+        // $exceptions->renderable(function (Throwable $e, $request) {
+        //     // Periksa jika request adalah untuk API dan/atau mengharapkan JSON
+        //     if ($request->is('api/*') || $request->is('web-api/*') || $request->expectsJson()) {
+        //         // Tangani 404 Not Found
+        //         if ($e instanceof NotFoundHttpException) {
+        //             return response()->json([
+        //                 'message' => 'Resource not found.'
+        //             ], 404);
+        //         }
 
-                // Tangani AuthenticationException (Unauthenticated)
-                if ($e instanceof AuthenticationException) {
-                    return response()->json([
-                        'message' => $e->getMessage() ?: 'Unauthenticated.'
-                    ], 401);
-                }
+        //         // Tangani AuthenticationException (Unauthenticated)
+        //         if ($e instanceof AuthenticationException) {
+        //             return response()->json([
+        //                 'message' => $e->getMessage() ?: 'Unauthenticated.'
+        //             ], 401);
+        //         }
 
-                // Tangani AuthorizationException (Forbidden)
-                if ($e instanceof AuthorizationException) {
-                    return response()->json([
-                        'message' => $e->getMessage() ?: 'Unauthorized.'
-                    ], 403);
-                }
+        //         // Tangani AuthorizationException (Forbidden)
+        //         if ($e instanceof AuthorizationException) {
+        //             return response()->json([
+        //                 'message' => $e->getMessage() ?: 'Unauthorized.'
+        //             ], 403);
+        //         }
 
-                // Tangani ValidationException
-                if ($e instanceof ValidationException) {
-                    return response()->json([
-                        'message' => 'The given data was invalid.',
-                        'errors' => $e->errors(),
-                    ], 422);
-                }
+        //         // Tangani ValidationException
+        //         if ($e instanceof ValidationException) {
+        //             return response()->json([
+        //                 'message' => 'The given data was invalid.',
+        //                 'errors' => $e->errors(),
+        //             ], 422);
+        //         }
 
-                // Tangani Exception generik lainnya
-                if (app()->environment('production')) {
-                    return response()->json([
-                        'message' => 'An unexpected error occurred.'
-                    ], 500);
-                } else {
-                    return response()->json([
-                        'message' => $e->getMessage(),
-                        'exception' => get_class($e),
-                        'file' => $e->getFile(),
-                        'line' => $e->getLine(),
-                        'trace' => $e->getTraceAsString(),
-                    ], 500);
-                }
-            }
-        });
+        //         // Tangani Exception generik lainnya
+        //         if (app()->environment('production')) {
+        //             return response()->json([
+        //                 'message' => 'An unexpected error occurred.'
+        //             ], 500);
+        //         } else {
+        //             return response()->json([
+        //                 'message' => $e->getMessage(),
+        //                 'exception' => get_class($e),
+        //                 'file' => $e->getFile(),
+        //                 'line' => $e->getLine(),
+        //                 'trace' => $e->getTraceAsString(),
+        //             ], 500);
+        //         }
+        //     }
+        // });
     })->create();

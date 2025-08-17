@@ -23,7 +23,7 @@ class OperationalCostController extends Controller
 
     public function index()
     {
-        return inertia('admin/operational-cost/Index', [
+        return inertia('operational-cost/Index', [
             'categories' => $this->_categories(),
         ]);
     }
@@ -72,7 +72,7 @@ class OperationalCostController extends Controller
         allowed_roles([User::Role_Admin]);
         $item = OperationalCost::findOrFail($id);
         $item->id = null;
-        return inertia('admin/operational-cost/Editor', [
+        return inertia('operational-cost/Editor', [
             'data' => $item,
             'categories' => $this->_categories(),
         ]);
@@ -82,7 +82,7 @@ class OperationalCostController extends Controller
     {
         allowed_roles([User::Role_Admin]);
         $item = $id ? OperationalCost::findOrFail($id) : new OperationalCost(['date' => date('Y-m-d')]);
-        return inertia('admin/operational-cost/Editor', [
+        return inertia('operational-cost/Editor', [
             'data' => $item,
             'categories' => $this->_categories(),
             'cash_accounts' => $this->_cashAccounts(),

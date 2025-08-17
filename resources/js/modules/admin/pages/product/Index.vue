@@ -141,7 +141,7 @@ const computedColumns = computed(() => {
     <template #title>{{ title }}</template>
     <template #right-button>
       <q-btn
-        v-if="$canAccess('admin.product.add')"
+        v-if="$can('admin.product.add')"
         class="q-mr-sm"
         :icon="!showCostColumn ? 'visibility_off' : 'visibility'"
         label=""

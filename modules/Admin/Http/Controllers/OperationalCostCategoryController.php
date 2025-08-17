@@ -12,7 +12,7 @@ class OperationalCostCategoryController extends Controller
 {
     public function index()
     {
-        return inertia('admin/operational-cost-category/Index');
+        return inertia('operational-cost-category/Index');
     }
 
     public function data(Request $request)
@@ -41,7 +41,7 @@ class OperationalCostCategoryController extends Controller
         allowed_roles([User::Role_Admin]);
         $item = OperationalCostCategory::findOrFail($id);
         $item->id = null;
-        return inertia('admin/operational-cost-category/Editor', [
+        return inertia('operational-cost-category/Editor', [
             'data' => $item
         ]);
     }
@@ -50,7 +50,7 @@ class OperationalCostCategoryController extends Controller
     {
         allowed_roles([User::Role_Admin]);
         $item = $id ? OperationalCostCategory::findOrFail($id) : new OperationalCostCategory();
-        return inertia('admin/operational-cost-category/Editor', [
+        return inertia('operational-cost-category/Editor', [
             'data' => $item,
         ]);
     }

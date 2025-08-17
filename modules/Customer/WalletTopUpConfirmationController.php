@@ -12,13 +12,13 @@ class WalletTopUpConfirmationController extends Controller
 
     public function index()
     {
-        return inertia('customer/wallet-topup-confirmation/Index', []);
+        return inertia('wallet-topup-confirmation/Index', []);
     }
 
     public function add()
     {
         $currentUser = Auth::guard('customer')->user();
-        return inertia('customer/wallet-topup-confirmation/Editor', [
+        return inertia('wallet-topup-confirmation/Editor', [
             'data' => [
                 'parent_name' => $currentUser->parent_name,
                 'student_name' => $currentUser->name,

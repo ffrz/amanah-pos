@@ -13,7 +13,7 @@ class ProductCategoryController extends Controller
 {
     public function index()
     {
-        return inertia('admin/product-category/Index');
+        return inertia('product-category/Index');
     }
 
     public function data(Request $request)
@@ -41,7 +41,7 @@ class ProductCategoryController extends Controller
     {
         $item = ProductCategory::findOrFail($id);
         $item->id = null;
-        return inertia('admin/product-category/Editor', [
+        return inertia('product-category/Editor', [
             'data' => $item
         ]);
     }
@@ -49,7 +49,7 @@ class ProductCategoryController extends Controller
     public function editor($id = 0)
     {
         $item = $id ? ProductCategory::findOrFail($id) : new ProductCategory();
-        return inertia('admin/product-category/Editor', [
+        return inertia('product-category/Editor', [
             'data' => $item,
         ]);
     }

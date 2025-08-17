@@ -1,13 +1,16 @@
 <?php
 
 use App\Http\Controllers\Admin\OperationalCostController;
+use App\Http\Middleware\Auth;
 use App\Http\Middleware\CheckAdminRoutePermission;
 use App\Http\Middleware\NonAuthenticated;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Modules\Admin\Http\Controllers\AuthController;
 use Modules\Admin\Http\Controllers\CompanyProfileController;
 use Modules\Admin\Http\Controllers\CustomerController;
+use Modules\Admin\Http\Controllers\CustomerWalletTransactionController;
+use Modules\Admin\Http\Controllers\DashboardController;
+use Modules\Admin\Http\Controllers\FinanceAccountController;
 use Modules\Admin\Http\Controllers\FinanceTransactionController;
 use Modules\Admin\Http\Controllers\OperationalCostCategoryController;
 use Modules\Admin\Http\Controllers\ProductCategoryController;
@@ -19,9 +22,6 @@ use Modules\Admin\Http\Controllers\StockAdjustmentController;
 use Modules\Admin\Http\Controllers\StockMovementController;
 use Modules\Admin\Http\Controllers\SupplierController;
 use Modules\Admin\Http\Controllers\UserController;
-use Modules\Http\Controllers\Admin\CustomerWalletTransactionController;
-use Modules\Http\Controllers\Admin\DashboardController;
-use Modules\Http\Controllers\Admin\FinanceAccountController;
 
 Route::middleware(NonAuthenticated::class)->group(function () {
     Route::prefix('/auth')->group(function () {
@@ -39,7 +39,7 @@ Route::middleware([Auth::class])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
     Route::get('test', [DashboardController::class, 'test'])->name('admin.test');
     Route::get('about', function () {
-        return inertia('admin/About');
+        return inertia('About');
     })->name('admin.about');
 
     Route::prefix('settings')->group(function () {

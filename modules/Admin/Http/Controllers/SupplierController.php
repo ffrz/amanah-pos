@@ -11,12 +11,12 @@ class SupplierController extends Controller
 {
     public function index()
     {
-        return inertia('admin/supplier/Index');
+        return inertia('supplier/Index');
     }
 
     public function detail($id = 0)
     {
-        return inertia('admin/supplier/Detail', [
+        return inertia('supplier/Detail', [
             'data' => Supplier::findOrFail($id),
         ]);
     }
@@ -54,7 +54,7 @@ class SupplierController extends Controller
         $item = Supplier::findOrFail($id);
         $item->id = null;
         $item->created_at = null;
-        return inertia('admin/supplier/Editor', [
+        return inertia('supplier/Editor', [
             'data' => $item,
         ]);
     }
@@ -63,7 +63,7 @@ class SupplierController extends Controller
     {
         allowed_roles([User::Role_Admin, User::Role_Cashier]);
         $item = $id ? Supplier::findOrFail($id) : new Supplier(['active' => true]);
-        return inertia('admin/supplier/Editor', [
+        return inertia('supplier/Editor', [
             'data' => $item,
         ]);
     }

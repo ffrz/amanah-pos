@@ -12,7 +12,7 @@ class WalletTransactionController extends Controller
 
     public function index()
     {
-        return inertia('customer/wallet-transaction/Index', []);
+        return inertia('wallet-transaction/Index', []);
     }
 
     public function data(Request $request)

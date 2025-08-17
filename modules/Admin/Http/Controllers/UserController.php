@@ -18,12 +18,12 @@ class UserController extends Controller
 
     public function index()
     {
-        return inertia('admin/user/Index');
+        return inertia('user/Index');
     }
 
     public function detail($id = 0)
     {
-        return inertia('admin/user/Detail', [
+        return inertia('user/Detail', [
             'data' => User::findOrFail($id),
         ]);
     }
@@ -61,7 +61,7 @@ class UserController extends Controller
         $user = User::findOrFail($id);
         $user->id = null;
         $user->created_at = null;
-        return inertia('admin/user/Editor', [
+        return inertia('user/Editor', [
             'data' => $user,
         ]);
     }
@@ -77,7 +77,7 @@ class UserController extends Controller
             return redirect(route('admin.user.index'))->with('warning', 'TIdak dapat mengubah akun anda sendiri.');
         }
 
-        return inertia('admin/user/Editor', [
+        return inertia('user/Editor', [
             'data' => $user,
         ]);
     }

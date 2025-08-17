@@ -19,7 +19,7 @@ class StockAdjustmentController extends Controller
     //
     public function index()
     {
-        return inertia('admin/stock-adjustment/Index');
+        return inertia('stock-adjustment/Index');
     }
 
     public function data(Request $request)
@@ -55,7 +55,7 @@ class StockAdjustmentController extends Controller
     {
         $item = StockAdjustment::with(['createdBy', 'updatedBy'])->findOrFail($id);
 
-        return inertia('admin/stock-adjustment/Detail', [
+        return inertia('stock-adjustment/Detail', [
             'data' => $item,
             'details' => $item->details
         ]);
@@ -103,7 +103,7 @@ class StockAdjustmentController extends Controller
             ]);
         }
 
-        return inertia('admin/stock-adjustment/Create', [
+        return inertia('stock-adjustment/Create', [
             'products' => Product::with(['category'])
                 ->where('type', Product::Type_Stocked)
                 ->where('active', 1)
@@ -131,7 +131,7 @@ class StockAdjustmentController extends Controller
             )
             ->get();
 
-        return inertia('admin/stock-adjustment/Editor', [
+        return inertia('stock-adjustment/Editor', [
             'item' => $item,
             'details' => $details
         ]);

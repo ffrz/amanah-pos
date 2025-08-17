@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Http\Controllers\Admin;
+namespace Modules\Admin\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
@@ -17,7 +17,7 @@ class CustomerWalletTransactionController extends Controller
 
     public function index()
     {
-        return inertia('admin/customer-wallet-transaction/Index', []);
+        return inertia('customer-wallet-transaction/Index', []);
     }
 
     public function data(Request $request)
@@ -57,7 +57,7 @@ class CustomerWalletTransactionController extends Controller
     {
         allowed_roles([User::Role_Admin, User::Role_Cashier]);
         $item = $id ? CustomerWalletTransaction::findOrFail($id) : new CustomerWalletTransaction(['datetime' => date('Y-m-d H:i:s')]);
-        return inertia('admin/customer-wallet-transaction/Editor', [
+        return inertia('customer-wallet-transaction/Editor', [
             'data' => $item,
             'customers' => Customer::where('active', '=', true)->orderBy('nis', 'asc')->get(),
             'finance_accounts' => FinanceAccount::where('active', '=', true)->orderBy('name', 'asc')->get(),
@@ -129,7 +129,7 @@ class CustomerWalletTransactionController extends Controller
     public function adjustment(Request $request)
     {
         if ($request->getMethod() === 'GET') {
-            return inertia('admin/customer-wallet-transaction/Adjustment', [
+            return inertia('customer-wallet-transaction/Adjustment', [
                 'data' => [],
                 'customers' => Customer::where('active', '=', true)->orderBy('nis', 'asc')->get(),
             ]);

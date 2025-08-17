@@ -18,7 +18,7 @@ class PurchaseOrderController extends Controller
 
     public function index()
     {
-        return inertia('admin/purchase-order/Index', [
+        return inertia('purchase-order/Index', [
             'suppliers' => $this->_suppliers(),
         ]);
     }
@@ -68,7 +68,7 @@ class PurchaseOrderController extends Controller
         $item = PurchaseOrder::findOrFail($id);
         $item->id = null;
 
-        return inertia('admin/purchase-order/Editor', [
+        return inertia('purchase-order/Editor', [
             'data' => $item,
             'suppliers' => $this->_suppliers(),
         ]);
@@ -83,7 +83,7 @@ class PurchaseOrderController extends Controller
             'payment_status' => PurchaseOrder::PaymentStatus_Unpaid,
             'delivery_status' => PurchaseOrder::DeliveryStatus_NotSent,
         ]);
-        return inertia('admin/purchase-order/Editor', [
+        return inertia('purchase-order/Editor', [
             'data' => $item,
             'suppliers' => $this->_suppliers(),
         ]);

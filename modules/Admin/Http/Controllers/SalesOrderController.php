@@ -17,7 +17,7 @@ class SalesOrderController extends Controller
 
     public function index()
     {
-        return inertia('admin/sales-order/Index', [
+        return inertia('sales-order/Index', [
             'categories' => $this->_customers(),
         ]);
     }
@@ -66,7 +66,7 @@ class SalesOrderController extends Controller
         allowed_roles([User::Role_Admin]);
         $item = SalesOrder::findOrFail($id);
         $item->id = null;
-        return inertia('admin/sales-order/Editor', [
+        return inertia('sales-order/Editor', [
             'data' => $item,
             'categories' => $this->_customers(),
         ]);
@@ -76,7 +76,7 @@ class SalesOrderController extends Controller
     {
         allowed_roles([User::Role_Admin]);
         $item = $id ? SalesOrder::findOrFail($id) : new SalesOrder(['date' => date('Y-m-d')]);
-        return inertia('admin/sales-order/Editor', [
+        return inertia('sales-order/Editor', [
             'data' => $item,
             'customers' => Customer::where('active', '=', true)->orderBy('nis', 'asc')->get(),
         ]);
