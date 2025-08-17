@@ -1,13 +1,11 @@
 <script setup>
 import { handleSubmit } from "@/helpers/client-req-handler";
-import { useForm, usePage } from "@inertiajs/vue3";
+import { useForm } from "@inertiajs/vue3";
 import { ref } from "vue";
 
-const page = usePage();
-
 let form = useForm({
-  username: "admin",
-  password: "12345",
+  username: window.CONFIG.APP_DEMO ? "admin" : "",
+  password: window.CONFIG.APP_DEMO ? "12345" : "",
   remember: true,
 });
 
@@ -22,21 +20,26 @@ const showPassword = ref(false);
       <div class="column">
         <div class="row">
           <q-form class="q-gutter-md" @submit.prevent="submit">
-            <q-card square bordered class="q-pa-md shadow-1">
-              <q-card-section>
-                <h5 class="q-my-sm text-center">Masuk</h5>
+            <q-card square bordered flat class="q-pa-md">
+              <q-card-section class="text-center">
+                <div class="flex justify-center">
+                  <q-avatar size="80px">
+                    <q-icon name="badge" color="primary" />
+                  </q-avatar>
+                </div>
+                <h6 class="q-my-sm text-primary">Login Staff</h6>
               </q-card-section>
               <q-card-section>
                 <q-input
                   v-model.trim="form.username"
-                  label="ID Pengguna"
+                  label="Username"
                   lazy-rules
-                  autocomplete="username"
                   :error="!!form.errors.username"
+                  autocomplete="username"
                   :error-message="form.errors.username"
                   :disable="form.processing"
                   :rules="[
-                    (val) => (val && val.length > 0) || 'Masukkan ID Pengguna',
+                    (val) => (val && val.length > 0) || 'Masukkan Username',
                   ]"
                 >
                   <template v-slot:append>
@@ -62,8 +65,9 @@ const showPassword = ref(false);
                       flat
                       round
                       @click="showPassword = !showPassword"
-                      ><q-icon :name="showPassword ? 'key_off' : 'key'"
-                    /></q-btn>
+                    >
+                      <q-icon :name="showPassword ? 'key_off' : 'key'" />
+                    </q-btn>
                   </template>
                 </q-input>
                 <q-checkbox

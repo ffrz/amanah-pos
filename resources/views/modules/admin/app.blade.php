@@ -17,6 +17,7 @@
     window.CONFIG = {}
     window.CONFIG.LOCALE = "{{ app()->getLocale() }}";
     window.CONFIG.APP_NAME = "{{ config('app.name', 'Laravel') }}";
+    window.CONFIG.APP_DEMO = "{{ env('APP_DEMO', false) }}";
     window.CONFIG.APP_VERSION = {{ config('app.version', 0x010000) }};
     window.CONFIG.APP_VERSION_STR = "{{ config('app.version_str', '1.0.0') }}";
     window.CONSTANTS = <?= json_encode([
