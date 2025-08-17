@@ -19,18 +19,23 @@ export default defineConfig({
       },
     },
   },
-    plugins: [
-        vue({
-            template: { transformAssetUrls },
-        }),
-        // @quasar/plugin-vite options list:
-        // https://github.com/quasarframework/quasar/blob/dev/vite-plugin/index.d.ts
-        quasar({
-            sassVariables: "/resources/css/quasar-variables.sass",
-        }),
-        laravel({
-            input: ["resources/css/app.css", "resources/js/app.js"],
-            refresh: true,
-        }),
-    ],
+  plugins: [
+    vue({
+      template: { transformAssetUrls },
+    }),
+    // @quasar/plugin-vite options list:
+    // https://github.com/quasarframework/quasar/blob/dev/vite-plugin/index.d.ts
+    quasar({
+      sassVariables: "/resources/css/quasar-variables.sass",
+    }),
+    laravel({
+      input: [
+        "resources/css/app.css",
+        "resources/js/app.js",
+        'resources/js/modules/admin/app.js',
+        'resources/js/modules/customer/app.js',
+      ],
+      refresh: true,
+    }),
+  ],
 });

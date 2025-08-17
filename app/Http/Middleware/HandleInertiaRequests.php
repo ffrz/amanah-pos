@@ -19,9 +19,11 @@ class HandleInertiaRequests extends Middleware
     /**
      * Determine the current asset version.
      */
-    public function version(Request $request): ?string
+    public function rootView(Request $request)
     {
-        return parent::version($request);
+        $module_root_view = $request->attributes->get('module_root_view', null);
+        if (!$module_root_view) return $this->rootView;
+        return "modules/" . $module_root_view . '/app';
     }
 
     /**

@@ -6,41 +6,47 @@
 
 ## 🎯 Tujuan Utama
 
-- Memberikan solusi digital untuk koperasi pondok pesantren.
-- Mencatat saldo santri secara akurat setiap kali ada topup, pembelanjaan, atau penarikan.
-- Memberikan akses kepada wali santri untuk memantau saldo dan riwayat transaksi anaknya.
-- Mengintegrasikan sistem saldo dengan aplikasi kasir internal koperasi (POS).
-- Membangun ekosistem keuangan pondok yang efisien dan transparan.
+-   Memberikan solusi digital untuk koperasi pondok pesantren.
+-   Mencatat saldo santri secara akurat setiap kali ada topup, pembelanjaan, atau penarikan.
+-   Memberikan akses kepada wali santri untuk memantau saldo dan riwayat transaksi anaknya.
+-   Mengintegrasikan sistem saldo dengan aplikasi kasir internal koperasi (POS).
+-   Membangun ekosistem keuangan pondok yang efisien dan transparan.
 
 ---
 
 ## 🚀 Fitur Utama (MVP)
 
 ### 👤 Operator/Admin
-- Input top-up saldo santri
-- Catat pembelian/penarikan saldo
-- Lihat dan kelola riwayat transaksi
-- Dashboard saldo dan laporan
+
+-   Input top-up saldo santri
+-   Catat pembelian/penarikan saldo
+-   Aprroval konfirmasi topup
+-   Lihat dan kelola riwayat transaksi
+-   Dashboard saldo dan laporan
 
 ### 🧑‍🎓 Santri / Wali Santri
-- Akses link login untuk melihat:
-  - Saldo terakhir
-  - Riwayat transaksi
-  - Informasi topup terbaru
+
+-   Akses link login untuk melihat:
+    -   Saldo terakhir
+    -   Riwayat transaksi
+    -   Informasi topup terbaru
+    -   Konfirmasi topup
+    -   Withdrawal (in review)
 
 ### 💵 Penjualan (POS - Tahap Lanjutan)
-- Transaksi pembelian di koperasi
-- Potong saldo otomatis
-- Integrasi dengan sistem stok
+
+-   Transaksi pembelian di koperasi
+-   Potong saldo otomatis
+-   Integrasi dengan sistem stok
 
 ---
 
 ## 📦 Teknologi yang Digunakan
 
-| Layer        | Stack                    |
-|--------------|--------------------------|
-| Frontend     | Vue 3 + Quasar Framework |
-| Backend      | Laravel                  |
-| Database     | MySQL                    |
+| Layer    | Stack                    |
+| -------- | ------------------------ |
+| Frontend | Vue 3 + Quasar Framework |
+| Backend  | Laravel                  |
+| Database | MySQL                    |
 
 ---

@@ -13,9 +13,9 @@ class CommonDataService
      *
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function getCategories()
+    public function getCategories($fields = ['id', 'name'])
     {
-        return ProductCategory::all(['id', 'name']);
+        return ProductCategory::all($fields);
     }
 
     /**
@@ -23,9 +23,9 @@ class CommonDataService
      *
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function getSuppliers()
+    public function getSuppliers($fields = ['id', 'name', 'phone'])
     {
-        return Supplier::all(['id', 'name', 'phone']);
+        return Supplier::all($fields);
     }
 
     /**
@@ -33,8 +33,8 @@ class CommonDataService
      *
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function getCustomers()
+    public function getCustomers($fields = ['id', 'nis', 'name'])
     {
-        return Customer::all(['id', 'nis', 'name']);
+        return Customer::all($fields);
     }
 }

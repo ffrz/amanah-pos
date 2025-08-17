@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('operational_costs', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('category_id')->nullable();
+            $table->foreignId('category_id')->nullable()->constrained('operational_cost_categories')->nullOnDelete();
+            $table->foreignId('finance_account_id')->nullable()->constrained('finance_accounts')->nullOnDelete();
             $table->date('date');
             $table->string('description', 100)->default('');
             $table->decimal('amount', 8, 0)->default(0.);
@@ -24,8 +25,6 @@ return new class extends Migration
             $table->unsignedBigInteger('updated_by_uid')->nullable();
             $table->foreign('created_by_uid')->references('id')->on('users')->onDelete('set null');
             $table->foreign('updated_by_uid')->references('id')->on('users')->onDelete('set null');
-
-            $table->foreign('category_id')->references('id')->on('operational_cost_categories')->onDelete('set null');
         });
     }
 
