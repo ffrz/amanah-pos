@@ -4,7 +4,7 @@ import { getQueryParams } from "@/helpers/utils";
 import { usePage } from "@inertiajs/vue3";
 import { useQuasar } from "quasar";
 import { computed, onMounted, reactive, ref } from "vue";
-import { formatNumber, plusMinusSymbol } from "@/helpers/formatter";
+import { formatDateTime, formatDateTimeFromNow, formatNumber, plusMinusSymbol } from "@/helpers/formatter";
 
 const page = usePage();
 const title = "Rincian Santri";
@@ -101,28 +101,32 @@ const computedColumns = computed(() => {
         <div class="row">
           <q-card square flat bordered class="col">
             <q-tabs v-model="tab" align="left">
-              <q-tab name="main" label="Info Santri" />
+              <q-tab name="main" label="Info Utama" />
               <q-tab name="history" label="Riwayat Transaksi" />
             </q-tabs>
             <q-tab-panels v-model="tab">
               <q-tab-panel name="main">
-                <!-- <div class="text-subtitle1 text-bold text-grey-8">Info Santri</div> -->
                 <table class="detail">
                   <tbody>
                     <tr>
-                      <td style="width: 120px">NIS</td>
+                      <td colspan="3">
+                        <div class="text-bold text-grey-8">Info Pelanggan</div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="width: 120px">Username</td>
                       <td style="width: 1px">:</td>
                       <td>{{ page.props.data.username }}</td>
+                    </tr>
+                    <tr>
+                      <td>Jenis</td>
+                      <td>:</td>
+                      <td>{{ $CONSTANTS.CUSTOMER_TYPES[page.props.data.type] }}</td>
                     </tr>
                     <tr>
                       <td>Nama</td>
                       <td>:</td>
                       <td>{{ page.props.data.name }}</td>
-                    </tr>
-                    <tr>
-                      <td>Nama Wali</td>
-                      <td>:</td>
-                      <td>{{ page.props.data.parent_name }}</td>
                     </tr>
                     <tr>
                       <td>No. Telepon</td>
@@ -146,26 +150,25 @@ const computedColumns = computed(() => {
                         {{ page.props.data.active ? "Aktif" : "Tidak Aktif" }}
                       </td>
                     </tr>
+                    <tr>
+                      <td colspan="3">
+                        <div class="text-bold text-grey-8 q-mt-md">Info Akun</div>
+                      </td>
+                    </tr>
                     <tr v-if="page.props.data.created_at">
                       <td>Dibuat</td>
                       <td>:</td>
                       <td>
-                        {{
-                          $dayjs(new Date(page.props.data.created_at)).format(
-                            "DD MMMM YY HH:mm:ss"
-                          )
-                        }}
+                        {{ formatDateTime(page.props.data.created_at) }}
+                        <span class="text-grey-8">({{ formatDateTimeFromNow(page.props.data.created_at) }})</span>
                       </td>
                     </tr>
                     <tr v-if="page.props.data.updated_at">
                       <td>Diperbarui</td>
                       <td>:</td>
                       <td>
-                        {{
-                          $dayjs(new Date(page.props.data.updated_at)).format(
-                            "DD MMMM YY HH:mm:ss"
-                          )
-                        }}
+                        {{ formatDateTime(page.props.data.updated_at) }}
+                        <span class="text-grey-8">({{ formatDateTimeFromNow(page.props.data.updated_at) }})</span>
                       </td>
                     </tr>
                     <tr>

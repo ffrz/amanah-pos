@@ -55,9 +55,9 @@ class Customer extends BaseModel implements
     public const Type_Other   = 'other';
 
     public const Types = [
-        self::Type_Student    => 'student',
-        self::Type_Teacher    => 'teacher',
-        self::Type_Other      => 'other',
+        self::Type_Student    => 'Santri',
+        self::Type_Teacher    => 'Pengajar / Staff',
+        self::Type_Other      => 'Umum',
     ];
 
     /**

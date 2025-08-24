@@ -33,6 +33,7 @@ const filter = reactive({
   month: currentMonth,
   ...getQueryParams(),
 });
+
 const pagination = ref({
   page: 1,
   rowsPerPage: 10,
@@ -40,6 +41,7 @@ const pagination = ref({
   sortBy: "datetime",
   descending: true,
 });
+
 const columns = [
   {
     name: "datetime",
