@@ -11,6 +11,7 @@ use Illuminate\Foundation\Auth\Access\Authorizable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends BaseModel implements
     AuthenticatableContract,
@@ -21,7 +22,8 @@ class User extends BaseModel implements
         Authorizable,
         CanResetPassword,
         HasFactory,
-        Notifiable;
+        Notifiable,
+        HasRoles;
 
     public const Role_Admin = 'admin';
     public const Role_Cashier = 'cashier';
@@ -103,4 +105,5 @@ class User extends BaseModel implements
     {
         return $this->where('username', $username)->first();
     }
+
 }
