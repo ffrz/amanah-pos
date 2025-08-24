@@ -92,7 +92,6 @@ class FinanceTransaction extends BaseModel
         return $this->belongsTo(FinanceAccount::class, 'account_id');
     }
 
-
     public function ref()
     {
         return $this->morphTo();

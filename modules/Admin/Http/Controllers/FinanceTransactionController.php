@@ -2,6 +2,7 @@
 
 namespace Modules\Admin\Http\Controllers;
 
+use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\FinanceAccount;
 use App\Models\FinanceTransaction;
@@ -153,9 +154,7 @@ class FinanceTransactionController extends Controller
         $item = FinanceTransaction::findOrFail($id);
         if ($item->ref_type == FinanceTransaction::RefType_CustomerWalletTransaction) {
             // TODO: FIX apakah boleh hapus transaksi ??
-            return response()->json([
-                'message' => "Transaksi #$item->id tidak dapat dihapus karena berkaitan dengan transaksi wallet."
-            ]);
+            return JsonResponseHelper::error("Transaksi #$item->id tidak dapat dihapus karena berkaitan dengan transaksi wallet.");
         }
 
         DB::beginTransaction();
@@ -172,14 +171,14 @@ class FinanceTransactionController extends Controller
                 // Hapus pasangan
                 $pair->delete();
             }
+
+            dd('NOO');
         }
 
         $item->delete();
 
         DB::commit();
 
-        return response()->json([
-            'message' => "Transaksi #$item->id telah dihapus."
-        ]);
+        return JsonResponseHelper::success($item, "Transaksi #$item->id telah dihapus.");
     }
 }
