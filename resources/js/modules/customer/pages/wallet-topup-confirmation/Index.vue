@@ -13,7 +13,7 @@ import { handleFetchItems } from "@/helpers/client-req-handler";
 // - tambahkan halaman detail untuk melihat rincian status, kapan dikonfirmasi, dll.
 // - method dibawah ini masih dummy, jadi perlu diimeplementasikan dan dirancang dari mulai database
 
-const title = "Daftar Konfirmasi Pembayaran";
+const title = "Konfirmasi Top Up Wallet";
 const $q = useQuasar();
 const showFilter = ref(false);
 const rows = ref([]);
@@ -133,11 +133,14 @@ watch(
     <template #right-button>
       <q-btn
         icon="add"
+        size="sm"
         dense
         color="primary"
+        label="Konfirmasi&nbsp;"
         @click="router.get(route('customer.wallet-topup-confirmation.add'))"
       />
       <q-btn
+       size="sm"
         class="q-ml-sm"
         :icon="!showFilter ? 'filter_alt' : 'filter_alt_off'"
         color="grey"

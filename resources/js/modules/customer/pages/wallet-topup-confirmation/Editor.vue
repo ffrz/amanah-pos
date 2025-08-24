@@ -4,11 +4,12 @@ import { handleSubmit } from "@/helpers/client-req-handler";
 import { scrollToFirstErrorField } from "@/helpers/utils";
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
 import DateTimePicker from "@/components/DateTimePicker.vue";
-import { formatDateTime, formatDateTimeForEditing } from "@/helpers/formatter";
+import { formatDateTimeForEditing } from "@/helpers/formatter";
 import { useFinanceAccount } from "@/composables/useFinanceAccount";
+import ImageUpload from "@/components/ImageUpload.vue"; 
 
 const page = usePage();
-const title = " Konfirmasi Topup";
+const title = "Konfirmasi Topup";
 const { accountOptions } = useFinanceAccount(page.props.accounts);
 
 const form = useForm({
@@ -16,8 +17,10 @@ const form = useForm({
   name: page.props.auth.customer.name,
   finance_account_id: null,
   datetime: formatDateTimeForEditing(new Date()),
-  amount: 0,
-  notes: "",
+  amount: page.props.data?.amount ?? 0,
+  notes: page.props.data?.notes ?? '',
+  image_path: page.props.data?.image_path ?? '',
+  image: null,
 });
 
 const submit = () =>
@@ -68,7 +71,13 @@ const submit = () =>
                 :disable="form.processing"
                 hide-bottom-space
               />
-
+              <date-time-picker
+                v-model="form.datetime"
+                label="Tanggal & Waktu Transfer"
+                :error="!!form.errors.datetime"
+                :disable="form.processing"
+                hide-bottom-space
+              />
               <q-select
                 class="custom-select"
                 v-model="form.finance_account_id"
@@ -81,15 +90,6 @@ const submit = () =>
                 :disable="form.processing"
                 hide-bottom-space
               />
-
-              <date-time-picker
-                v-model="form.datetime"
-                label="Tanggal & Waktu Transfer"
-                :error="!!form.errors.datetime"
-                :disable="form.processing"
-                hide-bottom-space
-              />
-
               <LocaleNumberInput
                 v-model:modelValue="form.amount"
                 label="Jumlah (Rp.)"
@@ -100,41 +100,32 @@ const submit = () =>
                 :rules="[]"
                 hide-bottom-space
               />
-
-              <q-file
-                v-model="form.image"
-                label="Unggah Bukti Transfer"
-                accept=".jpg, image/*"
-                :disable="form.processing"
-                :error="!!form.errors.image"
-                :error-message="form.errors.image"
-                clearable
-                hide-bottom-space
-              >
-                <template v-slot:prepend>
-                  <q-icon name="attach_file" />
-                </template>
-              </q-file>
-
               <q-input
                 v-model.trim="form.notes"
                 type="textarea"
                 autogrow
                 counter
-                maxlength="100"
-                label="Catatan (Opsional)"
+                maxlength="50"
+                label="Keterangan (Opsional)"
                 lazy-rules
                 :disable="form.processing"
                 :error="!!form.errors.notes"
                 :error-message="form.errors.notes"
                 hide-bottom-space
               />
+              <ImageUpload 
+                v-model="form.image" 
+                :initial-image-path="form.image_path"
+                :disabled="form.processing"
+                :error="!!form.errors.image || !!form.errors.image_path"
+                :error-message="form.errors.image || form.errors.image_path"
+              />
             </q-card-section>
             <q-card-section class="q-gutter-sm">
               <q-btn
-                icon="save"
+                icon="send"
                 type="submit"
-                label="Simpan Konfirmasi"
+                label="Kirim Konfirmasi"
                 color="primary"
                 :disable="form.processing"
               />

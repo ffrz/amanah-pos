@@ -36,6 +36,7 @@ const summaryData = ref({
     <template #title>{{ title }}</template>
     <template #right-button>
       <q-btn
+        size="sm"
         class="q-ml-sm"
         :icon="!showFilter ? 'filter_alt' : 'filter_alt_off'"
         color="grey"

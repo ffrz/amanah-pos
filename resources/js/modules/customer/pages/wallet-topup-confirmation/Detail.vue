@@ -2,7 +2,7 @@
 import { router, usePage } from "@inertiajs/vue3";
 
 const page = usePage();
-const title = "Rincian Teknisi";
+const title = "Rincian Konfirmasi Top Up";
 </script>
 
 <template>
@@ -14,9 +14,6 @@ const title = "Rincian Teknisi";
         <div class="row">
           <q-card square flat bordered class="col">
             <q-card-section>
-              <div class="text-subtitle1 text-bold text-grey-8">
-                Profil Teknisi
-              </div>
               <table class="detail">
                 <tbody>
                   <tr>

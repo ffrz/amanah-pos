@@ -2,6 +2,7 @@
 
 namespace Modules\Customer\Http\Controllers;
 
+use App\Helpers\ImageUploaderHelper;
 use App\Http\Controllers\Controller;
 use App\Models\CustomerWalletTopUpConfirmation;
 use App\Models\CustomerWalletTransaction;
@@ -9,6 +10,7 @@ use App\Models\CustomerWalletTransactionConfirmation;
 use App\Models\FinanceAccount;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Modules\Admin\Http\Controllers\CustomerWalletTransactionController;
 
 class WalletTopUpConfirmationController extends Controller
@@ -63,16 +65,62 @@ class WalletTopUpConfirmationController extends Controller
         $validated = $request->validate([
             'finance_account_id' => 'required|exists:finance_accounts,id',
             'datetime' => 'required|date',
-            'amount'   => 'required|numeric|min:0.01',
-            'notes'    => 'nullable|string|max:255',
+            'amount' => 'required|numeric|min:0.01',
+            'notes' => 'nullable|string|max:50',
+            'image' => 'nullable|image|max:15120',
+            'image_path' => 'nullable|string',
+        ], [
+            'finance_account_id.required' => 'Akun tujuan harus diisi.',
+            'finance_account_id.exists' => 'Akun tujuan tidak ditemukan.',
+            'datetime.required' => 'Waktu harus diisi.',
+            'datetime.date' => 'Format waktu tidak valid.',
+            'amount.required' => 'Jumlah topup harus diisi.',
+            'amount.numeric' => 'Jumlah topup tidak valid.',
+            'amount.min' => 'Jumlah topup harus diisi.',
+            'notes.string' => 'Keterangan tidak valid.',
+            'notes.max' => 'Keterangan maksimal 50 karakter.'
         ]);
 
         $validated['customer_id'] = Auth::guard('customer')->user()->id;
         $validated['status'] = CustomerWalletTransactionConfirmation::Status_Pending;
-        $topUpConfirmation = new CustomerWalletTransactionConfirmation($validated);
-        $topUpConfirmation->save();
 
-        return redirect(route('customer.wallet-topup-confirmation.index'))
-            ->with('success', 'Konfirmasi topup telah disimpan.');
+        DB::beginTransaction();
+        $newlyUploadedImagePath = null;
+
+        try {
+            $topUpConfirmation = new CustomerWalletTransactionConfirmation();
+
+            unset($validated['image']);
+            $validated['image_path'] = '';
+
+            $topUpConfirmation->fill($validated);
+            $topUpConfirmation->save();
+
+            if ($request->hasFile('image')) {
+                $newlyUploadedImagePath = ImageUploaderHelper::uploadAndResize(
+                    $request->file('image'),
+                    'wallet-topup-confirmations', // FIXME: kalo bisa jangan hardcode karena dibutuhkan di modul lain!
+                );
+            }
+
+            // Perbarui path gambar di model transaksi jika ada perubahan
+            if ($topUpConfirmation->image_path !== $newlyUploadedImagePath) {
+                $topUpConfirmation->image_path = $newlyUploadedImagePath;
+                $topUpConfirmation->save(); // Simpan kembali transaksi untuk memperbarui image_path di DB
+            }
+
+            DB::commit();
+
+            return redirect(route('customer.wallet-topup-confirmation.index'))
+                ->with('success', 'Konfirmasi topup telah disimpan.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            if ($newlyUploadedImagePath && file_exists(public_path($newlyUploadedImagePath))) {
+                ImageUploaderHelper::deleteImage($newlyUploadedImagePath);
+            }
+
+            throw $e;
+        }
     }
 }

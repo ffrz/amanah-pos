@@ -98,6 +98,7 @@ watch(
     <template #right-button>
       <q-btn
         class="q-ml-sm"
+        size="sm"
         :icon="!showFilter ? 'filter_alt' : 'filter_alt_off'"
         color="grey"
         dense
