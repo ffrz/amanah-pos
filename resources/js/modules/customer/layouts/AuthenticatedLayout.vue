@@ -211,6 +211,21 @@ onMounted(() => {
               <q-item-label>Profil</q-item-label>
             </q-item-section>
           </q-item>
+          <q-separator />
+          <q-item
+            clickable
+            v-close-popup
+            v-ripple
+            style="color: inherit"
+            :href="route('customer.auth.logout')"
+          >
+            <q-item-section avatar>
+              <q-icon name="logout" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Logout</q-item-label>
+            </q-item-section>
+          </q-item>
           <div class="absolute-bottom text-grey-6 q-pa-md">
             &copy; 2025 -
             {{ $config.APP_NAME + " v" + $config.APP_VERSION_STR }}

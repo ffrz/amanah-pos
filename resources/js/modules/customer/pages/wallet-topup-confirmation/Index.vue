@@ -190,7 +190,7 @@ const showProof = (buktiUrl) => {
 
 <template>
   <i-head :title="title" />
-  <customer-layout>
+  <authenticated-layout>
     <template #title>{{ title }}</template>
     <template #right-button>
       <q-btn
@@ -222,6 +222,7 @@ const showProof = (buktiUrl) => {
             @update:model-value="onFilterChange"
           />
           <q-select
+            v-if="filter.year !== 'all'"
             v-model="filter.month"
             :options="monthOptions"
             label="Bulan"
@@ -260,9 +261,8 @@ const showProof = (buktiUrl) => {
         </div>
       </q-toolbar>
     </template>
-    <div class="q-pa-sm">
+    <div class="q-pa-xs">
       <q-table
-        class="full-height-table"
         flat
         bordered
         square
@@ -294,20 +294,20 @@ const showProof = (buktiUrl) => {
           <q-tr :props="props">
             <q-td key="datetime" :props="props" class="wrap-column">
               <div>
-                <q-icon name="calendar_today" size="xs" />
+                <q-icon name="calendar_today" class="inline-icon"/>
                 {{ props.row.datetime }}
               </div>
               <template v-if="!$q.screen.gt.sm">
                 <div>
-                  <q-icon name="account_balance" size="xs" />
+                  <q-icon name="account_balance" class="inline-icon" />
                   Bank: {{ props.row.destinationAccount }}
                 </div>
                 <div>
-                  <q-icon name="money" size="xs" />
+                  <q-icon name="money" class="inline-icon" />
                   Rp. {{ formatNumber(props.row.amount) }}
                 </div>
                 <div v-if="props.row.description">
-                  <q-icon name="notes" />
+                  <q-icon name="notes" class="inline-icon"/>
                   {{ props.row.description }}
                 </div>
               </template>
@@ -362,5 +362,5 @@ const showProof = (buktiUrl) => {
         </template>
       </q-table>
     </div>
-  </customer-layout>
+  </authenticated-layout>
 </template>

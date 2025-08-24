@@ -263,3 +263,11 @@ table.detail tr:nth-child(even) td {
 .q-table .over-stock {
   color: orange;
 }
+
+.q-icon.inline-icon {
+  vertical-align: top;
+  font-size: 14px;
+  top: 2px;
+  line-height: 1;
+  margin-right: 2px;
+}

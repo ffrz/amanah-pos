@@ -5,9 +5,9 @@ import UpdateProfileInformationForm from "./partials/UpdateProfileInformationFor
 
 <template>
   <i-head title="Edit Profil" />
-  <customer-layout>
-    <template #title>Profil Wali Santri</template>
-    <div class="q-pa-sm">
+  <authenticated-layout>
+    <template #title>Profil</template>
+    <div class="q-pa-xs">
       <div class="row justify-center">
         <div class="col col-lg-6">
           <UpdateProfileInformationForm />
@@ -15,5 +15,5 @@ import UpdateProfileInformationForm from "./partials/UpdateProfileInformationFor
         </div>
       </div>
     </div>
-  </customer-layout>
+  </authenticated-layout>
 </template>

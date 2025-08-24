@@ -37,6 +37,7 @@ const showPassword = ref(false);
                     (val) =>
                       (val && val.length > 0) || 'Masukkan Nomor Induk Santri',
                   ]"
+                  hide-bottom-space
                 >
                   <template v-slot:append>
                     <q-icon name="person" />
@@ -54,6 +55,7 @@ const showPassword = ref(false);
                   :rules="[
                     (val) => (val && val.length > 0) || 'Masukkan kata sandi',
                   ]"
+                  hide-bottom-space
                 >
                   <template v-slot:append>
                     <q-btn

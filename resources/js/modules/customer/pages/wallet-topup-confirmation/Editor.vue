@@ -29,7 +29,7 @@ const submit = () =>
 
 <template>
   <i-head :title="title" />
-  <customer-layout>
+  <authenticated-layout>
     <template #title>{{ title }}</template>
     <template #left-button>
       <div class="q-gutter-sm">
@@ -69,6 +69,7 @@ const submit = () =>
                 v-model.trim="form.student_name"
                 label="Nama Santri"
                 :disable="form.processing"
+                hide-bottom-space
               />
 
               <q-select
@@ -153,5 +154,5 @@ const submit = () =>
         </q-form>
       </div>
     </q-page>
-  </customer-layout>
+  </authenticated-layout>
 </template>

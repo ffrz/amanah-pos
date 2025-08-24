@@ -32,7 +32,7 @@ const summaryData = ref({
 
 <template>
   <i-head :title="title" />
-  <customer-layout>
+  <authenticated-layout>
     <template #title>{{ title }}</template>
     <template #right-button>
       <q-btn
@@ -62,12 +62,12 @@ const summaryData = ref({
       </q-toolbar>
     </template>
 
-    <div class="q-pa-sm">
+    <div class="q-pa-xs">
       <SummaryCard :summaryData="summaryData" />
     </div>
 
-    <div class="q-pa-sm q-pt-none">
-      <div class="row q-col-gutter-sm">
+    <div class="q-pa-xs q-pt-none">
+      <div class="row q-col-gutter-xs">
         <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
           <ExpenseSummaryChartCard />
         </div>
@@ -77,8 +77,8 @@ const summaryData = ref({
       </div>
     </div>
 
-    <div class="q-pa-sm">
-      <div class="row q-col-gutter-sm">
+    <div class="q-pa-xs">
+      <div class="row q-col-gutter-xs">
         <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
           <RecentTopup />
         </div>
@@ -87,5 +87,5 @@ const summaryData = ref({
         </div>
       </div>
     </div>
-  </customer-layout>
+  </authenticated-layout>
 </template>

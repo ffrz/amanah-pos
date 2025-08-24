@@ -44,8 +44,6 @@ class AuthController extends Controller
 
         // extra validations
         $data = $request->only(['username', 'password']);
-        unset($data['username']);
-
         if (!Auth::guard('customer')->attempt($data, $request->has('remember'))) {
             $validator->errors()->add('username', 'Username atau password salah!');
         } else if (!Auth::guard('customer')->user()->active) {

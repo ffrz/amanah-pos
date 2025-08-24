@@ -19,7 +19,7 @@ const props = defineProps({
   <div class="row">
     <q-card class="bg-transparent no-shadow no-border col" bordered>
       <q-card-section class="q-pa-none">
-        <div class="row q-col-gutter-sm">
+        <div class="row q-col-gutter-xs">
           <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
             <q-item :style="`background-color: #fd8e24`" class="q-pa-none">
               <q-item-section

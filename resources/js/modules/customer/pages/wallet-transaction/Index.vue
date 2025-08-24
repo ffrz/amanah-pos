@@ -3,7 +3,7 @@ import { computed, onMounted, reactive, ref, watch } from "vue";
 import { handleFetchItems } from "@/helpers/client-req-handler";
 import { getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
-import { formatNumber, plusMinusSymbol } from "@/helpers/formatter";
+import { formatDateTime, formatDateTimeFromNow, formatNumber, plusMinusSymbol } from "@/helpers/formatter";
 import { createMonthOptions, createYearOptions } from "@/helpers/options";
 import { getCurrentMonth, getCurrentYear } from "@/helpers/datetime";
 
@@ -93,7 +93,7 @@ watch(
 
 <template>
   <i-head :title="title" />
-  <customer-layout>
+  <authenticated-layout>
     <template #title>{{ title }}</template>
     <template #right-button>
       <q-btn
@@ -119,6 +119,7 @@ watch(
             @update:model-value="onFilterChange"
           />
           <q-select
+            v-if="filter.year !== 'all'"
             v-model="filter.month"
             :options="months"
             label="Bulan"
@@ -146,9 +147,8 @@ watch(
         </div>
       </q-toolbar>
     </template>
-    <div class="q-pa-sm">
+    <div class="q-pa-xs">
       <q-table
-        class="full-height-table"
         flat
         bordered
         square
@@ -182,12 +182,15 @@ watch(
             </q-td>
             <q-td key="datetime" :props="props" class="wrap-column">
               <div>
-                <q-icon name="calendar_today" /> {{ props.row.datetime }}
+                <q-icon name="calendar_today" class="inline-icon"/>
+                {{ formatDateTime(props.row.datetime) }}
+                <span class="text-grey-8">({{ formatDateTimeFromNow(props.row.datetime) }})</span>
               </div>
+
               <template v-if="!$q.screen.gt.sm">
-                <div><q-icon name="notes" /> {{ props.row.notes }}</div>
+                <div><q-icon name="notes" class="inline-icon"/> {{ props.row.notes }}</div>
                 <div>
-                  <q-icon name="money" /> Rp.
+                  <q-icon name="money" class="inline-icon"/> Rp.
                   {{
                     plusMinusSymbol(props.row.amount) +
                     formatNumber(props.row.amount)
@@ -208,5 +211,5 @@ watch(
         </template>
       </q-table>
     </div>
-  </customer-layout>
+  </authenticated-layout>
 </template>

@@ -11,7 +11,6 @@ const form = useForm({
   username: user.username,
   phone: user.phone,
   address: user.address,
-  parent_name: user.parent_name,
   balance: user.balance,
 });
 
@@ -20,7 +19,7 @@ const submit = () =>
 </script>
 
 <template>
-  <q-form class="row q-mb-sm">
+  <q-form class="row q-mb-xs">
     <q-card square flat bordered class="col">
       <q-card-section>
         <div class="text-h6 q-my-xs text-subtitle1">Info Santri</div>
@@ -47,14 +46,14 @@ const submit = () =>
     </q-card>
   </q-form>
   <q-form
-    class="row q-my-sm"
+    class="row q-my-xs"
     @submit.prevent="submit"
     @validation-error="scrollToFirstErrorField"
   >
     <q-card square flat bordered class="col">
       <q-card-section>
-        <div class="text-h6 text-subtitle1">Info Wali Santri</div>
-        <q-input
+        <div class="text-h6 text-subtitle1">Kontak</div>
+        <!-- <q-input
           v-model.trim="form.parent_name"
           type="text"
           label="Nama Wali Santri"
@@ -64,7 +63,7 @@ const submit = () =>
           :error="!!form.errors.parent_name"
           :error-message="form.errors.parent_name"
           :rules="[(val) => (val && val.length > 0) || 'Nama harus diisi.']"
-        />
+        /> -->
         <q-input
           v-model.trim="form.phone"
           type="text"
