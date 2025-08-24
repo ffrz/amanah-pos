@@ -4,6 +4,7 @@ import { createApp, h } from "vue";
 import { createInertiaApp, Head, Link } from "@inertiajs/vue3";
 import { Dialog, Loading, Notify, Quasar } from "quasar";
 import AuthenticatedLayout from "./layouts/AuthenticatedLayout.vue";
+import GuestLayout from "./layouts/GuestLayout.vue";
 import "@quasar/extras/material-icons/material-icons.css";
 import "@quasar/extras/material-icons-outlined/material-icons-outlined.css";
 import "@quasar/extras/material-symbols-outlined/material-symbols-outlined.css";
@@ -44,7 +45,8 @@ createInertiaApp({
       .component('i-head', Head)
       .component('i-link', Link)
       .component('my-link', MyLink)
-      .component('authenticated-layout', AuthenticatedLayout);
+      .component('authenticated-layout', AuthenticatedLayout)
+      .component('guest-layout', GuestLayout);
 
     VueApp.use(GlobalPlugin);
 

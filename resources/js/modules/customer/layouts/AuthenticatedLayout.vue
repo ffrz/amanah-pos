@@ -12,7 +12,7 @@ const $q = useQuasar();
 const page = usePage();
 const leftDrawerOpen = ref(
   JSON.parse(localStorage.getItem(LEFT_DRAWER_STORAGE_KEY))
-);
+);  
 const isDropdownOpen = ref(false);
 const toggleLeftDrawer = () => (leftDrawerOpen.value = !leftDrawerOpen.value);
 

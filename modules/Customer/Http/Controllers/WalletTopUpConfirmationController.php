@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Customer;
+namespace Modules\Customer\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\CustomerWalletTransaction;

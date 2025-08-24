@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Customer;
+namespace Modules\Customer\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
@@ -18,7 +18,7 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
-        return Inertia::render('customer/profile/Edit', [
+        return Inertia::render('profile/Edit', [
             'data' => Customer::findOrFail(Auth::guard('customer')->user()->id)
         ]);
     }

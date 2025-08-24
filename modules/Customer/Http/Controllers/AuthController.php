@@ -1,10 +1,8 @@
 <?php
 
-namespace App\Http\Controllers\Customer;
+namespace Modules\Customer\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Models\Company;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
