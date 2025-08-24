@@ -1,12 +1,13 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from "vue";
-import { router } from "@inertiajs/vue3";
+import { router, usePage } from "@inertiajs/vue3";
 import { handleDelete, handleFetchItems } from "@/helpers/client-req-handler";
 import { check_role, getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
 import { createOptions } from "@/helpers/options";
 import { formatNumber } from "@/helpers/formatter";
 
+const page = usePage();
 const title = "Akun Kas";
 const $q = useQuasar();
 const showFilter = ref(false);
@@ -18,6 +19,7 @@ const filter = reactive({
   type: "all",
   ...getQueryParams(),
 });
+const totalBalance = page.props.totalBalance;
 
 const pagination = ref({
   page: 1,
@@ -154,8 +156,11 @@ const computedColumns = computed(() => {
       </q-toolbar>
     </template>
     <div class="q-pa-sm">
+      <div class="q-my-sm text-subtitle">
+        Total Saldo Akun Aktif:
+        <span class="text-bold text-grey-8">Rp. {{ formatNumber(totalBalance) }}</span>
+      </div>
       <q-table
-        class="full-height-table"
         ref="tableRef"
         flat
         bordered
