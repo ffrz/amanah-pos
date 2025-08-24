@@ -4,7 +4,11 @@ import { getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
 import { formatDateTime, formatNumber } from "@/helpers/formatter";
 import { getCurrentMonth, getCurrentYear } from "@/helpers/datetime";
-import { createMonthOptions, createYearOptions } from "@/helpers/options";
+import {
+  createMonthOptions,
+  createOptions,
+  createYearOptions,
+} from "@/helpers/options";
 import { router } from "@inertiajs/vue3";
 import { handleFetchItems } from "@/helpers/client-req-handler";
 import ImageViewer from "@/components/ImageViewer.vue";
@@ -12,7 +16,6 @@ import ImageViewer from "@/components/ImageViewer.vue";
 // TODO:
 // - Tambahkan kolom ID Konfirmasi misal #TP-00000011 untuk mudah melacak di sistem ketika followup
 // - tambahkan halaman detail untuk melihat rincian status, kapan dikonfirmasi, dll.
-// - method dibawah ini masih dummy, jadi perlu diimeplementasikan dan dirancang dari mulai database
 
 const title = "Konfirmasi Top Up Wallet";
 const $q = useQuasar();
@@ -36,10 +39,9 @@ const monthOptions = [
 
 const statusOptions = [
   { value: "all", label: "Semua Status" },
-  { value: "pending", label: "Pending" },
-  { value: "confirmed", label: "Dikonfirmasi" },
-  { value: "rejected", label: "Ditolak" },
-  { value: "canceled", label: "Dibatalkan" },
+  ...createOptions(
+    window.CONSTANTS.CUSTOMER_WALLET_TRANSACTION_CONFIRMATION_STATUSES
+  ),
 ];
 
 const filter = reactive({
@@ -113,8 +115,8 @@ const onFilterChange = () => {
 
 const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return columns;
-  return columns.filter(
-    (col) => col.name === "datetime" || col.name === "action"
+  return columns.filter((col) =>
+    ["datetime", "action", "status"].includes(col.name)
   );
 });
 

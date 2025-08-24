@@ -53,6 +53,13 @@ class WalletTopUpConfirmationController extends Controller
             }
         }
 
+        if (
+            !empty($filter['status']) && $filter['status'] !== 'all'
+            && in_array($filter['status'], array_keys(CustomerWalletTransactionConfirmation::Statuses))
+        ) {
+            $q->where('status', '=', $filter['status']);
+        }
+
         $q->orderBy($orderBy, $orderType);
 
         $items = $q->paginate($request->get('per_page', 10))->withQueryString();
