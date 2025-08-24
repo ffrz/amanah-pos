@@ -55,7 +55,7 @@ class HandleInertiaRequests extends Middleware
                 ] : null,
                 'customer' => $customer ? [
                     'id' => $customer->id,
-                    'nis' => $customer->nis,
+                    'username' => $customer->username,
                     'name' => $customer->name,
                 ] : null,
             ],

@@ -33,7 +33,7 @@ class CommonDataService
      *
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function getCustomers($fields = ['id', 'nis', 'name'])
+    public function getCustomers($fields = ['id', 'username', 'name'])
     {
         return Customer::all($fields);
     }

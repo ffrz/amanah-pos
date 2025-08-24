@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('customers', function (Blueprint $table) {
             $table->id();
-            $table->string('nis', 40)->unique();
+            $table->string('type', 30); // santri, non santri (umum)
+            $table->string('username', 40)->nullable(); // unique tapi nullable, pertimbangkan ganti ke nama lain agar lebih generik
             $table->string('name', 255);
-            $table->string('parent_name', 255)->default('');
-            $table->string('phone', 100)->default('');
-            $table->string('address', 200)->default('');
-            $table->decimal('balance', 15, 0)->default(0.);
+            $table->string('phone', 100)->nullable()->default('');
+            $table->string('address', 200)->nullable()->default('');
+            $table->decimal('balance', 15, 0)->default(0.); // ganti jadi saldo utang piutang
             $table->boolean('active')->default(true);
 
             $table->string('password');

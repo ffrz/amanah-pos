@@ -7,9 +7,8 @@ const page = usePage();
 const title = (!!page.props.data.id ? "Edit" : "Tambah") + " Santri";
 const form = useForm({
   id: page.props.data.id,
-  nis: page.props.data.nis,
+  username: page.props.data.username,
   name: page.props.data.name,
-  parent_name: page.props.data.parent_name,
   phone: page.props.data.phone,
   address: page.props.data.address,
   active: !!page.props.data.active,
@@ -50,12 +49,12 @@ const submit = () => handleSubmit({ form, url: route("admin.customer.save") });
               <input type="hidden" name="id" v-model="form.id" />
               <q-input
                 autofocus
-                v-model.trim="form.nis"
+                v-model.trim="form.username"
                 label="NIS"
                 lazy-rules
-                :error="!!form.errors.nis"
+                :error="!!form.errors.username"
                 :disable="form.processing"
-                :error-message="form.errors.nis"
+                :error-message="form.errors.username"
                 :rules="[
                   (val) => (val && val.length > 0) || 'NIS harus diisi.',
                 ]"
@@ -65,17 +64,6 @@ const submit = () => handleSubmit({ form, url: route("admin.customer.save") });
                 label="Nama Santri"
                 lazy-rules
                 :error="!!form.errors.name"
-                :disable="form.processing"
-                :error-message="form.errors.name"
-                :rules="[
-                  (val) => (val && val.length > 0) || 'Nama harus diisi.',
-                ]"
-              />
-              <q-input
-                v-model.trim="form.parent_name"
-                label="Nama Wali Santri"
-                lazy-rules
-                :error="!!form.errors.parent_name"
                 :disable="form.processing"
                 :error-message="form.errors.name"
                 :rules="[

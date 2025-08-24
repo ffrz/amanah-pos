@@ -73,7 +73,7 @@ class CustomerController extends Controller
     public function save(Request $request)
     {
         $validated = $request->validate([
-            'nis' => 'required|string|max:40|unique:customers,nis' . ($request->id ? ',' . $request->id : ''),
+            'username' => 'required|string|max:40|unique:customers,username' . ($request->id ? ',' . $request->id : ''),
             'name' => 'required|max:255',
             'parent_name' => 'nullable|max:255',
             'phone' => 'required|max:100',

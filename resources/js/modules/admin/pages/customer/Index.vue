@@ -27,9 +27,9 @@ const pagination = ref({
 
 const columns = [
   {
-    name: "nis",
+    name: "username",
     label: "NIS",
-    field: "nis",
+    field: "username",
     align: "left",
     sortable: true,
   },
@@ -102,7 +102,7 @@ const onRowClicked = (row) =>
   router.get(route("admin.customer.detail", { id: row.id }));
 const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return columns;
-  return columns.filter((col) => col.name === "nis" || col.name === "action");
+  return columns.filter((col) => col.name === "username" || col.name === "action");
 });
 </script>
 
@@ -195,10 +195,10 @@ const computedColumns = computed(() => {
             class="cursor-pointer"
             @click="onRowClicked(props.row)"
           >
-            <q-td key="nis" :props="props" class="wrap-column">
+            <q-td key="username" :props="props" class="wrap-column">
               <div>
                 <q-icon name="person" v-if="$q.screen.lt.md" />
-                {{ props.row.nis }}
+                {{ props.row.username }}
               </div>
               <template v-if="$q.screen.lt.md">
                 <div>

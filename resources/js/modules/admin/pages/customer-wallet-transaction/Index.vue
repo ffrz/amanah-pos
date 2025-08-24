@@ -227,7 +227,7 @@ watch(
               </div>
               <template v-if="!$q.screen.gt.sm">
                 <div>
-                  {{ props.row.customer.nis }} - {{ props.row.customer.name }}
+                  {{ props.row.customer.username }} - {{ props.row.customer.name }}
                 </div>
                 <div>
                   <q-icon name="money" /> Rp.
@@ -240,7 +240,7 @@ watch(
               </template>
             </q-td>
             <q-td key="customer" :props="props">
-              {{ props.row.customer.nis }} - {{ props.row.customer.name }}
+              {{ props.row.customer.username }} - {{ props.row.customer.name }}
             </q-td>
             <q-td key="notes" :props="props">
               {{ props.row.notes }}

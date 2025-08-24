@@ -112,7 +112,7 @@ const computedColumns = computed(() => {
                     <tr>
                       <td style="width: 120px">NIS</td>
                       <td style="width: 1px">:</td>
-                      <td>{{ page.props.data.nis }}</td>
+                      <td>{{ page.props.data.username }}</td>
                     </tr>
                     <tr>
                       <td>Nama</td>

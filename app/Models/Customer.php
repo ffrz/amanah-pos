@@ -28,10 +28,9 @@ class Customer extends BaseModel implements
     public $timestamps = false;
 
     protected $fillable = [
-        'nis',
+        'username',
         'password',
         'name',
-        'parent_name',
         'phone',
         'address',
         'balance',
@@ -51,6 +50,16 @@ class Customer extends BaseModel implements
         'remember_token',
     ];
 
+    public const Type_Student = 'student';
+    public const Type_Teacher = 'teacher';
+    public const Type_Other   = 'other';
+
+    public const Types = [
+        self::Type_Student    => 'student',
+        self::Type_Teacher    => 'teacher',
+        self::Type_Other      => 'other',
+    ];
+
     /**
      * Get the attributes that should be cast.
      *
@@ -59,7 +68,7 @@ class Customer extends BaseModel implements
     protected function casts(): array
     {
         return [
-            'nis' => 'string',
+            'username' => 'string',
             'password' => 'hashed',
             'name' => 'string',
             'parent_name' => 'string',

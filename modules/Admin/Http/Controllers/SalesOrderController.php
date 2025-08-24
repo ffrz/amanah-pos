@@ -78,7 +78,7 @@ class SalesOrderController extends Controller
         $item = $id ? SalesOrder::findOrFail($id) : new SalesOrder(['date' => date('Y-m-d')]);
         return inertia('sales-order/Editor', [
             'data' => $item,
-            'customers' => Customer::where('active', '=', true)->orderBy('nis', 'asc')->get(),
+            'customers' => Customer::where('active', '=', true)->orderBy('username', 'asc')->get(),
         ]);
     }
 

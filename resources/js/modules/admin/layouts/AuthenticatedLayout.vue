@@ -316,7 +316,7 @@ onMounted(() => {
           <q-expansion-item
             v-if="$page.props.auth.user.role == $CONSTANTS.USER_ROLE_ADMIN"
             icon="wallet"
-            label="Dompet Santri"
+            label="Wallet"
             :default-opened="
               $page.url.startsWith('/admin/customer-wallet-transactions') ||
               $page.url.startsWith('/admin/customers')

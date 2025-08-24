@@ -46,7 +46,6 @@ class AuthController extends Controller
 
         // extra validations
         $data = $request->only(['username', 'password']);
-        $data['nis'] = $data['username'];
         unset($data['username']);
 
         if (!Auth::guard('customer')->attempt($data, $request->has('remember'))) {

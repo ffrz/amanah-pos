@@ -59,7 +59,7 @@ class CustomerWalletTransactionController extends Controller
         $item = $id ? CustomerWalletTransaction::findOrFail($id) : new CustomerWalletTransaction(['datetime' => date('Y-m-d H:i:s')]);
         return inertia('customer-wallet-transaction/Editor', [
             'data' => $item,
-            'customers' => Customer::where('active', '=', true)->orderBy('nis', 'asc')->get(),
+            'customers' => Customer::where('active', '=', true)->orderBy('username', 'asc')->get(),
             'finance_accounts' => FinanceAccount::where('active', '=', true)->orderBy('name', 'asc')->get(),
         ]);
     }
@@ -131,7 +131,7 @@ class CustomerWalletTransactionController extends Controller
         if ($request->getMethod() === 'GET') {
             return inertia('customer-wallet-transaction/Adjustment', [
                 'data' => [],
-                'customers' => Customer::where('active', '=', true)->orderBy('nis', 'asc')->get(),
+                'customers' => Customer::where('active', '=', true)->orderBy('username', 'asc')->get(),
             ]);
         }
 

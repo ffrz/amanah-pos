@@ -61,7 +61,6 @@ class FinanceTransactionController extends Controller
     public function save(Request $request)
     {
         $route = 'admin.finance-transaction.index';
-
         $validated = $request->validate([
             'account_id'    => 'required|exists:finance_accounts,id',
             'to_account_id' => 'nullable|exists:finance_accounts,id|different:account_id',

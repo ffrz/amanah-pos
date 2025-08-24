@@ -18,14 +18,15 @@ class CustomerSeeder extends Seeder
 
         for ($i = 1; $i <= 100; $i++) {
             $phone = $faker->unique()->numerify('08##########');
-            $nis = $faker->randomElement(['2025']) . str_pad($i, 3, '0', STR_PAD_LEFT);
+            $username = $faker->randomElement(['2025']) . str_pad($i, 3, '0', STR_PAD_LEFT);
 
             Customer::create([
-                'nis' => $nis,
+                'type' => Customer::Type_Student,
+                'username' => $username,
                 'name' => $faker->firstName('male') . ' ' . $faker->lastName('male'),
                 'phone' => $phone,
                 'address' => $faker->address,
-                'balance' => $faker->randomNumber(3) * 500,
+                'balance' => 0, //$faker->randomNumber(3) * 500,
                 'active' => $faker->boolean(90),
 
                 'password' => $password,

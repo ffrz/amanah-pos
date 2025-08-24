@@ -8,7 +8,7 @@ const page = usePage();
 const user = page.props.data;
 const form = useForm({
   name: user.name,
-  nis: user.nis,
+  username: user.username,
   phone: user.phone,
   address: user.address,
   parent_name: user.parent_name,
@@ -29,7 +29,7 @@ const submit = () =>
             <tr>
               <td style="width: 100px">NIS</td>
               <td style="width: 1px">:</td>
-              <td>{{ user.nis }}</td>
+              <td>{{ user.username }}</td>
             </tr>
             <tr>
               <td>Nama</td>

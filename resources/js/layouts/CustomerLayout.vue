@@ -99,7 +99,7 @@ onMounted(() => {
                 <q-item-section>
                   <q-item-label>
                     <div class="text-bold">
-                      NIS: {{ page.props.auth.customer.nis }}
+                      NIS: {{ page.props.auth.customer.username }}
                     </div>
                     <div>{{ page.props.auth.customer.name }}</div>
                   </q-item-label>

@@ -27,7 +27,7 @@ return [
     // ],
     'attributes' => [
         'username' => 'ID Pengguna',
-        'nis' => 'NIS',
+        'username' => 'NIS',
         'name' => 'Nama',
         'email' => 'Email',
         'phone' => 'No Telepon',
