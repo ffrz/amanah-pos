@@ -4,7 +4,7 @@ import { handleSubmit } from "@/helpers/client-req-handler";
 import { scrollToFirstErrorField } from "@/helpers/utils";
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
 import DateTimePicker from "@/components/DateTimePicker.vue";
-import dayjs from "dayjs";
+import { formatDateTimeForEditing } from "@/helpers/formatter";
 const page = usePage();
 const title = (!!page.props.data.id ? "Edit" : "Catat") + " Transaksi Keuangan";
 
@@ -24,7 +24,7 @@ const form = useForm({
   account_id: page.props.data.account_id,
   to_account_id: page.props.data.to_account_id ?? null,
   type: page.props.data.type,
-  datetime: dayjs(page.props.data.datetime).format("YYYY-MM-DD HH:mm:ss"),
+  datetime: formatDateTimeForEditing(page.props.data.datetime ? page.props.data.datetime : new Date),
   notes: page.props.data.notes,
   amount: parseFloat(page.props.data.amount),
 });
@@ -61,9 +61,11 @@ const submit = () =>
               <input type="hidden" name="id" v-model="form.id" />
               <date-time-picker
                 v-model="form.datetime"
-                label="Tanggal"
+                label="Waktu"
                 :error="!!form.errors.datetime"
                 :disable="form.processing"
+                :errorMessage="form.errors.datetime"
+                hide-bottom-space
               />
               <q-select
                 autofocus
@@ -75,18 +77,20 @@ const submit = () =>
                 :error="!!form.errors.type"
                 :disable="form.processing"
                 :errorMessage="form.errors.type"
+                hide-bottom-space
               >
               </q-select>
               <q-select
                 class="custom-select"
                 v-model="form.account_id"
-                label="Akun Asal"
+                :label="form.type == 'transfer' ? 'Akun Asal' : 'Akun'"
                 :options="accounts"
                 map-options
                 emit-value
                 :errorMessage="form.errors.account_id"
                 :error="!!form.errors.account_id"
                 :disable="form.processing"
+                hide-bottom-space
               >
               </q-select>
               <q-select
@@ -100,6 +104,7 @@ const submit = () =>
                 :errorMessage="form.errors.to_account_id"
                 :error="!!form.errors.to_account_id"
                 :disable="form.processing"
+                hide-bottom-space
               >
               </q-select>
               <LocaleNumberInput
@@ -110,6 +115,7 @@ const submit = () =>
                 :error="!!form.errors.amount"
                 :errorMessage="form.errors.amount"
                 :rules="[]"
+                hide-bottom-space
               />
               <q-input
                 v-model.trim="form.notes"
@@ -125,6 +131,7 @@ const submit = () =>
                 :rules="[
                   (val) => (val && val.length > 0) || 'Catatan harus diisi.',
                 ]"
+                hide-bottom-space
               />
             </q-card-section>
             <q-card-section class="q-gutter-sm">

@@ -4,7 +4,7 @@ import { router, usePage } from "@inertiajs/vue3";
 import { handleDelete, handleFetchItems } from "@/helpers/client-req-handler";
 import { check_role, getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
-import { formatNumber, plusMinusSymbol } from "@/helpers/formatter";
+import { formatDateTime, formatDateTimeFromNow, formatNumber, plusMinusSymbol } from "@/helpers/formatter";
 import { getCurrentMonth, getCurrentYear } from "@/helpers/datetime";
 import { createMonthOptions, createYearOptions } from "@/helpers/options";
 
@@ -13,7 +13,6 @@ const $q = useQuasar();
 const showFilter = ref(false);
 const rows = ref([]);
 const loading = ref(true);
-
 const currentYear = getCurrentYear();
 const currentMonth = getCurrentMonth();
 
@@ -152,6 +151,7 @@ watch(
             @update:model-value="onFilterChange"
           />
           <q-select
+            v-if="filter.year != 'all'"
             v-model="filter.month"
             :options="months"
             label="Bulan"
@@ -216,7 +216,8 @@ watch(
             <q-td key="datetime" :props="props" class="wrap-column">
               <div>
                 #{{ props.row.id }} - <q-icon name="calendar_today" />
-                {{ props.row.datetime }}
+                {{ formatDateTime(props.row.datetime) }}
+                <span class="text-grey-8">({{ formatDateTimeFromNow(props.row.datetime) }})</span>
               </div>
               <q-badge
                 ><q-icon name="category" /> {{ props.row.type_label }}</q-badge
