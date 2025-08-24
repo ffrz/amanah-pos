@@ -90,6 +90,7 @@ class FinanceAccountController extends Controller
             'holder'   => 'nullable|string|max:100',
             'balance'  => 'required|numeric',
             'active'   => 'required|boolean',
+            'has_wallet_access' => 'required|boolean',
             'notes'    => 'nullable|string|max:255',
         ]);
 

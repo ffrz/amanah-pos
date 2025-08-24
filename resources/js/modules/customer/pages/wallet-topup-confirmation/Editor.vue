@@ -4,21 +4,18 @@ import { handleSubmit } from "@/helpers/client-req-handler";
 import { scrollToFirstErrorField } from "@/helpers/utils";
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
 import DateTimePicker from "@/components/DateTimePicker.vue";
-import { formatDateTime } from "@/helpers/formatter";
+import { formatDateTime, formatDateTimeForEditing } from "@/helpers/formatter";
+import { useFinanceAccount } from "@/composables/useFinanceAccount";
 
 const page = usePage();
 const title = " Konfirmasi Topup";
-
-const destinationAccounts = [
-  { label: "Rekening Koperasi", value: "rek_koperasi" },
-  { label: "Rekening Bendahara", value: "rek_bendahara" },
-];
+const { accountOptions } = useFinanceAccount(page.props.accounts);
 
 const form = useForm({
-  parent_name: page.props.data.parent_name,
-  student_name: page.props.data.student_name,
-  destination_account_id: null,
-  topup_date: formatDateTime(new Date(), "YYYY-MM-DD HH:mm:ss"),
+  username: page.props.auth.customer.username,
+  name: page.props.auth.customer.name,
+  finance_account_id: null,
+  datetime: formatDateTimeForEditing(new Date()),
   amount: 0,
   notes: "",
 });
@@ -57,38 +54,38 @@ const submit = () =>
               <input type="hidden" name="id" v-model="form.id" />
 
               <q-input
-                v-if="form.parent_name"
                 readonly
-                v-model.trim="form.parent_name"
-                label="Nama Wali Santri"
+                v-model.trim="form.username"
+                label="NIS"
                 :disable="form.processing"
+                hide-bottom-space
               />
 
               <q-input
                 readonly
-                v-model.trim="form.student_name"
-                label="Nama Santri"
+                v-model.trim="form.name"
+                label="Nama"
                 :disable="form.processing"
                 hide-bottom-space
               />
 
               <q-select
                 class="custom-select"
-                v-model="form.destination_account_id"
+                v-model="form.finance_account_id"
                 label="Akun Tujuan"
-                :options="destinationAccounts"
+                :options="accountOptions"
                 map-options
                 emit-value
-                :errorMessage="form.errors.destination_account_id"
-                :error="!!form.errors.destination_account_id"
+                :errorMessage="form.errors.finance_account_id"
+                :error="!!form.errors.finance_account_id"
                 :disable="form.processing"
                 hide-bottom-space
               />
 
               <date-time-picker
-                v-model="form.topup_date"
+                v-model="form.datetime"
                 label="Tanggal & Waktu Transfer"
-                :error="!!form.errors.topup_date"
+                :error="!!form.errors.datetime"
                 :disable="form.processing"
                 hide-bottom-space
               />

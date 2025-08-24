@@ -2,10 +2,11 @@
 import { computed, onMounted, reactive, ref, watch } from "vue";
 import { getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
-import { formatNumber } from "@/helpers/formatter";
+import { formatDateTime, formatNumber } from "@/helpers/formatter";
 import { getCurrentMonth, getCurrentYear } from "@/helpers/datetime";
 import { createMonthOptions, createYearOptions } from "@/helpers/options";
 import { router } from "@inertiajs/vue3";
+import { handleFetchItems } from "@/helpers/client-req-handler";
 
 // TODO:
 // - Tambahkan kolom ID Konfirmasi misal #TP-00000011 untuk mudah melacak di sistem ketika followup
@@ -36,6 +37,7 @@ const statusOptions = [
   { value: "pending", label: "Pending" },
   { value: "confirmed", label: "Dikonfirmasi" },
   { value: "rejected", label: "Ditolak" },
+  { value: "canceled", label: "Dibatalkan" },
 ];
 
 const filter = reactive({
@@ -60,114 +62,48 @@ const columns = [
     label: "Tanggal",
     field: "datetime",
     align: "left",
-    sortable: true,
   },
   {
-    name: "destinationAccount",
+    name: "finance_account_id",
     label: "Bank Tujuan",
-    field: "destinationAccount",
+    field: "finance_account_id",
     align: "left",
-    sortable: true,
   },
   {
     name: "amount",
     label: "Jumlah (Rp.)",
     field: "amount",
     align: "right",
-    sortable: true,
   },
   {
     name: "status",
     label: "Status",
     field: "status",
     align: "center",
-    sortable: true,
+  },
+  {
+    name: "notes",
+    label: "Catatan",
+    field: "notes",
+    align: "left",
   },
   { name: "aksi", label: "Aksi", field: "aksi", align: "center" },
 ];
 
-// --- Fungsi untuk membuat data dummy ---
-const generateDummyRows = () => {
-  const dummyData = [
-    {
-      id: 1,
-      datetime: "2024-08-15 10:00",
-      destinationAccount: "Rek. Koperasi",
-      amount: 500000,
-      status: "pending",
-      description: "",
-      image_path: "https://amanah-pos.shift-apps.my.id/assets/no-image.jpg",
-    },
-    {
-      id: 2,
-      datetime: "2025-08-15 09:30",
-      destinationAccount: "Rek. Bendahara",
-      amount: 350000,
-      status: "confirmed",
-      description: "",
-      image_path: "https://amanah-pos.shift-apps.my.id/assets/no-image.jpg",
-    },
-    {
-      id: 3,
-      datetime: "2025-07-15 15:20",
-      destinationAccount: "Rek. Koperasi",
-      amount: 750000,
-      status: "confirmed",
-      description: "",
-      image_path: "https://amanah-pos.shift-apps.my.id/assets/no-image.jpg",
-    },
-    {
-      id: 4,
-      datetime: "2025-06-10 11:15",
-      destinationAccount: "Rek. Bendahara",
-      amount: 200000,
-      status: "confirmed",
-      description: "",
-      image_path: "https://amanah-pos.shift-apps.my.id/assets/no-image.jpg",
-    },
-    {
-      id: 5,
-      datetime: "2025-05-12 18:45",
-      destinationAccount: "Rek. Koperasi",
-      amount: 600000,
-      status: "confirmed",
-      description: "",
-      image_path: "https://amanah-pos.shift-apps.my.id/assets/no-image.jpg",
-    },
-  ];
-  return dummyData;
-};
-
-// --- Mengganti fungsi fetchItems dengan logika data dummy ---
-const fetchItems = () => {
-  loading.value = true;
-  // Simulasikan delay dari server
-  setTimeout(() => {
-    let dummyRows = generateDummyRows();
-
-    // Logika filtering sederhana
-    if (filter.status !== "all") {
-      dummyRows = dummyRows.filter((row) => row.status === filter.status);
-    }
-    if (filter.search) {
-      const searchTerm = filter.search.toLowerCase();
-      dummyRows = dummyRows.filter(
-        (row) =>
-          row.namaWali.toLowerCase().includes(searchTerm) ||
-          row.namaSantri.toLowerCase().includes(searchTerm) ||
-          row.destinationAccount.toLowerCase().includes(searchTerm)
-      );
-    }
-
-    rows.value = dummyRows;
-    pagination.value.rowsNumber = dummyRows.length;
-    loading.value = false;
-  }, 500);
-};
-
 onMounted(() => {
   fetchItems();
 });
+
+const fetchItems = (props = null) => {
+  handleFetchItems({
+    pagination,
+    filter,
+    props,
+    rows,
+    url: route("customer.wallet-topup-confirmation.data"),
+    loading,
+  });
+};
 
 const onFilterChange = () => {
   fetchItems();
@@ -175,17 +111,19 @@ const onFilterChange = () => {
 
 const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return columns;
-  // Kolom yang ditampilkan di layar kecil
   return columns.filter(
-    (col) =>
-      col.name === "datetime" || col.name === "status" || col.name === "aksi"
+    (col) => col.name === "datetime" || col.name === "action"
   );
 });
 
-// Aksi ketika tombol "Lihat Bukti" diklik
-const showProof = (buktiUrl) => {
-  window.open(buktiUrl, "_blank");
-};
+watch(
+  () => filter.year,
+  (newVal) => {
+    if (newVal === null) {
+      filter.month = null;
+    }
+  }
+);
 </script>
 
 <template>
@@ -281,52 +219,44 @@ const showProof = (buktiUrl) => {
         <template v-slot:loading>
           <q-inner-loading showing color="red" />
         </template>
-        <template v-slot:no-data="{ icon, message, filter }">
-          <div class="full-width row flex-center text-grey-8 q-gutter-sm">
-            <span>
-              Tidak ada data konfirmasi
-              {{ filter ? " dengan kata kunci '" + filter + "'" : "" }}</span
-            >
-          </div>
-        </template>
 
         <template v-slot:body="props">
           <q-tr :props="props">
             <q-td key="datetime" :props="props" class="wrap-column">
               <div>
-                <q-icon name="calendar_today" class="inline-icon"/>
-                {{ props.row.datetime }}
+                <q-icon name="calendar_today" class="inline-icon" />
+                {{ formatDateTime(props.row.datetime) }}
               </div>
               <template v-if="!$q.screen.gt.sm">
                 <div>
                   <q-icon name="account_balance" class="inline-icon" />
-                  Bank: {{ props.row.destinationAccount }}
+                  Bank: {{ props.row.finance_account.name }}
                 </div>
                 <div>
                   <q-icon name="money" class="inline-icon" />
                   Rp. {{ formatNumber(props.row.amount) }}
                 </div>
                 <div v-if="props.row.description">
-                  <q-icon name="notes" class="inline-icon"/>
+                  <q-icon name="notes" class="inline-icon" />
                   {{ props.row.description }}
                 </div>
               </template>
             </q-td>
 
-            <q-td key="destinationAccount" :props="props">
-              {{ props.row.destinationAccount }}
+            <q-td key="finance_account_id" :props="props">
+              {{ props.row.finance_account.name }}<br />
+              {{ props.row.finance_account.bank }}
+              {{ props.row.finance_account.number }} an.
+              {{ props.row.finance_account.holder }}
             </q-td>
 
             <q-td key="amount" :props="props" style="text-align: right">
               Rp. {{ formatNumber(props.row.amount) }}
             </q-td>
 
-            <q-td key="description" :props="props">
-              {{ props.row.description }}
-            </q-td>
-
             <q-td key="status" :props="props" class="text-center">
               <q-chip
+                size="sm"
                 dense
                 square
                 :color="
@@ -336,17 +266,13 @@ const showProof = (buktiUrl) => {
                     ? 'red'
                     : 'grey'
                 "
-                :label="
-                  props.row.status === 'confirmed'
-                    ? 'Dikonfirmasi'
-                    : props.row.status === 'rejected'
-                    ? 'Ditolak'
-                    : 'Pending'
-                "
+                :label="$CONSTANTS.CUSTOMER_WALLET_TRANSACTION_CONFIRMATION_STATUSES[props.row.status]"
                 text-color="white"
               />
             </q-td>
-
+            <q-td key="notes" :props="props">
+              {{ props.row.notes }}
+            </q-td>
             <q-td key="aksi" :props="props" class="text-center">
               <q-btn
                 icon="image"

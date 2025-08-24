@@ -16,6 +16,7 @@ class FinanceAccount extends BaseModel
         'number',
         'holder',
         'active',
+        'has_wallet_access',
         'balance',
         'notes'
     ];
@@ -40,6 +41,7 @@ class FinanceAccount extends BaseModel
             'number' => 'string',
             'holder' => 'string',
             'active' => 'boolean',
+            'has_wallet_access' => 'boolean',
             'balance' => 'decimal:2',
             'notes' => 'string',
             'created_by' => 'integer',

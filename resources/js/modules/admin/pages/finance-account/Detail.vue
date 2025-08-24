@@ -114,7 +114,7 @@ const computedColumns = computed(() => {
                 <table class="detail">
                   <tbody>
                     <tr>
-                      <td style="width: 100px">Nama</td>
+                      <td style="width: 150px">Nama</td>
                       <td style="width: 1px">:</td>
                       <td>{{ page.props.data.name }}</td>
                     </tr>
@@ -144,6 +144,13 @@ const computedColumns = computed(() => {
                         <td>{{ page.props.data.holder }}</td>
                       </tr>
                     </template>
+                    <tr>
+                      <td>Tampilkan di Wallet</td>
+                      <td>:</td>
+                      <td>
+                        {{ page.props.data.has_wallet_access ? "Ya" : "Tidak" }}
+                      </td>
+                    </tr>
                     <tr>
                       <td>Status</td>
                       <td>:</td>

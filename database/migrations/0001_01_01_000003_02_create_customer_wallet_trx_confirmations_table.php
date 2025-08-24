@@ -11,14 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('customer_wallet_transactions', function (Blueprint $table) {
+        Schema::create('customer_wallet_trx_confirmations', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('finance_account_id')->nullable()->constrained('finance_accounts')->onDelete('set null');
-            $table->foreignId('customer_id')->nullable()->constrained('customers')->onDelete('set null');
-            $table->nullableMorphs('ref');
-            $table->datetime('datetime')->nullable(); // transaction date time
-            $table->string('type', 30);
+            $table->foreignId('finance_account_id')->nullable()->constrained('finance_accounts')->onDelete('restrict');
+            $table->foreignId('customer_id')->nullable()->constrained('customers')->onDelete('restrict');
+            $table->datetime('datetime')->nullable();
             $table->decimal('amount', 12, 2)->default(0.);
+            $table->string('image_path', 255)->nullable();
+            $table->string('status', 20);
             $table->text('notes')->nullable();
             $table->createdUpdatedTimestamps();
         });
@@ -29,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('customer_wallet_transactions');
+        Schema::dropIfExists('customer_wallet_trx_confirmations');
     }
 };

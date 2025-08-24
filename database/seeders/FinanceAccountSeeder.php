@@ -27,12 +27,24 @@ class FinanceAccountSeeder extends Seeder
         ]);
         DB::table('finance_accounts')->insert([
             [
-                'name' => 'Kas Rek 1',
+                'name' => 'Rek BCA Muhammad',
                 'type' => FinanceAccount::Type_Bank,
                 'bank' => 'BCA',
                 'number' => '12345678',
                 'holder' => 'Muhammad',
                 'balance' => 0,
+                'has_wallet_access' => true,
+            ],
+        ]);
+                DB::table('finance_accounts')->insert([
+            [
+                'name' => 'Rek Mandiri Mahad',
+                'type' => FinanceAccount::Type_Bank,
+                'bank' => 'Mandiri',
+                'number' => '123123123123',
+                'holder' => 'Amanah ID',
+                'balance' => 0,
+                'has_wallet_access' => true,
             ],
         ]);
     }

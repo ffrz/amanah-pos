@@ -16,6 +16,7 @@ const form = useForm({
   holder: page.props.data.holder,
   balance: page.props.data.balance,
   active: !!page.props.data.active,
+  has_wallet_access: !!page.props.data.has_wallet_access,
   notes: page.props.data.notes,
 });
 
@@ -109,6 +110,14 @@ const submit = () =>
                 :errorMessage="form.errors.balance"
                 :rules="[]"
               />
+              <div style="margin-left: -10px">
+                <q-checkbox
+                  class="full-width q-pl-none"
+                  v-model="form.has_wallet_access"
+                  :disable="form.processing"
+                  label="Tampilkan di Konfirmasi Topup Wallet"
+                />
+              </div>
               <div style="margin-left: -10px">
                 <q-checkbox
                   class="full-width q-pl-none"

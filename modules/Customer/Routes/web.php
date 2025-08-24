@@ -4,9 +4,9 @@ use App\Http\Middleware\CustomerAuth;
 use App\Http\Middleware\NonAuthenticated;
 use Illuminate\Support\Facades\Route;
 use Modules\Customer\Http\Controllers\AuthController;
+use Modules\Customer\Http\Controllers\WalletTopUpConfirmationController;
 use Modules\Customer\Http\Controllers\DashboardController;
 use Modules\Customer\Http\Controllers\ProfileController;
-use Modules\Customer\Http\Controllers\WalletTopUpConfirmationController;
 use Modules\Customer\Http\Controllers\WalletTransactionController;
 
 Route::middleware([NonAuthenticated::class])->group(function() {

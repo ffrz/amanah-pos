@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('holder', 100)->default('');
             $table->decimal('balance', 15, 0)->default(0.);
             $table->boolean('active')->default(true);
+            $table->boolean('has_wallet_access')->default(false);
             $table->text('notes')->nullable();
             $table->createdUpdatedTimestamps();
         });
