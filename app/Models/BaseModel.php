@@ -44,20 +44,26 @@ abstract class BaseModel extends Model
 
         // Event saat deleting (soft delete)
         static::deleting(function ($model) {
-            $now = now();
-            $auth = Auth::user();
+            if (property_exists($model, 'forceDeleting') && $model->forceDeleting === true) {
+                return;
+            }
 
+            // Hanya lakukan soft-delete jika kolomnya ada
             if ($model->hasColumn('deleted_at')) {
-                $model->deleted_at = $now;
+                $now  = now();
+                $auth = Auth::user();
+
+                $attrs = ['deleted_at' => $now];
+
+                if ($auth && $model->hasColumn('deleted_by')) {
+                    $attrs['deleted_by'] = $auth->id;
+                }
+
+                $model->fill($attrs)->saveQuietly();
+                return false; // Batalkan hard delete (soft delete saja)
             }
 
-            if ($auth && $model->hasColumn('deleted_by')) {
-                $model->deleted_by = $auth->id;
-            }
-
-            $model->save();
-
-            return false; // cegah hard delete
+            return;
         });
     }
 
