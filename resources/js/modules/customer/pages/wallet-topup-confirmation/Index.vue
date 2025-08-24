@@ -7,6 +7,7 @@ import { getCurrentMonth, getCurrentYear } from "@/helpers/datetime";
 import { createMonthOptions, createYearOptions } from "@/helpers/options";
 import { router } from "@inertiajs/vue3";
 import { handleFetchItems } from "@/helpers/client-req-handler";
+import ImageViewer from "@/components/ImageViewer.vue";
 
 // TODO:
 // - Tambahkan kolom ID Konfirmasi misal #TP-00000011 untuk mudah melacak di sistem ketika followup
@@ -18,7 +19,8 @@ const $q = useQuasar();
 const showFilter = ref(false);
 const rows = ref([]);
 const loading = ref(true);
-
+const activeImagePath = ref(null);
+const showImageViewer = ref(false);
 const currentYear = getCurrentYear();
 const currentMonth = getCurrentMonth();
 
@@ -87,7 +89,7 @@ const columns = [
     field: "notes",
     align: "left",
   },
-  { name: "aksi", label: "Aksi", field: "aksi", align: "center" },
+  { name: "action", label: "Aksi", field: "action", align: "center" },
 ];
 
 onMounted(() => {
@@ -124,6 +126,11 @@ watch(
     }
   }
 );
+
+const showAttachment = (url) => {
+  activeImagePath.value = url;
+  showImageViewer.value = true;
+};
 </script>
 
 <template>
@@ -140,7 +147,7 @@ watch(
         @click="router.get(route('customer.wallet-topup-confirmation.add'))"
       />
       <q-btn
-       size="sm"
+        size="sm"
         class="q-ml-sm"
         :icon="!showFilter ? 'filter_alt' : 'filter_alt_off'"
         color="grey"
@@ -269,27 +276,38 @@ watch(
                     ? 'red'
                     : 'grey'
                 "
-                :label="$CONSTANTS.CUSTOMER_WALLET_TRANSACTION_CONFIRMATION_STATUSES[props.row.status]"
+                :label="
+                  $CONSTANTS.CUSTOMER_WALLET_TRANSACTION_CONFIRMATION_STATUSES[
+                    props.row.status
+                  ]
+                "
                 text-color="white"
               />
             </q-td>
             <q-td key="notes" :props="props">
               {{ props.row.notes }}
             </q-td>
-            <q-td key="aksi" :props="props" class="text-center">
+            <q-td key="action" :props="props" class="text-center">
               <q-btn
                 icon="image"
                 color="primary"
                 dense
                 flat
-                @click="showProof(props.row.bukti)"
+                :disable="props.row.image_path == null"
+                @click="showAttachment(props.row.image_path)"
               >
-                <q-tooltip>Lihat Bukti</q-tooltip>
+                <q-tooltip v-if="props.row.image_path != null"
+                  >Lihat Bukti</q-tooltip
+                >
               </q-btn>
             </q-td>
           </q-tr>
         </template>
       </q-table>
+      <ImageViewer
+        v-model="showImageViewer"
+        :imageUrl="`/${activeImagePath}`"
+      />
     </div>
   </authenticated-layout>
 </template>

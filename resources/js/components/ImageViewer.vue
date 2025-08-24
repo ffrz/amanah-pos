@@ -1,13 +1,40 @@
 <template>
-  <q-dialog v-model="visible" persistent transition-show="scale" transition-hide="scale">
-    <q-card class="bg-white" style="max-width: 95vw; max-height: 95vh; overflow: hidden;">
-      <q-card-section class="q-pa-none">
-        <div ref="container" class="relative-position overflow-hidden flex flex-center" style="touch-action: none;"
-          @mousedown="startPan" @mousemove="onPan" @mouseup="endPan"
-          :class="imageOrientation === 'portrait' ? 'viewer-portrait' : 'viewer-landscape'" @mouseleave="endPan"
-          @touchstart="startTouchPan" @touchmove="onTouchPan" @touchend="endPan">
-          <img ref="image" :src="imageUrl" :style="imgStyle" class="no-pointer-events" draggable="false"
-            @load="resetView" />
+  <q-dialog v-model="visible" transition-show="scale" transition-hide="scale">
+    <q-card
+      class="bg-white"
+      style="max-width: 95vw; max-height: 95vh; overflow: hidden"
+    >
+      <q-card-section class="q-pa-none q-py-sm">
+        <div class="text-subtitle text-bold text-grey-8 text-center">
+          {{ title }}
+        </div>
+      </q-card-section>
+      <q-card-section class="q-pa-xs">
+        <div
+          ref="container"
+          class="relative-position overflow-hidden flex flex-center"
+          style="touch-action: none"
+          @mousedown="startPan"
+          @mousemove="onPan"
+          @mouseup="endPan"
+          :class="
+            imageOrientation === 'portrait'
+              ? 'viewer-portrait'
+              : 'viewer-landscape'
+          "
+          @mouseleave="endPan"
+          @touchstart="startTouchPan"
+          @touchmove="onTouchPan"
+          @touchend="endPan"
+        >
+          <img
+            ref="image"
+            :src="imageUrl"
+            :style="imgStyle"
+            class="no-pointer-events"
+            draggable="false"
+            @load="resetView"
+          />
         </div>
       </q-card-section>
       <q-card-actions align="between" class="bg-grey-1">
@@ -23,19 +50,23 @@
 </template>
 
 <script setup>
-import { ref, watch, computed, defineExpose, nextTick } from 'vue';
+import { ref, watch, computed, defineExpose, nextTick } from "vue";
 
 const props = defineProps({
+  title: { type: String, required: false, default: "Image Viewer" },
   imageUrl: { type: String, required: true },
   modelValue: { type: Boolean, required: true },
 });
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(["update:modelValue"]);
 
 const visible = ref(props.modelValue);
-const imageOrientation = ref('landscape');
+const imageOrientation = ref("landscape");
 
-watch(() => props.modelValue, val => visible.value = val);
-watch(visible, val => emit('update:modelValue', val));
+watch(
+  () => props.modelValue,
+  (val) => (visible.value = val)
+);
+watch(visible, (val) => emit("update:modelValue", val));
 
 const scale = ref(1);
 const offset = ref({ x: 0, y: 0 });
@@ -47,18 +78,19 @@ const container = ref(null);
 
 const imgStyle = computed(() => ({
   transform: `scale(${scale.value}) translate(${offset.value.x}px, ${offset.value.y}px)`,
-  transition: dragging.value ? 'none' : 'transform 0.1s ease-out',
-  'transform-origin': 'center center',
-  'max-width': '100%',
-  'max-height': '100%',
-}))
+  transition: dragging.value ? "none" : "transform 0.1s ease-out",
+  "transform-origin": "center center",
+  "max-width": "100%",
+  "max-height": "100%",
+}));
 
 function resetView() {
   nextTick(() => {
     const img = image.value;
     if (!img) return;
 
-    imageOrientation.value = img.naturalWidth > img.naturalHeight ? 'landscape' : 'portrait';
+    imageOrientation.value =
+      img.naturalWidth > img.naturalHeight ? "landscape" : "portrait";
 
     scale.value = 1;
     offset.value = { x: 0, y: 0 };
