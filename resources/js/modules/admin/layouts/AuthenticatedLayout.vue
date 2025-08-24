@@ -210,6 +210,20 @@ onMounted(() => {
                 <q-item-label>Penjualan</q-item-label>
               </q-item-section>
             </q-item>
+            <q-item
+              class="subnav"
+              clickable
+              v-ripple
+              :active="$page.url.startsWith('/admin/customers')"
+              @click="router.get(route('admin.customer.index'))"
+            >
+              <q-item-section avatar>
+                <q-icon name="people" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Pelanggan</q-item-label>
+              </q-item-section>
+            </q-item>
           </q-expansion-item>
 
           <q-expansion-item
@@ -336,42 +350,6 @@ onMounted(() => {
               </q-item-section>
               <q-item-section>
                 <q-item-label>Transaksi</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-item
-              class="subnav"
-              clickable
-              v-ripple
-              :active="
-                $page.url.startsWith(
-                  '/admin/customer-wallet-transactions/adjustment'
-                )
-              "
-              @click="
-                router.get(
-                  route('admin.customer-wallet-transaction.adjustment')
-                )
-              "
-            >
-              <q-item-section avatar>
-                <q-icon name="vertical_align_center" />
-              </q-item-section>
-              <q-item-section>
-                <q-item-label>Penyesuaian Saldo</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-item
-              class="subnav"
-              clickable
-              v-ripple
-              :active="$page.url.startsWith('/admin/customers')"
-              @click="router.get(route('admin.customer.index'))"
-            >
-              <q-item-section avatar>
-                <q-icon name="groups_2" />
-              </q-item-section>
-              <q-item-section>
-                <q-item-label>Pelanggan</q-item-label>
               </q-item-section>
             </q-item>
           </q-expansion-item>
