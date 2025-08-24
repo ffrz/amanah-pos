@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\Admin\OperationalCostController;
 use App\Http\Middleware\Auth;
 use App\Http\Middleware\CheckAdminRoutePermission;
 use App\Http\Middleware\NonAuthenticated;
@@ -12,6 +11,7 @@ use Modules\Admin\Http\Controllers\CustomerWalletTransactionController;
 use Modules\Admin\Http\Controllers\DashboardController;
 use Modules\Admin\Http\Controllers\FinanceAccountController;
 use Modules\Admin\Http\Controllers\FinanceTransactionController;
+use Modules\Admin\Http\Controllers\OperationalCostController;
 use Modules\Admin\Http\Controllers\OperationalCostCategoryController;
 use Modules\Admin\Http\Controllers\ProductCategoryController;
 use Modules\Admin\Http\Controllers\ProductController;
