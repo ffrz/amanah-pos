@@ -14,7 +14,10 @@ class FinanceAccountController extends Controller
 {
     public function index()
     {
-        return inertia('finance-account/Index');
+        $balance = FinanceAccount::where('active', '=', true)->sum('balance');
+        return inertia('finance-account/Index', [
+            'totalBalance' => $balance, // TODO Ambil balance
+        ]);
     }
 
     public function detail($id = 0)
@@ -90,6 +93,10 @@ class FinanceAccountController extends Controller
             'notes'    => 'nullable|string|max:255',
         ]);
 
+        $validated['bank'] = $validated['bank'] ?? '';
+        $validated['number'] = $validated['number'] ?? '';
+        $validated['holder'] = $validated['holder'] ?? '';
+
         DB::beginTransaction();
         $item = $request->id ? FinanceAccount::findOrFail($request->id) : new FinanceAccount();
 
@@ -103,7 +110,7 @@ class FinanceAccountController extends Controller
         $newBalance = $item->balance;
         $balanceDiff = $newBalance - $oldBalance;
 
-        if ($isNew && $newBalance > 0) {
+        if ($isNew && $newBalance > 0.) {
             FinanceTransaction::create([
                 'account_id' => $item->id,
                 'datetime' => $now,
@@ -111,13 +118,13 @@ class FinanceAccountController extends Controller
                 'amount'  => $newBalance,
                 'notes' => 'Saldo awal akun',
             ]);
-        } elseif (!$isNew && $balanceDiff !== 0) {
+        } elseif (!$isNew && $balanceDiff !== 0.) {
             FinanceTransaction::create([
                 'account_id' => $item->id,
                 'datetime' => $now,
                 'type' => FinanceTransaction::Type_Adjustment, // pastikan enum/konstanta tersedia
                 'amount' => $balanceDiff,
-                'notes' => 'Penyesuaian saldo akun (dari ' . number_format($oldBalance) . ' ke ' . number_format($newBalance) . ')',
+                'notes' => 'Penyesuaian saldo akun (dari ' . format_number($oldBalance) . ' ke ' . format_number($newBalance) . ')',
             ]);
         }
 
