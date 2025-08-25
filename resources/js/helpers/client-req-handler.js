@@ -51,8 +51,8 @@ export function handleSubmit(data) {
   );
 }
 
-export function handleDelete(data) {
-  const { message, url, fetchItemsCallback, loading } = data;
+export function handlePost(options) {
+  const { message, url, fetchItemsCallback, loading, data } = options;
   Dialog.create({
     title: "Konfirmasi",
     icon: "question",
@@ -63,7 +63,7 @@ export function handleDelete(data) {
   }).onOk(() => {
     loading.value = true;
     axios
-      .post(url)
+      .post(url, data)
       .then((response) => {
         Notify.create(response.data.message);
         fetchItemsCallback();
@@ -85,6 +85,11 @@ export function handleDelete(data) {
         console.log(error);
       });
   });
+}
+
+// alias
+export function handleDelete(data) {
+  return handlePost(data);
 }
 
 export function handleFetchItems(options) {

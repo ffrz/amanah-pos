@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\Admin\Http\Controllers\AuthController;
 use Modules\Admin\Http\Controllers\CompanyProfileController;
 use Modules\Admin\Http\Controllers\CustomerController;
+use Modules\Admin\Http\Controllers\CustomerWalletTransactionConfirmationController;
 use Modules\Admin\Http\Controllers\CustomerWalletTransactionController;
 use Modules\Admin\Http\Controllers\DashboardController;
 use Modules\Admin\Http\Controllers\FinanceAccountController;
@@ -124,6 +125,16 @@ Route::middleware([Auth::class])->group(function () {
             Route::post('save', [CustomerWalletTransactionController::class, 'save'])->name('admin.customer-wallet-transaction.save');
             Route::match(['get', 'post'], 'adjustment', [CustomerWalletTransactionController::class, 'adjustment'])->name('admin.customer-wallet-transaction.adjustment');
             Route::post('delete/{id}', [CustomerWalletTransactionController::class, 'delete'])->name('admin.customer-wallet-transaction.delete');
+        });
+
+        Route::prefix('customer-wallet-transaction-confirmations')->group(function () {
+            Route::get('', [CustomerWalletTransactionConfirmationController::class, 'index'])->name('admin.customer-wallet-transaction-confirmation.index');
+            Route::get('data', [CustomerWalletTransactionConfirmationController::class, 'data'])->name('admin.customer-wallet-transaction-confirmation.data');
+            // Route::get('add', [CustomerWalletTransactionConfirmationController::class, 'editor'])->name('admin.customer-wallet-transaction-confirmation.add');
+            // Route::get('edit/{id}', [CustomerWalletTransactionConfirmationController::class, 'editor'])->name('admin.customer-wallet-transaction-confirmation.edit');
+            Route::get('detail/{id}', [CustomerWalletTransactionConfirmationController::class, 'detail'])->name('admin.customer-wallet-transaction-confirmation.detail');
+            Route::post('save', [CustomerWalletTransactionConfirmationController::class, 'save'])->name('admin.customer-wallet-transaction-confirmation.save');
+            Route::post('delete/{id}', [CustomerWalletTransactionConfirmationController::class, 'delete'])->name('admin.customer-wallet-transaction-confirmation.delete');
         });
 
         Route::prefix('suppliers')->group(function () {

@@ -333,9 +333,33 @@ onMounted(() => {
             label="Wallet"
             :default-opened="
               $page.url.startsWith('/admin/customer-wallet-transactions') ||
-              $page.url.startsWith('/admin/customers')
+              $page.url.startsWith(
+                '/admin/customer-wallet-transaction-confirmations'
+              )
             "
           >
+            <q-item
+              class="subnav"
+              clickable
+              v-ripple
+              :active="
+                $page.url.startsWith(
+                  '/admin/customer-wallet-transaction-confirmations'
+                )
+              "
+              @click="
+                router.get(
+                  route('admin.customer-wallet-transaction-confirmation.index')
+                )
+              "
+            >
+              <q-item-section avatar>
+                <q-icon name="add_task" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Konfirmasi Top Up</q-item-label>
+              </q-item-section>
+            </q-item>
             <q-item
               class="subnav"
               clickable

@@ -5,7 +5,12 @@ import { handleDelete, handleFetchItems } from "@/helpers/client-req-handler";
 import { check_role, getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
 import { createMonthOptions, createYearOptions } from "@/helpers/options";
-import { formatNumber, plusMinusSymbol } from "@/helpers/formatter";
+import {
+  formatDateTime,
+  formatDateTimeFromNow,
+  formatNumber,
+  plusMinusSymbol,
+} from "@/helpers/formatter";
 
 const title = "Transaksi Dompet Santri";
 const $q = useQuasar();
@@ -212,15 +217,14 @@ watch(
           <q-tr :props="props">
             <q-td key="datetime" :props="props" class="wrap-column">
               <div>
-                #{{ props.row.id }} - <q-icon name="calendar_today" />
-                {{ props.row.datetime }}
+                #: {{ props.row.id }} <br />
+                <q-icon name="calendar_today" />
+                {{ formatDateTime(props.row.datetime) }} ({{
+                  formatDateTimeFromNow(props.row.datetime)
+                }})
               </div>
               <div>
-                <q-badge
-                  ><q-icon name="category" />
-                  {{ props.row.type_label }}</q-badge
-                >
-                :
+                <q-icon name="account_balance" class="inline-icon" />
                 {{
                   props.row.finance_account
                     ? props.row.finance_account.name
@@ -229,16 +233,25 @@ watch(
               </div>
               <template v-if="!$q.screen.gt.sm">
                 <div>
-                  {{ props.row.customer.username }} - {{ props.row.customer.name }}
+                  <q-icon name="person" class="inline-icon" />
+                  {{ props.row.customer.username }} -
+                  {{ props.row.customer.name }}
                 </div>
                 <div>
-                  <q-icon name="money" /> Rp.
+                  <q-icon name="money" class="inline-icon" /> Rp.
                   {{
                     plusMinusSymbol(props.row.amount) +
                     formatNumber(props.row.amount)
                   }}
+                  <q-badge
+                    ><q-icon name="category" />
+                    {{ props.row.type_label }}</q-badge
+                  >
                 </div>
-                <div><q-icon name="notes" /> {{ props.row.notes }}</div>
+                <div>
+                  <q-icon name="notes" class="inline-icon" />
+                  {{ props.row.notes }}
+                </div>
               </template>
             </q-td>
             <q-td key="customer" :props="props">
