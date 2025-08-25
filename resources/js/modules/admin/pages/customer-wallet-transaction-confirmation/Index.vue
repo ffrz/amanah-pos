@@ -63,7 +63,7 @@ const pagination = ref({
   rowsPerPage: 10,
   rowsNumber: 10,
   sortBy: "datetime",
-  descending: true,
+  descending: false,
 });
 
 const columns = [
@@ -72,6 +72,7 @@ const columns = [
     label: "Tanggal",
     field: "datetime",
     align: "left",
+    sortable: true,
   },
   {
     name: "finance_account_id",
@@ -322,6 +323,7 @@ const showAttachment = (url) => {
                   flat
                   style="height: 40px; width: 30px"
                   @click.stop
+                  :disable="props.row.status !== 'pending'"
                 >
                   <q-menu
                     anchor="bottom right"
