@@ -12,6 +12,7 @@ import {
 import { router } from "@inertiajs/vue3";
 import { handleFetchItems } from "@/helpers/client-req-handler";
 import ImageViewer from "@/components/ImageViewer.vue";
+import CustomerWalletTransactionConfirmationStatusChip from "@/components/CustomerWalletTransactionConfirmationStatusChip.vue";
 
 // TODO:
 // - Tambahkan kolom ID Konfirmasi misal #TP-00000011 untuk mudah melacak di sistem ketika followup
@@ -115,9 +116,7 @@ const onFilterChange = () => {
 
 const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return columns;
-  return columns.filter((col) =>
-    ["datetime", "action", "status"].includes(col.name)
-  );
+  return columns.filter((col) => ["datetime", "action"].includes(col.name));
 });
 
 watch(
@@ -252,6 +251,9 @@ const showAttachment = (url) => {
                   <q-icon name="notes" class="inline-icon" />
                   {{ props.row.description }}
                 </div>
+                <CustomerWalletTransactionConfirmationStatusChip
+                  :status="props.row.status"
+                />
               </template>
             </q-td>
 
@@ -267,23 +269,8 @@ const showAttachment = (url) => {
             </q-td>
 
             <q-td key="status" :props="props" class="text-center">
-              <q-chip
-                size="sm"
-                dense
-                square
-                :color="
-                  props.row.status === 'confirmed'
-                    ? 'green'
-                    : props.row.status === 'rejected'
-                    ? 'red'
-                    : 'grey'
-                "
-                :label="
-                  $CONSTANTS.CUSTOMER_WALLET_TRANSACTION_CONFIRMATION_STATUSES[
-                    props.row.status
-                  ]
-                "
-                text-color="white"
+              <CustomerWalletTransactionConfirmationStatusChip
+                :status="props.row.status"
               />
             </q-td>
             <q-td key="notes" :props="props">

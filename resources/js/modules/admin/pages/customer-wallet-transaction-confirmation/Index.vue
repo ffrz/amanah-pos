@@ -20,6 +20,8 @@ import {
   handlePost,
 } from "@/helpers/client-req-handler";
 import ImageViewer from "@/components/ImageViewer.vue";
+import StatusChip from "@/components/StatusChip.vue";
+import CustomerWalletTransactionConfirmationStatusChip from "@/components/CustomerWalletTransactionConfirmationStatusChip.vue";
 
 const title = "Konfirmasi Top Up Wallet";
 const $q = useQuasar();
@@ -119,9 +121,7 @@ const onFilterChange = () => {
 
 const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return columns;
-  return columns.filter((col) =>
-    ["datetime", "action", "status"].includes(col.name)
-  );
+  return columns.filter((col) => ["datetime", "action"].includes(col.name));
 });
 
 watch(
@@ -287,6 +287,11 @@ const showAttachment = (url) => {
                   <q-icon name="notes" class="inline-icon" />
                   {{ props.row.description }}
                 </div>
+                <div>
+                  <CustomerWalletTransactionConfirmationStatusChip
+                    :status="props.row.status"
+                  />
+                </div>
               </template>
             </q-td>
 
@@ -302,23 +307,8 @@ const showAttachment = (url) => {
             </q-td>
 
             <q-td key="status" :props="props" class="text-center">
-              <q-chip
-                size="sm"
-                dense
-                square
-                :color="
-                  props.row.status === 'approved'
-                    ? 'green'
-                    : props.row.status === 'rejected'
-                    ? 'red'
-                    : 'grey'
-                "
-                :label="
-                  $CONSTANTS.CUSTOMER_WALLET_TRANSACTION_CONFIRMATION_STATUSES[
-                    props.row.status
-                  ]
-                "
-                text-color="white"
+              <CustomerWalletTransactionConfirmationStatusChip
+                :status="props.row.status"
               />
             </q-td>
             <q-td key="notes" :props="props">
