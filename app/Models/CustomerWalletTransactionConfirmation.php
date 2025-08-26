@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class CustomerWalletTransactionConfirmation extends BaseModel
@@ -9,6 +10,10 @@ class CustomerWalletTransactionConfirmation extends BaseModel
     use HasFactory;
 
     protected $table = 'customer_wallet_trx_confirmations';
+
+    protected $appends = [
+        'formatted_id',
+    ];
 
     protected $fillable = [
         'customer_id',
@@ -46,6 +51,14 @@ class CustomerWalletTransactionConfirmation extends BaseModel
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
+    }
+
+    public function getFormattedIdAttribute()
+    {
+        return 'CTX-'
+            . Carbon::parse($this->created_at)->format('Ymd')
+            . '-'
+            . $this->id;
     }
 
     public function customer()

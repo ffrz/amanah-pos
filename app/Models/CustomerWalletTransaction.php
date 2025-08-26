@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class CustomerWalletTransaction extends BaseModel
@@ -21,6 +22,7 @@ class CustomerWalletTransaction extends BaseModel
 
     protected $appends = [
         'type_label',
+        'formatted_id',
     ];
 
     /**
@@ -56,6 +58,14 @@ class CustomerWalletTransaction extends BaseModel
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
+    }
+
+    public function getFormattedIdAttribute()
+    {
+        return 'TX-'
+            . Carbon::parse($this->created_at)->format('Ymd')
+            . '-'
+            . $this->id;
     }
 
     public function getTypeLabelAttribute()

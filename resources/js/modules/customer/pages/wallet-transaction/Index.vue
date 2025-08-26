@@ -3,34 +3,28 @@ import { computed, onMounted, reactive, ref, watch } from "vue";
 import { handleFetchItems } from "@/helpers/client-req-handler";
 import { getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
-import { formatDateTime, formatDateTimeFromNow, formatNumber, plusMinusSymbol } from "@/helpers/formatter";
+import {
+  formatDateTime,
+  formatDateTimeFromNow,
+  formatNumber,
+  plusMinusSymbol,
+} from "@/helpers/formatter";
 import { createMonthOptions, createYearOptions } from "@/helpers/options";
 import { getCurrentMonth, getCurrentYear } from "@/helpers/datetime";
 
 const title = "Riwayat Transaksi";
 const $q = useQuasar();
-const showFilter = ref(false);
+const showFilter = ref(true);
 const rows = ref([]);
 const loading = ref(true);
-
 const currentYear = getCurrentYear();
-const currentMonth = getCurrentMonth();
-
-const years = [
-  { label: "Semua Tahun", value: "all" },
-  { label: `${currentYear}`, value: currentYear },
-  ...createYearOptions(currentYear - 2, currentYear - 1).reverse(),
-];
-
-const months = [
-  { value: "all", label: "Semua Bulan" },
-  ...createMonthOptions(),
-];
+const yearOptions = createYearOptions(currentYear - 2, currentYear, true, true);
+const monthOptions = createMonthOptions(true);
 
 const filter = reactive({
   search: "",
   year: currentYear,
-  month: currentMonth,
+  month: getCurrentMonth(),
   ...getQueryParams(),
 });
 
@@ -89,6 +83,10 @@ watch(
     }
   }
 );
+
+const onRowClick = (row) => {
+  alert(row);
+};
 </script>
 
 <template>
@@ -110,7 +108,7 @@ watch(
         <div class="row q-col-gutter-xs items-center q-pa-sm full-width">
           <q-select
             v-model="filter.year"
-            :options="years"
+            :options="yearOptions"
             label="Tahun"
             dense
             outlined
@@ -122,7 +120,7 @@ watch(
           <q-select
             v-if="filter.year !== 'all'"
             v-model="filter.month"
-            :options="months"
+            :options="monthOptions"
             label="Bulan"
             dense
             outlined
@@ -148,8 +146,9 @@ watch(
         </div>
       </q-toolbar>
     </template>
-    <div class="q-pa-xs">
+    <div :class="$q.screen.lt.md ? 'q-pa-none' : 'q-pa-xs'">
       <q-table
+        :hide-header="$q.screen.lt.md"
         flat
         bordered
         square
@@ -164,6 +163,7 @@ watch(
         :rows-per-page-options="[10, 25, 50]"
         @request="fetchItems"
         binary-state-sort
+        :pagination="{ rowsPerPage: 0 }"
       >
         <template v-slot:loading>
           <q-inner-loading showing color="red" />
@@ -177,21 +177,36 @@ watch(
           </div>
         </template>
         <template v-slot:body="props">
-          <q-tr :props="props">
+          <q-tr :props="props" @click="onRowClick(props.row)">
             <q-td key="id" :props="props" class="wrap-column">
-              {{ props.row.id }}
+              {{ props.row.formatted_id }}
             </q-td>
             <q-td key="datetime" :props="props" class="wrap-column">
+              <template v-if="!$q.screen.gt.sm">
+                <q-icon name="tag" class="inline-icon" />
+                {{ props.row.formatted_id }}
+              </template>
               <div>
-                <q-icon name="calendar_today" class="inline-icon"/>
+                <q-icon name="calendar_today" class="inline-icon" />
                 {{ formatDateTime(props.row.datetime) }}
-                <span class="text-grey-8">({{ formatDateTimeFromNow(props.row.datetime) }})</span>
+                <span class="text-grey-8">
+                  ({{ formatDateTimeFromNow(props.row.datetime) }})
+                </span>
+              </div>
+              <div>
+                <q-icon name="category" class="inline-icon" />
+                {{
+                  $CONSTANTS.CUSTOMER_WALLET_TRANSACTION_TYPES[props.row.type]
+                }}
               </div>
 
               <template v-if="!$q.screen.gt.sm">
-                <div><q-icon name="notes" class="inline-icon"/> {{ props.row.notes }}</div>
                 <div>
-                  <q-icon name="money" class="inline-icon"/> Rp.
+                  <q-icon name="notes" class="inline-icon" />
+                  {{ props.row.notes }}
+                </div>
+                <div :class="props.row.amount < 0 ? 'text-red' : 'text-green'">
+                  <q-icon name="money" class="inline-icon" /> Rp.
                   {{
                     plusMinusSymbol(props.row.amount) +
                     formatNumber(props.row.amount)
@@ -202,7 +217,12 @@ watch(
             <q-td key="notes" :props="props">
               {{ props.row.notes }}
             </q-td>
-            <q-td key="amount" :props="props" style="text-align: right">
+            <q-td
+              key="amount"
+              :props="props"
+              style="text-align: right"
+              :class="props.row.amount < 0 ? 'text-red' : 'text-green'"
+            >
               {{
                 plusMinusSymbol(props.row.amount) +
                 formatNumber(props.row.amount)

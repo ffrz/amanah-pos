@@ -1,22 +1,23 @@
 <script setup>
+// core
 import { computed, onMounted, reactive, ref, watch } from "vue";
-import { getQueryParams } from "@/helpers/utils";
-import { useQuasar } from "quasar";
-import { formatDateTime, formatNumber } from "@/helpers/formatter";
-import { getCurrentMonth, getCurrentYear } from "@/helpers/datetime";
-import {
-  createMonthOptions,
-  createOptions,
-  createYearOptions,
-} from "@/helpers/options";
 import { router } from "@inertiajs/vue3";
-import { handleFetchItems } from "@/helpers/client-req-handler";
+import { useQuasar } from "quasar";
+
+// components
 import ImageViewer from "@/components/ImageViewer.vue";
+import LongTextView from "@/components/LongTextView.vue";
 import CustomerWalletTransactionConfirmationStatusChip from "@/components/CustomerWalletTransactionConfirmationStatusChip.vue";
 
-// TODO:
-// - Tambahkan kolom ID Konfirmasi misal #TP-00000011 untuk mudah melacak di sistem ketika followup
-// - tambahkan halaman detail untuk melihat rincian status, kapan dikonfirmasi, dll.
+// composables
+import useCustomerWalletTransactionConfirmationStatusOptions from "@/composables/useCustomerWalletTransactionConfirmationStatusOptions";
+
+// utils
+import { getQueryParams } from "@/helpers/utils";
+import { formatDateTime, formatNumber } from "@/helpers/formatter";
+import { getCurrentMonth, getCurrentYear } from "@/helpers/datetime";
+import { createMonthOptions, createYearOptions } from "@/helpers/options";
+import { handleFetchItems } from "@/helpers/client-req-handler";
 
 const title = "Konfirmasi Top Up Wallet";
 const $q = useQuasar();
@@ -26,29 +27,15 @@ const loading = ref(true);
 const activeImagePath = ref(null);
 const showImageViewer = ref(false);
 const currentYear = getCurrentYear();
-const currentMonth = getCurrentMonth();
-
-const yearOptions = [
-  { label: "Semua Tahun", value: "all" },
-  ...createYearOptions(currentYear - 2, currentYear).reverse(),
-];
-
-const monthOptions = [
-  { value: "all", label: "Semua Bulan" },
-  ...createMonthOptions(),
-];
-
-const statusOptions = [
-  { value: "all", label: "Semua Status" },
-  ...createOptions(
-    window.CONSTANTS.CUSTOMER_WALLET_TRANSACTION_CONFIRMATION_STATUSES
-  ),
-];
+const yearOptions = createYearOptions(currentYear - 2, currentYear, true, true);
+const monthOptions = createMonthOptions(true);
+const statusOptions =
+  useCustomerWalletTransactionConfirmationStatusOptions(true);
 
 const filter = reactive({
   search: "",
   year: currentYear,
-  month: currentMonth,
+  month: getCurrentMonth(),
   status: "all",
   ...getQueryParams(),
 });
@@ -137,7 +124,9 @@ const showAttachment = (url) => {
 <template>
   <i-head :title="title" />
   <authenticated-layout>
-    <template #title>{{ title }}</template>
+    <template #title
+      ><span class="text-subtitle2">{{ title }}</span></template
+    >
     <template #right-button>
       <q-btn
         icon="add"
@@ -234,15 +223,17 @@ const showAttachment = (url) => {
         <template v-slot:body="props">
           <q-tr :props="props">
             <q-td key="datetime" :props="props" class="wrap-column">
+              # {{ props.row.formatted_id }}
               <div>
                 <q-icon name="calendar_today" class="inline-icon" />
                 {{ formatDateTime(props.row.datetime) }}
               </div>
               <template v-if="!$q.screen.gt.sm">
-                <div>
-                  <q-icon name="account_balance" class="inline-icon" />
-                  Bank: {{ props.row.finance_account.name }}
-                </div>
+                <LongTextView
+                  icon="account_balance"
+                  :text="props.row.finance_account.name"
+                  :maxLength="30"
+                />
                 <div>
                   <q-icon name="money" class="inline-icon" />
                   Rp. {{ formatNumber(props.row.amount) }}
@@ -274,7 +265,7 @@ const showAttachment = (url) => {
               />
             </q-td>
             <q-td key="notes" :props="props">
-              {{ props.row.notes }}
+              <LongTextView :text="props.row.notes" :maxLength="30" />
             </q-td>
             <q-td key="action" :props="props" class="text-center">
               <q-btn
@@ -285,9 +276,20 @@ const showAttachment = (url) => {
                 :disable="props.row.image_path == null"
                 @click="showAttachment(props.row.image_path)"
               >
-                <q-tooltip v-if="props.row.image_path != null"
-                  >Lihat Bukti</q-tooltip
-                >
+                <q-tooltip v-if="props.row.image_path != null">
+                  Lihat Bukti
+                </q-tooltip>
+              </q-btn>
+              <q-btn
+                v-if="props.row.status == 'pending'"
+                icon="cancel"
+                color="red"
+                dense
+                flat
+                :disable="props.row.image_path == null"
+                @click="showAttachment(props.row.image_path)"
+              >
+                <q-tooltip>Batalkan</q-tooltip>
               </q-btn>
             </q-td>
           </q-tr>

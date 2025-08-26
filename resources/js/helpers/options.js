@@ -1,14 +1,29 @@
-export function createYearOptions(startYear, endYear) {
-  const years = [];
+export function createYearOptions(
+  startYear,
+  endYear,
+  includeAllOption = false,
+  reverse = false
+) {
+  let years = [];
+
   for (let i = startYear; i <= endYear; i++) {
-    years.push({ value: i, label: i });
+    years.push({ value: i, label: i.toString() });
   }
+
+  if (reverse) {
+    years = years.reverse();
+  }
+
+  if (includeAllOption) {
+    years.unshift({ value: "all", label: "Semua Tahun" });
+  }
+
   return years;
 }
 
 
-export function createMonthOptions() {
-  return [
+export function createMonthOptions(includeAllOption = false) {
+  const months = [
     { value: 1, label: "Januari" },
     { value: 2, label: "Februari" },
     { value: 3, label: "Maret" },
@@ -22,7 +37,14 @@ export function createMonthOptions() {
     { value: 11, label: "November" },
     { value: 12, label: "Desember" },
   ];
+
+  if (includeAllOption) {
+    return [{ value: "all", label: "Semua Bulan" }, ...months];
+  }
+
+  return months;
 }
+
 
 export function createOptions(data) {
   return Object.entries(data)
