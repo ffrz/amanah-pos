@@ -17,7 +17,6 @@ const title = "Riwayat Transaksi";
 const $q = useQuasar();
 const showFilter = ref(true);
 const rows = ref([]);
-const filterBarRef = ref(null);
 const loading = ref(true);
 const currentYear = getCurrentYear();
 const yearOptions = createYearOptions(currentYear - 2, currentYear, true, true);
@@ -90,7 +89,8 @@ const onRowClick = (row) => {
   alert(row);
 };
 
-const { tableHeight } = useTableHeight(filterBarRef);
+const filterToolbarRef = ref(null);
+const tableHeight = useTableHeight(filterToolbarRef);
 </script>
 
 <template>

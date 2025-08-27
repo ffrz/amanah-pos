@@ -10,7 +10,6 @@ import { useTableHeight } from "@/composables/useTableHeight";
 
 const title = "Pelanggan";
 const $q = useQuasar();
-const filterToolbarRef = ref(null);
 const showFilter = ref(false);
 const rows = ref([]);
 const loading = ref(true);
@@ -108,7 +107,8 @@ const computedColumns = computed(() => {
   );
 });
 
-const { tableHeight } = useTableHeight(filterToolbarRef);
+const filterToolbarRef = ref(null);
+const tableHeight = useTableHeight(filterToolbarRef);
 </script>
 
 <template>

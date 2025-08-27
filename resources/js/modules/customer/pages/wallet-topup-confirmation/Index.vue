@@ -23,7 +23,6 @@ import { useTableHeight } from "@/composables/useTableHeight";
 const title = "Konfirmasi Top Up Wallet";
 const $q = useQuasar();
 const showFilter = ref(false);
-const filterBarRef = ref(null);
 const rows = ref([]);
 const loading = ref(true);
 const activeImagePath = ref(null);
@@ -122,7 +121,8 @@ const showAttachment = (url) => {
   showImageViewer.value = true;
 };
 
-const { tableHeight } = useTableHeight(filterBarRef);
+const filterToolbarRef = ref(null);
+const tableHeight = useTableHeight(filterToolbarRef);
 </script>
 
 <template>

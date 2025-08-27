@@ -25,5 +25,5 @@ export function useTableHeight(filterRef) {
     return `calc(100vh - ${headerHeight}px - ${filterHeight.value}px)`;
   });
 
-  return { tableHeight };
+  return tableHeight;
 }
