@@ -18,10 +18,12 @@ import { formatDateTime, formatNumber } from "@/helpers/formatter";
 import { getCurrentMonth, getCurrentYear } from "@/helpers/datetime";
 import { createMonthOptions, createYearOptions } from "@/helpers/options";
 import { handleFetchItems } from "@/helpers/client-req-handler";
+import { useTableHeight } from "@/composables/useTableHeight";
 
 const title = "Konfirmasi Top Up Wallet";
 const $q = useQuasar();
 const showFilter = ref(false);
+const filterBarRef = ref(null);
 const rows = ref([]);
 const loading = ref(true);
 const activeImagePath = ref(null);
@@ -51,7 +53,7 @@ const pagination = ref({
 const columns = [
   {
     name: "datetime",
-    label: "Tanggal",
+    label: $q.screen.lt.md ? "Item" : "Tanggal",
     field: "datetime",
     align: "left",
   },
@@ -119,6 +121,8 @@ const showAttachment = (url) => {
   activeImagePath.value = url;
   showImageViewer.value = true;
 };
+
+const { tableHeight } = useTableHeight(filterBarRef);
 </script>
 
 <template>
@@ -146,7 +150,7 @@ const showAttachment = (url) => {
       />
     </template>
     <template #header v-if="showFilter">
-      <q-toolbar class="filter-bar">
+      <q-toolbar class="filter-bar" ref="filterBarRef">
         <div class="row q-col-gutter-xs items-center q-pa-sm full-width">
           <q-select
             v-model="filter.year"
@@ -199,7 +203,7 @@ const showAttachment = (url) => {
         </div>
       </q-toolbar>
     </template>
-    <div class="q-pa-xs">
+    <div class="q-pa-sm">
       <q-table
         flat
         bordered
@@ -215,6 +219,7 @@ const showAttachment = (url) => {
         :rows-per-page-options="[10, 25, 50]"
         @request="fetchItems"
         binary-state-sort
+        :style="{ height: tableHeight }"
       >
         <template v-slot:loading>
           <q-inner-loading showing color="red" />

@@ -11,11 +11,13 @@ import {
 } from "@/helpers/formatter";
 import { createMonthOptions, createYearOptions } from "@/helpers/options";
 import { getCurrentMonth, getCurrentYear } from "@/helpers/datetime";
+import { useTableHeight } from "@/composables/useTableHeight";
 
 const title = "Riwayat Transaksi";
 const $q = useQuasar();
 const showFilter = ref(true);
 const rows = ref([]);
+const filterBarRef = ref(null);
 const loading = ref(true);
 const currentYear = getCurrentYear();
 const yearOptions = createYearOptions(currentYear - 2, currentYear, true, true);
@@ -40,7 +42,7 @@ const columns = [
   { name: "id", label: "ID", field: "id", align: "left", sortable: true },
   {
     name: "datetime",
-    label: "Waktu",
+    label: $q.screen.lt.md ? "Item" : "Waktu",
     field: "datetime",
     align: "left",
     sortable: true,
@@ -87,6 +89,8 @@ watch(
 const onRowClick = (row) => {
   alert(row);
 };
+
+const { tableHeight } = useTableHeight(filterBarRef);
 </script>
 
 <template>
@@ -104,7 +108,7 @@ const onRowClick = (row) => {
       />
     </template>
     <template #header v-if="showFilter">
-      <q-toolbar class="filter-bar">
+      <q-toolbar class="filter-bar" ref="filterBarRef">
         <div class="row q-col-gutter-xs items-center q-pa-sm full-width">
           <q-select
             v-model="filter.year"
@@ -146,9 +150,9 @@ const onRowClick = (row) => {
         </div>
       </q-toolbar>
     </template>
-    <div :class="$q.screen.lt.md ? 'q-pa-none' : 'q-pa-xs'">
+    <div class="q-pa-sm">
       <q-table
-        :hide-header="$q.screen.lt.md"
+        :style="{ height: tableHeight }"
         flat
         bordered
         square

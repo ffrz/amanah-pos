@@ -6,9 +6,11 @@ import { check_role, getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
 import { formatNumber } from "@/helpers/formatter";
 import LongTextView from "@/components/LongTextView.vue";
+import { useTableHeight } from "@/composables/useTableHeight";
 
 const title = "Pelanggan";
 const $q = useQuasar();
+const filterToolbarRef = ref(null);
 const showFilter = ref(false);
 const rows = ref([]);
 const loading = ref(true);
@@ -105,6 +107,8 @@ const computedColumns = computed(() => {
     (col) => col.name === "username" || col.name === "action"
   );
 });
+
+const { tableHeight } = useTableHeight(filterToolbarRef);
 </script>
 
 <template>
@@ -127,7 +131,7 @@ const computedColumns = computed(() => {
       />
     </template>
     <template #header v-if="showFilter">
-      <q-toolbar class="filter-bar">
+      <q-toolbar class="filter-bar" ref="filterToolbarRef">
         <div class="row q-col-gutter-xs items-center q-pa-sm full-width">
           <q-select
             class="custom-select col-xs-12 col-sm-2"
@@ -157,9 +161,10 @@ const computedColumns = computed(() => {
         </div>
       </q-toolbar>
     </template>
-    <div :class="$q.screen.lt.md ? 'q-pa-none' : 'q-pa-sm'">
+    <div class="q-pa-sm">
       <q-table
         class="full-height-table"
+        :style="{ height: tableHeight }"
         ref="tableRef"
         flat
         bordered
