@@ -1,4 +1,5 @@
 <script setup>
+import StandardCheckBox from "@/components/StandardCheckBox.vue";
 import { handleSubmit } from "@/helpers/client-req-handler";
 import { createOptions } from "@/helpers/options";
 import { validateUsername } from "@/helpers/validations";
@@ -42,16 +43,17 @@ const submit = () => handleSubmit({ form, url: route("admin.user.save") });
             <q-card-section class="q-pt-none">
               <input type="hidden" name="id" v-model="form.id" />
               <q-input
-                autofocus
                 v-model.trim="form.name"
                 label="Nama"
-                lazy-rules
                 :error="!!form.errors.name"
                 :disable="form.processing"
                 :error-message="form.errors.name"
                 :rules="[
                   (val) => (val && val.length > 0) || 'Nama harus diisi.',
                 ]"
+                autofocus
+                lazy-rules
+                hide-bottom-space
               />
               <q-input
                 v-model.trim="form.username"
@@ -66,6 +68,7 @@ const submit = () => handleSubmit({ form, url: route("admin.user.save") });
                     (val && val.length > 0) || 'ID Pengguna harus diisi.',
                   (val) => validateUsername(val) || 'ID Pengguna tidak valid.',
                 ]"
+                hide-bottom-space
               />
               <q-input
                 v-model="form.password"
@@ -75,6 +78,7 @@ const submit = () => handleSubmit({ form, url: route("admin.user.save") });
                 :disable="form.processing"
                 :error="!!form.errors.password"
                 :error-message="form.errors.password"
+                hide-bottom-space
               />
               <q-select
                 v-model="form.role"
@@ -88,16 +92,14 @@ const submit = () => handleSubmit({ form, url: route("admin.user.save") });
                 transition-hide="jump-up"
                 :error="!!form.errors.role"
                 :error-message="form.errors.role"
+                hide-bottom-space
               >
               </q-select>
-              <div style="margin-left: -10px">
-                <q-checkbox
-                  class="full-width"
-                  v-model="form.active"
-                  :disable="form.processing"
-                  label="Aktif"
-                />
-              </div>
+              <StandardCheckBox
+                v-model="form.active"
+                :disable="form.processing"
+                label="Aktif"
+              />
             </q-card-section>
             <q-card-section class="q-gutter-sm">
               <q-btn

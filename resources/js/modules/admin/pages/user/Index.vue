@@ -3,7 +3,6 @@ import { computed, onMounted, reactive, ref } from "vue";
 import { router, usePage } from "@inertiajs/vue3";
 import { handleFetchItems, handleDelete } from "@/helpers/client-req-handler";
 import { createOptions } from "@/helpers/options";
-import i18n from "@/i18n";
 import { useQuasar } from "quasar";
 
 const roles = [
@@ -20,7 +19,7 @@ const statuses = [
 const page = usePage();
 const $q = useQuasar();
 const currentUser = page.props.auth.user;
-const title = i18n.global.t("users");
+const title = "Pengguna";
 const rows = ref([]);
 const loading = ref(true);
 const showFilter = ref(false);

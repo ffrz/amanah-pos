@@ -12,7 +12,7 @@ const title = "Profil Saya";
     <div class="q-pa-sm">
       <div class="row justify-center">
         <div class="col col-lg-6">
-          <UpdateProfileInformationForm class="q-mb-md"/>
+          <UpdateProfileInformationForm class="q-mb-md" />
           <UpdatePasswordForm />
         </div>
       </div>

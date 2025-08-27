@@ -33,14 +33,12 @@ class CompanyProfileController extends Controller
      */
     public function edit()
     {
-        // Mengambil nilai pengaturan perusahaan dari model Setting
         $data = [
             'name' => Setting::value('company_name', env('APP_NAME', 'Koperasiku')),
             'phone' => Setting::value('company_phone', ''),
             'address' => Setting::value('company_address', ''),
         ];
 
-        // Mengirim data ke komponen Inertia
         return inertia('company-profile/Edit', compact('data'));
     }
 
@@ -53,35 +51,24 @@ class CompanyProfileController extends Controller
      */
     public function update(Request $request): \Illuminate\Http\RedirectResponse
     {
-        // Mencatat aktivitas pengguna
         Auth::user()->setLastActivity('Memperbarui profil perusahaan');
 
-        // Aturan validasi untuk input
         $rules = [
-            'name' => 'required|string|min:2|max:100', // Tambahkan 'string'
-            // Regex untuk nomor telepon bisa sangat kompleks. Pastikan regex ini sesuai kebutuhan.
-            // Jika memungkinkan, gunakan library validasi telepon atau validasi yang lebih sederhana.
+            'name' => 'required|string|min:2|max:100',
             'phone' => 'nullable|string|regex:/^(\+?\d{1,4})?[\s.-]?\(?\d{1,4}\)?[\s.-]?\d{1,4}[\s.-]?\d{1,9}$/|max:40',
-            'address' => 'nullable|string|max:1000', // Tambahkan 'nullable' dan 'string'
+            'address' => 'nullable|string|max:1000',
         ];
 
-        // Lakukan validasi request
-        // request()->validate() akan otomatis mengarahkan kembali dengan error jika validasi gagal
         $validatedData = $request->validate($rules);
 
-        // Pastikan nilai default untuk 'phone' dan 'address' jika tidak disediakan atau kosong
-        // Ini memastikan database menyimpan string kosong bukan null jika kolom tidak nullable
         $name = $validatedData['name'];
         $phone = $validatedData['phone'] ?? '';
         $address = $validatedData['address'] ?? '';
 
-        // Memperbarui pengaturan perusahaan
-        // Asumsi Setting::setValue adalah metode yang benar untuk menyimpan pengaturan
         Setting::setValue('company_name', $name);
         Setting::setValue('company_phone', $phone);
         Setting::setValue('company_address', $address);
 
-        // Mengembalikan respons dengan pesan sukses
-        return back()->with('success', 'Profil perusahaan berhasil diperbarui.');
+        return back()->with('success', 'Profil koperasi berhasil diperbarui.');
     }
 }

@@ -5,8 +5,9 @@ import { handleDelete, handleFetchItems } from "@/helpers/client-req-handler";
 import { check_role, getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
 import { formatNumber } from "@/helpers/formatter";
+import LongTextView from "@/components/LongTextView.vue";
 
-const title = "Santri";
+const title = "Pelanggan";
 const $q = useQuasar();
 const showFilter = ref(false);
 const rows = ref([]);
@@ -28,12 +29,11 @@ const pagination = ref({
 const columns = [
   {
     name: "username",
-    label: "NIS",
+    label: $q.screen.lt.md ? "Pelanggan" : "Kode",
     field: "username",
     align: "left",
     sortable: true,
   },
-  ,
   {
     name: "name",
     label: "Nama",
@@ -46,21 +46,18 @@ const columns = [
     label: "Saldo (Rp)",
     field: "balance",
     align: "right",
-    sortable: true,
   },
   {
     name: "phone",
     label: "No HP",
     field: "phone",
     align: "left",
-    sortable: true,
   },
   {
     name: "address",
     label: "Alamat",
     field: "address",
     align: "left",
-    sortable: true,
   },
   {
     name: "action",
@@ -98,11 +95,15 @@ const fetchItems = (props = null) => {
 };
 
 const onFilterChange = () => fetchItems();
+
 const onRowClicked = (row) =>
   router.get(route("admin.customer.detail", { id: row.id }));
+
 const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return columns;
-  return columns.filter((col) => col.name === "username" || col.name === "action");
+  return columns.filter(
+    (col) => col.name === "username" || col.name === "action"
+  );
 });
 </script>
 
@@ -156,7 +157,7 @@ const computedColumns = computed(() => {
         </div>
       </q-toolbar>
     </template>
-    <div class="q-pa-sm">
+    <div :class="$q.screen.lt.md ? 'q-pa-none' : 'q-pa-sm'">
       <q-table
         class="full-height-table"
         ref="tableRef"
@@ -206,7 +207,7 @@ const computedColumns = computed(() => {
                   {{ props.row.name }}
                 </div>
                 <div><q-icon name="phone" /> {{ props.row.phone }}</div>
-                <div><q-icon name="home_pin" /> {{ props.row.address }}</div>
+                <LongTextView :text="props.row.address" icon="home_pin" />
                 <div>
                   <q-icon name="wallet" /> Rp.
                   {{ formatNumber(props.row.balance) }}
@@ -223,7 +224,7 @@ const computedColumns = computed(() => {
               {{ props.row.phone }}
             </q-td>
             <q-td key="address" :props="props">
-              {{ props.row.address }}
+              <LongTextView :text="props.row.address" />
             </q-td>
             <q-td key="action" :props="props">
               <div class="flex justify-end">

@@ -2,9 +2,10 @@
 import { router, useForm, usePage } from "@inertiajs/vue3";
 import { handleSubmit } from "@/helpers/client-req-handler";
 import { scrollToFirstErrorField } from "@/helpers/utils";
+import StandardCheckBox from "@/components/StandardCheckBox.vue";
 
 const page = usePage();
-const title = (!!page.props.data.id ? "Edit" : "Tambah") + " Santri";
+const title = (!!page.props.data.id ? "Edit" : "Tambah") + " Pelanggan";
 const form = useForm({
   id: page.props.data.id,
   username: page.props.data.username,
@@ -41,91 +42,94 @@ const submit = () => handleSubmit({ form, url: route("admin.customer.save") });
           @submit.prevent="submit"
           @validation-error="scrollToFirstErrorField"
         >
+          <input type="hidden" name="id" v-model="form.id" />
           <q-card square flat bordered class="col">
-            <q-card-section>
-              <div class="text-subtitle1">Info Santri</div>
-            </q-card-section>
             <q-card-section class="q-pt-none">
-              <input type="hidden" name="id" v-model="form.id" />
               <q-input
-                autofocus
                 v-model.trim="form.username"
                 label="NIS"
-                lazy-rules
                 :error="!!form.errors.username"
                 :disable="form.processing"
                 :error-message="form.errors.username"
                 :rules="[
                   (val) => (val && val.length > 0) || 'NIS harus diisi.',
                 ]"
+                autofocus
+                lazy-rules
+                hide-bottom-space
               />
               <q-input
                 v-model.trim="form.name"
                 label="Nama Santri"
-                lazy-rules
                 :error="!!form.errors.name"
                 :disable="form.processing"
                 :error-message="form.errors.name"
                 :rules="[
                   (val) => (val && val.length > 0) || 'Nama harus diisi.',
                 ]"
+                lazy-rules
+                hide-bottom-space
               />
               <q-input
                 v-model.trim="form.phone"
                 type="text"
                 label="No HP"
-                lazy-rules
                 :disable="form.processing"
                 :error="!!form.errors.phone"
                 :error-message="form.errors.phone"
                 :rules="[
                   (val) => (val && val.length > 0) || 'No HP harus diisi.',
                 ]"
+                lazy-rules
+                hide-bottom-space
               />
               <q-input
                 v-model.trim="form.address"
                 type="textarea"
-                autogrow
-                counter
-                maxlength="1000"
+                maxlength="200"
                 label="Alamat"
-                lazy-rules
                 :disable="form.processing"
                 :error="!!form.errors.address"
                 :error-message="form.errors.address"
                 :rules="[
                   (val) => (val && val.length > 0) || 'Alamat harus diisi.',
                 ]"
+                autogrow
+                counter
+                lazy-rules
+                hide-bottom-space
               />
               <q-input
                 v-model="form.password"
                 type="password"
-                label="Kata Sandi (Isi untuk mengatur ulang kata sandi)"
-                lazy-rules
+                :label="
+                  form.id
+                    ? 'Kata Sandi Baru (Wajib diisi)'
+                    : 'Kata Sandi (Isi jika ingin mengganti)'
+                "
                 :disable="form.processing"
                 :error="!!form.errors.password"
                 :error-message="form.errors.password"
+                lazy-rules
+                hide-bottom-space
               />
-              <div style="margin-left: -10px">
-                <q-checkbox
-                  class="full-width q-pl-none"
-                  v-model="form.active"
-                  :disable="form.processing"
-                  label="Aktif"
-                />
-              </div>
+              <StandardCheckBox
+                v-model="form.active"
+                label="Aktif"
+                :disable="form.processing"
+              />
             </q-card-section>
             <q-card-section class="q-gutter-sm">
               <q-btn
-                icon="save"
                 type="submit"
                 label="Simpan"
+                icon="save"
                 color="primary"
                 :disable="form.processing"
               />
               <q-btn
-                icon="cancel"
                 label="Batal"
+                icon="cancel"
                 :disable="form.processing"
                 @click="router.get(route('admin.customer.index'))"
               />

@@ -4,7 +4,12 @@ import { getQueryParams } from "@/helpers/utils";
 import { usePage } from "@inertiajs/vue3";
 import { useQuasar } from "quasar";
 import { computed, onMounted, reactive, ref } from "vue";
-import { formatDateTime, formatDateTimeFromNow, formatNumber, plusMinusSymbol } from "@/helpers/formatter";
+import {
+  formatDateTime,
+  formatDateTimeFromNow,
+  formatNumber,
+  plusMinusSymbol,
+} from "@/helpers/formatter";
 
 const page = usePage();
 const title = "Rincian Santri";
@@ -121,7 +126,9 @@ const computedColumns = computed(() => {
                     <tr>
                       <td>Jenis</td>
                       <td>:</td>
-                      <td>{{ $CONSTANTS.CUSTOMER_TYPES[page.props.data.type] }}</td>
+                      <td>
+                        {{ $CONSTANTS.CUSTOMER_TYPES[page.props.data.type] }}
+                      </td>
                     </tr>
                     <tr>
                       <td>Nama</td>
@@ -152,7 +159,9 @@ const computedColumns = computed(() => {
                     </tr>
                     <tr>
                       <td colspan="3">
-                        <div class="text-bold text-grey-8 q-mt-md">Info Akun</div>
+                        <div class="text-bold text-grey-8 q-mt-md">
+                          Info Akun
+                        </div>
                       </td>
                     </tr>
                     <tr v-if="page.props.data.created_at">
@@ -160,7 +169,11 @@ const computedColumns = computed(() => {
                       <td>:</td>
                       <td>
                         {{ formatDateTime(page.props.data.created_at) }}
-                        <span class="text-grey-8">({{ formatDateTimeFromNow(page.props.data.created_at) }})</span>
+                        <span class="text-grey-8"
+                          >({{
+                            formatDateTimeFromNow(page.props.data.created_at)
+                          }})</span
+                        >
                       </td>
                     </tr>
                     <tr v-if="page.props.data.updated_at">
@@ -168,7 +181,11 @@ const computedColumns = computed(() => {
                       <td>:</td>
                       <td>
                         {{ formatDateTime(page.props.data.updated_at) }}
-                        <span class="text-grey-8">({{ formatDateTimeFromNow(page.props.data.updated_at) }})</span>
+                        <span class="text-grey-8"
+                          >({{
+                            formatDateTimeFromNow(page.props.data.updated_at)
+                          }})</span
+                        >
                       </td>
                     </tr>
                     <tr>

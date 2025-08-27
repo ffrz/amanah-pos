@@ -1,4 +1,5 @@
 <script setup>
+import StandardCheckBox from "@/components/StandardCheckBox.vue";
 import { handleSubmit } from "@/helpers/client-req-handler";
 import { useForm } from "@inertiajs/vue3";
 import { ref } from "vue";
@@ -41,6 +42,7 @@ const showPassword = ref(false);
                   :rules="[
                     (val) => (val && val.length > 0) || 'Masukkan Username',
                   ]"
+                  hide-bottom-space
                 >
                   <template v-slot:append>
                     <q-icon name="person" />
@@ -58,6 +60,7 @@ const showPassword = ref(false);
                   :rules="[
                     (val) => (val && val.length > 0) || 'Masukkan kata sandi',
                   ]"
+                  hide-bottom-space
                 >
                   <template v-slot:append>
                     <q-btn
@@ -70,9 +73,8 @@ const showPassword = ref(false);
                     </q-btn>
                   </template>
                 </q-input>
-                <q-checkbox
-                  class="q-mt-sm q-pl-none"
-                  style="margin-left: -10px"
+                <StandardCheckBox
+                  class="q-mt-sm"
                   v-model="form.remember"
                   :disable="form.processing"
                   label="Ingat saya di perangkat ini"

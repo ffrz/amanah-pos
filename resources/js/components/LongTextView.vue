@@ -8,7 +8,7 @@
       overflow-wrap: break-word;
     "
   >
-    <q-icon :name="icon" />
+    <q-icon v-if="icon != ''" :name="icon" />
     {{ truncatedText }}
     <q-tooltip v-if="text.length > maxLength">{{ text }}</q-tooltip>
   </div>
@@ -28,7 +28,7 @@ const props = defineProps({
   },
   icon: {
     type: String,
-    default: "notes",
+    default: "",
   },
 });
 

@@ -37,6 +37,7 @@ const submit = () =>
           :rules="[
             (val) => (val && val.length > 0) || 'Nama Koperasi harus diisi.',
           ]"
+          hide-bottom-space
         />
         <q-input
           v-model.trim="form.phone"
@@ -45,18 +46,20 @@ const submit = () =>
           lazy-rules
           :error="!!form.errors.phone"
           :error-message="form.errors.phone"
+          hide-bottom-space
         />
         <q-input
           type="textarea"
           counter
           autogrow
-          maxlength="1000"
+          maxlength="200"
           v-model.trim="form.address"
           label="Alamat Koperasi"
           :disable="form.processing"
           lazy-rules
           :error="!!form.errors.address"
           :error-message="form.errors.address"
+          hide-bottom-space
         />
       </q-card-section>
       <q-card-section>
