@@ -1,12 +1,16 @@
 {
-  "_BaseGuestLayout-C3aak5RS.js": {
-    "file": "assets/BaseGuestLayout-C3aak5RS.js",
+  "_BaseGuestLayout-B4r2Rumj.css": {
+    "file": "assets/BaseGuestLayout-B4r2Rumj.css",
+    "src": "_BaseGuestLayout-B4r2Rumj.css"
+  },
+  "_BaseGuestLayout-C5Tdr7jb.js": {
+    "file": "assets/BaseGuestLayout-C5Tdr7jb.js",
     "name": "BaseGuestLayout",
     "imports": [
-      "_vendor1-BaeOYEJ5.js"
+      "_vendor1-C1xRmJpw.js"
     ],
     "css": [
-      "assets/BaseGuestLayout-DQUUgjYS.css"
+      "assets/BaseGuestLayout-B4r2Rumj.css"
     ],
     "assets": [
       "assets/flUhRq6tzZclQEJ-Vdg-IuiaDsNcIhQ8tQ-D-x-0Q06.woff2",
@@ -25,16 +29,12 @@
       "assets/fa-v4compatibility-ch80hpM0.ttf"
     ]
   },
-  "_BaseGuestLayout-DQUUgjYS.css": {
-    "file": "assets/BaseGuestLayout-DQUUgjYS.css",
-    "src": "_BaseGuestLayout-DQUUgjYS.css"
-  },
   "_vendor1-B66eveH2.css": {
     "file": "assets/vendor1-B66eveH2.css",
     "src": "_vendor1-B66eveH2.css"
   },
-  "_vendor1-BaeOYEJ5.js": {
-    "file": "assets/vendor1-BaeOYEJ5.js",
+  "_vendor1-C1xRmJpw.js": {
+    "file": "assets/vendor1-C1xRmJpw.js",
     "name": "vendor1",
     "css": [
       "assets/vendor1-B66eveH2.css"
@@ -46,18 +46,18 @@
       "assets/MaterialIcons-Regular-DEUTIz1o.ttf"
     ]
   },
-  "_vendor2-jCz5Wxk5.js": {
-    "file": "assets/vendor2-jCz5Wxk5.js",
+  "_vendor2-HOHpvscj.js": {
+    "file": "assets/vendor2-HOHpvscj.js",
     "name": "vendor2",
     "imports": [
-      "_vendor1-BaeOYEJ5.js"
+      "_vendor1-C1xRmJpw.js"
     ]
   },
-  "_vendor3-BD9Nm7kf.js": {
-    "file": "assets/vendor3-BD9Nm7kf.js",
+  "_vendor3-DfSfvoT8.js": {
+    "file": "assets/vendor3-DfSfvoT8.js",
     "name": "vendor3",
     "imports": [
-      "_vendor2-jCz5Wxk5.js"
+      "_vendor2-HOHpvscj.js"
     ]
   },
   "node_modules/@quasar/extras/fontawesome-v6/fa-brands-400.ttf": {
@@ -133,35 +133,35 @@
     "src": "node_modules/material-design-icons-iconfont/dist/fonts/MaterialIcons-Regular.woff2"
   },
   "resources/css/app.css": {
-    "file": "assets/app-9jqSj8hU.css",
+    "file": "assets/app-D6N-QJqv.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/js/modules/admin/app.js": {
-    "file": "assets/app-Dorloo44.js",
+    "file": "assets/app-WyCXAmSY.js",
     "name": "app",
     "src": "resources/js/modules/admin/app.js",
     "isEntry": true,
     "imports": [
-      "_BaseGuestLayout-C3aak5RS.js",
-      "_vendor1-BaeOYEJ5.js",
-      "_vendor2-jCz5Wxk5.js",
-      "_vendor3-BD9Nm7kf.js"
+      "_BaseGuestLayout-C5Tdr7jb.js",
+      "_vendor1-C1xRmJpw.js",
+      "_vendor2-HOHpvscj.js",
+      "_vendor3-DfSfvoT8.js"
     ],
     "css": [
-      "assets/app-BEIAeTOJ.css"
+      "assets/app-Ck6et3qZ.css"
     ]
   },
   "resources/js/modules/customer/app.js": {
-    "file": "assets/app-CKRu2-ya.js",
+    "file": "assets/app-Dm7x-jQx.js",
     "name": "app",
     "src": "resources/js/modules/customer/app.js",
     "isEntry": true,
     "imports": [
-      "_BaseGuestLayout-C3aak5RS.js",
-      "_vendor1-BaeOYEJ5.js",
-      "_vendor2-jCz5Wxk5.js",
-      "_vendor3-BD9Nm7kf.js"
+      "_BaseGuestLayout-C5Tdr7jb.js",
+      "_vendor1-C1xRmJpw.js",
+      "_vendor2-HOHpvscj.js",
+      "_vendor3-DfSfvoT8.js"
     ],
     "css": [
       "assets/app-Cf3kdEAV.css"

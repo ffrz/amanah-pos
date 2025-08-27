@@ -18,7 +18,7 @@ import { formatDateTime, formatNumber } from "@/helpers/formatter";
 import { getCurrentMonth, getCurrentYear } from "@/helpers/datetime";
 import { createMonthOptions, createYearOptions } from "@/helpers/options";
 import { handleFetchItems } from "@/helpers/client-req-handler";
-import { useTableHeight } from "@/composables/useTableHeight";
+import useTableHeight from "@/composables/useTableHeight";
 
 const title = "Konfirmasi Top Up Wallet";
 const $q = useQuasar();
@@ -32,6 +32,10 @@ const yearOptions = createYearOptions(currentYear - 2, currentYear, true, true);
 const monthOptions = createMonthOptions(true);
 const statusOptions =
   useCustomerWalletTransactionConfirmationStatusOptions(true);
+
+const tableRef = ref(null);
+const filterToolbarRef = ref(null);
+const tableHeight = useTableHeight(filterToolbarRef);
 
 const filter = reactive({
   search: "",
@@ -95,6 +99,7 @@ const fetchItems = (props = null) => {
     rows,
     url: route("customer.wallet-topup-confirmation.data"),
     loading,
+    tableRef,
   });
 };
 
@@ -120,9 +125,6 @@ const showAttachment = (url) => {
   activeImagePath.value = url;
   showImageViewer.value = true;
 };
-
-const filterToolbarRef = ref(null);
-const tableHeight = useTableHeight(filterToolbarRef);
 </script>
 
 <template>
@@ -150,7 +152,7 @@ const tableHeight = useTableHeight(filterToolbarRef);
       />
     </template>
     <template #header v-if="showFilter">
-      <q-toolbar class="filter-bar" ref="filterBarRef">
+      <q-toolbar class="filter-bar" ref="filterToolbarRef">
         <div class="row q-col-gutter-xs items-center q-pa-sm full-width">
           <q-select
             v-model="filter.year"
@@ -205,6 +207,8 @@ const tableHeight = useTableHeight(filterToolbarRef);
     </template>
     <div class="q-pa-sm">
       <q-table
+        class="full-height-table"
+        ref="tableRef"
         flat
         bordered
         square

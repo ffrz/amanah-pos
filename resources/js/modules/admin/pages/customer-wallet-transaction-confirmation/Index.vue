@@ -20,14 +20,18 @@ import {
   handlePost,
 } from "@/helpers/client-req-handler";
 import ImageViewer from "@/components/ImageViewer.vue";
-import StatusChip from "@/components/StatusChip.vue";
 import CustomerWalletTransactionConfirmationStatusChip from "@/components/CustomerWalletTransactionConfirmationStatusChip.vue";
+import useTableHeight from "@/composables/useTableHeight";
+import LongTextView from "@/components/LongTextView.vue";
 
 const title = "Konfirmasi Top Up Wallet";
 const $q = useQuasar();
 const showFilter = ref(false);
 const rows = ref([]);
 const loading = ref(true);
+const tableRef = ref(null);
+const filterToolbarRef = ref(null);
+const tableHeight = useTableHeight(filterToolbarRef);
 const activeImagePath = ref(null);
 const showImageViewer = ref(false);
 const currentYear = getCurrentYear();
@@ -113,6 +117,7 @@ const fetchItems = (props = null) => {
     rows,
     url: route("admin.customer-wallet-transaction-confirmation.data"),
     loading,
+    tableRef,
   });
 };
 
@@ -187,7 +192,7 @@ const showAttachment = (url) => {
       />
     </template>
     <template #header v-if="showFilter">
-      <q-toolbar class="filter-bar">
+      <q-toolbar class="filter-bar" ref="filterToolbarRef">
         <div class="row q-col-gutter-xs items-center q-pa-sm full-width">
           <q-select
             v-model="filter.year"
@@ -242,6 +247,9 @@ const showAttachment = (url) => {
     </template>
     <div class="q-pa-sm">
       <q-table
+        ref="tableRef"
+        class="full-height-table"
+        :style="{ height: tableHeight }"
         flat
         bordered
         square
@@ -264,6 +272,7 @@ const showAttachment = (url) => {
         <template v-slot:body="props">
           <q-tr :props="props">
             <q-td key="datetime" :props="props" class="wrap-column">
+              <div>#: {{ props.row.formatted_id }}</div>
               <div>
                 <q-icon name="calendar_today" class="inline-icon" />
                 {{ formatDateTime(props.row.datetime) }} ({{
@@ -271,10 +280,10 @@ const showAttachment = (url) => {
                 }})
               </div>
               <template v-if="!$q.screen.gt.sm">
-                <div>
-                  <q-icon name="account_balance" class="inline-icon" />
-                  {{ props.row.finance_account.name }}
-                </div>
+                <LongTextView
+                  icon="account_balance"
+                  :text="props.row.finance_account.name"
+                />
                 <div>
                   <q-icon name="person" class="inline-icon" />
                   {{ props.row.customer.username }} -
@@ -284,10 +293,11 @@ const showAttachment = (url) => {
                   <q-icon name="money" class="inline-icon" />
                   Rp. {{ formatNumber(props.row.amount) }}
                 </div>
-                <div v-if="props.row.description">
-                  <q-icon name="notes" class="inline-icon" />
-                  {{ props.row.description }}
-                </div>
+                <LongTextView
+                  v-if="props.row.description"
+                  icon="notes"
+                  :text="props.row.description"
+                />
                 <div>
                   <CustomerWalletTransactionConfirmationStatusChip
                     :status="props.row.status"

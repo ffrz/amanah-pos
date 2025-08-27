@@ -4,9 +4,8 @@ import { computed, ref, watch, nextTick } from 'vue';
  * Composables to dynamically calculate table height based on a filter toolbar.
  * @param {import('vue').Ref<HTMLElement | null>} filterRef The ref of the filter toolbar element.
  */
-export function useTableHeight(filterRef) {
+export default function useTableHeight(filterRef, headerHeight = 67) {
   const filterHeight = ref(0);
-  const headerHeight = 67;
 
   watch(
     () => filterRef.value,

@@ -4,15 +4,24 @@ import { router, usePage } from "@inertiajs/vue3";
 import { handleDelete, handleFetchItems } from "@/helpers/client-req-handler";
 import { check_role, getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
-import { formatDateTime, formatDateTimeFromNow, formatNumber, plusMinusSymbol } from "@/helpers/formatter";
+import {
+  formatDateTime,
+  formatDateTimeFromNow,
+  formatNumber,
+  plusMinusSymbol,
+} from "@/helpers/formatter";
 import { getCurrentMonth, getCurrentYear } from "@/helpers/datetime";
 import { createMonthOptions, createYearOptions } from "@/helpers/options";
+import useTableHeight from "@/composables/useTableHeight";
 
 const title = "Transaksi Kas";
 const $q = useQuasar();
 const showFilter = ref(false);
 const rows = ref([]);
 const loading = ref(true);
+const tableRef = ref(null);
+const filterToolbarRef = ref(null);
+const tableHeight = useTableHeight(filterToolbarRef);
 const currentYear = getCurrentYear();
 const currentMonth = getCurrentMonth();
 
@@ -93,6 +102,7 @@ const fetchItems = (props = null) => {
     rows,
     url: route("admin.finance-transaction.data"),
     loading,
+    tableRef,
   });
 };
 
@@ -137,7 +147,7 @@ watch(
       />
     </template>
     <template #header v-if="showFilter">
-      <q-toolbar class="filter-bar">
+      <q-toolbar class="filter-bar" ref="filterToolbarRef">
         <div class="row q-col-gutter-xs items-center q-pa-sm full-width">
           <q-select
             v-model="filter.year"
@@ -184,6 +194,8 @@ watch(
     </template>
     <div class="q-pa-sm">
       <q-table
+        ref="tableRef"
+        :style="{ height: tableHeight }"
         class="full-height-table"
         flat
         bordered
@@ -217,7 +229,9 @@ watch(
               <div>
                 #{{ props.row.id }} - <q-icon name="calendar_today" />
                 {{ formatDateTime(props.row.datetime) }}
-                <span class="text-grey-8">({{ formatDateTimeFromNow(props.row.datetime) }})</span>
+                <span class="text-grey-8"
+                  >({{ formatDateTimeFromNow(props.row.datetime) }})</span
+                >
               </div>
               <q-badge
                 ><q-icon name="category" /> {{ props.row.type_label }}</q-badge

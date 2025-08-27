@@ -6,12 +6,17 @@ import { check_role, getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
 import { createOptions } from "@/helpers/options";
 import { formatNumber } from "@/helpers/formatter";
+import useTableHeight from "@/composables/useTableHeight";
+import LongTextView from "@/components/LongTextView.vue";
 
 const page = usePage();
 const title = "Akun Kas";
 const $q = useQuasar();
 const showFilter = ref(false);
 const rows = ref([]);
+const tableRef = ref(null);
+const filterToolbarRef = ref(null);
+const tableHeight = useTableHeight(filterToolbarRef, 67 + 37);
 const loading = ref(true);
 const filter = reactive({
   search: "",
@@ -81,6 +86,7 @@ const fetchItems = (props = null) => {
     rows,
     url: route("admin.finance-account.data"),
     loading,
+    tableRef,
   });
 };
 
@@ -113,7 +119,7 @@ const computedColumns = computed(() => {
       />
     </template>
     <template #header v-if="showFilter">
-      <q-toolbar class="filter-bar">
+      <q-toolbar class="filter-bar" ref="filterToolbarRef">
         <div class="row q-col-gutter-xs items-center q-pa-sm full-width">
           <q-select
             class="custom-select col-xs-6 col-sm-2"
@@ -158,10 +164,14 @@ const computedColumns = computed(() => {
     <div class="q-pa-sm">
       <div class="q-my-sm text-subtitle">
         Total Saldo Akun Aktif:
-        <span class="text-bold text-grey-8">Rp. {{ formatNumber(totalBalance) }}</span>
+        <span class="text-bold text-grey-8"
+          >Rp. {{ formatNumber(totalBalance) }}</span
+        >
       </div>
       <q-table
         ref="tableRef"
+        class="full-height-table"
+        :style="{ height: tableHeight }"
         flat
         bordered
         square
@@ -198,10 +208,12 @@ const computedColumns = computed(() => {
             @click="onRowClicked(props.row)"
           >
             <q-td key="name" :props="props" class="wrap-column">
-              <div>
-                <q-icon name="wallet" v-if="$q.screen.lt.md" />
+              <template v-if="!$q.screen.lt.md">
                 {{ props.row.name }}
-              </div>
+              </template>
+              <template v-else>
+                <LongTextView icon="wallet" :text="props.row.name" />
+              </template>
               <div v-if="props.row.type == 'bank'">
                 {{ props.row.bank ?? "-" }} {{ props.row.number ?? "-" }} an
                 {{ props.row.holder ?? "-" }}

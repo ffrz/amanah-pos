@@ -4,12 +4,17 @@ import { router } from "@inertiajs/vue3";
 import { handleDelete, handleFetchItems } from "@/helpers/client-req-handler";
 import { check_role, getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
+import useTableHeight from "@/composables/useTableHeight";
 
 const title = "Pemasok";
 const $q = useQuasar();
 const showFilter = ref(false);
 const rows = ref([]);
 const loading = ref(true);
+const tableRef = ref(null);
+const filterToolbarRef = ref(null);
+const tableHeight = useTableHeight(filterToolbarRef);
+
 const filter = reactive({
   search: "",
   status: "active",
@@ -85,6 +90,7 @@ const fetchItems = (props = null) => {
     rows,
     url: route("admin.supplier.data"),
     loading,
+    tableRef,
   });
 };
 
@@ -117,7 +123,7 @@ const computedColumns = computed(() => {
       />
     </template>
     <template #header v-if="showFilter">
-      <q-toolbar class="filter-bar">
+      <q-toolbar class="filter-bar" ref="filterToolbarRef">
         <div class="row q-col-gutter-xs items-center q-pa-sm full-width">
           <q-select
             class="custom-select col-xs-12 col-sm-2"
@@ -151,6 +157,7 @@ const computedColumns = computed(() => {
       <q-table
         class="full-height-table"
         ref="tableRef"
+        s
         flat
         bordered
         square
@@ -163,6 +170,7 @@ const computedColumns = computed(() => {
         :columns="computedColumns"
         :rows="rows"
         :rows-per-page-options="[10, 25, 50]"
+        :style="{ height: tableHeight }"
         @request="fetchItems"
         binary-state-sort
       >

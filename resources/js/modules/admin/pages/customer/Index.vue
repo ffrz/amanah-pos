@@ -6,13 +6,16 @@ import { check_role, getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
 import { formatNumber } from "@/helpers/formatter";
 import LongTextView from "@/components/LongTextView.vue";
-import { useTableHeight } from "@/composables/useTableHeight";
+import useTableHeight from "@/composables/useTableHeight";
 
 const title = "Pelanggan";
 const $q = useQuasar();
 const showFilter = ref(false);
 const rows = ref([]);
 const loading = ref(true);
+const tableRef = ref(null);
+const filterToolbarRef = ref(null);
+const tableHeight = useTableHeight(filterToolbarRef);
 const filter = reactive({
   search: "",
   status: "active",
@@ -92,6 +95,7 @@ const fetchItems = (props = null) => {
     rows,
     url: route("admin.customer.data"),
     loading,
+    tableRef,
   });
 };
 
@@ -106,9 +110,6 @@ const computedColumns = computed(() => {
     (col) => col.name === "username" || col.name === "action"
   );
 });
-
-const filterToolbarRef = ref(null);
-const tableHeight = useTableHeight(filterToolbarRef);
 </script>
 
 <template>

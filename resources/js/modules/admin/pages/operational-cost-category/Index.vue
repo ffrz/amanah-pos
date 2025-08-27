@@ -1,19 +1,25 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from "vue";
-import { router, usePage } from "@inertiajs/vue3";
+import { router } from "@inertiajs/vue3";
 import { handleDelete, handleFetchItems } from "@/helpers/client-req-handler";
 import { check_role, getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
+import useTableHeight from "@/composables/useTableHeight";
 
 const title = "Kategori Biaya Operasional";
 const $q = useQuasar();
 const showFilter = ref(false);
 const rows = ref([]);
 const loading = ref(true);
+const tableRef = ref(null);
+const filterToolbarRef = ref(null);
+const tableHeight = useTableHeight(filterToolbarRef);
+
 const filter = reactive({
   search: "",
   ...getQueryParams(),
 });
+
 const pagination = ref({
   page: 1,
   rowsPerPage: 10,
@@ -21,6 +27,7 @@ const pagination = ref({
   sortBy: "name",
   descending: false,
 });
+
 const columns = [
   {
     name: "name",
@@ -61,11 +68,8 @@ const fetchItems = (props = null) => {
     rows,
     url: route("admin.operational-cost-category.data"),
     loading,
+    tableRef,
   });
-};
-
-const onFilterChange = () => {
-  fetchItems();
 };
 
 const computedColumns = computed(() => {
@@ -94,7 +98,7 @@ const computedColumns = computed(() => {
       />
     </template>
     <template #header v-if="showFilter">
-      <q-toolbar class="filter-bar">
+      <q-toolbar class="filter-bar" ref="filterToolbarRef">
         <div class="row q-col-gutter-xs items-center q-pa-sm full-width">
           <q-input
             class="col"
@@ -114,7 +118,9 @@ const computedColumns = computed(() => {
     </template>
     <div class="q-pa-sm">
       <q-table
+        ref="tableRef"
         class="full-height-table"
+        :style="{ height: tableHeight }"
         flat
         bordered
         square
@@ -135,7 +141,9 @@ const computedColumns = computed(() => {
         </template>
         <template v-slot:no-data="{ icon, message, filter }">
           <div class="full-width row flex-center text-grey-8 q-gutter-sm">
-            <span>{{ message }} {{ filter ? " with term " + filter : "" }}</span>
+            <span
+              >{{ message }} {{ filter ? " with term " + filter : "" }}</span
+            >
           </div>
         </template>
         <template v-slot:body="props">
@@ -143,7 +151,9 @@ const computedColumns = computed(() => {
             <q-td key="name" :props="props" class="wrap-column">
               {{ props.row.name }}
               <template v-if="!$q.screen.gt.sm">
-                <div v-if="props.row.description" class="text-grey-8"><q-icon name="description" /> {{ props.row.description }}</div>
+                <div v-if="props.row.description" class="text-grey-8">
+                  <q-icon name="description" /> {{ props.row.description }}
+                </div>
               </template>
             </q-td>
             <q-td key="description" :props="props" class="wrap-column">
@@ -190,7 +200,10 @@ const computedColumns = computed(() => {
                         v-close-popup
                         @click.stop="
                           router.get(
-                            route('admin.operational-cost-category.edit', props.row.id)
+                            route(
+                              'admin.operational-cost-category.edit',
+                              props.row.id
+                            )
                           )
                         "
                       >

@@ -8,9 +8,12 @@ import { useProductCategoryFilter } from "@/composables/useProductCategoryFilter
 import { useSupplierFilter } from "@/composables/useSupplierFilter";
 import { formatNumber } from "@/helpers/formatter";
 import { createOptions } from "@/helpers/options";
+import useTableHeight from "@/composables/useTableHeight";
 
 const page = usePage();
-
+const tableRef = ref(null);
+const filterToolbarRef = ref(null);
+const tableHeight = useTableHeight(filterToolbarRef);
 const showCostColumn = ref(false);
 
 const types = [
@@ -105,6 +108,7 @@ const fetchItems = (props = null) => {
     rows,
     url: route("admin.product.data"),
     loading,
+    tableRef,
   });
 };
 
@@ -164,42 +168,39 @@ const computedColumns = computed(() => {
       />
     </template>
     <template #header v-if="showFilter">
-      <q-toolbar class="filter-bar">
+      <q-toolbar class="filter-bar" ref="filterToolbarRef">
         <div class="row q-col-gutter-xs items-center q-pa-sm full-width">
           <q-select
             v-model="filter.type"
-            class="custom-select col-xs-12 col-sm-2"
+            class="custom-select col-xs-4 col-sm-2"
             :options="types"
             label="Jenis"
             dense
             map-options
             emit-value
             outlined
-            style="min-width: 150px"
             @update:model-value="onFilterChange"
           />
           <q-select
             v-model="filter.status"
-            class="custom-select col-xs-12 col-sm-2"
+            class="custom-select col-xs-4 col-sm-2"
             :options="statuses"
             label="Status"
             dense
             map-options
             emit-value
             outlined
-            style="min-width: 150px"
             @update:model-value="onFilterChange"
           />
           <q-select
             v-model="filter.stock_status"
-            class="custom-select col-xs-12 col-sm-2"
+            class="custom-select col-xs-4 col-sm-2"
             :options="stock_statuses"
             label="Status Stok"
             dense
             map-options
             emit-value
             outlined
-            style="min-width: 150px"
             @update:model-value="onFilterChange"
           />
           <q-select
@@ -252,6 +253,7 @@ const computedColumns = computed(() => {
     </template>
     <div class="q-pa-sm">
       <q-table
+        ref="tableRef"
         class="full-height-table"
         flat
         bordered
@@ -265,6 +267,7 @@ const computedColumns = computed(() => {
         :columns="computedColumns"
         :rows="rows"
         :rows-per-page-options="[10, 25, 50]"
+        :style="{ height: tableHeight }"
         @request="fetchItems"
         binary-state-sort
       >

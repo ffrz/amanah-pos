@@ -11,7 +11,7 @@ import {
 } from "@/helpers/formatter";
 import { createMonthOptions, createYearOptions } from "@/helpers/options";
 import { getCurrentMonth, getCurrentYear } from "@/helpers/datetime";
-import { useTableHeight } from "@/composables/useTableHeight";
+import useTableHeight from "@/composables/useTableHeight";
 
 const title = "Riwayat Transaksi";
 const $q = useQuasar();
@@ -21,6 +21,10 @@ const loading = ref(true);
 const currentYear = getCurrentYear();
 const yearOptions = createYearOptions(currentYear - 2, currentYear, true, true);
 const monthOptions = createMonthOptions(true);
+
+const tableRef = ref(null);
+const filterToolbarRef = ref(null);
+const tableHeight = useTableHeight(filterToolbarRef);
 
 const filter = reactive({
   search: "",
@@ -62,6 +66,7 @@ const fetchItems = (props = null) => {
     rows,
     url: route("customer.wallet-transaction.data"),
     loading,
+    tableRef,
   });
 };
 
@@ -88,9 +93,6 @@ watch(
 const onRowClick = (row) => {
   alert(row);
 };
-
-const filterToolbarRef = ref(null);
-const tableHeight = useTableHeight(filterToolbarRef);
 </script>
 
 <template>
@@ -108,7 +110,7 @@ const tableHeight = useTableHeight(filterToolbarRef);
       />
     </template>
     <template #header v-if="showFilter">
-      <q-toolbar class="filter-bar" ref="filterBarRef">
+      <q-toolbar class="filter-bar" ref="filterToolbarRef">
         <div class="row q-col-gutter-xs items-center q-pa-sm full-width">
           <q-select
             v-model="filter.year"
@@ -152,14 +154,11 @@ const tableHeight = useTableHeight(filterToolbarRef);
     </template>
     <div class="q-pa-sm">
       <q-table
-        :style="{ height: tableHeight }"
-        flat
-        bordered
-        square
-        color="primary"
+        ref="tableRef"
+        class="full-height-table"
+        v-model:pagination="pagination"
         row-key="id"
         virtual-scroll
-        v-model:pagination="pagination"
         :filter="filter.search"
         :loading="loading"
         :columns="computedColumns"
@@ -168,6 +167,11 @@ const tableHeight = useTableHeight(filterToolbarRef);
         @request="fetchItems"
         binary-state-sort
         :pagination="{ rowsPerPage: 0 }"
+        :style="{ height: tableHeight }"
+        color="primary"
+        flat
+        bordered
+        square
       >
         <template v-slot:loading>
           <q-inner-loading showing color="red" />

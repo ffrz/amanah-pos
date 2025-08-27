@@ -8,11 +8,17 @@ import dayjs from "dayjs";
 import { formatNumber } from "@/helpers/formatter";
 import { createMonthOptions, createYearOptions } from "@/helpers/options";
 import { useCostCategoryFilter } from "@/composables/useCostCategoryOptions";
+import useTableHeight from "@/composables/useTableHeight";
+import LongTextView from "@/components/LongTextView.vue";
 
 const title = "Biaya Operasional";
 const page = usePage();
 const $q = useQuasar();
 const showFilter = ref(false);
+const tableRef = ref(null);
+const filterToolbarRef = ref(null);
+const tableHeight = useTableHeight(filterToolbarRef);
+
 const rows = ref([]);
 const loading = ref(true);
 const currentYear = new Date().getFullYear();
@@ -96,6 +102,7 @@ const fetchItems = (props = null) => {
     rows,
     url: route("admin.operational-cost.data"),
     loading,
+    tableRef,
   });
 };
 
@@ -138,7 +145,7 @@ watch(
       />
     </template>
     <template #header v-if="showFilter">
-      <q-toolbar class="filter-bar">
+      <q-toolbar class="filter-bar" ref="filterToolbarRef">
         <div class="row q-col-gutter-xs items-center q-pa-sm full-width">
           <q-select
             v-model="filter.year"
@@ -192,6 +199,7 @@ watch(
     </template>
     <div class="q-pa-sm">
       <q-table
+        ref="tableRef"
         class="full-height-table"
         flat
         bordered
@@ -205,6 +213,7 @@ watch(
         :columns="computedColumns"
         :rows="rows"
         :rows-per-page-options="[10, 25, 50]"
+        :style="{ height: tableHeight }"
         @request="fetchItems"
         binary-state-sort
       >
@@ -227,7 +236,7 @@ watch(
                 <div>{{ dayjs(props.row.date).format("DD/MM/YYYY") }}</div>
               </div>
               <template v-if="!$q.screen.gt.sm">
-                <div><q-icon name="notes" /> {{ props.row.description }}</div>
+                <LongTextView icon="notes" :text="props.row.notes" />
                 <div v-if="props.row.category">
                   <q-icon name="category" /> {{ props.row.category.name }}
                 </div>

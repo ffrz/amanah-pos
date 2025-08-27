@@ -238,8 +238,8 @@ table.detail tr:nth-child(even) td {
   text-overflow: ellipsis;
 }
 
-.full-height-table tbody tr:last-child td {
-  border-bottom: 1px solid #eee;
+.full-height-table .q-virtual-scroll__content tr:last-child td {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
 }
 
 .q-table th {

@@ -1,6 +1,6 @@
 <script setup>
 import CompanyInfoForm from "./partials/CompanyInfoForm.vue";
-const title = "Profil Koperasi";
+const title = "Profil Maqsof";
 </script>
 
 <template>

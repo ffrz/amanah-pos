@@ -11,13 +11,17 @@ import {
   formatNumber,
   plusMinusSymbol,
 } from "@/helpers/formatter";
+import useTableHeight from "@/composables/useTableHeight";
+import LongTextView from "@/components/LongTextView.vue";
 
 const title = "Transaksi Dompet Santri";
 const $q = useQuasar();
 const showFilter = ref(false);
 const rows = ref([]);
 const loading = ref(true);
-
+const tableRef = ref(null);
+const filterToolbarRef = ref(null);
+const tableHeight = useTableHeight(filterToolbarRef);
 const currentYear = new Date().getFullYear();
 const currentMonth = new Date().getMonth() + 1;
 
@@ -99,6 +103,7 @@ const fetchItems = (props = null) => {
     rows,
     url: route("admin.customer-wallet-transaction.data"),
     loading,
+    tableRef,
   });
 };
 
@@ -143,7 +148,7 @@ watch(
       />
     </template>
     <template #header v-if="showFilter">
-      <q-toolbar class="filter-bar">
+      <q-toolbar class="filter-bar" ref="filterToolbarRef">
         <div class="row q-col-gutter-xs items-center q-pa-sm full-width">
           <q-select
             v-model="filter.year"
@@ -186,6 +191,8 @@ watch(
     </template>
     <div class="q-pa-sm">
       <q-table
+        ref="tableRef"
+        :style="{ height: tableHeight }"
         class="full-height-table"
         flat
         bordered
@@ -217,7 +224,7 @@ watch(
           <q-tr :props="props">
             <q-td key="datetime" :props="props" class="wrap-column">
               <div>
-                #: {{ props.row.id }} <br />
+                #: {{ props.row.formatted_id }} <br />
                 <q-icon name="calendar_today" />
                 {{ formatDateTime(props.row.datetime) }} ({{
                   formatDateTimeFromNow(props.row.datetime)
@@ -232,11 +239,12 @@ watch(
                 }}
               </div>
               <template v-if="!$q.screen.gt.sm">
-                <div>
-                  <q-icon name="person" class="inline-icon" />
-                  {{ props.row.customer.username }} -
-                  {{ props.row.customer.name }}
-                </div>
+                <LongTextView
+                  icon="person"
+                  :text="
+                    props.row.customer.username + ' -' + props.row.customer.name
+                  "
+                />
                 <div>
                   <q-icon name="money" class="inline-icon" /> Rp.
                   {{
@@ -248,17 +256,18 @@ watch(
                     {{ props.row.type_label }}</q-badge
                   >
                 </div>
-                <div>
-                  <q-icon name="notes" class="inline-icon" />
-                  {{ props.row.notes }}
-                </div>
+                <LongTextView :text="props.row.notes" icon="notes" />
               </template>
             </q-td>
             <q-td key="customer" :props="props">
-              {{ props.row.customer.username }} - {{ props.row.customer.name }}
+              <LongTextView
+                :text="
+                  props.row.customer.username + ' -' + props.row.customer.name
+                "
+              />
             </q-td>
             <q-td key="notes" :props="props">
-              {{ props.row.notes }}
+              <LongTextView :text="props.row.notes" />
             </q-td>
             <q-td key="amount" :props="props" style="text-align: right">
               {{

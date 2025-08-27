@@ -24,7 +24,7 @@ const submit = () =>
   >
     <q-card flat bordered square class="col">
       <q-card-section>
-        <div class="text-subtitle1 q-my-xs">Profil Koperasi</div>
+        <div class="text-subtitle1 q-my-xs">Profil Maqsof</div>
         <p class="text-caption text-grey-9">Perbarui profil koperasi.</p>
         <q-input
           ref="nameInputRef"
@@ -54,7 +54,7 @@ const submit = () =>
           autogrow
           maxlength="200"
           v-model.trim="form.address"
-          label="Alamat Koperasi"
+          label="Alamat"
           :disable="form.processing"
           lazy-rules
           :error="!!form.errors.address"

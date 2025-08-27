@@ -4,6 +4,7 @@ import { router, usePage } from "@inertiajs/vue3";
 import { handleFetchItems, handleDelete } from "@/helpers/client-req-handler";
 import { createOptions } from "@/helpers/options";
 import { useQuasar } from "quasar";
+import useTableHeight from "@/composables/useTableHeight";
 
 const roles = [
   { value: "all", label: "Semua" },
@@ -79,6 +80,7 @@ const fetchItems = (props = null) =>
     loading,
     filter,
     url: route("admin.user.data"),
+    tableRef,
   });
 
 const deleteItem = (row) =>
@@ -97,6 +99,10 @@ const computedColumns = computed(() => {
 });
 
 const onRowClicked = (row) => router.get(route("admin.user.detail", row.id));
+
+const tableRef = ref(null);
+const filterToolbarRef = ref(null);
+const tableHeight = useTableHeight(filterToolbarRef);
 </script>
 
 <template>
@@ -119,7 +125,7 @@ const onRowClicked = (row) => router.get(route("admin.user.detail", row.id));
       />
     </template>
     <template #header v-if="showFilter">
-      <q-toolbar class="filter-bar">
+      <q-toolbar class="filter-bar" ref="filterToolbarRef">
         <div class="row q-col-gutter-xs items-center q-pa-sm full-width">
           <q-select
             v-model="filter.role"
@@ -163,7 +169,9 @@ const onRowClicked = (row) => router.get(route("admin.user.detail", row.id));
     </template>
     <div class="q-pa-sm">
       <q-table
+        ref="tableRef"
         class="full-height-table"
+        :style="{ height: tableHeight }"
         flat
         bordered
         square
