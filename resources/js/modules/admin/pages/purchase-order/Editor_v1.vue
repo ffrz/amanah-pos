@@ -57,6 +57,7 @@ const submit = () =>
                 v-model.trim="form.formatted_id"
                 label="ID Order"
                 readonly
+                hide-bottom-space
               />
               <date-time-picker
                 v-model="form.datetime"
@@ -73,6 +74,7 @@ const submit = () =>
                 :error="!!form.errors.status"
                 :disable="form.processing"
                 :errorMessage="form.errors.status"
+                hide-bottom-space
               >
               </q-select>
               <q-select
@@ -84,6 +86,7 @@ const submit = () =>
                 :error="!!form.errors.payment_status"
                 :disable="form.processing"
                 :errorMessage="form.errors.payment_status"
+                hide-bottom-space
               >
               </q-select>
               <q-select
@@ -95,6 +98,7 @@ const submit = () =>
                 :error="!!form.errors.delivery_status"
                 :disable="form.processing"
                 :errorMessage="form.errors.delivery_status"
+                hide-bottom-space
               >
               </q-select>
               <!-- <div class="full-width"> -->
@@ -112,6 +116,7 @@ const submit = () =>
                 @filter="filterSupplierFn"
                 :error="!!form.errors.supplier_id"
                 :disable="form.processing"
+                hide-bottom-space
               >
                 <template v-slot:no-option>
                   <q-item>
@@ -145,6 +150,7 @@ const submit = () =>
                 :rules="[
                   (val) => (val && val.length > 0) || 'Catatan harus diisi.',
                 ]"
+                hide-bottom-space
               />
             </q-card-section>
             <q-card-section class="q-gutter-sm">

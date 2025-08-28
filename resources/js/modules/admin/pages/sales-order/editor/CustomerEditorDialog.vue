@@ -41,6 +41,7 @@ const handleSave = () => {
           counter
           maxlength="200"
           class="q-mt-md"
+          hide-bottom-space
         />
       </q-card-section>
       <q-card-actions align="right">

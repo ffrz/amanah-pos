@@ -63,6 +63,7 @@ const submit = () =>
                 :rules="[
                   (val) => (val && val.length > 0) || 'Nama harus diisi.',
                 ]"
+                hide-bottom-space
               />
               <q-select
                 v-model="form.type"
@@ -72,6 +73,7 @@ const submit = () =>
                 emit-value
                 :error="!!form.errors.type"
                 :disable="form.processing"
+                hide-bottom-space
               >
               </q-select>
               <template v-if="form.type == 'bank'">
@@ -82,6 +84,7 @@ const submit = () =>
                   :error="!!form.errors.bank"
                   :disable="form.processing"
                   :error-message="form.errors.bank"
+                  hide-bottom-space
                 />
                 <q-input
                   v-model.trim="form.number"
@@ -90,6 +93,7 @@ const submit = () =>
                   :error="!!form.errors.number"
                   :disable="form.processing"
                   :error-message="form.errors.number"
+                  hide-bottom-space
                 />
                 <q-input
                   v-model.trim="form.holder"
@@ -98,6 +102,7 @@ const submit = () =>
                   :error="!!form.errors.holder"
                   :disable="form.processing"
                   :error-message="form.errors.holder"
+                  hide-bottom-space
                 />
               </template>
               <LocaleNumberInput
@@ -137,6 +142,7 @@ const submit = () =>
                 :disable="form.processing"
                 :error="!!form.errors.notes"
                 :error-message="form.errors.notes"
+                hide-bottom-space
               />
             </q-card-section>
             <q-card-section class="q-gutter-sm">

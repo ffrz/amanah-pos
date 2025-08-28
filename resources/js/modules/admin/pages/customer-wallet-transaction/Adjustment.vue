@@ -85,6 +85,7 @@ const submit = () =>
                 @filter="filterCustomersFn"
                 :error="!!form.errors.customer_id"
                 :disable="form.processing"
+                hide-bottom-space
               >
                 <template v-slot:no-option>
                   <q-item>
@@ -130,6 +131,7 @@ const submit = () =>
                 :rules="[
                   (val) => (val && val.length > 0) || 'Catatan harus diisi.',
                 ]"
+                hide-bottom-space
               />
             </q-card-section>
             <q-card-section class="q-gutter-sm">

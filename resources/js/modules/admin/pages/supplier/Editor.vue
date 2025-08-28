@@ -59,6 +59,7 @@ const submit = () => handleSubmit({ form, url: route("admin.supplier.save") });
                 :rules="[
                   (val) => (val && val.length > 0) || 'Nama harus diisi.',
                 ]"
+                hide-bottom-space
               />
               <q-input
                 v-model.trim="form.phone"
@@ -68,6 +69,7 @@ const submit = () => handleSubmit({ form, url: route("admin.supplier.save") });
                 :disable="form.processing"
                 :error="!!form.errors.phone"
                 :error-message="form.errors.phone"
+                hide-bottom-space
               />
               <q-input
                 v-model.trim="form.address"
@@ -80,6 +82,7 @@ const submit = () => handleSubmit({ form, url: route("admin.supplier.save") });
                 :disable="form.processing"
                 :error="!!form.errors.address"
                 :error-message="form.errors.address"
+                hide-bottom-space
               />
               <q-input
                 v-model.trim="form.bank_account_number"
@@ -89,6 +92,7 @@ const submit = () => handleSubmit({ form, url: route("admin.supplier.save") });
                 :disable="form.processing"
                 :error="!!form.errors.bank_account_number"
                 :error-message="form.errors.bank_account_number"
+                hide-bottom-space
               />
               <q-input
                 v-model.trim="form.return_address"
@@ -101,6 +105,7 @@ const submit = () => handleSubmit({ form, url: route("admin.supplier.save") });
                 :disable="form.processing"
                 :error="!!form.errors.return_address"
                 :error-message="form.errors.return_address"
+                hide-bottom-space
               />
               <div style="margin-left: -10px">
                 <q-checkbox

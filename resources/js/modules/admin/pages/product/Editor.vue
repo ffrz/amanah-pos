@@ -79,6 +79,7 @@ const margin = computed(() => {
                 label="Jenis"
                 map-options
                 emit-value
+                hide-bottom-space
               />
               <q-input
                 v-model.trim="form.name"
@@ -90,6 +91,7 @@ const margin = computed(() => {
                 :rules="[
                   (val) => (val && val.length > 0) || 'Nama harus diisi.',
                 ]"
+                hide-bottom-space
               />
               <q-input
                 v-model.trim="form.description"
@@ -102,6 +104,7 @@ const margin = computed(() => {
                 :disable="form.processing"
                 :error="!!form.errors.description"
                 :error-message="form.errors.description"
+                hide-bottom-space
               />
               <q-select
                 v-model="form.category_id"
@@ -117,6 +120,7 @@ const margin = computed(() => {
                 option-value="value"
                 :error="!!form.errors.category_id"
                 :disable="form.processing"
+                hide-bottom-space
               >
                 <template v-slot:no-option>
                   <q-item>
@@ -138,6 +142,7 @@ const margin = computed(() => {
                 option-value="value"
                 :error="!!form.errors.supplier_id"
                 :disable="form.processing"
+                hide-bottom-space
               >
                 <template v-slot:no-option>
                   <q-item>
@@ -161,6 +166,7 @@ const margin = computed(() => {
                 :error="!!form.errors.barcode"
                 :disable="form.processing"
                 :error-message="form.errors.barcode"
+                hide-bottom-space
               />
               <q-input
                 v-model.trim="form.uom"
@@ -169,6 +175,7 @@ const margin = computed(() => {
                 :error="!!form.errors.uom"
                 :disable="form.processing"
                 :error-message="form.errors.uom"
+                hide-bottom-space
               />
               <LocaleNumberInput
                 v-model:modelValue="form.stock"
@@ -230,6 +237,7 @@ const margin = computed(() => {
                 :disable="form.processing"
                 :error="!!form.errors.notes"
                 :error-message="form.errors.notes"
+                hide-bottom-space
               />
             </q-card-section>
             <q-card-section class="q-gutter-sm">

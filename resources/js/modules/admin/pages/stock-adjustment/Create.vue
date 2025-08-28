@@ -95,6 +95,7 @@ const computedColumns = computed(() => {
                 map-options
                 emit-value
                 :error-message="form.errors.type"
+                hide-bottom-space
               />
               <q-input
                 v-model.trim="form.notes"
@@ -108,6 +109,7 @@ const computedColumns = computed(() => {
                 :error="!!form.errors.notes"
                 :error-message="form.errors.notes"
                 :rules="[]"
+                hide-bottom-space
               />
             </q-card-section>
             <q-card-section>

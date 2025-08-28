@@ -74,6 +74,7 @@ const filterCategories = (val, update) => {
                 @filter="filterCategories"
                 :error="!!form.errors.category_id"
                 :disable="form.processing"
+                hide-bottom-space
               >
                 <template v-slot:no-option>
                   <q-item>
@@ -97,6 +98,7 @@ const filterCategories = (val, update) => {
                 :rules="[
                   (val) => (val && val.length > 0) || 'Deskripsi harus diisi.',
                 ]"
+                hide-bottom-space
               />
               <LocaleNumberInput
                 v-model:modelValue="form.amount"
@@ -118,6 +120,7 @@ const filterCategories = (val, update) => {
                 :disable="form.processing"
                 :error="!!form.errors.notes"
                 :error-message="form.errors.notes"
+                hide-bottom-space
               />
             </q-card-section>
             <q-card-section class="q-gutter-sm">

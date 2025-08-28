@@ -341,6 +341,7 @@ const processPayment = () => {
               :error="!!form.errors.notes"
               :error-message="form.errors.notes"
               style="margin-bottom: 16px"
+              hide-bottom-space
             >
               <template v-slot:prepend>
                 <q-icon name="note" />
