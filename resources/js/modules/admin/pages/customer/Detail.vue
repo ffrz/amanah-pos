@@ -194,11 +194,18 @@ const computedColumns = computed(() => {
                       <td>
                         {{
                           page.props.data.last_login_datetime
-                            ? $dayjs(
-                                new Date(page.props.data.last_login_datetime)
-                              ).format("DD MMMM YY HH:mm:ss")
+                            ? formatDateTime(
+                                page.props.data.last_login_datetime
+                              )
                             : "Belum pernah login"
                         }}
+                        <span class="text-grey-8"
+                          >({{
+                            formatDateTimeFromNow(
+                              page.props.data.last_login_datetime
+                            )
+                          }})</span
+                        >
                       </td>
                     </tr>
                     <tr v-if="page.props.data.last_activity_datetime">
@@ -206,11 +213,17 @@ const computedColumns = computed(() => {
                       <td>:</td>
                       <td>
                         {{
-                          $dayjs(
-                            new Date(page.props.data.last_activity_datetime)
-                          ).format("DD MMMM YY HH:mm:ss")
+                          formatDateTime(page.props.data.last_activity_datetime)
                         }}
-                        <br />{{ page.props.data.last_activity_description }}
+                        <span class="text-grey-8"
+                          >({{
+                            formatDateTimeFromNow(
+                              page.props.data.last_activity_datetime
+                            )
+                          }}) <br />{{
+                            page.props.data.last_activity_description
+                          }}</span
+                        >
                       </td>
                     </tr>
                   </tbody>
@@ -254,13 +267,8 @@ const computedColumns = computed(() => {
                     <q-tr :props="props">
                       <q-td key="id" :props="props">
                         <div>
-                          <b>#{{ props.row.id }}</b
-                          >-
-                          {{
-                            $dayjs(new Date(props.row.created_at)).format(
-                              "DD/MM/YYYY hh:mm:ss"
-                            )
-                          }}
+                          <b>#{{ props.row.formatted_id }}</b> -
+                          {{ formatDateTime(props.row.datetime) }}
                         </div>
                         <q-badge size="xs"
                           ><q-icon name="category" />
