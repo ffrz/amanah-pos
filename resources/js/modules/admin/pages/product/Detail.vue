@@ -4,7 +4,7 @@ import { getQueryParams } from "@/helpers/utils";
 import { router, usePage } from "@inertiajs/vue3";
 import { useQuasar } from "quasar";
 import { computed, onMounted, reactive, ref } from "vue";
-import { formatNumber } from "@/helpers/formatter";
+import { formatDateTime, formatNumber } from "@/helpers/formatter";
 
 const page = usePage();
 const title = `Rincian Produk #${page.props.data.id}`;
@@ -181,48 +181,38 @@ const computedColumns = computed(() => {
                       <td>Dibuat Oleh</td>
                       <td>:</td>
                       <td>
-                        <template v-if="page.props.data.created_by">
+                        <template v-if="page.props.data.creator">
                           <i-link
                             :href="
                               route('admin.user.detail', {
-                                id: page.props.data.created_by,
+                                id: page.props.data.creator,
                               })
                             "
                           >
-                            {{ page.props.data.created_by.username }} -
-                            {{ page.props.data.created_by.name }}
+                            {{ page.props.data.creator.username }}
                           </i-link>
                           -
                         </template>
-                        {{
-                          $dayjs(new Date(page.props.data.created_at)).format(
-                            "dddd, D MMMM YYYY pukul HH:mm:ss"
-                          )
-                        }}
+                        {{ formatDateTime(page.props.data.created_at) }}
                       </td>
                     </tr>
-                    <tr v-if="!!page.props.data.updated_at">
+                    <tr v-if="!!page.props.data.updater">
                       <td>Diperbarui oleh</td>
                       <td>:</td>
                       <td>
-                        <template v-if="page.props.data.updated_by">
+                        <template v-if="page.props.data.updater">
                           <i-link
                             :href="
                               route('admin.user.detail', {
-                                id: page.props.data.updated_by,
+                                id: page.props.data.updater,
                               })
                             "
                           >
-                            {{ page.props.data.updated_by.username }} -
-                            {{ page.props.data.updated_by.name }}
+                            {{ page.props.data.updater.username }}
                           </i-link>
                           -
                         </template>
-                        {{
-                          $dayjs(new Date(page.props.data.updated_at)).format(
-                            "dddd, D MMMM YYYY pukul HH:mm:ss"
-                          )
-                        }}
+                        {{ formatDateTime(page.props.data.updated_at) }}
                       </td>
                     </tr>
                   </tbody>
@@ -297,7 +287,6 @@ const computedColumns = computed(() => {
                                   page.props.data.cost) /
                                   page.props.data.price) *
                                   100,
-                                "id-ID",
                                 2
                               )
                             : 0

@@ -27,8 +27,7 @@ class SaveProductRequest extends FormRequest
     {
         // Mendapatkan instance produk jika ini adalah request update (melalui route model binding)
         // Jika ini adalah request store, $product akan null
-        $product = $this->route('product');
-        $productId = $product ? $product->id : null;
+        $productId = $this->input('id');
 
         return [
             'category_id' => ['nullable', Rule::exists('product_categories', 'id')],

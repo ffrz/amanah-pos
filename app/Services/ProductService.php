@@ -101,7 +101,7 @@ class ProductService
      */
     public function findProductById(int $id): ?Product
     {
-        return Product::with(['category', 'supplier', 'createdBy', 'updatedBy'])->find($id);
+        return Product::with(['category', 'supplier', 'creator', 'updater'])->find($id);
     }
 
     /**
