@@ -12,19 +12,13 @@ class ProductCategorySeeder extends Seeder
      */
     public function run(): void
     {
-        DB::table('product_categories')->insert([
-            [
-                'name' => 'Bahan Bakar',
-                'description' => 'Bahan bakar untuk mesin cuci',
-            ],
-            [
-                'name' => 'Bahan Pembersih',
-                'description' => 'Bahan pembersih untuk mesin cuci',
-            ],
-            [
-                'name' => 'Bahan Pelumas',
-                'description' => 'Bahan pelumas untuk mesin cuci',
-            ],
-        ]);
+        $categories = [];
+        for ($i = 1; $i <= 20; $i++) {
+            $categories[] = [
+                'name' => "Kategori $i",
+                'description' => "Deskripsi kategori $i",
+            ];
+        }
+        DB::table('product_categories')->insert($categories);
     }
 }

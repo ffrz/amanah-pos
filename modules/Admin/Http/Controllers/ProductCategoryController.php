@@ -26,7 +26,8 @@ class ProductCategoryController extends Controller
 
         if (!empty($filter['search'])) {
             $q->where(function ($q) use ($filter) {
-                $q->where('name', 'like', '%' . $filter['search'] . '%');
+                $q->where('name', 'like', '%' . $filter['search'] . '%')
+                    ->orWhere('description', 'like', '%' . $filter['search'] . '%');
             });
         }
 

@@ -8,9 +8,9 @@ const _scrollToFirstError = () => {
   const firstErrorKey = Object.keys(page.props.errors)[0];
   if (firstErrorKey) {
     setTimeout(() => {
-      const errorElement = document.querySelector('.q-field--error input');
+      const errorElement = document.querySelector(".q-field--error input");
       if (errorElement) {
-        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        errorElement.scrollIntoView({ behavior: "smooth", block: "center" });
         errorElement.focus();
       }
     }, 0);
@@ -21,35 +21,35 @@ export function handleSubmit(data) {
   const { form, url } = data;
 
   form.clearErrors();
-  form.post(url,
-    {
-      preserveScroll: true,
-      onSuccess: (response) => {
-        // Notify.create({
-        //   message: response.message,
-        //   icon: "info",
-        //   color: "positive",
-        //   actions: [
-        //     { icon: "close", color: "white", round: true, dense: true },
-        //   ],
-        // });
-      },
-      onError: (error) => {
-        _scrollToFirstError();
-        if (!error || typeof (error.message) !== 'string' || error.message.length === 0)
-          return;
+  form.post(url, {
+    preserveScroll: true,
+    onSuccess: (response) => {
+      // Notify.create({
+      //   message: response.message,
+      //   icon: "info",
+      //   color: "positive",
+      //   actions: [
+      //     { icon: "close", color: "white", round: true, dense: true },
+      //   ],
+      // });
+    },
+    onError: (error) => {
+      _scrollToFirstError();
+      if (
+        !error ||
+        typeof error.message !== "string" ||
+        error.message.length === 0
+      )
+        return;
 
-        Notify.create({
-          message: error.message,
-          icon: "info",
-          color: "negative",
-          actions: [
-            { icon: "close", color: "white", round: true, dense: true },
-          ],
-        });
-      },
-    }
-  );
+      Notify.create({
+        message: error.message,
+        icon: "info",
+        color: "negative",
+        actions: [{ icon: "close", color: "white", round: true, dense: true }],
+      });
+    },
+  });
 }
 
 export function handlePost(options) {
@@ -98,6 +98,8 @@ export function handleFetchItems(options) {
 
   let source = props ? props.pagination : pagination.value;
 
+  // const filterString = filter ? JSON.stringify(filter) : null;
+
   let params = {
     page: source.page,
     per_page: source.rowsPerPage,
@@ -105,6 +107,30 @@ export function handleFetchItems(options) {
     order_type: source.descending ? "desc" : "asc",
     filter: filter,
   };
+  // Gunakan pathname sebagai bagian dari kunci localStorage
+  // const localStorageKey = `tableParams_${window.location.pathname}`;
+
+  // // Simpan semua parameter ke localStorage, kecuali page yang akan disimpan di URL
+  // localStorage.setItem(
+  //   localStorageKey,
+  //   JSON.stringify({
+  //     per_page: params.per_page,
+  //     order_by: params.order_by,
+  //     order_type: params.order_type,
+  //     filter: params.filter,
+  //   })
+  // );
+
+  // // Perbarui URL dengan page dan filter yang di-stringified
+  // const searchParams = new URLSearchParams({
+  //   page: source.page,
+  //   filter: filter ? JSON.stringify(filter) : "",
+  // });
+  // window.history.pushState(
+  //   {},
+  //   "",
+  //   `${window.location.pathname}?${searchParams}`
+  // );
 
   loading.value = true;
 
@@ -124,7 +150,8 @@ export function handleFetchItems(options) {
       loading.value = false;
       nextTick(() => {
         if (!tableRef || !tableRef.value) return;
-        const scrollableElement = tableRef.value.$el.querySelector('.q-table__middle');
+        const scrollableElement =
+          tableRef.value.$el.querySelector(".q-table__middle");
         if (!scrollableElement) return;
         scrollableElement.scrollTop = 0;
       });

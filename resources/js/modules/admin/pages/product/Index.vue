@@ -89,6 +89,12 @@ let columns = [
 ];
 
 onMounted(() => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const pageFromUrl = urlParams.get("page");
+
+  if (pageFromUrl) {
+    pagination.value.page = parseInt(pageFromUrl);
+  }
   fetchItems();
 });
 
@@ -137,6 +143,11 @@ const computedColumns = computed(() => {
     (col) => col.name === "name" || col.name === "action"
   );
 });
+
+const goToDetail = (props) => {
+  console.log(window.location.href);
+  router.get(route("admin.product.detail", props.row.id));
+};
 </script>
 
 <template>
@@ -281,14 +292,34 @@ const computedColumns = computed(() => {
             >
           </div>
         </template>
+        <template v-slot:header="props">
+          <q-tr :props="props">
+            <q-th auto-width />
+            <q-th v-for="col in props.cols" :key="col.name" :props="props">
+              {{ col.label }}
+            </q-th>
+          </q-tr>
+        </template>
         <template v-slot:body="props">
-          <q-tr
-            :props="props"
-            :class="{ inactive: !props.row.active }"
-            class="cursor-pointer"
-            @click="router.get(route('admin.product.detail', props.row.id))"
-          >
-            <q-td key="name" :props="props" class="wrap-column">
+          <q-tr :props="props" :class="{ inactive: !props.row.active }">
+            <q-td auto-width>
+              <q-btn
+                size="xs"
+                color="grey"
+                round
+                dense
+                @click.prevent="props.expand = !props.expand"
+                :icon="
+                  props.expand ? 'keyboard_arrow_up' : 'keyboard_arrow_down'
+                "
+              />
+            </q-td>
+            <q-td
+              key="name"
+              :props="props"
+              class="wrap-column cursor-pointer"
+              @click="goToDetail(props)"
+            >
               {{ props.row.name }}
               <div v-if="props.row.category_id" class="text-grey-8">
                 <q-icon name="category" />
@@ -404,6 +435,11 @@ const computedColumns = computed(() => {
                   </q-menu>
                 </q-btn>
               </div>
+            </q-td>
+          </q-tr>
+          <q-tr v-show="props.expand" :props="props">
+            <q-td colspan="100%">
+              <q-icon name="notes" /> {{ props.row.description }}
             </q-td>
           </q-tr>
         </template>
