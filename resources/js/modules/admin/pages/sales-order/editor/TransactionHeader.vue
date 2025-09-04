@@ -1,6 +1,7 @@
 <script setup>
 import DigitalClock from "@/components/DigitalClock.vue";
 import { useCustomerFilter } from "@/composables/useCustomerFilter";
+import { formatNumber } from "@/helpers/formatter";
 import { usePage } from "@inertiajs/vue3";
 import { computed, ref } from "vue";
 
@@ -30,7 +31,14 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["update:modelValue"]);
-const customer = ref(null);
+const customer_id = ref(null);
+function getSelectedCustomer() {
+  if (!customer_id.value) return null;
+  const customer = page.props.customers.find(
+    (customer) => customer.id === customer_id.value
+  );
+  return customer;
+}
 </script>
 
 <template>
@@ -38,8 +46,8 @@ const customer = ref(null);
     <div class="col-12 col-sm-6 col-md-4">
       <q-select
         class="custom-select"
-        v-model="customer"
-        label="Santri"
+        v-model="customer_id"
+        label="Pelanggan"
         use-input
         input-debounce="300"
         clearable
@@ -51,10 +59,13 @@ const customer = ref(null);
       >
         <template v-slot:no-option>
           <q-item>
-            <q-item-section>Santri tidak ditemukan</q-item-section>
+            <q-item-section>Pelanggan tidak ditemukan</q-item-section>
           </q-item>
         </template>
       </q-select>
+      <div v-if="customer_id" class="text-grey q-mt-xs">
+        Saldo: Rp. {{ formatNumber(getSelectedCustomer().balance) }}
+      </div>
     </div>
 
     <div v-if="$q.screen.gt.sm" class="col-12 col-md-4 text-center">
@@ -76,6 +87,7 @@ const customer = ref(null);
     </div>
 
     <div
+      v-if="$q.screen.gt.sm"
       class="col-12 col-sm-6 col-md-4"
       :class="$q.screen.gt.sm ? 'text-right' : 'text-center'"
     >

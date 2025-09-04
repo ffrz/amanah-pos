@@ -59,14 +59,13 @@ defineExpose({
       {{ itemCount }} item(s)
     </div>
 
-    <div class="q-py-sm">
+    <div class="q-py-xs">
       <q-input
         ref="barcodeInputRef"
         :model-value="barcode"
         @update:model-value="(val) => $emit('update:barcode', val)"
-        placeholder="<Input Barcode>"
+        placeholder="Qty*Kode*Harga"
         outlined
-        square
         class="col bg-white"
         @keyup.enter="$emit('add-item')"
         :loading="isProcessing"
@@ -79,7 +78,7 @@ defineExpose({
       </q-input>
     </div>
 
-    <div class="q-py-sm">
+    <div class="q-py-xs">
       <q-btn
         class="full-width"
         label="Bayar"

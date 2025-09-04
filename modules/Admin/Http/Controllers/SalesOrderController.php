@@ -5,6 +5,7 @@ namespace Modules\Admin\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\SalesOrder;
 use App\Models\Customer;
+use App\Models\Product;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -79,6 +80,7 @@ class SalesOrderController extends Controller
         return inertia('sales-order/Editor', [
             'data' => $item,
             'customers' => Customer::where('active', '=', true)->orderBy('username', 'asc')->get(),
+            'products' => Product::where('active', '=', true)->orderBy('name', 'asc')->get(),
         ]);
     }
 

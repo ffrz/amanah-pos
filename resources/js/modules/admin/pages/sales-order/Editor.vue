@@ -11,6 +11,7 @@ import ItemListTable from "./editor/ItemsListTable.vue";
 import TransactionSummary from "./editor/TransactionSummary.vue";
 import ConfirmDeleteDialog from "./editor/ConfirmDeleteDialog.vue";
 import CustomerEditorDialog from "./editor/CustomerEditorDialog.vue";
+import { formatNumber } from "@/helpers/formatter";
 
 const title = "Penjualan";
 const $q = useQuasar();
@@ -42,7 +43,7 @@ const showPaymentDialog = ref(false);
 
 // Tambahkan state baru untuk data santri
 const studentName = ref(null);
-const studentWalletBalance = ref(null);
+const walletBalance = ref(null);
 
 const tableColumns = computed(() => {
   if ($q.screen.gt.sm) {
@@ -57,28 +58,14 @@ const tableColumns = computed(() => {
         style: "width: 300px",
       },
       {
-        name: "price",
-        label: "Harga",
-        align: "center",
-        field: "price",
+        name: "subtotal",
+        label: "Subtotal",
+        align: "right",
+        field: "subtotal",
         sortable: false,
         style: "width: 120px",
       },
-      {
-        name: "quantity",
-        label: "Quantity",
-        align: "center",
-        field: "quantity",
-        sortable: false,
-        style: "width: 100px",
-      },
-      {
-        name: "subtotal",
-        label: "SubTotal",
-        align: "center",
-        sortable: false,
-        style: "width: 140px",
-      },
+
       {
         name: "action",
         label: "Action",
@@ -231,15 +218,20 @@ const addItem = async () => {
 };
 
 const confirmRemoveItem = (item) => {
-  itemToDelete.value = item;
-  showDeleteDialog.value = true;
-};
-
-const removeItem = () => {
-  if (itemToDelete.value) {
-    const index = form.items.findIndex(
-      (item) => item.id === itemToDelete.value.id
-    );
+  $q.dialog({
+    title: "Hapus Item",
+    message: `Apakah Anda yakin akan menghapus item${item.barcode}?`,
+    cancel: {
+      label: "Batal",
+      color: "grey",
+    },
+    ok: {
+      label: "Hapus",
+      color: "negative",
+    },
+    persistent: true,
+  }).onOk(() => {
+    const index = form.items.findIndex((data) => data.id === item.id);
     if (index !== -1) {
       const removedItem = form.items.splice(index, 1)[0];
       $q.notify({
@@ -249,8 +241,7 @@ const removeItem = () => {
         icon: "remove_shopping_cart",
       });
     }
-    itemToDelete.value = null;
-  }
+  });
 };
 
 const updateQuantity = (id, newQuantity) => {
@@ -280,18 +271,18 @@ const fetchStudentData = async () => {
     // Misalnya, ambil data dari API:
     // const response = await api.get(`/students/${form.customer_id}`);
     // studentName.value = response.data.name;
-    // studentWalletBalance.value = response.data.wallet_balance;
+    // walletBalance.value = response.data.wallet_balance;
 
     // Untuk demo, kita gunakan data dummy:
     studentName.value =
       form.customer_name === "Pelanggan Umum"
         ? "Pelanggan Umum"
         : "Nama Santri Demo";
-    studentWalletBalance.value = Math.floor(Math.random() * 500000) + 10000;
+    walletBalance.value = Math.floor(Math.random() * 500000) + 10000;
   } catch (error) {
     console.error("Gagal mengambil data santri:", error);
     studentName.value = "Data tidak ditemukan";
-    studentWalletBalance.value = 0;
+    walletBalance.value = 0;
   }
 };
 
@@ -360,25 +351,7 @@ const handlePayment = (method) => {
 
         <div class="row">
           <div class="col-xs-12 col-md-8 q-pa-sm">
-            <q-input
-              v-model="form.notes"
-              type="textarea"
-              placeholder="Tambahkan catatan transaksi..."
-              square
-              outlined
-              class="bg-white"
-              :rows="3"
-              counter
-              maxlength="200"
-              :error="!!form.errors.notes"
-              :error-message="form.errors.notes"
-              style="margin-bottom: 16px"
-              hide-bottom-space
-            >
-              <template v-slot:prepend>
-                <q-icon name="note" />
-              </template>
-            </q-input>
+            <q-btn color="grey" flat size="sm" small icon="notes" />
           </div>
           <div class="col-md-4 col-xs-12 q-pa-sm">
             <TransactionSummary
@@ -414,13 +387,13 @@ const handlePayment = (method) => {
               <div class="text-subtitle1 text-weight-medium">
                 {{ studentName }}
               </div>
-              <div v-if="studentWalletBalance !== null" class="text-body1">
-                Saldo: Rp. {{ studentWalletBalance.toLocaleString("id-ID") }}
+              <div v-if="walletBalance !== null" class="text-body1">
+                Saldo: Rp. {{ formatNumber(walletBalance) }}
               </div>
             </div>
 
             <div class="text-h4 text-center text-primary q-pb-md">
-              Rp. {{ form.total.toLocaleString("id-ID") }}
+              Rp. {{ formatNumber(form.total) }}
             </div>
             <div class="row q-col-gutter-sm justify-center">
               <div class="col-12">

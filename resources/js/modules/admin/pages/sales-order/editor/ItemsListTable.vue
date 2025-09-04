@@ -24,7 +24,7 @@ defineEmits(["update-quantity", "remove-item"]);
     flat
     square
     bordered
-    class="bg-grey-1 pos-table q-pa-none col"
+    class="bg-grey-1 pos-table q-pa-none col full-height-table"
     :rows-per-page-options="[0]"
     hide-pagination
     :no-data-label="'Belum ada item'"
