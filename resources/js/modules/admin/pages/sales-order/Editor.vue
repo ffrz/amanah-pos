@@ -9,7 +9,7 @@ import dayjs from "dayjs";
 import TransactionHeader from "./editor/TransactionHeader.vue";
 import ItemListTable from "./editor/ItemsListTable.vue";
 import TransactionSummary from "./editor/TransactionSummary.vue";
-import ConfirmDeleteDialog from "./editor/ConfirmDeleteDialog.vue";
+
 import CustomerEditorDialog from "./editor/CustomerEditorDialog.vue";
 import { formatNumber } from "@/helpers/formatter";
 
