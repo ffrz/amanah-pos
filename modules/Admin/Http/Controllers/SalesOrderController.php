@@ -7,6 +7,7 @@ use App\Models\SalesOrder;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class SalesOrderController extends Controller
@@ -76,7 +77,18 @@ class SalesOrderController extends Controller
     public function editor($id = 0)
     {
         allowed_roles([User::Role_Admin]);
-        $item = $id ? SalesOrder::findOrFail($id) : new SalesOrder(['date' => date('Y-m-d')]);
+        if (!$id) {
+            $item = new SalesOrder([
+                'datetime' => Carbon::now(),
+                'status' => SalesOrder::Status_Draft,
+                'payment_status' => SalesOrder::PaymentStatus_Unpaid,
+                'delivery_status' => SalesOrder::DeliveryStatus_NotSent,
+            ]);
+            $item->save();
+        } else {
+            $item = SalesOrder::findOrFail($id);
+        }
+
         return inertia('sales-order/Editor', [
             'data' => $item,
             'customers' => Customer::where('active', '=', true)->orderBy('username', 'asc')->get(),

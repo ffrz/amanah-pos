@@ -44,27 +44,29 @@ function getSelectedCustomer() {
 <template>
   <div class="row q-col-gutter-md items-center q-px-md q-py-sm">
     <div class="col-12 col-sm-6 col-md-4">
-      <q-select
-        class="custom-select"
-        v-model="customer_id"
-        label="Pelanggan"
-        use-input
-        input-debounce="300"
-        clearable
-        map-options
-        emit-value
-        :options="customers"
-        @filter="filterCustomersFn"
-        :disable="formProcessing"
-      >
-        <template v-slot:no-option>
-          <q-item>
-            <q-item-section>Pelanggan tidak ditemukan</q-item-section>
-          </q-item>
-        </template>
-      </q-select>
-      <div v-if="customer_id" class="text-grey q-mt-xs">
-        Saldo: Rp. {{ formatNumber(getSelectedCustomer().balance) }}
+      <div>
+        <q-select
+          class="custom-select"
+          v-model="customer_id"
+          label="Pelanggan"
+          use-input
+          input-debounce="300"
+          clearable
+          map-options
+          emit-value
+          :options="customers"
+          @filter="filterCustomersFn"
+          :disable="formProcessing"
+        >
+          <template v-slot:no-option>
+            <q-item>
+              <q-item-section>Pelanggan tidak ditemukan</q-item-section>
+            </q-item>
+          </template>
+        </q-select>
+        <div v-if="customer_id" class="text-grey q-mt-xs">
+          Saldo: Rp. {{ formatNumber(getSelectedCustomer().balance) }}
+        </div>
       </div>
     </div>
 

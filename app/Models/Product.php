@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Facades\DB;
 
@@ -31,6 +32,11 @@ class Product extends BaseModel
         'min_stock',
         'max_stock',
         'notes',
+    ];
+
+    protected $appends = [
+        'type_label',
+        'formatted_id',
     ];
 
     /**
@@ -89,6 +95,16 @@ class Product extends BaseModel
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
+    }
+
+    public function getFormattedIdAttribute()
+    {
+        return 'P-' . str_pad($this->id, 6, '0', STR_PAD_LEFT);
+    }
+
+    public function getTypeLabelAttribute()
+    {
+        return self::Types[$this->type] ?? '-';
     }
 
     /**

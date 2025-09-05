@@ -3,7 +3,11 @@ import { computed, onMounted, reactive, ref, watch } from "vue";
 import { router } from "@inertiajs/vue3";
 import { handleDelete, handleFetchItems } from "@/helpers/client-req-handler";
 import { check_role, getQueryParams } from "@/helpers/utils";
-import { formatNumber, plusMinusSymbol } from "@/helpers/formatter";
+import {
+  formatDateTime,
+  formatNumber,
+  plusMinusSymbol,
+} from "@/helpers/formatter";
 import { useQuasar } from "quasar";
 import { getCurrentMonth, getCurrentYear } from "@/helpers/datetime";
 import { createMonthOptions, createYearOptions } from "@/helpers/options";
@@ -47,28 +51,22 @@ const pagination = ref({
 });
 const columns = [
   {
-    name: "datetime",
-    label: "Waktu",
-    field: "datetime",
+    name: "id",
+    label: "Info Order",
+    field: "id",
     align: "left",
     sortable: true,
   },
   {
-    name: "account",
-    label: "Akun",
-    field: "account",
+    name: "customer_id",
+    label: "Pelanggan",
+    field: "customer_id",
     align: "left",
   },
   {
-    name: "notes",
-    label: "Catatan",
-    field: "notes",
-    align: "left",
-  },
-  {
-    name: "amount",
-    label: "Jumlah (Rp.)",
-    field: "amount",
+    name: "total",
+    label: "Total",
+    field: "total",
     align: "right",
   },
   {
@@ -83,7 +81,7 @@ onMounted(() => {
 
 const deleteItem = (row) =>
   handleDelete({
-    message: `Hapus transaksi #-${row.id}?`,
+    message: `Hapus transaksi #-${row.formatted_id}?`,
     url: route("admin.sales-order.delete", row.id),
     fetchItemsCallback: fetchItems,
     loading,
@@ -219,46 +217,46 @@ watch(
         </template>
         <template v-slot:body="props">
           <q-tr :props="props">
-            <q-td key="datetime" :props="props" class="wrap-column">
+            <q-td key="id" :props="props" class="wrap-column">
+              <div># {{ props.row.formatted_id }}</div>
               <div>
-                #{{ props.row.id }} - <q-icon name="calendar_today" />
-                {{ props.row.datetime }}
-              </div>
-              <q-badge
-                ><q-icon name="category" /> {{ props.row.type_label }}</q-badge
-              >
-              <div v-if="props.row.ref_type">
-                <q-icon name="link" /> {{ props.row.ref_type_label }} #{{
-                  props.row.ref_id
+                <q-icon class="inline-icon" name="calendar_today" />{{
+                  formatDateTime(props.row.datetime)
                 }}
               </div>
+              <div>
+                <q-badge
+                  :color="
+                    props.row.status == 'draft'
+                      ? 'orange'
+                      : props.row.status == 'closed'
+                      ? 'green'
+                      : 'red'
+                  "
+                >
+                  {{ props.row.status_label }}
+                </q-badge>
+                &nbsp;
+                <q-badge color="grey">
+                  {{ props.row.payment_status_label }}
+                </q-badge>
+                &nbsp;
+                <q-badge color="grey">
+                  {{ props.row.delivery_status_label }}
+                </q-badge>
+              </div>
+
               <template v-if="!$q.screen.gt.sm">
                 <div v-if="props.row.notes">
                   <q-icon name="notes" /> {{ props.row.notes }}
                 </div>
-                <div v-if="props.row.category">
-                  <q-icon name="category" /> {{ props.row.category.name }}
-                </div>
-                <div>
-                  <q-icon name="money" /> Rp.
-                  {{
-                    plusMinusSymbol(props.row.amount) +
-                    formatNumber(props.row.amount)
-                  }}
-                </div>
               </template>
             </q-td>
-            <q-td key="account" :props="props">
-              {{ props.row.account?.name }}
+            <q-td key="customer_id" :props="props">
+              {{ props.row.customer?.name }}
             </q-td>
-            <q-td key="notes" :props="props">
-              {{ props.row.notes }}
-            </q-td>
-            <q-td key="amount" :props="props" style="text-align: right">
-              {{
-                plusMinusSymbol(props.row.amount) +
-                formatNumber(props.row.amount)
-              }}
+            <q-td key="total" :props="props">
+              {{ formatNumber(props.row.total) }}
             </q-td>
             <q-td key="action" :props="props">
               <div class="flex justify-end">
@@ -278,15 +276,42 @@ watch(
                   >
                     <q-list style="width: 200px">
                       <q-item
+                        v-if="props.row.status != 'draft'"
+                        @click.stop="viewItem(props.row)"
+                        clickable
+                        v-ripple
+                        v-close-popup
+                      >
+                        <q-item-section avatar>
+                          <q-icon name="visibility" />
+                        </q-item-section>
+                        <q-item-section>Lihat</q-item-section>
+                      </q-item>
+                      <q-item
+                        @click.stop="editItem(props.row)"
+                        clickable
+                        v-ripple
+                        v-close-popup
+                      >
+                        <q-item-section avatar>
+                          <q-icon name="edit" />
+                        </q-item-section>
+                        <q-item-section>{{
+                          props.row.status == "draft" ? "Edit" : "Reopen"
+                        }}</q-item-section>
+                      </q-item>
+                      <q-item
                         @click.stop="deleteItem(props.row)"
                         clickable
                         v-ripple
                         v-close-popup
                       >
                         <q-item-section avatar>
-                          <q-icon name="delete_forever" />
+                          <q-icon name="delete_forever" color="negative" />
                         </q-item-section>
-                        <q-item-section>Hapus</q-item-section>
+                        <q-item-section class="text-negative"
+                          >Hapus</q-item-section
+                        >
                       </q-item>
                     </q-list>
                   </q-menu>

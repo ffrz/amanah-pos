@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class SalesOrder extends BaseModel
@@ -19,15 +20,22 @@ class SalesOrder extends BaseModel
         'notes',
     ];
 
+    protected $appends = [
+        'status_label',
+        'payment_status_label',
+        'delivery_status_label',
+        'formatted_id',
+    ];
+
     // === Status Order ===
     public const Status_Draft     = 'draft';
     public const Status_Closed    = 'closed';
-    public const Status_Cancelled = 'cancelled';
+    public const Status_Canceled = 'canceled';
 
     public const Statuses = [
         self::Status_Draft     => 'Draft',
         self::Status_Closed    => 'Selesai',
-        self::Status_Cancelled => 'Dibatalkan',
+        self::Status_Canceled => 'Dibatalkan',
     ];
 
     // === Status Pembayaran ===
@@ -76,8 +84,40 @@ class SalesOrder extends BaseModel
         ];
     }
 
+    public function getFormattedIdAttribute()
+    {
+        return 'SO-'
+            . Carbon::parse($this->created_at)->format('Ymd')
+            . '-'
+            . $this->id;
+    }
+
+    public function getStatusLabelAttribute()
+    {
+        return self::Statuses[$this->status] ?? '-';
+    }
+
+    public function getPaymentStatusLabelAttribute()
+    {
+        return self::PaymentStatuses[$this->payment_status] ?? '-';
+    }
+
+    public function getDeliveryStatusLabelAttribute()
+    {
+        return self::DeliveryStatuses[$this->delivery_status] ?? '-';
+    }
+
     public function details()
     {
         return $this->hasMany(SalesOrderDetail::class, 'parent_id');
+    }
+
+    /**
+     * Get the supplier for the product.
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
     }
 }

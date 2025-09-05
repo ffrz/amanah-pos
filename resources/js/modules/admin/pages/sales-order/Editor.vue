@@ -351,7 +351,43 @@ const handlePayment = (method) => {
 
         <div class="row">
           <div class="col-xs-12 col-md-8 q-pa-sm">
-            <q-btn color="grey" flat size="sm" small icon="notes" />
+            <table>
+              <tr>
+                <td>#</td>
+                <td>:</td>
+                <td>{{ page.props.data.formatted_id }}</td>
+              </tr>
+              <tr>
+                <td>Status</td>
+                <td>:</td>
+                <td>{{ page.props.data.status_label }}</td>
+              </tr>
+              <tr>
+                <td>Pembayaran</td>
+                <td>:</td>
+                <td>{{ page.props.data.payment_status_label }}</td>
+              </tr>
+              <tr>
+                <td>Pengiriman</td>
+                <td>:</td>
+                <td>{{ page.props.data.delivery_status_label }}</td>
+              </tr>
+              <tr>
+                <td>Catatan</td>
+                <td>:</td>
+                <td>
+                  <q-btn
+                    color="grey"
+                    flat
+                    size="sm"
+                    dense
+                    rounded
+                    small
+                    icon="notes"
+                  />
+                </td>
+              </tr>
+            </table>
           </div>
           <div class="col-md-4 col-xs-12 q-pa-sm">
             <TransactionSummary
