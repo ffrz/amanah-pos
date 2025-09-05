@@ -326,7 +326,7 @@ const handlePayment = (method) => {
           color="grey-7"
           flat
           rounded
-          @click="router.get(route('admin.purchase-order.index'))"
+          @click="router.get(route('admin.sales-order.index'))"
         />
       </div>
     </template>

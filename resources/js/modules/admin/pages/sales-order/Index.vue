@@ -12,6 +12,9 @@ import { useQuasar } from "quasar";
 import { getCurrentMonth, getCurrentYear } from "@/helpers/datetime";
 import { createMonthOptions, createYearOptions } from "@/helpers/options";
 import useTableHeight from "@/composables/useTableHeight";
+import SalesOrderStatusChip from "@/components/SalesOrderStatusChip.vue";
+import SalesOrderPaymentStatusChip from "@/components/SalesOrderPaymentStatusChip.vue";
+import SalesOrderDeliveryStatusChip from "@/components/SalesOrderDeliveryStatusChip.vue";
 
 const title = "Penjualan";
 const $q = useQuasar();
@@ -158,6 +161,7 @@ watch(
             @update:model-value="onFilterChange"
           />
           <q-select
+            v-if="filter.year != 'all'"
             v-model="filter.month"
             :options="months"
             label="Bulan"
@@ -229,25 +233,13 @@ watch(
                 }}
               </div>
               <div>
-                <q-badge
-                  :color="
-                    props.row.status == 'draft'
-                      ? 'orange'
-                      : props.row.status == 'closed'
-                      ? 'green'
-                      : 'red'
-                  "
-                >
-                  {{ props.row.status_label }}
-                </q-badge>
-                &nbsp;
-                <q-badge color="grey">
-                  {{ props.row.payment_status_label }}
-                </q-badge>
-                &nbsp;
-                <q-badge color="grey">
-                  {{ props.row.delivery_status_label }}
-                </q-badge>
+                <SalesOrderStatusChip :status="props.row.status" />
+                <SalesOrderPaymentStatusChip
+                  :status="props.row.payment_status"
+                />
+                <SalesOrderDeliveryStatusChip
+                  :status="props.row.delivery_status"
+                />
               </div>
 
               <template v-if="!$q.screen.gt.sm">

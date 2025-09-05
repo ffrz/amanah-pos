@@ -48,10 +48,10 @@ class SalesOrderController extends Controller
         }
 
         // Tambahan filter tahun
-        if (!empty($filter['year']) && $filter['year'] !== 'null') {
+        if (!empty($filter['year']) && $filter['year'] !== 'all') {
             $q->whereYear('datetime', $filter['year']);
 
-            if (!empty($filter['month']) && $filter['month'] !== 'null') {
+            if (!empty($filter['month']) && $filter['month'] !== 'all') {
                 $q->whereMonth('datetime', $filter['month']);
             }
         }

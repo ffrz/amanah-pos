@@ -59,8 +59,8 @@ class SalesOrder extends BaseModel
 
     public const DeliveryStatuses = [
         self::DeliveryStatus_NotSent  => 'Belum Dikirim',
-        self::DeliveryStatus_Sent     => 'Terkirim',
-        self::DeliveryStatus_Received => 'Diterima',
+        self::DeliveryStatus_Sent     => 'Sedang Dikirim',
+        self::DeliveryStatus_Received => 'Terkirim',
         self::DeliveryStatus_Failed   => 'Gagal',
     ];
 
