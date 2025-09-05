@@ -2,6 +2,7 @@
 
 namespace Modules\Admin\Http\Controllers;
 
+use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\SalesOrder;
 use App\Models\Customer;
@@ -77,6 +78,7 @@ class SalesOrderController extends Controller
     public function editor($id = 0)
     {
         allowed_roles([User::Role_Admin]);
+
         if (!$id) {
             $item = new SalesOrder([
                 'datetime' => Carbon::now(),
@@ -87,6 +89,10 @@ class SalesOrderController extends Controller
             $item->save();
         } else {
             $item = SalesOrder::findOrFail($id);
+            if ($item->status === SalesOrder::Status_Closed) {
+
+            }
+            else if ($item->status === SalesOrder::Status)
         }
 
         return inertia('sales-order/Editor', [
@@ -126,15 +132,36 @@ class SalesOrderController extends Controller
             ->with('success', __("messages.$message", ['description' => $item->description]));
     }
 
+    public function cancel($id)
+    {
+        $item = SalesOrder::findOrFail($id);
+        if ($item->status == SalesOrder::Status_Draft) {
+            $item->status = SalesOrder::Status_Canceled;
+            $item->save();
+            return JsonResponseHelper::success(['id' => $item->id]);
+        }
+        return JsonResponseHelper::error('Status order ini tidak dapat diubah.');
+    }
+
     public function delete($id)
     {
         allowed_roles([User::Role_Admin]);
 
         $item = SalesOrder::findOrFail($id);
+
+        // TODO: handle jika statusnya closed harus di restock
+
         $item->delete();
 
         return response()->json([
-            'message' => __('messages.sales-order-deleted', ['description' => $item->description])
+            'message' => "Transaksi #$item->formatted_id telah dihapus.",
+        ]);
+    }
+
+    public function detail($id)
+    {
+        return inertia('sales-order/Detail', [
+            'data' => SalesOrder::findOrFail($id),
         ]);
     }
 }

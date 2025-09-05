@@ -53,9 +53,9 @@ export function handleSubmit(data) {
 }
 
 export function handlePost(options) {
-  const { message, url, fetchItemsCallback, loading, data } = options;
+  const { title, message, url, fetchItemsCallback, loading, data } = options;
   Dialog.create({
-    title: "Konfirmasi",
+    title: title ? title : "Konfirmasi",
     icon: "question",
     message: message,
     focus: "cancel",

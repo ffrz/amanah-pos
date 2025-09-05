@@ -185,6 +185,7 @@ Route::middleware([Auth::class])->group(function () {
             Route::get('edit/{id}', [SalesOrderController::class, 'editor'])->name('admin.sales-order.edit');
             Route::get('detail/{id}', [SalesOrderController::class, 'detail'])->name('admin.sales-order.detail');
             Route::post('save', [SalesOrderController::class, 'save'])->name('admin.sales-order.save');
+            Route::post('cancel/{id}', [SalesOrderController::class, 'cancel'])->name('admin.sales-order.cancel');
             Route::post('delete/{id}', [SalesOrderController::class, 'delete'])->name('admin.sales-order.delete');
         });
 

@@ -8,13 +8,15 @@ import {
   formatNumber,
   plusMinusSymbol,
 } from "@/helpers/formatter";
-import { useQuasar } from "quasar";
+import { Dialog, useQuasar } from "quasar";
 import { getCurrentMonth, getCurrentYear } from "@/helpers/datetime";
 import { createMonthOptions, createYearOptions } from "@/helpers/options";
 import useTableHeight from "@/composables/useTableHeight";
 import SalesOrderStatusChip from "@/components/SalesOrderStatusChip.vue";
 import SalesOrderPaymentStatusChip from "@/components/SalesOrderPaymentStatusChip.vue";
 import SalesOrderDeliveryStatusChip from "@/components/SalesOrderDeliveryStatusChip.vue";
+import MyLink from "@/components/MyLink.vue";
+import axios from "axios";
 
 const title = "Penjualan";
 const $q = useQuasar();
@@ -82,13 +84,78 @@ onMounted(() => {
   fetchItems();
 });
 
+const onRowClicked = (row) => {
+  if (row.status == "draft") {
+    editItem(row);
+    return;
+  }
+
+  viewItem(row);
+};
+
 const editItem = (row) => {
   router.get(route("admin.sales-order.edit", row.id));
 };
 
+const viewItem = (row) => {
+  router.get(route("admin.sales-order.detail", row.id));
+};
+
+const cancelItem = (row) => {
+  Dialog.create({
+    title: "Konfirmasi Pembatalan",
+    icon: "question",
+    message: `Batalkan transaksi #${row.formatted_id}?`,
+    focus: "cancel",
+    cancel: true,
+    persistent: true,
+  }).onOk(() => {
+    axios
+      .post(
+        route("admin.sales-order.cancel", {
+          id: row.id,
+        }),
+        {
+          id: row.id,
+        }
+      )
+      .then((response) => {
+        const updatedItem = response.data.data;
+        const itemIndex = rows.value.findIndex(
+          (item) => item.id === updatedItem.id
+        );
+
+        if (itemIndex === -1) {
+          console.warn("Item tidak ditemukan di tabel.");
+          return;
+        }
+
+        rows.value[itemIndex].status = "dibatalkan";
+
+        $q.notify({
+          message: "Transaksi berhasil dibatalkan!",
+          color: "positive",
+          position: "bottom",
+        });
+      })
+      .catch((error) => {
+        const errorMessage =
+          error.response?.data?.message ||
+          "Terjadi kesalahan saat membatalkan transaksi.";
+        $q.notify({
+          message: errorMessage,
+          color: "warning",
+          position: "bottom",
+        });
+        console.error(error);
+      });
+  });
+};
+
 const deleteItem = (row) =>
   handleDelete({
-    message: `Hapus transaksi #-${row.formatted_id}?`,
+    title: "Konfirmasi Penghapusan",
+    message: `Hapus transaksi #${row.formatted_id}?`,
     url: route("admin.sales-order.delete", row.id),
     fetchItemsCallback: fetchItems,
     loading,
@@ -173,9 +240,6 @@ watch(
             :disable="filter.year === null"
             @update:model-value="onFilterChange"
           />
-          <!-- <q-select v-model="filter.category_id" :options="categories" label="Kategori" dense
-            class="custom-select col-xs-12 col-sm-3" map-options emit-value outlined
-            @update:model-value="onFilterChange" /> -->
           <q-input
             class="col"
             outlined
@@ -224,7 +288,11 @@ watch(
           </div>
         </template>
         <template v-slot:body="props">
-          <q-tr :props="props">
+          <q-tr
+            :props="props"
+            class="cursor-pointer"
+            @click.prevent="onRowClicked(props.row)"
+          >
             <q-td key="id" :props="props" class="wrap-column">
               <div># {{ props.row.formatted_id }}</div>
               <div>
@@ -248,16 +316,23 @@ watch(
                 </div>
               </template>
             </q-td>
-            <q-td key="customer_id" :props="props">
-              <div v-if="props.row.customer">
+            <q-td key="customer_id" :props="props" @click.stop>
+              <my-link
+                v-if="props.row.customer"
+                :href="
+                  route('admin.customer.detail', { id: props.row.customer.id })
+                "
+                @click.stop
+              >
                 {{ props.row.customer.formatted_id }}
-              </div>
-              {{ props.row.customer?.name }}
+                <br />
+                {{ props.row.customer.name }}
+              </my-link>
             </q-td>
             <q-td key="total" :props="props">
               {{ formatNumber(props.row.total_price) }}
             </q-td>
-            <q-td key="action" :props="props">
+            <q-td key="action" :props="props" @click.stop>
               <div class="flex justify-end">
                 <q-btn
                   :disabled="!check_role($CONSTANTS.USER_ROLE_ADMIN)"
@@ -284,7 +359,7 @@ watch(
                         <q-item-section avatar>
                           <q-icon name="visibility" />
                         </q-item-section>
-                        <q-item-section>Lihat</q-item-section>
+                        <q-item-section> Lihat </q-item-section>
                       </q-item>
                       <q-item
                         @click.stop="editItem(props.row)"
@@ -295,10 +370,23 @@ watch(
                         <q-item-section avatar>
                           <q-icon name="edit" />
                         </q-item-section>
-                        <q-item-section>{{
-                          props.row.status == "draft" ? "Edit" : "Reopen"
-                        }}</q-item-section>
+                        <q-item-section>
+                          {{ props.row.status == "draft" ? "Edit" : "Reopen" }}
+                        </q-item-section>
                       </q-item>
+                      <q-item
+                        v-if="props.row.status == 'draft'"
+                        @click.stop="cancelItem(props.row)"
+                        clickable
+                        v-ripple
+                        v-close-popup
+                      >
+                        <q-item-section avatar>
+                          <q-icon name="cancel" />
+                        </q-item-section>
+                        <q-item-section> Batalkan </q-item-section>
+                      </q-item>
+                      <q-separator />
                       <q-item
                         @click.stop="deleteItem(props.row)"
                         clickable
@@ -306,11 +394,9 @@ watch(
                         v-close-popup
                       >
                         <q-item-section avatar>
-                          <q-icon name="delete_forever" color="negative" />
+                          <q-icon name="delete_forever" />
                         </q-item-section>
-                        <q-item-section class="text-negative"
-                          >Hapus</q-item-section
-                        >
+                        <q-item-section> Hapus </q-item-section>
                       </q-item>
                     </q-list>
                   </q-menu>
