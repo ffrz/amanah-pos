@@ -111,17 +111,20 @@ const tableHeight = useTableHeight(filterToolbarRef);
     <template #title>{{ title }}</template>
     <template #right-button>
       <q-btn
-        icon="add"
-        dense
-        color="primary"
-        @click="router.get(route('admin.user.add'))"
-      />
-      <q-btn
-        class="q-ml-sm"
         :icon="!showFilter ? 'filter_alt' : 'filter_alt_off'"
         color="grey"
         dense
+        rounded
+        flat
         @click="showFilter = !showFilter"
+      />
+      <q-btn
+        icon="add"
+        dense
+        rounded
+        color="primary"
+        class="q-ml-sm"
+        @click="router.get(route('admin.user.add'))"
       />
     </template>
     <template #header v-if="showFilter">

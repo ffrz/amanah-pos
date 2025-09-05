@@ -165,17 +165,20 @@ const goToDetail = (props) => {
         @click="showCostColumn = !showCostColumn"
       />
       <q-btn
-        icon="add"
-        dense
-        color="primary"
-        @click="router.get(route('admin.product.add'))"
-      />
-      <q-btn
-        class="q-ml-sm"
         :icon="!showFilter ? 'filter_alt' : 'filter_alt_off'"
         color="grey"
         dense
+        rounded
+        flat
         @click="showFilter = !showFilter"
+      />
+      <q-btn
+        icon="add"
+        dense
+        rounded
+        class="q-ml-sm"
+        color="primary"
+        @click="router.get(route('admin.product.add'))"
       />
     </template>
     <template #header v-if="showFilter">
