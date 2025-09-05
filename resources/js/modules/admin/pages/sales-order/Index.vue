@@ -10,7 +10,11 @@ import {
 } from "@/helpers/formatter";
 import { Dialog, useQuasar } from "quasar";
 import { getCurrentMonth, getCurrentYear } from "@/helpers/datetime";
-import { createMonthOptions, createYearOptions } from "@/helpers/options";
+import {
+  createMonthOptions,
+  createOptions,
+  createYearOptions,
+} from "@/helpers/options";
 import useTableHeight from "@/composables/useTableHeight";
 import SalesOrderStatusChip from "@/components/SalesOrderStatusChip.vue";
 import SalesOrderPaymentStatusChip from "@/components/SalesOrderPaymentStatusChip.vue";
@@ -40,13 +44,31 @@ const months = [
   ...createMonthOptions(),
 ];
 
+const statusOptions = [
+  { value: "all", label: "Semua Status" },
+  ...createOptions(window.CONSTANTS.SALES_ORDER_STATUSES),
+];
+
+const paymentStatusOptions = [
+  { value: "all", label: "Semua Status" },
+  ...createOptions(window.CONSTANTS.SALES_ORDER_PAYMENT_STATUSES),
+];
+
+const deliveryStatusOptions = [
+  { value: "all", label: "Semua Status" },
+  ...createOptions(window.CONSTANTS.SALES_ORDER_DELIVERY_STATUSES),
+];
+
 const filter = reactive({
   search: "",
-  category_id: "all",
   year: currentYear,
   month: currentMonth,
+  status: "all",
+  payment_status: "all",
+  delivery_status: "all",
   ...getQueryParams(),
 });
+
 const pagination = ref({
   page: 1,
   rowsPerPage: 10,
@@ -179,9 +201,7 @@ const onFilterChange = () => {
 
 const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return columns;
-  return columns.filter(
-    (col) => col.name === "datetime" || col.name === "action"
-  );
+  return columns.filter((col) => col.name === "id" || col.name === "action");
 });
 
 watch(
@@ -238,6 +258,39 @@ watch(
             emit-value
             map-options
             :disable="filter.year === null"
+            @update:model-value="onFilterChange"
+          />
+          <q-select
+            v-model="filter.status"
+            :options="statusOptions"
+            label="Status"
+            dense
+            outlined
+            class="col-xs-6 col-sm-2"
+            emit-value
+            map-options
+            @update:model-value="onFilterChange"
+          />
+          <q-select
+            v-model="filter.payment_status"
+            :options="paymentStatusOptions"
+            label="Status Pembayaran"
+            dense
+            outlined
+            class="col-xs-6 col-sm-2"
+            emit-value
+            map-options
+            @update:model-value="onFilterChange"
+          />
+          <q-select
+            v-model="filter.delivery_status"
+            :options="deliveryStatusOptions"
+            label="Status Pengiriman"
+            dense
+            outlined
+            class="col-xs-6 col-sm-2"
+            emit-value
+            map-options
             @update:model-value="onFilterChange"
           />
           <q-input
@@ -300,6 +353,25 @@ watch(
                   formatDateTime(props.row.datetime)
                 }}
               </div>
+              <template v-if="!$q.screen.gt.sm">
+                <my-link
+                  v-if="props.row.customer"
+                  :href="
+                    route('admin.customer.detail', {
+                      id: props.row.customer.id,
+                    })
+                  "
+                  @click.stop
+                >
+                  {{ props.row.customer.formatted_id }}
+                  <br />
+                  {{ props.row.customer.name }}
+                </my-link>
+                <div>Rp. {{ formatNumber(props.row.total_price) }}</div>
+                <div v-if="props.row.notes">
+                  <q-icon name="notes" /> {{ props.row.notes }}
+                </div>
+              </template>
               <div>
                 <SalesOrderStatusChip :status="props.row.status" />
                 <SalesOrderPaymentStatusChip
@@ -309,12 +381,6 @@ watch(
                   :status="props.row.delivery_status"
                 />
               </div>
-
-              <template v-if="!$q.screen.gt.sm">
-                <div v-if="props.row.notes">
-                  <q-icon name="notes" /> {{ props.row.notes }}
-                </div>
-              </template>
             </q-td>
             <q-td key="customer_id" :props="props" @click.stop>
               <my-link

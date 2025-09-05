@@ -40,12 +40,16 @@ class SalesOrderController extends Controller
             });
         }
 
-        if (!empty($filter['customer_id'])) {
-            if ($filter['customer_id'] === 'null') {
-                $q->whereNull('customer_id');
-            } else if ($filter['customer_id'] !== 'all') {
-                $q->where('customer_id', '=', $filter['customer_id']);
-            }
+        if (!empty($filter['status']) && $filter['status'] != 'all') {
+            $q->where('status', '=', $filter['status']);
+        }
+
+        if (!empty($filter['payment_status']) && $filter['payment_status'] != 'all') {
+            $q->where('payment_status', '=', $filter['payment_status']);
+        }
+
+        if (!empty($filter['delivery_status']) && $filter['delivery_status'] != 'all') {
+            $q->where('delivery_status', '=', $filter['delivery_status']);
         }
 
         // Tambahan filter tahun
