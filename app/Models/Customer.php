@@ -31,6 +31,7 @@ class Customer extends BaseModel implements
         'username',
         'password',
         'name',
+        'type',
         'phone',
         'address',
         'balance',
@@ -71,6 +72,7 @@ class Customer extends BaseModel implements
             'username' => 'string',
             'password' => 'hashed',
             'name' => 'string',
+            'type' => 'string',
             'parent_name' => 'string',
             'phone' => 'string',
             'address' => 'string',
@@ -84,6 +86,21 @@ class Customer extends BaseModel implements
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
+    }
+
+    protected $appends = [
+        'type_label',
+        'formatted_id',
+    ];
+
+    public function getTypeLabelAttribute()
+    {
+        return self::Types[$this->type];
+    }
+
+    public function getFormattedIdAttribute()
+    {
+        return Setting::value('customer_code_prefix', 'CST-') . str_pad($this->id, 6, '0', STR_PAD_LEFT);
     }
 
     public function setLastLogin()

@@ -99,7 +99,7 @@ class Product extends BaseModel
 
     public function getFormattedIdAttribute()
     {
-        return 'P-' . str_pad($this->id, 6, '0', STR_PAD_LEFT);
+        return Setting::value('product_code_prefix', 'P-') . str_pad($this->id, 6, '0', STR_PAD_LEFT);
     }
 
     public function getTypeLabelAttribute()

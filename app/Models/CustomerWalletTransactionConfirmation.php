@@ -55,7 +55,7 @@ class CustomerWalletTransactionConfirmation extends BaseModel
 
     public function getFormattedIdAttribute()
     {
-        return 'CTX-'
+        return Setting::value('customer_wallet_transaction_confirmation_code_prefix', 'CWTC-')
             . Carbon::parse($this->created_at)->format('Ymd')
             . '-'
             . $this->id;

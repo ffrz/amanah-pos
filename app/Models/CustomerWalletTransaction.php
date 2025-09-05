@@ -62,7 +62,7 @@ class CustomerWalletTransaction extends BaseModel
 
     public function getFormattedIdAttribute()
     {
-        return 'TX-'
+        return Setting::value('customer_wallet_transaction_code_prefix', 'CWTX-')
             . Carbon::parse($this->created_at)->format('Ymd')
             . '-'
             . $this->id;

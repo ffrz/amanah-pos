@@ -86,7 +86,7 @@ class SalesOrder extends BaseModel
 
     public function getFormattedIdAttribute()
     {
-        return 'SO-'
+        return Setting::value('sales_order_code_prefix', 'SO-')
             . Carbon::parse($this->created_at)->format('Ymd')
             . '-'
             . $this->id;
