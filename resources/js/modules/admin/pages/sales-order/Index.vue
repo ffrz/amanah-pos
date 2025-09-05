@@ -79,6 +79,10 @@ onMounted(() => {
   fetchItems();
 });
 
+const editItem = (row) => {
+  router.get(route("admin.sales-order.edit", row.id));
+};
+
 const deleteItem = (row) =>
   handleDelete({
     message: `Hapus transaksi #-${row.formatted_id}?`,
@@ -253,10 +257,13 @@ watch(
               </template>
             </q-td>
             <q-td key="customer_id" :props="props">
+              <div v-if="props.row.customer">
+                {{ props.row.customer.formatted_id }}
+              </div>
               {{ props.row.customer?.name }}
             </q-td>
             <q-td key="total" :props="props">
-              {{ formatNumber(props.row.total) }}
+              {{ formatNumber(props.row.total_price) }}
             </q-td>
             <q-td key="action" :props="props">
               <div class="flex justify-end">
