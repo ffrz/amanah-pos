@@ -187,6 +187,10 @@ Route::middleware([Auth::class])->group(function () {
             Route::post('save', [SalesOrderController::class, 'save'])->name('admin.sales-order.save');
             Route::post('cancel/{id}', [SalesOrderController::class, 'cancel'])->name('admin.sales-order.cancel');
             Route::post('delete/{id}', [SalesOrderController::class, 'delete'])->name('admin.sales-order.delete');
+
+            // items
+            Route::post('add-item', [SalesOrderController::class, 'addItem'])->name('admin.sales-order.add-item');
+            Route::post('remove-item', [SalesOrderController::class, 'removeItem'])->name('admin.sales-order.remove-item');
         });
 
         Route::prefix('settings')->group(function () {

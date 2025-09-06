@@ -1,15 +1,70 @@
 <script setup>
 import { formatNumber } from "@/helpers/formatter";
+import { useQuasar } from "quasar";
+import { computed } from "vue";
+
+const $q = useQuasar();
 
 defineProps({
   items: {
     type: Array,
     required: true,
   },
-  columns: {
-    type: Array,
-    required: true,
-  },
+});
+
+const columns = computed(() => {
+  if ($q.screen.gt.sm) {
+    return [
+      {
+        name: "name",
+        required: true,
+        label: "Item Information",
+        align: "left",
+        field: "name",
+        sortable: false,
+        style: "width: 300px",
+      },
+      {
+        name: "subtotal_price",
+        label: "Subtotal",
+        align: "right",
+        field: "subtotal_price",
+        sortable: false,
+        style: "width: 120px",
+      },
+
+      {
+        name: "action",
+        label: "Action",
+        align: "center",
+        sortable: false,
+        style: "width: 80px",
+      },
+    ];
+  } else {
+    return [
+      {
+        name: "name",
+        required: true,
+        label: "Item",
+        align: "left",
+        field: "name",
+        sortable: false,
+      },
+      {
+        name: "subtotal_price",
+        label: "Total",
+        align: "right",
+        sortable: false,
+      },
+      {
+        name: "action",
+        label: "Aksi",
+        align: "center",
+        sortable: false,
+      },
+    ];
+  }
 });
 
 defineEmits(["update-quantity", "remove-item"]);
@@ -47,13 +102,13 @@ defineEmits(["update-quantity", "remove-item"]);
     <template v-slot:body="props">
       <q-tr :props="props" class="hover-highlight">
         <q-td key="name" :props="props" class="text-left">
-          <div class="text-weight-medium">{{ props.row.name }}</div>
+          <div class="text-weight-medium">{{ props.row.product_name }}</div>
           <div class="text-caption text-grey-6">
-            Barcode: {{ props.row.barcode }}
+            Barcode: {{ props.row.product_barcode }}
           </div>
         </q-td>
 
-        <q-td key="subtotal" :props="props" class="text-right">
+        <q-td key="subtotal_price" :props="props" class="text-right">
           <div class="column items-end">
             <div class="text-weight-bold text-primary">
               Rp. {{ formatNumber(props.row.price * props.row.quantity) }}

@@ -10,6 +10,7 @@ import PaymentDialog from "./editor/PaymentDialog.vue";
 import ConfirmDeleteDialog from "./editor/ConfirmDeleteDialog.vue";
 import { handleSubmit } from "@/helpers/client-req-handler";
 import { formatDateTimeForEditing, formatNumber } from "@/helpers/formatter";
+import axios from "axios";
 
 const title = "Penjualan";
 const $q = useQuasar();
@@ -29,7 +30,7 @@ const form = useForm({
   tax: page.props.data.tax,
   total: page.props.data.total,
   notes: page.props.data.notes,
-  items: [],
+  items: page.props.data.details ?? [],
 });
 
 // State untuk kasir
@@ -40,61 +41,6 @@ const itemToDelete = ref(null);
 const showCustomerEditor = ref(false);
 const showPaymentDialog = ref(false);
 
-const tableColumns = computed(() => {
-  if ($q.screen.gt.sm) {
-    return [
-      {
-        name: "name",
-        required: true,
-        label: "Item Information",
-        align: "left",
-        field: "name",
-        sortable: false,
-        style: "width: 300px",
-      },
-      {
-        name: "subtotal",
-        label: "Subtotal",
-        align: "right",
-        field: "subtotal",
-        sortable: false,
-        style: "width: 120px",
-      },
-
-      {
-        name: "action",
-        label: "Action",
-        align: "center",
-        sortable: false,
-        style: "width: 80px",
-      },
-    ];
-  } else {
-    return [
-      {
-        name: "name",
-        required: true,
-        label: "Item",
-        align: "left",
-        field: "name",
-        sortable: false,
-      },
-      {
-        name: "subtotal",
-        label: "Total",
-        align: "right",
-        sortable: false,
-      },
-      {
-        name: "action",
-        label: "Aksi",
-        align: "center",
-        sortable: false,
-      },
-    ];
-  }
-});
-
 const subtotal = computed(() => {
   const total = form.items.reduce((sum, item) => {
     return sum + item.price * item.quantity;
@@ -104,7 +50,7 @@ const subtotal = computed(() => {
   return total;
 });
 
-const addItem = async () => {
+const addItem = () => {
   if (!barcode.value.trim()) {
     $q.notify({
       message: "Silakan masukkan barcode",
@@ -159,56 +105,41 @@ const addItem = async () => {
     inputBarcode = parts[1];
   }
 
-  const existingItemIndex = form.items.findIndex(
-    (item) => item.barcode === inputBarcode
-  );
+  // TODO: harus ada checkbox untuk add atau tambah item baru
+  // const existingItemIndex = form.items.findIndex(
+  //   (item) => item.barcode === inputBarcode
+  // );
 
-  if (existingItemIndex !== -1) {
-    form.items[existingItemIndex].quantity += inputQuantity;
-    $q.notify({
-      message: `Quantity ${form.items[existingItemIndex].name} bertambah ${inputQuantity}`,
-      color: "positive",
-      position: "top",
-    });
-  } else {
-    isProcessing.value = true;
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      const fetchedProduct = {
-        id: Date.now(),
-        name: `Item ${inputBarcode}`,
-        barcode: inputBarcode,
-        price:
-          inputPrice !== null
-            ? inputPrice
-            : Math.floor(Math.random() * 50000) + 10000,
-      };
-      const newItem = {
-        ...fetchedProduct,
-        quantity: inputQuantity,
-      };
-      form.items.push(newItem);
-
-      $q.notify({
-        message: `${newItem.name} berhasil ditambahkan`,
-        color: "positive",
-        position: "top",
-        icon: "add_shopping_cart",
+  // if (existingItemIndex !== -1) {
+  //   form.items[existingItemIndex].quantity += inputQuantity;
+  //   $q.notify({
+  //     message: `Quantity ${form.items[existingItemIndex].name} bertambah ${inputQuantity}`,
+  //     color: "positive",
+  //     position: "top",
+  //   });
+  // } else {
+  isProcessing.value = true;
+  axios
+    .post(route("admin.sales-order.add-item"), {
+      order_id: form.id,
+      product_code: inputBarcode,
+      qty: inputQuantity,
+      price: inputPrice,
+    })
+    .then((response) => {
+      form.items.push(response.data);
+    })
+    .catch((error) => {
+      console.error("Gagal mengambil data produk:", error);
+      update(() => {
+        options.value = [];
       });
-    } catch (error) {
-      console.error("Error fetching item:", error);
-      $q.notify({
-        message: "Item tidak ditemukan atau gagal menambahkan item",
-        color: "negative",
-        position: "top",
-      });
-    } finally {
+    })
+    .finally(() => {
       isProcessing.value = false;
-    }
-  }
+    });
 
   barcode.value = "";
-  await nextTick();
   transactionSummaryRef.value?.focusOnBarcodeInput();
 };
 
@@ -245,67 +176,6 @@ const updateQuantity = (id, newQuantity) => {
     item.quantity = parseInt(newQuantity) || 1;
   }
 };
-
-const processPayment = async () => {
-  if (form.items.length === 0) {
-    $q.notify({
-      message: "Tidak ada item dalam keranjang",
-      color: "warning",
-      position: "top",
-    });
-    return;
-  }
-  await fetchCustomer(); // Panggil fungsi untuk mengambil data pelanggan
-  showPaymentDialog.value = true;
-};
-
-const fetchCustomer = async () => {
-  // Simulasi pengambilan data pelanggan dari backend
-  // Dalam implementasi nyata, Anda akan menggunakan ID pelanggan untuk mencari data
-  try {
-    // Misalnya, ambil data dari API:
-    // const response = await api.get(`/students/${form.customer_id}`);
-    // studentName.value = response.data.name;
-    // walletBalance.value = response.data.wallet_balance;
-
-    // Untuk demo, kita gunakan data dummy:
-    studentName.value =
-      form.customer_name === "Pelanggan Umum"
-        ? "Pelanggan Umum"
-        : "Nama Santri Demo";
-    walletBalance.value = Math.floor(Math.random() * 500000) + 10000;
-  } catch (error) {
-    console.error("Gagal mengambil data santri:", error);
-    studentName.value = "Data tidak ditemukan";
-    walletBalance.value = 0;
-  }
-};
-
-const handlePayment = (method) => {
-  if (form.items.length === 0) return;
-
-  form.datetime = formatDateTimeForEditing(new Date());
-  form.status = "closed";
-  form.payment_status = method === "wallet" ? "paid_wallet" : "paid_cash";
-
-  handleSubmit({
-    form,
-    url: route("admin.transaction.save"),
-    onSuccess: () => {
-      $q.notify({
-        message: "Transaksi berhasil disimpan",
-        color: "positive",
-        position: "top",
-        icon: "check_circle",
-      });
-      form.reset();
-      form.items = [];
-    },
-    onFinish: () => {
-      showPaymentDialog.value = false;
-    },
-  });
-};
 </script>
 
 <template>
@@ -337,7 +207,6 @@ const handlePayment = (method) => {
           <div class="col-12 q-pa-sm column">
             <ItemListTable
               :items="form.items"
-              :columns="tableColumns"
               @update-quantity="({ id, value }) => updateQuantity(id, value)"
               @remove-item="confirmRemoveItem"
             />

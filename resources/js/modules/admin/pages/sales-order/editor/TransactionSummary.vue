@@ -33,7 +33,6 @@ onMounted(() => {
   focusOnBarcodeInput();
 });
 
-// gimana caranya mengekspose funngsi ini ke parent compoennt
 const focusOnBarcodeInput = () => {
   nextTick(() => {
     if (barcodeInputRef.value) {

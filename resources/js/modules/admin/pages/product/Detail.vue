@@ -128,6 +128,13 @@ const computedColumns = computed(() => {
                       </td>
                     </tr>
                     <tr>
+                      <td>Barcode</td>
+                      <td>:</td>
+                      <td>
+                        {{ page.props.data.barcode }}
+                      </td>
+                    </tr>
+                    <tr>
                       <td>Jenis Produk</td>
                       <td>:</td>
                       <td>

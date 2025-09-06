@@ -103,7 +103,7 @@ class SalesOrderController extends Controller
             ]);
         } else {
             // reopen order jika sudah bukan draft
-            $item = SalesOrder::findOrFail($id);
+            $item = SalesOrder::with(['details'])->findOrFail($id);
             if ($item->status === SalesOrder::Status_Closed) {
                 $item->status = SalesOrder::Status_Draft;
                 // TODO: kembalikan stok jika sudah ditutup, atau tolak kalau tidak boleh reopen
@@ -115,8 +115,6 @@ class SalesOrderController extends Controller
 
         return inertia('sales-order/Editor', [
             'data' => $item,
-            'customers' => $this->_customers(),
-            'products' => $this->_products(),
         ]);
     }
 
@@ -188,7 +186,7 @@ class SalesOrderController extends Controller
 
     public function addItem(Request $request)
     {
-        $order = SalesOrder::find($request->post('id'));
+        $order = SalesOrder::find($request->post('order_id'));
         if (!$order) {
             return JsonResponseHelper::error('Order tidak ditemukan');
         }
@@ -197,14 +195,22 @@ class SalesOrderController extends Controller
             return JsonResponseHelper::error('Order sudah tidak dapat diubah.');
         }
 
-        $product = Product::find($request->post('product_id', 0));
+        $product = null;
+        $productCode = $request->post('product_code');
+        $productId = $request->post('product_id');
+        if ($productId) {
+            $product = Product::find($request->post('product_id', 0));
+        } elseif ($productCode) {
+            $product = Product::where('barcode', '=', $productCode)->first();
+        }
+
         if (!$product) {
             return JsonResponseHelper::error('Produk tidak ditemukan');
         }
 
         $qty = $request->post('qty', 0);
         $price = $product->price;
-        if ($product->price_editable && $request->has('price')) {
+        if ($product->price_editable && $request->has('price') && $request->post('price') !== null) {
             $price = $request->post('price', 0);
         }
 
@@ -212,7 +218,8 @@ class SalesOrderController extends Controller
             'parent_id' => $order->id,
             'product_id' => $product->id,
             'product_name' => $product->name,
-            'uom' => $product->uom,
+            'product_barcode' => $product->barcode,
+            'product_uom' => $product->uom,
             'cost' => $product->cost,
             'subtotal_cost' => $qty * $product->cost,
             'notes' => '',
@@ -225,7 +232,7 @@ class SalesOrderController extends Controller
         return JsonResponseHelper::success($detail, 'Item telah ditambahkan');
     }
 
-    public function deleteItem(Request $request)
+    public function removeItem(Request $request)
     {
         $item = SalesOrderDetail::find($request->id);
 
