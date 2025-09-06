@@ -101,17 +101,20 @@ class SalesOrderController extends Controller
                 'payment_status' => SalesOrder::PaymentStatus_Unpaid,
                 'delivery_status' => SalesOrder::DeliveryStatus_NotSent,
             ]);
-        } else {
-            // reopen order jika sudah bukan draft
-            $item = SalesOrder::with(['details'])->findOrFail($id);
-            if ($item->status === SalesOrder::Status_Closed) {
-                $item->status = SalesOrder::Status_Draft;
-                // TODO: kembalikan stok jika sudah ditutup, atau tolak kalau tidak boleh reopen
-            } else if ($item->status === SalesOrder::Status_Canceled) {
-                $item->status = SalesOrder::Status_Draft;
-            }
+            $item->save();
+            return redirect(route('admin.sales-order.edit', $item->id));
         }
-        $item->save();
+
+        // reopen order jika sudah bukan draft
+        $item = SalesOrder::with(['details'])->findOrFail($id);
+        if ($item->status === SalesOrder::Status_Closed) {
+            $item->status = SalesOrder::Status_Draft;
+            // TODO: kembalikan stok jika sudah ditutup, atau tolak kalau tidak boleh reopen
+            $item->save();
+        } else if ($item->status === SalesOrder::Status_Canceled) {
+            $item->status = SalesOrder::Status_Draft;
+            $item->save();
+        }
 
         return inertia('sales-order/Editor', [
             'data' => $item,

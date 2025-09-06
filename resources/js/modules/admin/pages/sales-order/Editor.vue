@@ -34,7 +34,7 @@ const form = useForm({
 });
 
 // State untuk kasir
-const barcode = ref("");
+const userInput = ref("");
 const isProcessing = ref(false);
 const showDeleteDialog = ref(false);
 const itemToDelete = ref(null);
@@ -50,64 +50,82 @@ const subtotal = computed(() => {
   return total;
 });
 
-const addItem = () => {
-  if (!barcode.value.trim()) {
-    $q.notify({
-      message: "Silakan masukkan barcode",
-      color: "warning",
-      position: "top",
-    });
+const notify = (msg, color = "info", pos = "top", icon = null) => {
+  $q.notify({
+    message: msg,
+    color: color,
+    position: pos,
+    icon: icon,
+  });
+};
+
+const showWarning = (msg) => {
+  notify(msg, "warning");
+};
+
+const _validateQuantity = (qty) => {
+  if (isNaN(qty) || qty <= 0) {
+    showWarning("Kuantitas tidak valid.");
+    return false;
+  }
+
+  return true;
+};
+
+const _validatePrice = (price) => {
+  if (isNaN(price) || price < 0) {
+    showWarning("Harga tidak valid.");
+    return false;
+  }
+
+  return true;
+};
+
+const _validateBarcode = (code) => {
+  if (!code || code.length == 0) {
+    showWarning("Barcode tidak valid.");
+    return false;
+  }
+
+  return true;
+};
+
+const addItem = async () => {
+  if (!userInput.value.trim()) {
+    showWarning("Input tidak valid.");
     return;
   }
 
   let inputQuantity = 1;
-  let inputBarcode = barcode.value.trim();
+  let inputBarcode = "";
   let inputPrice = null;
 
-  const parts = inputBarcode.split("*");
+  const parts = userInput.value.trim().split("*");
 
-  if (parts.length === 3) {
-    const parsedQty = parseInt(parts[0]);
-    const parsedPrice = parseFloat(parts[2]);
-
-    if (!isNaN(parsedQty) && parsedQty > 0) {
-      inputQuantity = parsedQty;
-    } else {
-      $q.notify({
-        message: "Kuantitas tidak valid. Menggunakan default 1.",
-        color: "warning",
-        position: "top",
-      });
-    }
-
-    if (!isNaN(parsedPrice) && parsedPrice >= 0) {
-      inputPrice = parsedPrice;
-    } else {
-      $q.notify({
-        message: "Harga tidak valid. Menggunakan harga produk default.",
-        color: "warning",
-        position: "top",
-      });
-    }
-
+  if (parts.length === 1) {
+    inputBarcode = parts[0];
+  } else if (parts.length <= 3) {
+    inputQuantity = parseInt(parts[0]);
     inputBarcode = parts[1];
-  } else if (parts.length === 2) {
-    const parsedQty = parseInt(parts[0]);
-    if (!isNaN(parsedQty) && parsedQty > 0) {
-      inputQuantity = parsedQty;
-    } else {
-      $q.notify({
-        message: "Kuantitas tidak valid. Menggunakan default 1.",
-        color: "warning",
-        position: "top",
-      });
+    if (parts.length === 3) {
+      inputPrice = parseFloat(parts[2]);
     }
-    inputBarcode = parts[1];
+  } else {
+    showWarning("Input tidak valid.");
+    return;
+  }
+
+  if (
+    !_validateBarcode(inputBarcode) &&
+    !_validateQuantity(inputQuantity) &&
+    !_validatePrice(inputPrice)
+  ) {
+    return;
   }
 
   // TODO: harus ada checkbox untuk add atau tambah item baru
   // const existingItemIndex = form.items.findIndex(
-  //   (item) => item.barcode === inputBarcode
+  //   (item) => item.product_barcode === inputBarcode
   // );
 
   // if (existingItemIndex !== -1) {
@@ -119,7 +137,7 @@ const addItem = () => {
   //   });
   // } else {
   isProcessing.value = true;
-  axios
+  await axios
     .post(route("admin.sales-order.add-item"), {
       order_id: form.id,
       product_code: inputBarcode,
@@ -127,26 +145,25 @@ const addItem = () => {
       price: inputPrice,
     })
     .then((response) => {
-      form.items.push(response.data);
+      form.items.push(response.data.data);
+      userInput.value = "";
     })
     .catch((error) => {
+      notify(error.response?.data?.message, "negative");
       console.error("Gagal mengambil data produk:", error);
-      update(() => {
-        options.value = [];
-      });
-    })
-    .finally(() => {
-      isProcessing.value = false;
+      // update(() => {
+      //   options.value = [];
+      // });
     });
 
-  barcode.value = "";
+  isProcessing.value = false;
   transactionSummaryRef.value?.focusOnBarcodeInput();
 };
 
 const confirmRemoveItem = (item) => {
   $q.dialog({
     title: "Hapus Item",
-    message: `Apakah Anda yakin akan menghapus item${item.barcode}?`,
+    message: `Apakah Anda yakin akan menghapus item${item.product_barcode}?`,
     cancel: {
       label: "Batal",
       color: "grey",
@@ -157,16 +174,31 @@ const confirmRemoveItem = (item) => {
     },
     persistent: true,
   }).onOk(() => {
-    const index = form.items.findIndex((data) => data.id === item.id);
-    if (index !== -1) {
-      const removedItem = form.items.splice(index, 1)[0];
-      $q.notify({
-        message: `${removedItem.name} dihapus dari keranjang`,
-        color: "info",
-        position: "top",
-        icon: "remove_shopping_cart",
+    isProcessing.value = true;
+    axios
+      .post(route("admin.sales-order.remove-item"), { id: item.id })
+      .then((response) => {
+        const index = form.items.findIndex((data) => data.id === item.id);
+        if (index !== -1) {
+          form.items.splice(index, 1)[0];
+          $q.notify({
+            message: `Item no ${index + 1} telah dihapus.`,
+            color: "info",
+            position: "top",
+          });
+        }
+      })
+      .catch((error) => {
+        $q.notify({
+          message: `Gagal menghapus item.`,
+          color: "negative",
+          position: "top",
+        });
+        console.error(error);
+      })
+      .finally(() => {
+        isProcessing.value = false;
       });
-    }
   });
 };
 
@@ -256,12 +288,12 @@ const updateQuantity = (id, newQuantity) => {
           <div class="col-md-4 col-xs-12 q-pa-sm">
             <TransactionSummary
               ref="transactionSummaryRef"
-              v-model:barcode="barcode"
+              v-model:barcode="userInput"
               :subtotal="subtotal"
               :item-count="form.items.length"
               :is-processing="isProcessing"
               :form-processing="form.processing"
-              @add-item="addItem(barcode)"
+              @add-item="addItem(userInput)"
               @process-payment="processPayment"
             />
           </div>
