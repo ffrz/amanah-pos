@@ -27,6 +27,8 @@ class Product extends BaseModel
         'type',
         'cost',
         'price',
+        'price_2',
+        'price_3',
         'uom',
         'stock',
         'min_stock',
@@ -75,7 +77,6 @@ class Product extends BaseModel
     {
         return [
             'product_id'   => 'integer',
-            'product_name' => 'string',
             'category_id'  => 'integer',
             'supplier_id'  => 'integer',
             'name'         => 'string',
@@ -85,6 +86,8 @@ class Product extends BaseModel
             'type'         => 'string',
             'cost'         => 'decimal:2',
             'price'        => 'decimal:2',
+            'price_2'      => 'decimal:2',
+            'price_3'      => 'decimal:2',
             'uom'          => 'string',
             'stock'        => 'decimal:3',
             'min_stock'    => 'decimal:3',

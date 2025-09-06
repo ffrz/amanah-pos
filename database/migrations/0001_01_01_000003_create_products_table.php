@@ -22,6 +22,8 @@ return new class extends Migration
             $table->boolean('active')->default(true);
             $table->decimal('cost',  10, 2)->default(0.);
             $table->decimal('price', 10, 2)->default(0.);
+            $table->decimal('price_2', 10, 2)->default(0.);
+            $table->decimal('price_3', 10, 2)->default(0.);
             $table->string('uom')->default('');
             $table->text('notes')->nullable();
             $table->decimal('stock', 10, 3)->default(0.);
