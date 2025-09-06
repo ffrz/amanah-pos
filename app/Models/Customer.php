@@ -95,7 +95,7 @@ class Customer extends BaseModel implements
 
     public function getTypeLabelAttribute()
     {
-        return self::Types[$this->type];
+        return self::Types[$this->type] ?? '';
     }
 
     public function getFormattedIdAttribute()
