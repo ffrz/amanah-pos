@@ -1,71 +1,16 @@
-<script setup>
-import DigitalClock from "@/components/DigitalClock.vue";
-import { useCustomerFilter } from "@/composables/useCustomerFilter";
-import { formatNumber } from "@/helpers/formatter";
-import { usePage } from "@inertiajs/vue3";
-import { computed, ref } from "vue";
-
-const page = usePage();
-const { filteredCustomers, filterCustomersFn, customers } = useCustomerFilter(
-  page.props.customers,
-  false
-);
-
-const props = defineProps({
-  user: {
-    type: Object,
-    required: true,
-  },
-  company: {
-    type: Object,
-    required: true,
-  },
-  modelValue: {
-    type: [Object, null],
-    default: null,
-  },
-  formProcessing: {
-    type: Boolean,
-    default: false,
-  },
-});
-
-const emit = defineEmits(["update:modelValue"]);
-const customer_id = ref(null);
-function getSelectedCustomer() {
-  if (!customer_id.value) return null;
-  const customer = page.props.customers.find(
-    (customer) => customer.id === customer_id.value
-  );
-  return customer;
-}
-</script>
-
 <template>
   <div class="row q-col-gutter-md items-center q-px-md q-py-sm">
     <div class="col-12 col-sm-6 col-md-4">
       <div>
-        <q-select
+        <CustomerAutocomplete
           class="custom-select"
-          v-model="customer_id"
+          v-model="customer.id"
           label="Pelanggan"
-          use-input
-          input-debounce="300"
-          clearable
-          map-options
-          emit-value
-          :options="customers"
-          @filter="filterCustomersFn"
           :disable="formProcessing"
-        >
-          <template v-slot:no-option>
-            <q-item>
-              <q-item-section>Pelanggan tidak ditemukan</q-item-section>
-            </q-item>
-          </template>
-        </q-select>
-        <div v-if="customer_id" class="text-grey q-mt-xs">
-          Saldo: Rp. {{ formatNumber(getSelectedCustomer().balance) }}
+          @customer-selected="updateCustomerData"
+        />
+        <div v-if="customer.data" class="text-grey q-mt-xs">
+          Saldo: Rp. {{ formatNumber(customer.data.balance) }}
         </div>
       </div>
     </div>
@@ -98,3 +43,35 @@ function getSelectedCustomer() {
     </div>
   </div>
 </template>
+
+<script setup>
+import CustomerAutocomplete from "@/components/CustomerAutocomplete.vue";
+import DigitalClock from "@/components/DigitalClock.vue";
+import { formatNumber } from "@/helpers/formatter";
+import { ref } from "vue";
+import { useForm } from "@inertiajs/vue3";
+
+const props = defineProps({
+  user: {
+    type: Object,
+    required: true,
+  },
+  company: {
+    type: Object,
+    required: true,
+  },
+  formProcessing: {
+    type: Boolean,
+    default: false,
+  },
+});
+
+const customer = ref({
+  id: null,
+  data: null,
+});
+
+function updateCustomerData(data) {
+  customer.value.data = data;
+}
+</script>

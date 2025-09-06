@@ -155,8 +155,7 @@ const cancelItem = (row) => {
         rows.value[itemIndex].status = "dibatalkan";
 
         $q.notify({
-          message: "Transaksi berhasil dibatalkan!",
-          color: "positive",
+          message: response.data.message,
           position: "bottom",
         });
       })

@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\SalesOrder;
 use App\Models\Customer;
 use App\Models\Product;
+use App\Models\SalesOrderDetail;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -15,14 +16,23 @@ class SalesOrderController extends Controller
 {
     protected function _customers()
     {
-        return Customer::all();
+        return Customer::where('active', '=', true)
+            ->orderBy('username', 'asc')
+            ->select(['id', 'username', 'name', 'balance'])
+            ->get();
+    }
+
+    protected function _products()
+    {
+        return Product::where('active', '=', true)
+            ->orderBy('name', 'asc')
+            ->select(['id', 'barcode', 'name', 'description', 'price', 'price_2', 'price_3', 'uom'])
+            ->get();
     }
 
     public function index()
     {
-        return inertia('sales-order/Index', [
-            'categories' => $this->_customers(),
-        ]);
+        return inertia('sales-order/Index');
     }
 
     public function data(Request $request)
@@ -61,7 +71,8 @@ class SalesOrderController extends Controller
             }
         }
 
-        $q->orderBy($orderBy, $orderType);
+        $q->select(['id', 'total_price', 'datetime', 'status', 'payment_status', 'delivery_status'])
+            ->orderBy($orderBy, $orderType);
 
         $items = $q->paginate($request->get('per_page', 10))->withQueryString();
 
@@ -104,8 +115,8 @@ class SalesOrderController extends Controller
 
         return inertia('sales-order/Editor', [
             'data' => $item,
-            'customers' => Customer::where('active', '=', true)->orderBy('username', 'asc')->get(),
-            'products' => Product::where('active', '=', true)->orderBy('name', 'asc')->get(),
+            'customers' => $this->_customers(),
+            'products' => $this->_products(),
         ]);
     }
 
@@ -145,7 +156,10 @@ class SalesOrderController extends Controller
         if ($item->status == SalesOrder::Status_Draft) {
             $item->status = SalesOrder::Status_Canceled;
             $item->save();
-            return JsonResponseHelper::success(['id' => $item->id]);
+            return JsonResponseHelper::success(
+                ['id' => $item->id],
+                "Transaksi #$item->formatted_id telah dibatalkan."
+            );
         }
         return JsonResponseHelper::error('Status order ini tidak dapat diubah.');
     }
@@ -170,5 +184,60 @@ class SalesOrderController extends Controller
         return inertia('sales-order/Detail', [
             'data' => SalesOrder::findOrFail($id),
         ]);
+    }
+
+    public function addItem(Request $request)
+    {
+        $order = SalesOrder::find($request->post('id'));
+        if (!$order) {
+            return JsonResponseHelper::error('Order tidak ditemukan');
+        }
+
+        if ($order->status !== SalesOrder::Status_Draft) {
+            return JsonResponseHelper::error('Order sudah tidak dapat diubah.');
+        }
+
+        $product = Product::find($request->post('product_id', 0));
+        if (!$product) {
+            return JsonResponseHelper::error('Produk tidak ditemukan');
+        }
+
+        $qty = $request->post('qty', 0);
+        $price = $product->price;
+        if ($product->price_editable && $request->has('price')) {
+            $price = $request->post('price', 0);
+        }
+
+        $detail = new SalesOrderDetail([
+            'parent_id' => $order->id,
+            'product_id' => $product->id,
+            'product_name' => $product->name,
+            'uom' => $product->uom,
+            'cost' => $product->cost,
+            'subtotal_cost' => $qty * $product->cost,
+            'notes' => '',
+            'quantity' => $qty,
+            'price' => $price,
+            'subtotal_price' => $qty * $price,
+        ]);
+        $detail->save();
+
+        return JsonResponseHelper::success($detail, 'Item telah ditambahkan');
+    }
+
+    public function deleteItem(Request $request)
+    {
+        $item = SalesOrderDetail::find($request->id);
+
+        if (!$item) {
+            return JsonResponseHelper::error('Item tidak ditemukan');
+        }
+
+        if ($item->parent->status !== SalesOrder::Status_Draft) {
+            return JsonResponseHelper::error('Order selesai tidak dapat diubah!');
+        }
+
+        $item->delete();
+        return JsonResponseHelper::success($item, 'Item telah dihapus.');
     }
 }

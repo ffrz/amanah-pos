@@ -1,15 +1,17 @@
 <script setup>
 import { router, useForm, usePage } from "@inertiajs/vue3";
+import { handleSubmit } from "@/helpers/client-req-handler";
+
 import { ref, computed, nextTick } from "vue";
 import { useQuasar } from "quasar";
+import dayjs from "dayjs";
+
 import TransactionHeader from "./editor/TransactionHeader.vue";
 import ItemListTable from "./editor/ItemsListTable.vue";
 import TransactionSummary from "./editor/TransactionSummary.vue";
+
 import CustomerEditorDialog from "./editor/CustomerEditorDialog.vue";
-import PaymentDialog from "./editor/PaymentDialog.vue";
-import ConfirmDeleteDialog from "./editor/ConfirmDeleteDialog.vue";
-import { handleSubmit } from "@/helpers/client-req-handler";
-import { formatDateTimeForEditing, formatNumber } from "@/helpers/formatter";
+import { formatNumber } from "@/helpers/formatter";
 
 const title = "Penjualan";
 const $q = useQuasar();
@@ -18,18 +20,17 @@ const page = usePage();
 const transactionSummaryRef = ref(null);
 
 const form = useForm({
-  id: page.props.data.id,
-  formatted_id: page.props.data.formatted_id,
-  customer_id: page.props.data.customer_id,
-  datetime: page.props.data.datetime,
-  status: page.props.data.status,
-  payment_status: page.props.data.payment_status,
-  delivery_status: page.props.data.delivery_status,
-  subtotal: page.props.data.total_price,
-  tax: page.props.data.tax,
-  total: page.props.data.total,
-  notes: page.props.data.notes,
+  id: null,
+  formatted_id: "Diisi Otomatis",
+  customer_name: "Pelanggan Umum",
+  datetime: dayjs().format("YYYY-MM-DD HH:mm:ss"),
+  status: "pending",
+  payment_status: "unpaid",
   items: [],
+  subtotal: 0,
+  tax: 0,
+  total: 0,
+  notes: "",
 });
 
 // State untuk kasir
@@ -39,6 +40,10 @@ const showDeleteDialog = ref(false);
 const itemToDelete = ref(null);
 const showCustomerEditor = ref(false);
 const showPaymentDialog = ref(false);
+
+// Tambahkan state baru untuk data santri
+const studentName = ref(null);
+const walletBalance = ref(null);
 
 const tableColumns = computed(() => {
   if ($q.screen.gt.sm) {
@@ -255,12 +260,12 @@ const processPayment = async () => {
     });
     return;
   }
-  await fetchCustomer(); // Panggil fungsi untuk mengambil data pelanggan
+  await fetchStudentData(); // Panggil fungsi untuk mengambil data santri
   showPaymentDialog.value = true;
 };
 
-const fetchCustomer = async () => {
-  // Simulasi pengambilan data pelanggan dari backend
+const fetchStudentData = async () => {
+  // Simulasi pengambilan data santri dari backend
   // Dalam implementasi nyata, Anda akan menggunakan ID pelanggan untuk mencari data
   try {
     // Misalnya, ambil data dari API:
@@ -284,8 +289,8 @@ const fetchCustomer = async () => {
 const handlePayment = (method) => {
   if (form.items.length === 0) return;
 
-  form.datetime = formatDateTimeForEditing(new Date());
-  form.status = "closed";
+  form.datetime = dayjs().format("YYYY-MM-DD HH:mm:ss");
+  form.status = "completed";
   form.payment_status = method === "wallet" ? "paid_wallet" : "paid_cash";
 
   handleSubmit({
@@ -406,7 +411,62 @@ const handlePayment = (method) => {
       />
 
       <CustomerEditorDialog v-model="showCustomerEditor" />
-      <PaymentDialog v-model="showPaymentDialog" />
+
+      <q-dialog v-model="showPaymentDialog" persistent>
+        <q-card style="min-width: 350px">
+          <q-card-section>
+            <div class="text-h6 text-center">Pilih Metode Pembayaran</div>
+          </q-card-section>
+
+          <q-card-section class="q-pt-none">
+            <div v-if="studentName" class="text-center q-mb-md text-grey-8">
+              <div class="text-subtitle1 text-weight-medium">
+                {{ studentName }}
+              </div>
+              <div v-if="walletBalance !== null" class="text-body1">
+                Saldo: Rp. {{ formatNumber(walletBalance) }}
+              </div>
+            </div>
+
+            <div class="text-h4 text-center text-primary q-pb-md">
+              Rp. {{ formatNumber(form.total) }}
+            </div>
+            <div class="row q-col-gutter-sm justify-center">
+              <div class="col-12">
+                <q-btn
+                  label="Tunai"
+                  icon="attach_money"
+                  color="primary"
+                  class="full-width"
+                  @click="handlePayment('cash')"
+                  :loading="form.processing"
+                  :disable="form.processing"
+                />
+              </div>
+              <div class="col-12">
+                <q-btn
+                  label="Dompet Santri"
+                  icon="wallet"
+                  color="green-6"
+                  class="full-width"
+                  @click="handlePayment('wallet')"
+                  :loading="form.processing"
+                  :disable="form.processing"
+                />
+              </div>
+            </div>
+          </q-card-section>
+
+          <q-card-actions align="right" class="q-py-md">
+            <q-btn
+              flat
+              label="Batal"
+              color="grey"
+              @click="showPaymentDialog = false"
+            />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
     </q-page>
   </authenticated-layout>
 </template>
