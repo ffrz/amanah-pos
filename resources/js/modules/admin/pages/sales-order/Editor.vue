@@ -1,16 +1,15 @@
 <script setup>
 import { router, useForm, usePage } from "@inertiajs/vue3";
-import { ref, computed, nextTick } from "vue";
+import { ref, computed } from "vue";
 import { useQuasar } from "quasar";
+import axios from "axios";
+
 import TransactionHeader from "./editor/TransactionHeader.vue";
 import ItemListTable from "./editor/ItemsListTable.vue";
 import TransactionSummary from "./editor/TransactionSummary.vue";
 import CustomerEditorDialog from "./editor/CustomerEditorDialog.vue";
 import PaymentDialog from "./editor/PaymentDialog.vue";
 import ConfirmDeleteDialog from "./editor/ConfirmDeleteDialog.vue";
-import { handleSubmit } from "@/helpers/client-req-handler";
-import { formatDateTimeForEditing, formatNumber } from "@/helpers/formatter";
-import axios from "axios";
 import ProductBrowserDialog from "@/components/ProductBrowserDialog.vue";
 import CheckBox from "@/components/CheckBox.vue";
 
@@ -42,9 +41,10 @@ const showDeleteDialog = ref(false);
 const itemToDelete = ref(null);
 const showCustomerEditor = ref(false);
 const showPaymentDialog = ref(false);
-const showProductBrowserDilog = ref(false);
+const showProductBrowserDialog = ref(false);
+
 const handleProductSelection = (product) => {
-  userInput.value = product.name;
+  userInput.value += product.name;
 };
 
 const subtotal = computed(() => {
@@ -69,7 +69,7 @@ const showWarning = (msg) => {
   notify(msg, "warning");
 };
 
-const _validateQuantity = (qty) => {
+const validateQuantity = (qty) => {
   if (isNaN(qty) || qty <= 0) {
     showWarning("Kuantitas tidak valid.");
     return false;
@@ -78,7 +78,7 @@ const _validateQuantity = (qty) => {
   return true;
 };
 
-const _validatePrice = (price) => {
+const validatePrice = (price) => {
   if (isNaN(price) || price < 0) {
     showWarning("Harga tidak valid.");
     return false;
@@ -87,7 +87,7 @@ const _validatePrice = (price) => {
   return true;
 };
 
-const _validateBarcode = (code) => {
+const validateBarcode = (code) => {
   if (!code || code.length == 0) {
     showWarning("Barcode tidak valid.");
     return false;
@@ -99,7 +99,7 @@ const _validateBarcode = (code) => {
 const addItem = async () => {
   const input = userInput.value.trim();
   if (input.length === 0) {
-    showProductBrowserDilog.value = true;
+    showProductBrowserDialog.value = true;
     return;
   }
 
@@ -122,10 +122,15 @@ const addItem = async () => {
     return;
   }
 
+  if (inputBarcode.length === 0) {
+    showProductBrowserDialog.value = true;
+    return;
+  }
+
   if (
-    !_validateBarcode(inputBarcode) &&
-    !_validateQuantity(inputQuantity) &&
-    !_validatePrice(inputPrice)
+    !validateBarcode(inputBarcode) &&
+    !validateQuantity(inputQuantity) &&
+    !validatePrice(inputPrice)
   ) {
     return;
   }
@@ -163,9 +168,6 @@ const addItem = async () => {
     .catch((error) => {
       notify(error.response?.data?.message, "negative");
       console.error("Gagal mengambil data produk:", error);
-      // update(() => {
-      //   options.value = [];
-      // });
     });
 
   isProcessing.value = false;
@@ -189,7 +191,7 @@ const confirmRemoveItem = (item) => {
     isProcessing.value = true;
     axios
       .post(route("admin.sales-order.remove-item"), { id: item.id })
-      .then((response) => {
+      .then(() => {
         const index = form.items.findIndex((data) => data.id === item.id);
         if (index !== -1) {
           form.items.splice(index, 1)[0];
@@ -307,6 +309,7 @@ const updateQuantity = (id, newQuantity) => {
               :form-processing="form.processing"
               @add-item="addItem(userInput)"
               @process-payment="processPayment"
+              :is-product-browser-open="showProductBrowserDialog"
             />
             <CheckBox v-model="mergeItem" label="Gabungkan item" />
           </div>
@@ -322,7 +325,7 @@ const updateQuantity = (id, newQuantity) => {
       <CustomerEditorDialog v-model="showCustomerEditor" />
       <PaymentDialog v-model="showPaymentDialog" />
       <ProductBrowserDialog
-        v-model="showProductBrowserDilog"
+        v-model="showProductBrowserDialog"
         @product-selected="handleProductSelection"
       />
     </q-page>

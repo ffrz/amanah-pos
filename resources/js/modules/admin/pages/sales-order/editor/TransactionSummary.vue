@@ -4,7 +4,7 @@ import { nextTick, onMounted, ref } from "vue";
 
 const barcodeInputRef = ref(null);
 
-defineProps({
+const props = defineProps({
   subtotal: {
     type: Number,
     required: true,
@@ -25,9 +25,13 @@ defineProps({
     type: Boolean,
     default: false,
   },
+  isProductBrowserOpen: {
+    type: Boolean,
+    default: false,
+  },
 });
 
-defineEmits(["update:barcode", "add-item", "process-payment"]);
+const emit = defineEmits(["update:barcode", "add-item", "process-payment"]);
 
 onMounted(() => {
   focusOnBarcodeInput();
@@ -39,6 +43,13 @@ const focusOnBarcodeInput = () => {
       barcodeInputRef.value.focus();
     }
   });
+};
+
+const addItem = () => {
+  console.log(props.isProductBrowserOpen);
+  if (!props.isProductBrowserOpen) {
+    emit("addItem");
+  }
 };
 
 defineExpose({
@@ -66,7 +77,7 @@ defineExpose({
         placeholder="Qty*Kode*Harga"
         outlined
         class="col bg-white"
-        @keyup.enter="$emit('add-item')"
+        @keyup.enter.prevent="addItem()"
         :loading="isProcessing"
         clearable
         autofocus

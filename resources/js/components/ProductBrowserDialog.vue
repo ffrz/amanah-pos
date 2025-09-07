@@ -1,6 +1,5 @@
 <script setup>
-import { computed, onMounted, reactive, ref, watch } from "vue";
-import { usePage } from "@inertiajs/vue3";
+import { computed, nextTick, onMounted, reactive, ref, watch } from "vue";
 import { formatNumber } from "@/helpers/formatter";
 import { getQueryParams } from "@/helpers/utils";
 import { handleFetchItems } from "@/helpers/client-req-handler";
@@ -68,7 +67,12 @@ const onFilterChange = () => {
 
 const onProductSelect = (product) => {
   emit("product-selected", product);
-  emit("update:modelValue", false); // Tutup dialog setelah memilih produk
+
+  // nextTick(() => {
+  setTimeout(() => {
+    emit("update:modelValue", false);
+  }, 100);
+  // });
 };
 
 watch(
@@ -152,7 +156,7 @@ watch(
             :class="{ inactive: !props.row.active }"
             class="cursor-pointer"
             @click="onProductSelect(props.row)"
-            @keydown.enter="onProductSelect(props.row)"
+            @keydown.enter.prevent.stop="onProductSelect(props.row)"
             @keydown.space.prevent="onProductSelect(props.row)"
           >
             <q-td key="name" :props="props" class="wrap-column">
