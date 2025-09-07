@@ -219,7 +219,7 @@ class SalesOrderController extends Controller
             return JsonResponseHelper::error('Produk tidak ditemukan');
         }
 
-        $qty = $request->post('qty', 0);
+        $quantity = $request->post('qty', 0);
         $price = $product->price;
         if ($product->price_editable && $request->has('price') && $request->post('price') !== null) {
             $price = $request->post('price', 0);
@@ -235,8 +235,16 @@ class SalesOrderController extends Controller
         }
 
         if ($detail) {
+            // kurangi dulu dengan subtotal sebelum hitungan baru
+            $order->total_cost  -= $detail->subtotal_cost;
+            $order->total_price -= $detail->subtotal_price;
+
             // kalau sudah ada cukup tambaih qty saja
-            $detail->quantity += $qty;
+            $detail->quantity += $quantity;
+
+            // perbarui subtotal
+            $detail->subtotal_cost  = $detail->cost  * $detail->quantity;
+            $detail->subtotal_price = $detail->price * $detail->quantity;
         } else {
             $detail = new SalesOrderDetail([
                 'parent_id' => $order->id,
@@ -244,24 +252,29 @@ class SalesOrderController extends Controller
                 'product_name' => $product->name,
                 'product_barcode' => $product->barcode,
                 'product_uom' => $product->uom,
+                'quantity' => $quantity,
                 'cost' => $product->cost,
-                'subtotal_cost' => $qty * $product->cost,
-                'notes' => '',
-                'quantity' => $qty,
+                'subtotal_cost' => $quantity * $product->cost,
                 'price' => $price,
-                'subtotal_price' => $qty * $price,
+                'subtotal_price' => $quantity * $price,
+                'notes' => '',
             ]);
         }
 
         DB::beginTransaction();
-        // update total dan subtotal
-        $order->total_cost += $qty * $product->cost;
-        $order->total_price += $qty * $price;
-        $order->save();
         $detail->save();
+
+        // update total dan subtotal baru
+        $order->total_cost  += $detail->subtotal_cost;
+        $order->total_price += $detail->subtotal_price;
+        $order->save();
+
         DB::commit();
 
-        return JsonResponseHelper::success($detail, 'Item telah ditambahkan');
+        return JsonResponseHelper::success([
+            'item' => $detail,
+            'mergeItem' => $merge,
+        ], 'Item telah ditambahkan');
     }
 
     public function removeItem(Request $request)
@@ -277,12 +290,10 @@ class SalesOrderController extends Controller
         }
 
         DB::beginTransaction();
-        // update total dan subtotal
         $order = $item->parent;
         $order->total_cost  -= $item->subtotal_cost;
         $order->total_price -= $item->subtotal_price;
         $order->save();
-
         $item->delete();
         DB::commit();
         return JsonResponseHelper::success($item, 'Item telah dihapus.');

@@ -1,7 +1,6 @@
 <script setup>
 import { formatNumber } from "@/helpers/formatter";
 import { useQuasar } from "quasar";
-import { computed } from "vue";
 
 const $q = useQuasar();
 

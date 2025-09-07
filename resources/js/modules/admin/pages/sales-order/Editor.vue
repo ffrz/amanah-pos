@@ -140,22 +140,23 @@ const addItem = async () => {
       merge: mergeItem.value,
     })
     .then((response) => {
-      const currentItem = response.data.data;
+      const currentItem = response.data.data.item;
 
-      if (response.data.mergeItem) {
-        const existingItemIndex = form.items.findIndex(
+      let existingItemIndex = -1;
+      if (response.data.data.mergeItem) {
+        existingItemIndex = form.items.findIndex(
           (item) => item.id === currentItem.id
         );
+      }
 
-        if (existingItemIndex !== -1) {
-          form.items[existingItemIndex] = currentItem;
-        }
-      } else {
+      if (existingItemIndex === -1) {
         form.items.push(currentItem);
+      } else {
+        form.items[existingItemIndex] = currentItem;
       }
 
       userInput.value = "";
-      if (inputPrice !== parseFloat(newItem.price)) {
+      if (inputPrice !== null && inputPrice !== parseFloat(currentItem.price)) {
         showWarning("Harga tidak dapat diubah!");
       }
     })
