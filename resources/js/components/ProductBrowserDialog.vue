@@ -1,5 +1,5 @@
 <script setup>
-import { computed, nextTick, onMounted, reactive, ref, watch } from "vue";
+import { computed, onMounted, reactive, ref, watch } from "vue";
 import { formatNumber } from "@/helpers/formatter";
 import { getQueryParams } from "@/helpers/utils";
 import { handleFetchItems } from "@/helpers/client-req-handler";
@@ -96,11 +96,12 @@ watch(
     <q-card style="min-width: 600px; min-height: 400px">
       <q-card-section class="q-py-sm">
         <div class="row items-center no-wrap">
-          <div class="col text-h6 text-grey-8">Cari Produk</div>
+          <div class="col text-subtitle text-grey-8 text-bold">Cari Produk</div>
           <div class="col-auto">
             <q-btn
               flat
               round
+              size="xs"
               icon="close"
               @click="$emit('update:modelValue', false)"
             />
@@ -115,7 +116,7 @@ watch(
           dense
           debounce="300"
           v-model="filter.search"
-          placeholder="Cari produk berdasarkan nama atau kode"
+          placeholder="Cari produk berdasarkan nama atau barcode"
           clearable
           @update:model-value="onFilterChange"
         >
