@@ -147,10 +147,13 @@ watch(
 
         <template v-slot:body="props">
           <q-tr
+            tabindex="0"
             :props="props"
             :class="{ inactive: !props.row.active }"
             class="cursor-pointer"
             @click="onProductSelect(props.row)"
+            @keydown.enter="onProductSelect(props.row)"
+            @keydown.space.prevent="onProductSelect(props.row)"
           >
             <q-td key="name" :props="props" class="wrap-column">
               {{ props.row.name }}
