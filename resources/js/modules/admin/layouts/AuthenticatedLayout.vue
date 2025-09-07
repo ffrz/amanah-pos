@@ -1,5 +1,5 @@
 <script setup>
-import { computed, defineComponent, onMounted, ref, watch } from "vue";
+import { defineComponent, onMounted, provide, ref, watch } from "vue";
 import { router, usePage } from "@inertiajs/vue3";
 import { useQuasar } from "quasar";
 
@@ -16,6 +16,10 @@ const leftDrawerOpen = ref(
 const isDropdownOpen = ref(false);
 const toggleLeftDrawer = () => (leftDrawerOpen.value = !leftDrawerOpen.value);
 
+const hideDrawer = () => {
+  leftDrawerOpen.value = false;
+};
+
 watch(leftDrawerOpen, (newValue) => {
   localStorage.setItem(LEFT_DRAWER_STORAGE_KEY, newValue);
 });
@@ -28,6 +32,10 @@ onMounted(() => {
   if ($q.screen.lt.md) {
     leftDrawerOpen.value = false;
   }
+});
+
+defineExpose({
+  hideDrawer,
 });
 </script>
 

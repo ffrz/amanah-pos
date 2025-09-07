@@ -8,7 +8,6 @@
     emit-value
     :error="error"
     :disable="disable"
-    behavior="menu"
     :error-message="errorMessage"
   >
     <template #option="scope">

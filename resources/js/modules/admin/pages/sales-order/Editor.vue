@@ -1,10 +1,9 @@
 <script setup>
 import { router, useForm, usePage } from "@inertiajs/vue3";
-import { ref, computed, nextTick } from "vue";
+import { ref, computed, nextTick, onMounted, onUnmounted, inject } from "vue";
 import { useQuasar } from "quasar";
 import axios from "axios";
 
-import TransactionHeader from "./editor/TransactionHeader.vue";
 import ItemListTable from "./editor/ItemsListTable.vue";
 import TransactionSummary from "./editor/TransactionSummary.vue";
 import CustomerEditorDialog from "./editor/CustomerEditorDialog.vue";
@@ -13,14 +12,28 @@ import ProductBrowserDialog from "@/components/ProductBrowserDialog.vue";
 import CheckBox from "@/components/CheckBox.vue";
 import ItemEditorDialog from "./editor/ItemEditorDialog.vue";
 import DigitalClock from "@/components/DigitalClock.vue";
+import CustomerAutocomplete from "@/components/CustomerAutocomplete.vue";
+import { formatNumber } from "@/helpers/formatter";
+import HelpDialog from "./editor/HelpDialog.vue";
+import { useFullscreen } from "@/composables/useFullscreen";
 
 const $q = useQuasar();
 const page = usePage();
 const mergeItem = ref(true);
-const inputRef = ref(null);
+const userInputRef = ref(null);
 const transactionSummaryRef = ref(null);
 const itemEditorRef = ref(null);
+const customerAutocompleteRef = ref(null);
+const showHelpDialog = ref(false);
+const authLayoutRef = ref(null);
+const targetDiv = ref(null);
+const { isFullscreen, toggleFullscreen } = useFullscreen(targetDiv);
+
 const title = page.props.company.name;
+const customer = ref({
+  id: null,
+  data: null,
+});
 
 const form = useForm({
   id: page.props.data.id,
@@ -47,6 +60,13 @@ const total = computed(() => {
     return sum + item.price * item.quantity;
   }, 0);
 });
+
+const handleFullScreenClicked = () => {
+  toggleFullscreen();
+  if (!isFullscreen.value) {
+    authLayoutRef?.value?.hideDrawer();
+  }
+};
 
 // helpers
 const notify = (msg, color = null, pos = "top", icon = null) => {
@@ -171,7 +191,7 @@ const addItem = async () => {
 
   isProcessing.value = false;
   nextTick(() => {
-    inputRef.value?.focus();
+    userInputRef.value?.focus();
   });
 };
 
@@ -255,11 +275,45 @@ const handlePayment = () => {
     return;
   }
 };
+
+onMounted(() => {
+  const handler = (e) => {
+    if (e.key === "F1") {
+      e.preventDefault();
+      showHelpDialog.value = true;
+    } else if (e.key === "F2") {
+      e.preventDefault();
+      userInputRef.value.focus();
+    } else if (e.key === "F3") {
+      e.preventDefault();
+      customerAutocompleteRef.value.focus();
+    } else if (e.key === "F4") {
+      e.preventDefault();
+      mergeItem.value = !mergeItem.value;
+    } else if (e.key === "F11") {
+      e.preventDefault();
+      handleFullScreenClicked();
+    }
+  };
+  document.addEventListener("keydown", handler);
+  onUnmounted(() => {
+    document.removeEventListener("keydown", handler);
+  });
+
+  nextTick(() => {
+    authLayoutRef?.value?.hideDrawer();
+  });
+});
+
+const handleCustomerSelected = (data) => {
+  customer.value.data = data;
+  form.customer_id = data?.id;
+};
 </script>
 
 <template>
   <i-head :title="title" />
-  <authenticated-layout>
+  <authenticated-layout ref="authLayoutRef">
     <template #title>{{ title }}</template>
 
     <template #left-button>
@@ -284,30 +338,61 @@ const handlePayment = () => {
         <div>
           <DigitalClock />
         </div>
+        <q-btn
+          class="q-ml-sm"
+          v-if="$q.screen.gt.sm"
+          :icon="isFullscreen ? 'fullscreen_exit' : 'fullscreen'"
+          dense
+          color="grey-7"
+          flat
+          rounded
+          @click="handleFullScreenClicked()"
+        />
       </div>
     </template>
     <q-page class="bg-grey-2 q-pa-sm column fit">
       <q-card square flat bordered class="full-width col column">
-        <TransactionHeader
-          :user="page.props.auth.user"
-          :company="page.props.company"
-          @edit-customer="showCustomerEditor = true"
-        />
+        <div class="row">
+          <CustomerAutocomplete
+            ref="customerAutocompleteRef"
+            class="custom-select full-width col col-12 bg-white q-pa-sm"
+            v-model="customer.id"
+            label="Pelanggan [F3]"
+            :disable="isProcessing"
+            @customer-selected="handleCustomerSelected"
+            :min-length="1"
+            outlined
+            dense
+          />
+          <div v-if="customer.data" class="text-grey q-mt-xs">
+            Saldo: Rp.
+            {{ formatNumber(customer.data ? customer.data.balance : 0) }}
+          </div>
+        </div>
         <div class="row">
           <q-input
-            ref="inputRef"
+            ref="userInputRef"
             :model-value="userInput"
             @update:model-value="(val) => $emit('update:barcode', val)"
             @keyup.enter.prevent="addItem()"
             :loading="isProcessing"
             :disable="isProcessing"
-            placeholder="Qty * Kode / Barcode * Harga"
+            placeholder="Qty * Kode / Barcode * Harga [F2]"
             class="col col-12 q-pa-sm bg-white"
             outlined
             clearable
             autofocus
             dense
           />
+        </div>
+        <div class="row q-px-sm">
+          <div class="col">
+            <CheckBox
+              v-model="mergeItem"
+              label="Gabungkan item [F4]"
+              :disable="isProcessing"
+            />
+          </div>
         </div>
         <div class="row col grow">
           <div class="col-12 q-pa-sm column">
@@ -317,16 +402,9 @@ const handlePayment = () => {
               @remove-item="removeItem"
               @edit-item="showItemEditor"
               :is-processing="isProcessing"
-              :merge-item="mergeItem"
             />
             <div class="row">
-              <div class="col">
-                <CheckBox
-                  v-model="mergeItem"
-                  label="Gabungkan item"
-                  :disable="isProcessing"
-                />
-              </div>
+              <div class="col"></div>
               <div class="col">
                 <div class="text-caption text-grey-6 q-mt-xs text-right">
                   {{ form.items.length }} item(s)
@@ -406,6 +484,7 @@ const handlePayment = () => {
         v-model="showProductBrowserDialog"
         @product-selected="handleProductSelection"
       />
+      <HelpDialog v-model="showHelpDialog" />
     </q-page>
   </authenticated-layout>
 </template>

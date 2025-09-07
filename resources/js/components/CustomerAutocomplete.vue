@@ -1,15 +1,14 @@
 <template>
   <q-select
     :class="class"
+    ref="qSelectRef"
     v-model="selectedId"
     use-input
     input-debounce="0"
     :label="label"
     :options="options"
     @filter="filterFn"
-    hint="Ketik minimal 2 karakter untuk mencari"
     clearable
-    behavior="menu"
     :error="error"
     :error-message="errorMessage"
     :disable="disable"
@@ -24,6 +23,7 @@
 <script setup>
 import { ref, watch } from "vue";
 import axios from "axios";
+const qSelectRef = ref(null);
 
 const props = defineProps({
   modelValue: {
@@ -54,6 +54,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  minLength: {
+    type: Number,
+    default: 0,
+  },
 });
 
 const emit = defineEmits(["update:modelValue", "customerSelected"]);
@@ -61,6 +65,14 @@ const emit = defineEmits(["update:modelValue", "customerSelected"]);
 const selectedId = ref(props.modelValue);
 const options = ref([]);
 let timeoutId = null;
+
+const focus = () => {
+  if (qSelectRef.value) {
+    qSelectRef.value.focus();
+  }
+};
+
+defineExpose({ focus });
 
 watch(
   () => props.modelValue,
@@ -84,7 +96,7 @@ watch(selectedId, (newValue) => {
 });
 
 const filterFn = (val, update) => {
-  if (val.length < 2) {
+  if (val.length < props.minLength) {
     update(() => {
       options.value = [];
     });
