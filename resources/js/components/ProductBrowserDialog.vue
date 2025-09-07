@@ -22,6 +22,7 @@ const loading = ref(true);
 
 const filter = reactive({
   search: "",
+  status: "active",
   ...getQueryParams(),
 });
 
