@@ -10,6 +10,7 @@
     @filter="filterFn"
     clearable
     :error="error"
+    behavior="menu"
     :error-message="errorMessage"
     :disable="disable"
     hide-bottom-space

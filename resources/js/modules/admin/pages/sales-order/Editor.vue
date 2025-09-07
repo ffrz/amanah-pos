@@ -108,7 +108,6 @@ const validateBarcode = (code) => {
 
 // -----
 const handleProductSelection = (product) => {
-  console.log(userInput.value);
   if (userInput.value.endsWith("*")) {
     userInput.value += product.name;
   } else {
@@ -118,7 +117,6 @@ const handleProductSelection = (product) => {
 
 const addItem = async () => {
   const input = userInput.value.trim();
-  console.log(input);
   if (input.length === 0) {
     showProductBrowserDialog.value = true;
     return;
