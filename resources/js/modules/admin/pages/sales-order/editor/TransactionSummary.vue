@@ -46,9 +46,8 @@ const focusOnBarcodeInput = () => {
 };
 
 const addItem = () => {
-  console.log(props.isProductBrowserOpen);
   if (!props.isProductBrowserOpen) {
-    emit("addItem");
+    emit("add-item");
   }
 };
 
@@ -65,22 +64,19 @@ defineExpose({
         {{ formatNumber(subtotal) }}
       </span>
     </div>
-    <div class="text-caption text-grey-6 q-mt-xs text-right">
-      {{ itemCount }} item(s)
-    </div>
-
     <div class="q-py-xs">
       <q-input
         ref="barcodeInputRef"
         :model-value="barcode"
         @update:model-value="(val) => $emit('update:barcode', val)"
-        placeholder="Qty*Kode*Harga"
+        placeholder="Qty*Kode/Barcode*Harga"
         outlined
         class="col bg-white"
         @keyup.enter.prevent="addItem()"
         :loading="isProcessing"
         clearable
         autofocus
+        :disable="isProcessing"
       >
         <template v-slot:prepend>
           <q-icon name="qr_code_scanner" />
@@ -95,7 +91,7 @@ defineExpose({
         color="primary"
         icon="payment"
         @click="$emit('process-payment')"
-        :disable="itemCount === 0"
+        :disable="isProcessing || itemCount === 0"
         :loading="formProcessing"
       />
     </div>

@@ -277,6 +277,47 @@ class SalesOrderController extends Controller
         ], 'Item telah ditambahkan');
     }
 
+    public function updateItem(Request $request)
+    {
+        $detail = SalesOrderDetail::find($request->post('id'));
+        if (!$detail) {
+            return JsonResponseHelper::error('Detail Order tidak ditemukan');
+        }
+
+        $order = $detail->parent;
+
+        if ($order->status !== SalesOrder::Status_Draft) {
+            return JsonResponseHelper::error('Order sudah tidak dapat diubah.');
+        }
+
+        $quantity = $request->post('qty', 0);
+        $price = $request->post('price');
+
+        $order->total_cost  -= $detail->subtotal_cost;
+        $order->total_price -= $detail->subtotal_price;
+
+        $detail->quantity = $quantity;
+        if ($price !== null && $price >= 0) {
+            $detail->price = $price;
+        }
+
+        // perbarui subtotal
+        $detail->subtotal_cost  = $detail->cost  * $detail->quantity;
+        $detail->subtotal_price = $detail->price * $detail->quantity;
+
+        DB::beginTransaction();
+        $detail->save();
+
+        // update total dan subtotal baru
+        $order->total_cost  += $detail->subtotal_cost;
+        $order->total_price += $detail->subtotal_price;
+        $order->save();
+
+        DB::commit();
+
+        return JsonResponseHelper::success($detail, 'Item telah diperbarui.');
+    }
+
     public function removeItem(Request $request)
     {
         $item = SalesOrderDetail::find($request->id);

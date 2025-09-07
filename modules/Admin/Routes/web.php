@@ -191,6 +191,7 @@ Route::middleware([Auth::class])->group(function () {
             // items
             Route::post('add-item', [SalesOrderController::class, 'addItem'])->name('admin.sales-order.add-item');
             Route::post('remove-item', [SalesOrderController::class, 'removeItem'])->name('admin.sales-order.remove-item');
+            Route::post('update-item', [SalesOrderController::class, 'updateItem'])->name('admin.sales-order.update-item');
         });
 
         Route::prefix('settings')->group(function () {

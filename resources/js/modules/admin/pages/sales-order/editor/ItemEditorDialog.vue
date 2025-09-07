@@ -9,7 +9,11 @@ const props = defineProps({
   },
   item: {
     type: Object,
-    required: true,
+    required: false,
+  },
+  isProcessing: {
+    type: Boolean,
+    required: false,
   },
 });
 
@@ -23,8 +27,7 @@ const subtotal = computed(() => {
   return props.item.quantity * props.item.price;
 });
 
-const preventEventAndClose = (e) => {
-  emit("update:modelValue", false);
+const preventEvent = (e) => {
   e.stopPropagation();
   e.preventDefault();
 };
@@ -33,9 +36,10 @@ const handleKeyDown = (e) => {
   if (props.modelValue) {
     if (e.key === "Enter") {
       handleSave();
-      preventEventAndClose(e);
+      preventEvent(e);
     } else if (e.key === "Escape") {
-      preventEventAndClose(e);
+      emit("update:modelValue", false);
+      preventEvent(e);
     }
   }
 };
@@ -46,6 +50,14 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener("keydown", handleKeyDown);
+});
+
+const getCurrentItem = () => {
+  return props.item;
+};
+
+defineExpose({
+  getCurrentItem,
 });
 </script>
 <template>
@@ -75,33 +87,44 @@ onUnmounted(() => {
           label="Produk"
           hide-bottom-space
           readonly
+          :disable="isProcessing"
         />
         <LocaleNumberInput
           v-model="item.quantity"
           label="Kwantitas"
           hide-bottom-space
           autofocus
+          :disable="isProcessing"
         />
         <LocaleNumberInput
           v-model="item.price"
           label="Harga"
           :readonly="!item.price_editable"
           hide-bottom-space
+          :disable="isProcessing"
         />
         <LocaleNumberInput
           v-model="subtotal"
           label="Subtotal"
           hide-bottom-space
+          readonly
         />
       </q-card-section>
       <q-card-actions align="right">
-        <q-btn flat label="Batal" color="primary" v-close-popup />
+        <q-btn
+          flat
+          label="Batal"
+          color="primary"
+          v-close-popup
+          :disable="isProcessing"
+        />
         <q-btn
           flat
           label="Simpan"
           color="primary"
           @click="handleSave"
           v-close-popup
+          :disable="isProcessing"
         />
       </q-card-actions>
     </q-card>

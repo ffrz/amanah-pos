@@ -1,13 +1,18 @@
 <script setup>
+import CheckBox from "@/components/CheckBox.vue";
 import { formatNumber } from "@/helpers/formatter";
 import { useQuasar } from "quasar";
 
 const $q = useQuasar();
 
-defineProps({
+const porps = defineProps({
   items: {
     type: Array,
     required: true,
+  },
+  isProcessing: {
+    type: Boolean,
+    default: false,
   },
 });
 
@@ -84,7 +89,8 @@ defineEmits(["update-quantity", "remove-item", "edit-item"]);
               Rp. {{ formatNumber(props.row.subtotal_price) }}
             </div>
             <div class="text-caption text-grey-6 text-italic">
-              {{ props.row.quantity }} x Rp. {{ formatNumber(props.row.price) }}
+              {{ formatNumber(props.row.quantity) }} x Rp.
+              {{ formatNumber(props.row.price) }}
             </div>
           </div>
         </q-td>
@@ -97,6 +103,7 @@ defineEmits(["update-quantity", "remove-item", "edit-item"]);
             round
             size="xs"
             @click="$emit('edit-item', props.row)"
+            :disable="isProcessing"
           />
           <q-btn
             icon="delete"
@@ -105,6 +112,7 @@ defineEmits(["update-quantity", "remove-item", "edit-item"]);
             round
             size="xs"
             @click="$emit('remove-item', props.row)"
+            :disable="isProcessing"
           />
         </q-td>
       </q-tr>

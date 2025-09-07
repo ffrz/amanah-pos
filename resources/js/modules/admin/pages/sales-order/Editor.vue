@@ -9,7 +9,6 @@ import ItemListTable from "./editor/ItemsListTable.vue";
 import TransactionSummary from "./editor/TransactionSummary.vue";
 import CustomerEditorDialog from "./editor/CustomerEditorDialog.vue";
 import PaymentDialog from "./editor/PaymentDialog.vue";
-import ConfirmDeleteDialog from "./editor/ConfirmDeleteDialog.vue";
 import ProductBrowserDialog from "@/components/ProductBrowserDialog.vue";
 import CheckBox from "@/components/CheckBox.vue";
 import ItemEditorDialog from "./editor/ItemEditorDialog.vue";
@@ -19,6 +18,7 @@ const $q = useQuasar();
 const page = usePage();
 const mergeItem = ref(true);
 const transactionSummaryRef = ref(null);
+const itemEditorRef = ref(null);
 
 const form = useForm({
   id: page.props.data.id,
@@ -35,20 +35,13 @@ const form = useForm({
   items: page.props.data.details ?? [],
 });
 
-// State untuk kasir
 const userInput = ref("");
 const isProcessing = ref(false);
-const showDeleteDialog = ref(false);
-const itemToDelete = ref(null);
 const showCustomerEditor = ref(false);
 const showPaymentDialog = ref(false);
 const showProductBrowserDialog = ref(false);
 const showItemEditorDialog = ref(false);
 const itemToEdit = ref(null);
-
-const handleProductSelection = (product) => {
-  userInput.value += product.name;
-};
 
 const subtotal = computed(() => {
   const total = form.items.reduce((sum, item) => {
@@ -59,7 +52,8 @@ const subtotal = computed(() => {
   return total;
 });
 
-const notify = (msg, color = "info", pos = "top", icon = null) => {
+// helpers
+const notify = (msg, color = null, pos = "top", icon = null) => {
   $q.notify({
     message: msg,
     color: color,
@@ -72,6 +66,7 @@ const showWarning = (msg) => {
   notify(msg, "warning");
 };
 
+// validations
 const validateQuantity = (qty) => {
   if (isNaN(qty) || qty <= 0) {
     showWarning("Kuantitas tidak valid.");
@@ -97,6 +92,11 @@ const validateBarcode = (code) => {
   }
 
   return true;
+};
+
+// -----
+const handleProductSelection = (product) => {
+  userInput.value += product.name;
 };
 
 const addItem = async () => {
@@ -177,15 +177,15 @@ const addItem = async () => {
   transactionSummaryRef.value?.focusOnBarcodeInput();
 };
 
-const editItem = (item) => {
+const showItemEditor = (item) => {
   itemToEdit.value = Object.create(item);
   showItemEditorDialog.value = true;
 };
 
-const confirmRemoveItem = (item) => {
+const removeItem = (item) => {
   $q.dialog({
     title: "Hapus Item",
-    message: `Apakah Anda yakin akan menghapus item${item.product_barcode}?`,
+    message: `Apakah Anda yakin akan menghapus item ${item.product_name}?`,
     cancel: {
       label: "Batal",
       color: "grey",
@@ -203,19 +203,11 @@ const confirmRemoveItem = (item) => {
         const index = form.items.findIndex((data) => data.id === item.id);
         if (index !== -1) {
           form.items.splice(index, 1)[0];
-          $q.notify({
-            message: `Item no ${index + 1} telah dihapus.`,
-            color: "info",
-            position: "top",
-          });
+          notify("Item telah dihapus");
         }
       })
       .catch((error) => {
-        $q.notify({
-          message: `Gagal menghapus item.`,
-          color: "negative",
-          position: "top",
-        });
+        notify("Gagal menghapus item", "negative");
         console.error(error);
       })
       .finally(() => {
@@ -224,13 +216,43 @@ const confirmRemoveItem = (item) => {
   });
 };
 
-const handleUpdate = () => {};
-// const updateQuantity = (id, newQuantity) => {
-//   const item = form.items.find((item) => item.id === id);
-//   if (item && newQuantity > 0) {
-//     item.quantity = parseInt(newQuantity) || 1;
-//   }
-// };
+const updateItem = () => {
+  isProcessing.value = true;
+  const item = itemEditorRef.value.getCurrentItem();
+  const data = {
+    id: item.id,
+    qty: item.quantity,
+  };
+
+  if (item.price_editable) {
+    data.price = item.price;
+  }
+
+  axios
+    .post(route("admin.sales-order.update-item"), data)
+    .then((response) => {
+      const item = response.data.data;
+      const index = form.items.findIndex((data) => data.id === item.id);
+      if (index !== -1) {
+        form.items[index] = item;
+        notify("Item telah diperbarui");
+      }
+    })
+    .catch((error) => {
+      notify("Gagal memperbarui item", "negative");
+      console.error(error);
+    })
+    .finally(() => {
+      isProcessing.value = false;
+    });
+};
+
+const handlePayment = () => {
+  if (form.items.length === 0) {
+    notify("Item masih kosong");
+    return;
+  }
+};
 </script>
 
 <template>
@@ -263,9 +285,25 @@ const handleUpdate = () => {};
             <ItemListTable
               :items="form.items"
               @update-quantity="({ id, value }) => updateQuantity(id, value)"
-              @remove-item="confirmRemoveItem"
-              @edit-item="editItem"
+              @remove-item="removeItem"
+              @edit-item="showItemEditor"
+              :is-processing="isProcessing"
+              :merge-item="mergeItem"
             />
+            <div class="row">
+              <div class="col">
+                <CheckBox
+                  v-model="mergeItem"
+                  label="Gabungkan item"
+                  :disable="isProcessing"
+                />
+              </div>
+              <div class="col">
+                <div class="text-caption text-grey-6 q-mt-xs text-right">
+                  {{ form.items.length }} item(s)
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -309,7 +347,7 @@ const handleUpdate = () => {};
               </tr>
             </table>
           </div>
-          <div class="col-md-4 col-xs-12 q-pa-sm">
+          <div class="col-12 col-xs-12 q-pa-sm">
             <TransactionSummary
               ref="transactionSummaryRef"
               v-model:barcode="userInput"
@@ -318,24 +356,19 @@ const handleUpdate = () => {};
               :is-processing="isProcessing"
               :form-processing="form.processing"
               @add-item="addItem(userInput)"
-              @process-payment="processPayment"
+              @process-payment="handlePayment"
               :is-product-browser-open="showProductBrowserDialog"
             />
-            <CheckBox v-model="mergeItem" label="Gabungkan item" />
           </div>
         </div>
       </q-card>
 
-      <ConfirmDeleteDialog
-        v-model="showDeleteDialog"
-        :item="itemToDelete"
-        @confirm="removeItem"
-      />
-
       <ItemEditorDialog
+        ref="itemEditorRef"
         v-model="showItemEditorDialog"
         :item="itemToEdit"
-        @save="handleUpdate"
+        @save="updateItem"
+        :is-processing="isProcessing"
       />
 
       <CustomerEditorDialog v-model="showCustomerEditor" />
