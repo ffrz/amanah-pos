@@ -34,7 +34,7 @@ const columns = [
   },
 ];
 
-defineEmits(["update-quantity", "remove-item"]);
+defineEmits(["update-quantity", "remove-item", "edit-item"]);
 </script>
 <template>
   <q-table
@@ -91,11 +91,19 @@ defineEmits(["update-quantity", "remove-item"]);
 
         <q-td key="action" :props="props" class="text-right">
           <q-btn
+            icon="edit"
+            color="grey"
+            flat
+            round
+            size="xs"
+            @click="$emit('edit-item', props.row)"
+          />
+          <q-btn
             icon="delete"
             color="negative"
             flat
             round
-            size="sm"
+            size="xs"
             @click="$emit('remove-item', props.row)"
           />
         </q-td>

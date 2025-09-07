@@ -12,6 +12,7 @@ import PaymentDialog from "./editor/PaymentDialog.vue";
 import ConfirmDeleteDialog from "./editor/ConfirmDeleteDialog.vue";
 import ProductBrowserDialog from "@/components/ProductBrowserDialog.vue";
 import CheckBox from "@/components/CheckBox.vue";
+import ItemEditorDialog from "./editor/ItemEditorDialog.vue";
 
 const title = "Penjualan";
 const $q = useQuasar();
@@ -42,6 +43,8 @@ const itemToDelete = ref(null);
 const showCustomerEditor = ref(false);
 const showPaymentDialog = ref(false);
 const showProductBrowserDialog = ref(false);
+const showItemEditorDialog = ref(false);
+const itemToEdit = ref(null);
 
 const handleProductSelection = (product) => {
   userInput.value += product.name;
@@ -174,6 +177,11 @@ const addItem = async () => {
   transactionSummaryRef.value?.focusOnBarcodeInput();
 };
 
+const editItem = (item) => {
+  itemToEdit.value = Object.create(item);
+  showItemEditorDialog.value = true;
+};
+
 const confirmRemoveItem = (item) => {
   $q.dialog({
     title: "Hapus Item",
@@ -216,12 +224,13 @@ const confirmRemoveItem = (item) => {
   });
 };
 
-const updateQuantity = (id, newQuantity) => {
-  const item = form.items.find((item) => item.id === id);
-  if (item && newQuantity > 0) {
-    item.quantity = parseInt(newQuantity) || 1;
-  }
-};
+const handleUpdate = () => {};
+// const updateQuantity = (id, newQuantity) => {
+//   const item = form.items.find((item) => item.id === id);
+//   if (item && newQuantity > 0) {
+//     item.quantity = parseInt(newQuantity) || 1;
+//   }
+// };
 </script>
 
 <template>
@@ -255,6 +264,7 @@ const updateQuantity = (id, newQuantity) => {
               :items="form.items"
               @update-quantity="({ id, value }) => updateQuantity(id, value)"
               @remove-item="confirmRemoveItem"
+              @edit-item="editItem"
             />
           </div>
         </div>
@@ -320,6 +330,12 @@ const updateQuantity = (id, newQuantity) => {
         v-model="showDeleteDialog"
         :item="itemToDelete"
         @confirm="removeItem"
+      />
+
+      <ItemEditorDialog
+        v-model="showItemEditorDialog"
+        :item="itemToEdit"
+        @save="handleUpdate"
       />
 
       <CustomerEditorDialog v-model="showCustomerEditor" />
