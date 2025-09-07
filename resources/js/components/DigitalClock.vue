@@ -1,9 +1,10 @@
 <template>
-  <div class="text-grey-8">{{ currentDate }} - {{ currentTime }}</div>
+  <div class="text-grey-8">{{ formatDateTime(currentDateTime) }}</div>
 </template>
 
 <script setup>
 import { useClock } from "@/composables/useClock";
+import { formatDateTime } from "@/helpers/formatter";
 
-const { currentDate, currentTime } = useClock();
+const { currentDateTime } = useClock();
 </script>
