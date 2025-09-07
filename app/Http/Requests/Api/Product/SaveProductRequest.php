@@ -48,6 +48,7 @@ class SaveProductRequest extends FormRequest
             'cost' => ['nullable', 'numeric'],
             'price' => ['nullable', 'numeric'],
             'active' => ['nullable', 'boolean'],
+            'price_editable' => ['nullable', 'boolean'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ];
     }

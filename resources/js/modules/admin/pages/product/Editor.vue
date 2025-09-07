@@ -7,6 +7,7 @@ import { useProductCategoryFilter } from "@/composables/useProductCategoryFilter
 import { useSupplierFilter } from "@/composables/useSupplierFilter";
 import { createOptions } from "@/helpers/options";
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
+import CheckBox from "@/components/CheckBox.vue";
 
 const page = usePage();
 const title = (!!page.props.data.id ? "Edit" : "Tambah") + " Produk";
@@ -27,6 +28,7 @@ const form = useForm({
   cost: parseFloat(page.props.data.cost),
   price: parseFloat(page.props.data.price),
   active: !!page.props.data.active,
+  price_editable: !!page.props.data.price_editable,
   notes: page.props.data.notes,
 });
 
@@ -150,14 +152,11 @@ const margin = computed(() => {
                   </q-item>
                 </template>
               </q-select>
-              <div style="margin-left: -10px">
-                <q-checkbox
-                  class="full-width q-pl-none"
-                  v-model="form.active"
-                  :disable="form.processing"
-                  label="Aktif"
-                />
-              </div>
+              <CheckBox
+                v-model="form.active"
+                :disable="form.processing"
+                label="Aktif"
+              />
               <div class="text-subtitle1 q-pt-lg">Info Inventori</div>
               <q-input
                 v-model.trim="form.barcode"
@@ -200,8 +199,14 @@ const margin = computed(() => {
                 :disable="form.processing"
                 :error="!!form.errors.max_stock"
                 :errorMessage="form.errors.max_stock"
+                hide-bottom-space
               />
               <div class="text-subtitle1 q-pt-lg">Info Harga</div>
+              <CheckBox
+                v-model="form.price_editable"
+                :disable="form.processing"
+                label="Harga bisa diubah saat penjualan"
+              />
               <LocaleNumberInput
                 v-model:modelValue="form.cost"
                 label="Modal / Harga Beli (Rp)"
@@ -209,6 +214,7 @@ const margin = computed(() => {
                 :disable="form.processing"
                 :error="!!form.errors.cost"
                 :errorMessage="form.errors.cost"
+                hide-bottom-space
               />
               <LocaleNumberInput
                 v-model:modelValue="form.price"
@@ -217,6 +223,7 @@ const margin = computed(() => {
                 :disable="form.processing"
                 :error="!!form.errors.max_stock"
                 :errorMessage="form.errors.price"
+                hide-bottom-space
               />
               <LocaleNumberInput
                 v-model:modelValue="margin"
@@ -224,6 +231,7 @@ const margin = computed(() => {
                 lazyRules
                 :disable="form.processing"
                 :maxDecimals="2"
+                hide-bottom-space
               />
               <div class="text-subtitle1 q-pt-lg">Info Lainnya</div>
               <q-input

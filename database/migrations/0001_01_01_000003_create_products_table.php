@@ -20,6 +20,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->text('type', 20);
             $table->boolean('active')->default(true);
+            $table->boolean('price_editable')->default(false);
             $table->decimal('cost',  10, 2)->default(0.);
             $table->decimal('price', 10, 2)->default(0.);
             $table->decimal('price_2', 10, 2)->default(0.);

@@ -265,6 +265,18 @@ const computedColumns = computed(() => {
                 </div>
                 <table class="detail">
                   <tbody>
+                    <tr>
+                      <td>Opsi Harga</td>
+                      <td>:</td>
+                      <td>
+                        {{
+                          page.props.data.price_editable
+                            ? "Dapat"
+                            : "Tidak dapat"
+                        }}
+                        diubah saat penjualan.
+                      </td>
+                    </tr>
                     <tr
                       v-if="
                         $page.props.auth.user.role == $CONSTANTS.USER_ROLE_ADMIN
