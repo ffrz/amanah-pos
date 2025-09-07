@@ -367,7 +367,23 @@ const handleCustomerSelected = (data) => {
               clearable
               autofocus
               dense
-            />
+            >
+              <template #prepend>
+                <q-icon
+                  name="search"
+                  @click="showProductBrowserDialog = true"
+                  class="cursor-pointer"
+                />
+              </template>
+              <template #append>
+                <q-icon
+                  v-if="userInput.length > 0"
+                  name="send"
+                  @click="addItem()"
+                  class="cursor-pointer"
+                />
+              </template>
+            </q-input>
             <div class="q-ml-sm">
               <CheckBox
                 v-model="mergeItem"
