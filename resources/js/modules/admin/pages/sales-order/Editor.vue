@@ -11,11 +11,13 @@ import ConfirmDeleteDialog from "./editor/ConfirmDeleteDialog.vue";
 import { handleSubmit } from "@/helpers/client-req-handler";
 import { formatDateTimeForEditing, formatNumber } from "@/helpers/formatter";
 import axios from "axios";
+import ProductBrowserDialog from "@/components/ProductBrowserDialog.vue";
+import CheckBox from "@/components/CheckBox.vue";
 
 const title = "Penjualan";
 const $q = useQuasar();
 const page = usePage();
-
+const mergeItem = ref(true);
 const transactionSummaryRef = ref(null);
 
 const form = useForm({
@@ -40,6 +42,10 @@ const showDeleteDialog = ref(false);
 const itemToDelete = ref(null);
 const showCustomerEditor = ref(false);
 const showPaymentDialog = ref(false);
+const showProductBrowserDilog = ref(false);
+const handleProductSelection = (product) => {
+  userInput.value = product.name;
+};
 
 const subtotal = computed(() => {
   const total = form.items.reduce((sum, item) => {
@@ -91,16 +97,17 @@ const _validateBarcode = (code) => {
 };
 
 const addItem = async () => {
-  if (!userInput.value.trim()) {
-    showWarning("Input tidak valid.");
+  const input = userInput.value.trim();
+  if (input.length === 0) {
+    showProductBrowserDilog.value = true;
     return;
   }
+
+  const parts = input.split("*");
 
   let inputQuantity = 1;
   let inputBarcode = "";
   let inputPrice = null;
-
-  const parts = userInput.value.trim().split("*");
 
   if (parts.length === 1) {
     inputBarcode = parts[0];
@@ -123,19 +130,6 @@ const addItem = async () => {
     return;
   }
 
-  // TODO: harus ada checkbox untuk add atau tambah item baru
-  // const existingItemIndex = form.items.findIndex(
-  //   (item) => item.product_barcode === inputBarcode
-  // );
-
-  // if (existingItemIndex !== -1) {
-  //   form.items[existingItemIndex].quantity += inputQuantity;
-  //   $q.notify({
-  //     message: `Quantity ${form.items[existingItemIndex].name} bertambah ${inputQuantity}`,
-  //     color: "positive",
-  //     position: "top",
-  //   });
-  // } else {
   isProcessing.value = true;
   await axios
     .post(route("admin.sales-order.add-item"), {
@@ -143,10 +137,27 @@ const addItem = async () => {
       product_code: inputBarcode,
       qty: inputQuantity,
       price: inputPrice,
+      merge: mergeItem.value,
     })
     .then((response) => {
-      form.items.push(response.data.data);
+      const currentItem = response.data.data;
+
+      if (response.data.mergeItem) {
+        const existingItemIndex = form.items.findIndex(
+          (item) => item.id === currentItem.id
+        );
+
+        if (existingItemIndex !== -1) {
+          form.items[existingItemIndex] = currentItem;
+        }
+      } else {
+        form.items.push(currentItem);
+      }
+
       userInput.value = "";
+      if (inputPrice !== parseFloat(newItem.price)) {
+        showWarning("Harga tidak dapat diubah!");
+      }
     })
     .catch((error) => {
       notify(error.response?.data?.message, "negative");
@@ -246,7 +257,7 @@ const updateQuantity = (id, newQuantity) => {
         </div>
 
         <div class="row">
-          <div class="col-xs-12 col-md-8 q-pa-sm">
+          <div v-if="false" class="col-xs-12 col-md-8 q-pa-sm">
             <table>
               <tr>
                 <td>#</td>
@@ -296,6 +307,7 @@ const updateQuantity = (id, newQuantity) => {
               @add-item="addItem(userInput)"
               @process-payment="processPayment"
             />
+            <CheckBox v-model="mergeItem" label="Gabungkan item" />
           </div>
         </div>
       </q-card>
@@ -308,6 +320,10 @@ const updateQuantity = (id, newQuantity) => {
 
       <CustomerEditorDialog v-model="showCustomerEditor" />
       <PaymentDialog v-model="showPaymentDialog" />
+      <ProductBrowserDialog
+        v-model="showProductBrowserDilog"
+        @product-selected="handleProductSelection"
+      />
     </q-page>
   </authenticated-layout>
 </template>

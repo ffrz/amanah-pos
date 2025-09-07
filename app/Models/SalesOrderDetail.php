@@ -35,7 +35,6 @@ class SalesOrderDetail extends BaseModel
         ];
     }
 
-
     public function parent()
     {
         return $this->belongsTo(SalesOrder::class, 'parent_id');

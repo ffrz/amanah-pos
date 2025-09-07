@@ -11,6 +11,7 @@ use App\Models\SalesOrderDetail;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class SalesOrderController extends Controller
 {
@@ -201,10 +202,17 @@ class SalesOrderController extends Controller
         $product = null;
         $productCode = $request->post('product_code');
         $productId = $request->post('product_id');
+        $merge = $request->post('merge', false);
         if ($productId) {
             $product = Product::find($request->post('product_id', 0));
         } elseif ($productCode) {
+            // cari berdasarkan barcode
             $product = Product::where('barcode', '=', $productCode)->first();
+
+            // kalo belum ketemu cari berdasarkan nama produk
+            if (!$product) {
+                $product = Product::where('name', '=', $productCode)->first();
+            }
         }
 
         if (!$product) {
@@ -217,20 +225,41 @@ class SalesOrderController extends Controller
             $price = $request->post('price', 0);
         }
 
-        $detail = new SalesOrderDetail([
-            'parent_id' => $order->id,
-            'product_id' => $product->id,
-            'product_name' => $product->name,
-            'product_barcode' => $product->barcode,
-            'product_uom' => $product->uom,
-            'cost' => $product->cost,
-            'subtotal_cost' => $qty * $product->cost,
-            'notes' => '',
-            'quantity' => $qty,
-            'price' => $price,
-            'subtotal_price' => $qty * $price,
-        ]);
+        $detail = null;
+        if ($merge) {
+            // kalo gabung cari rekaman yang sudah ada
+            $detail = SalesOrderDetail::where('parent_id', '=', $order->id)
+                ->where('product_id', '=', $product->id)
+                ->get()
+                ->first();
+        }
+
+        if ($detail) {
+            // kalau sudah ada cukup tambaih qty saja
+            $detail->quantity += $qty;
+        } else {
+            $detail = new SalesOrderDetail([
+                'parent_id' => $order->id,
+                'product_id' => $product->id,
+                'product_name' => $product->name,
+                'product_barcode' => $product->barcode,
+                'product_uom' => $product->uom,
+                'cost' => $product->cost,
+                'subtotal_cost' => $qty * $product->cost,
+                'notes' => '',
+                'quantity' => $qty,
+                'price' => $price,
+                'subtotal_price' => $qty * $price,
+            ]);
+        }
+
+        DB::beginTransaction();
+        // update total dan subtotal
+        $order->total_cost += $qty * $product->cost;
+        $order->total_price += $qty * $price;
+        $order->save();
         $detail->save();
+        DB::commit();
 
         return JsonResponseHelper::success($detail, 'Item telah ditambahkan');
     }
@@ -247,7 +276,15 @@ class SalesOrderController extends Controller
             return JsonResponseHelper::error('Order selesai tidak dapat diubah!');
         }
 
+        DB::beginTransaction();
+        // update total dan subtotal
+        $order = $item->parent;
+        $order->total_cost  -= $item->subtotal_cost;
+        $order->total_price -= $item->subtotal_price;
+        $order->save();
+
         $item->delete();
+        DB::commit();
         return JsonResponseHelper::success($item, 'Item telah dihapus.');
     }
 }
