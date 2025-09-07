@@ -107,7 +107,7 @@ class SalesOrderController extends Controller
         }
 
         // reopen order jika sudah bukan draft
-        $item = SalesOrder::with(['details'])->findOrFail($id);
+        $item = SalesOrder::with(['details', 'customer'])->findOrFail($id);
         if ($item->status === SalesOrder::Status_Closed) {
             $item->status = SalesOrder::Status_Draft;
             // TODO: kembalikan stok jika sudah ditutup, atau tolak kalau tidak boleh reopen
@@ -122,34 +122,17 @@ class SalesOrderController extends Controller
         ]);
     }
 
-    public function save(Request $request)
+    public function update(Request $request)
     {
-        $item = null;
-        $message = '';
-
-        $validated = $request->validate([
-            'date' => 'required|date',
-            'customer_id' => 'nullable',
-            'description' => 'required|max:255',
-            'amount' => 'required|numeric|gt:0',
-            'notes' => 'nullable|max:1000',
-        ]);
-
-        if (!$request->id) {
-            $item = new SalesOrder();
-            $message = 'sales-order-created';
-        } else {
-            $item = SalesOrder::findOrFail($request->post('id', 0));
-            $message = 'sales-order-updated';
-        }
-
-        $validated['notes'] = $validated['notes'] ?? '';
-
-        $item->fill($validated);
+        $item = SalesOrder::find($request->post('id'));
+        $item->customer_id = $request->post('customer_id');
+        $item->notes = $request->post('notes', '');
+        $item->datetime = $request->post('datetime', Carbon::now());
+        $item->status = $request->post('status', SalesOrder::Status_Draft);
+        $item->payment_status = $request->post('payment_status', SalesOrder::PaymentStatus_Unpaid);
+        $item->delivery_status = $request->post('delivery_status', SalesOrder::DeliveryStatus_NotSent);
         $item->save();
-
-        return redirect(route('admin.sales-order.index'))
-            ->with('success', __("messages.$message", ['description' => $item->description]));
+        return JsonResponseHelper::success($item, 'Order telah diperbarui');
     }
 
     public function cancel($id)

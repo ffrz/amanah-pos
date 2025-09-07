@@ -188,6 +188,8 @@ Route::middleware([Auth::class])->group(function () {
             Route::post('cancel/{id}', [SalesOrderController::class, 'cancel'])->name('admin.sales-order.cancel');
             Route::post('delete/{id}', [SalesOrderController::class, 'delete'])->name('admin.sales-order.delete');
 
+            Route::post('update', [SalesOrderController::class, 'update'])->name('admin.sales-order.update');
+
             // items
             Route::post('add-item', [SalesOrderController::class, 'addItem'])->name('admin.sales-order.add-item');
             Route::post('remove-item', [SalesOrderController::class, 'removeItem'])->name('admin.sales-order.remove-item');

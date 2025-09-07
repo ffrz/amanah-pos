@@ -2,7 +2,7 @@
   <q-select
     :class="class"
     ref="qSelectRef"
-    v-model="selectedId"
+    v-model="selectedCustomer"
     use-input
     input-debounce="0"
     :label="label"
@@ -14,21 +14,20 @@
     :error-message="errorMessage"
     :disable="disable"
     hide-bottom-space
-    emit-value
-    map-options
     :outlined="outlined"
     style="min-width: 150px !important"
   />
 </template>
 
 <script setup>
-import { ref, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 import axios from "axios";
+
 const qSelectRef = ref(null);
 
 const props = defineProps({
   modelValue: {
-    type: [String, Number, null],
+    type: [Object],
     default: null,
   },
   class: {
@@ -59,13 +58,34 @@ const props = defineProps({
     type: Number,
     default: 0,
   },
+  initialData: {
+    type: Object,
+    default: () => ({
+      value: null,
+      data: {},
+    }),
+  },
 });
 
 const emit = defineEmits(["update:modelValue", "customerSelected"]);
 
-const selectedId = ref(props.modelValue);
+// Gunakan ref untuk objek pelanggan lengkap
+const selectedCustomer = ref(null);
 const options = ref([]);
 let timeoutId = null;
+
+onMounted(() => {
+  if (props.initialData?.id) {
+    // Inisialisasi selectedCustomer dengan objek penuh
+    const customerObj = {
+      label: `${props.initialData.username} - ${props.initialData.name}`,
+      value: props.initialData.id,
+      data: props.initialData,
+    };
+    options.value.push(customerObj);
+    selectedCustomer.value = customerObj;
+  }
+});
 
 const focus = () => {
   if (qSelectRef.value) {
@@ -75,23 +95,25 @@ const focus = () => {
 
 defineExpose({ focus });
 
+// Watcher untuk sinkronisasi dari luar (props.modelValue)
 watch(
   () => props.modelValue,
   (newValue) => {
-    selectedId.value = newValue;
+    // Jika newValue null, reset selectedCustomer menjadi null
+    if (!newValue) {
+      selectedCustomer.value = null;
+    }
   }
 );
 
-watch(selectedId, (newValue) => {
-  emit("update:modelValue", newValue);
-
-  const selectedOption = options.value.find(
-    (option) => option.value === newValue
-  );
-
-  if (selectedOption) {
-    emit("customerSelected", selectedOption.data);
+// Watcher utama untuk memancarkan event ke parent
+watch(selectedCustomer, (newValue) => {
+  if (newValue) {
+    emit("update:modelValue", newValue.value);
+    emit("customerSelected", newValue.data);
   } else {
+    // Jika input dikosongkan (clearable), pancarkan null
+    emit("update:modelValue", null);
     emit("customerSelected", null);
   }
 });

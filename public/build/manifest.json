@@ -1,9 +1,9 @@
 {
-  "_BaseGuestLayout-CSXpt429.js": {
-    "file": "assets/BaseGuestLayout-CSXpt429.js",
+  "_BaseGuestLayout-CJeI_1Ib.js": {
+    "file": "assets/BaseGuestLayout-CJeI_1Ib.js",
     "name": "BaseGuestLayout",
     "imports": [
-      "_vendor1-DHVJnoe5.js"
+      "_vendor1-CREUnRb3.js"
     ],
     "css": [
       "assets/BaseGuestLayout-qWJc9uaU.css"
@@ -33,8 +33,8 @@
     "file": "assets/vendor1-B66eveH2.css",
     "src": "_vendor1-B66eveH2.css"
   },
-  "_vendor1-DHVJnoe5.js": {
-    "file": "assets/vendor1-DHVJnoe5.js",
+  "_vendor1-CREUnRb3.js": {
+    "file": "assets/vendor1-CREUnRb3.js",
     "name": "vendor1",
     "css": [
       "assets/vendor1-B66eveH2.css"
@@ -46,18 +46,18 @@
       "assets/MaterialIcons-Regular-DEUTIz1o.ttf"
     ]
   },
-  "_vendor2-Cbh-CLSD.js": {
-    "file": "assets/vendor2-Cbh-CLSD.js",
+  "_vendor2-CAItbpDF.js": {
+    "file": "assets/vendor2-CAItbpDF.js",
     "name": "vendor2",
     "imports": [
-      "_vendor1-DHVJnoe5.js"
+      "_vendor1-CREUnRb3.js"
     ]
   },
-  "_vendor3-Brm-UOXT.js": {
-    "file": "assets/vendor3-Brm-UOXT.js",
+  "_vendor3-C1R1YVCO.js": {
+    "file": "assets/vendor3-C1R1YVCO.js",
     "name": "vendor3",
     "imports": [
-      "_vendor2-Cbh-CLSD.js"
+      "_vendor2-CAItbpDF.js"
     ]
   },
   "node_modules/@quasar/extras/fontawesome-v6/fa-brands-400.ttf": {
@@ -138,30 +138,30 @@
     "isEntry": true
   },
   "resources/js/modules/admin/app.js": {
-    "file": "assets/app-BeG6swIk.js",
+    "file": "assets/app-B_MIrVqh.js",
     "name": "app",
     "src": "resources/js/modules/admin/app.js",
     "isEntry": true,
     "imports": [
-      "_BaseGuestLayout-CSXpt429.js",
-      "_vendor1-DHVJnoe5.js",
-      "_vendor2-Cbh-CLSD.js",
-      "_vendor3-Brm-UOXT.js"
+      "_BaseGuestLayout-CJeI_1Ib.js",
+      "_vendor1-CREUnRb3.js",
+      "_vendor2-CAItbpDF.js",
+      "_vendor3-C1R1YVCO.js"
     ],
     "css": [
       "assets/app-DAVbQqVf.css"
     ]
   },
   "resources/js/modules/customer/app.js": {
-    "file": "assets/app-DB6ur_g3.js",
+    "file": "assets/app-DVQjcA0b.js",
     "name": "app",
     "src": "resources/js/modules/customer/app.js",
     "isEntry": true,
     "imports": [
-      "_BaseGuestLayout-CSXpt429.js",
-      "_vendor1-DHVJnoe5.js",
-      "_vendor2-Cbh-CLSD.js",
-      "_vendor3-Brm-UOXT.js"
+      "_BaseGuestLayout-CJeI_1Ib.js",
+      "_vendor1-CREUnRb3.js",
+      "_vendor2-CAItbpDF.js",
+      "_vendor3-C1R1YVCO.js"
     ],
     "css": [
       "assets/app-Cf3kdEAV.css"

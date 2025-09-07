@@ -1,6 +1,14 @@
 <script setup>
-import { router, useForm, usePage } from "@inertiajs/vue3";
-import { ref, computed, nextTick, onMounted, onUnmounted } from "vue";
+import { router, usePage } from "@inertiajs/vue3";
+import {
+  ref,
+  computed,
+  nextTick,
+  onMounted,
+  onUnmounted,
+  reactive,
+  toRaw,
+} from "vue";
 import { useQuasar } from "quasar";
 import axios from "axios";
 
@@ -14,6 +22,7 @@ import CustomerAutocomplete from "@/components/CustomerAutocomplete.vue";
 import { formatNumber } from "@/helpers/formatter";
 import HelpDialog from "./editor/HelpDialog.vue";
 import { useFullscreen } from "@/composables/useFullscreen";
+import { useApiForm } from "@/composables/useApiForm";
 
 const $q = useQuasar();
 const page = usePage();
@@ -32,7 +41,7 @@ const customer = ref({
   data: null,
 });
 
-const form = useForm({
+const form = reactive({
   id: page.props.data.id,
   formatted_id: page.props.data.formatted_id,
   customer_id: page.props.data.customer_id,
@@ -309,6 +318,26 @@ onMounted(() => {
 const handleCustomerSelected = (data) => {
   customer.value.data = data;
   form.customer_id = data?.id;
+  updateOrder();
+};
+
+const updateOrder = () => {
+  isProcessing.value = true;
+  const data = { ...toRaw(form) };
+  delete data["items"];
+  axios
+    .post(route("admin.sales-order.update"), data)
+    .then((response) => {
+      const updated = response.data.data.id;
+      form.customer_id = updated.customer_id;
+      notify("Berhasil disimpan");
+    })
+    .catch((error) => {
+      console.error(error);
+    })
+    .finally(() => {
+      isProcessing.value = false;
+    });
 };
 </script>
 
@@ -361,7 +390,7 @@ const handleCustomerSelected = (data) => {
               @keyup.enter.prevent="addItem()"
               :loading="isProcessing"
               :disable="isProcessing"
-              placeholder="Qty * Kode / Barcode * Harga [F2]"
+              placeholder="Qty * Kode / Barcode * Harga"
               class="col col-12 q-pa-sm bg-white"
               outlined
               clearable
@@ -376,7 +405,7 @@ const handleCustomerSelected = (data) => {
               </template>
               <template #append>
                 <q-icon
-                  v-if="userInput.length > 0"
+                  v-if="userInput?.length > 0"
                   name="send"
                   @click="addItem()"
                   class="cursor-pointer q-ml-md"
@@ -386,7 +415,7 @@ const handleCustomerSelected = (data) => {
             <div class="q-ml-sm">
               <CheckBox
                 v-model="mergeItem"
-                label="Gabungkan item [F4]"
+                label="Gabungkan item"
                 :disable="isProcessing"
               />
             </div>
@@ -396,11 +425,12 @@ const handleCustomerSelected = (data) => {
               <CustomerAutocomplete
                 ref="customerAutocompleteRef"
                 class="custom-select full-width col col-12 bg-white q-pa-sm"
-                v-model="customer.id"
-                label="Pelanggan [F3]"
+                v-model="customer.data"
+                label="Pelanggan"
                 :disable="isProcessing"
                 @customer-selected="handleCustomerSelected"
                 :min-length="1"
+                :initialData="page.props.data.customer"
                 outlined
               />
               <div v-if="customer.data" class="text-grey q-mt-xs q-ml-sm">
