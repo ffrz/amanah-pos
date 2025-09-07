@@ -383,6 +383,25 @@ const updateOrder = () => {
     <q-page class="bg-grey-2 q-pa-sm column fit">
       <q-card square flat bordered class="full-width col column">
         <div class="row q-col-gutter-none full-width">
+          <div class="col-sm-6 col-12 col">
+            <div class="row full-width">
+              <CustomerAutocomplete
+                ref="customerAutocompleteRef"
+                class="custom-select full-width col col-12 bg-white q-pa-sm"
+                v-model="customer.data"
+                label="Pelanggan"
+                :disable="isProcessing"
+                @customer-selected="handleCustomerSelected"
+                :min-length="1"
+                :initialData="page.props.data.customer"
+                outlined
+              />
+              <div v-if="customer.data" class="text-grey q-mt-xs q-ml-sm">
+                Saldo: Rp.
+                {{ formatNumber(customer.data ? customer.data.balance : 0) }}
+              </div>
+            </div>
+          </div>
           <div class="col-sm-6 col-12">
             <q-input
               ref="userInputRef"
@@ -418,25 +437,6 @@ const updateOrder = () => {
                 label="Gabungkan item"
                 :disable="isProcessing"
               />
-            </div>
-          </div>
-          <div class="col-sm-6 col-12 col">
-            <div class="row full-width">
-              <CustomerAutocomplete
-                ref="customerAutocompleteRef"
-                class="custom-select full-width col col-12 bg-white q-pa-sm"
-                v-model="customer.data"
-                label="Pelanggan"
-                :disable="isProcessing"
-                @customer-selected="handleCustomerSelected"
-                :min-length="1"
-                :initialData="page.props.data.customer"
-                outlined
-              />
-              <div v-if="customer.data" class="text-grey q-mt-xs q-ml-sm">
-                Saldo: Rp.
-                {{ formatNumber(customer.data ? customer.data.balance : 0) }}
-              </div>
             </div>
           </div>
         </div>
