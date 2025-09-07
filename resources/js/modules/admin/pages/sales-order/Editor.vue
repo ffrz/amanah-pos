@@ -1,6 +1,6 @@
 <script setup>
 import { router, useForm, usePage } from "@inertiajs/vue3";
-import { ref, computed } from "vue";
+import { ref, computed, nextTick } from "vue";
 import { useQuasar } from "quasar";
 import axios from "axios";
 
@@ -17,6 +17,7 @@ import DigitalClock from "@/components/DigitalClock.vue";
 const $q = useQuasar();
 const page = usePage();
 const mergeItem = ref(true);
+const inputRef = ref(null);
 const transactionSummaryRef = ref(null);
 const itemEditorRef = ref(null);
 const title = page.props.company.name;
@@ -169,7 +170,9 @@ const addItem = async () => {
     });
 
   isProcessing.value = false;
-  transactionSummaryRef.value?.focusOnBarcodeInput();
+  nextTick(() => {
+    inputRef.value?.focus();
+  });
 };
 
 const showItemEditor = (item) => {
@@ -290,7 +293,22 @@ const handlePayment = () => {
           :company="page.props.company"
           @edit-customer="showCustomerEditor = true"
         />
-
+        <div class="row">
+          <q-input
+            ref="inputRef"
+            :model-value="userInput"
+            @update:model-value="(val) => $emit('update:barcode', val)"
+            @keyup.enter.prevent="addItem()"
+            :loading="isProcessing"
+            :disable="isProcessing"
+            placeholder="Qty * Kode / Barcode * Harga"
+            class="col col-12 q-pa-sm bg-white"
+            outlined
+            clearable
+            autofocus
+            dense
+          />
+        </div>
         <div class="row col grow">
           <div class="col-12 q-pa-sm column">
             <ItemListTable

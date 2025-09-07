@@ -26,7 +26,7 @@ const columns = [
   },
   {
     name: "subtotal_price",
-    label: "Total",
+    label: "Sub Total (Rp.)",
     align: "right",
     sortable: false,
   },
@@ -90,9 +90,7 @@ defineEmits(["update-quantity", "remove-item", "edit-item"]);
 
         <q-td key="subtotal_price" :props="props" class="text-right">
           <div class="column items-end">
-            <div class="text-weight-bold text-primary">
-              Rp. {{ formatNumber(props.row.subtotal_price) }}
-            </div>
+            <div>{{ formatNumber(props.row.subtotal_price) }}</div>
             <div class="text-caption text-grey-6 text-italic">
               {{ formatNumber(props.row.quantity) }} x Rp.
               {{ formatNumber(props.row.price) }}

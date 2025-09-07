@@ -64,22 +64,6 @@ defineExpose({
         {{ formatNumber(total) }}
       </span>
     </div>
-    <div class="q-py-xs">
-      <q-input
-        ref="barcodeInputRef"
-        :model-value="barcode"
-        @update:model-value="(val) => $emit('update:barcode', val)"
-        @keyup.enter.prevent="addItem()"
-        :loading="isProcessing"
-        :disable="isProcessing"
-        placeholder="Qty * Kode / Barcode * Harga(opsional)"
-        class="col bg-white"
-        outlined
-        clearable
-        autofocus
-        dense
-      />
-    </div>
 
     <div class="q-py-xs">
       <q-btn

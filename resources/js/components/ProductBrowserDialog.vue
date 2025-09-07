@@ -3,6 +3,7 @@ import { computed, onMounted, reactive, ref, watch } from "vue";
 import { formatNumber } from "@/helpers/formatter";
 import { getQueryParams } from "@/helpers/utils";
 import { handleFetchItems } from "@/helpers/client-req-handler";
+import LongTextView from "./LongTextView.vue";
 
 // Prop untuk mengontrol dialog
 const props = defineProps({
@@ -86,14 +87,13 @@ watch(
   }
 );
 </script>
-
 <template>
   <q-dialog
     :model-value="modelValue"
     @update:model-value="(val) => $emit('update:modelValue', val)"
-    :maximized="$q.screen.lt.md"
+    :maximized="$q.screen.lt.sm"
   >
-    <q-card style="min-width: 600px; min-height: 400px">
+    <q-card class="column fit">
       <q-card-section class="q-py-sm">
         <div class="row items-center no-wrap">
           <div class="col text-subtitle text-grey-8 text-bold">Cari Produk</div>
@@ -126,70 +126,73 @@ watch(
         </q-input>
       </q-card-section>
 
-      <q-table
-        ref="tableRef"
-        flat
-        bordered
-        square
-        color="primary"
-        row-key="id"
-        virtual-scroll
-        v-model:pagination="pagination"
-        :filter="filter.search"
-        :loading="loading"
-        :columns="computedColumns"
-        :rows="rows"
-        :rows-per-page-options="[10, 25, 50]"
-        @request="fetchItems"
-        binary-state-sort
-        no-data-label="Tidak ada produk ditemukan"
-      >
-        <template v-slot:no-data="{ icon, message, filter }">
-          <div class="full-width row flex-center text-grey-8 q-gutter-sm">
-            <span>{{ message }}</span>
-          </div>
-        </template>
-
-        <template v-slot:body="props">
-          <q-tr
-            tabindex="0"
-            :props="props"
-            :class="{ inactive: !props.row.active }"
-            class="cursor-pointer"
-            @click="onProductSelect(props.row)"
-            @keydown.enter.prevent.stop="onProductSelect(props.row)"
-            @keydown.space.prevent="onProductSelect(props.row)"
-          >
-            <q-td key="name" :props="props" class="wrap-column">
-              {{ props.row.name }}
-              <div
-                v-if="props.row.category_id"
-                class="text-grey-8 text-caption"
-              >
-                <q-icon name="category" />
-                {{ props.row.category.name }}
-              </div>
-              <div
-                v-if="props.row.supplier_id"
-                class="text-grey-8 text-caption"
-              >
-                <q-icon name="local_shipping" />
-                {{ props.row.supplier.name }}
-              </div>
-            </q-td>
-            <q-td key="stock" :props="props" class="wrap-column text-right">
-              {{
-                props.row.type == "stocked"
-                  ? formatNumber(props.row.stock) + " " + props.row.uom
-                  : "-"
-              }}
-            </q-td>
-            <q-td key="price" :props="props" class="wrap-column text-right">
-              Rp. {{ formatNumber(props.row.price) }}
-            </q-td>
-          </q-tr>
-        </template>
-      </q-table>
+      <q-card-section class="q-py-sm col">
+        <q-table
+          ref="tableRef"
+          flat
+          class="fit"
+          square
+          bordered
+          dense
+          color="primary"
+          row-key="id"
+          v-model:pagination="pagination"
+          :filter="filter.search"
+          :loading="loading"
+          :columns="computedColumns"
+          :rows="rows"
+          :rows-per-page-options="[10, 25, 50]"
+          @request="fetchItems"
+          binary-state-sort
+          no-data-label="Tidak ada produk ditemukan"
+          :virtual-scroll="true"
+          :rows-per-page-label="null"
+        >
+          <template v-slot:no-data="{ icon, message, filter }">
+            <div class="full-width row flex-center text-grey-8 q-gutter-sm">
+              <span>{{ message }}</span>
+            </div>
+          </template>
+          <template v-slot:body="props">
+            <q-tr
+              tabindex="0"
+              :props="props"
+              :class="{ inactive: !props.row.active }"
+              class="cursor-pointer"
+              @click="onProductSelect(props.row)"
+              @keydown.enter.prevent.stop="onProductSelect(props.row)"
+              @keydown.space.prevent="onProductSelect(props.row)"
+            >
+              <q-td key="name" :props="props" class="wrap-column">
+                <LongTextView :text="props.row.name" />
+                <LongTextView
+                  v-if="props.row.description"
+                  :text="props.row.description"
+                  max-length="50"
+                  class="text-grey-6"
+                />
+                <!-- <div
+                  v-if="props.row.category_id"
+                  class="text-grey-8 text-caption"
+                >
+                  <q-icon name="category" />
+                  {{ props.row.category.name }}
+                </div> -->
+              </q-td>
+              <q-td key="stock" :props="props" class="wrap-column text-right">
+                {{
+                  props.row.type == "stocked"
+                    ? formatNumber(props.row.stock) + " " + props.row.uom
+                    : "-"
+                }}
+              </q-td>
+              <q-td key="price" :props="props" class="wrap-column text-right">
+                Rp. {{ formatNumber(props.row.price) }}
+              </q-td>
+            </q-tr>
+          </template>
+        </q-table>
+      </q-card-section>
     </q-card>
   </q-dialog>
 </template>
