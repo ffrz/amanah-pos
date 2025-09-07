@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref, watch } from "vue";
 import { usePage } from "@inertiajs/vue3";
 import { formatNumber } from "@/helpers/formatter";
 import { getQueryParams } from "@/helpers/utils";
@@ -49,16 +49,6 @@ onMounted(() => {
 
 const fetchItems = (props = null) => {
   loading.value = true;
-  const { page, rowsPerPage, sortBy, descending } = pagination.value;
-  const { search } = filter;
-
-  const params = {
-    page: page,
-    rowsPerPage: rowsPerPage,
-    sortBy: sortBy,
-    descending: descending,
-    search: search,
-  };
 
   handleFetchItems({
     pagination,
@@ -79,6 +69,17 @@ const onProductSelect = (product) => {
   emit("product-selected", product);
   emit("update:modelValue", false); // Tutup dialog setelah memilih produk
 };
+
+watch(
+  () => props.modelValue,
+  (newValue, oldValue) => {
+    if (oldValue === true && newValue === false) {
+      filter.search = "";
+    } else {
+      fetchItems();
+    }
+  }
+);
 </script>
 
 <template>
@@ -104,6 +105,7 @@ const onProductSelect = (product) => {
 
       <q-card-section class="q-py-sm">
         <q-input
+          autofocus
           outlined
           dense
           debounce="300"
