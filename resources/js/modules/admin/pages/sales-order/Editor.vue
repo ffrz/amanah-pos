@@ -1,12 +1,10 @@
 <script setup>
 import { router, useForm, usePage } from "@inertiajs/vue3";
-import { ref, computed, nextTick, onMounted, onUnmounted, inject } from "vue";
+import { ref, computed, nextTick, onMounted, onUnmounted } from "vue";
 import { useQuasar } from "quasar";
 import axios from "axios";
 
 import ItemListTable from "./editor/ItemsListTable.vue";
-import TransactionSummary from "./editor/TransactionSummary.vue";
-import CustomerEditorDialog from "./editor/CustomerEditorDialog.vue";
 import PaymentDialog from "./editor/PaymentDialog.vue";
 import ProductBrowserDialog from "@/components/ProductBrowserDialog.vue";
 import CheckBox from "@/components/CheckBox.vue";
@@ -21,7 +19,6 @@ const $q = useQuasar();
 const page = usePage();
 const mergeItem = ref(true);
 const userInputRef = ref(null);
-const transactionSummaryRef = ref(null);
 const itemEditorRef = ref(null);
 const customerAutocompleteRef = ref(null);
 const showHelpDialog = ref(false);
@@ -49,7 +46,6 @@ const form = useForm({
 
 const userInput = ref("");
 const isProcessing = ref(false);
-const showCustomerEditor = ref(false);
 const showPaymentDialog = ref(false);
 const showProductBrowserDialog = ref(false);
 const showItemEditorDialog = ref(false);
@@ -112,11 +108,17 @@ const validateBarcode = (code) => {
 
 // -----
 const handleProductSelection = (product) => {
-  userInput.value += product.name;
+  console.log(userInput.value);
+  if (userInput.value.endsWith("*")) {
+    userInput.value += product.name;
+  } else {
+    userInput.value = product.name;
+  }
 };
 
 const addItem = async () => {
   const input = userInput.value.trim();
+  console.log(input);
   if (input.length === 0) {
     showProductBrowserDialog.value = true;
     return;
@@ -142,6 +144,7 @@ const addItem = async () => {
   }
 
   if (inputBarcode.length === 0) {
+    alert("di kedua");
     showProductBrowserDialog.value = true;
     return;
   }
@@ -352,46 +355,47 @@ const handleCustomerSelected = (data) => {
     </template>
     <q-page class="bg-grey-2 q-pa-sm column fit">
       <q-card square flat bordered class="full-width col column">
-        <div class="row">
-          <CustomerAutocomplete
-            ref="customerAutocompleteRef"
-            class="custom-select full-width col col-12 bg-white q-pa-sm"
-            v-model="customer.id"
-            label="Pelanggan [F3]"
-            :disable="isProcessing"
-            @customer-selected="handleCustomerSelected"
-            :min-length="1"
-            outlined
-            dense
-          />
-          <div v-if="customer.data" class="text-grey q-mt-xs">
-            Saldo: Rp.
-            {{ formatNumber(customer.data ? customer.data.balance : 0) }}
-          </div>
-        </div>
-        <div class="row">
-          <q-input
-            ref="userInputRef"
-            :model-value="userInput"
-            @update:model-value="(val) => $emit('update:barcode', val)"
-            @keyup.enter.prevent="addItem()"
-            :loading="isProcessing"
-            :disable="isProcessing"
-            placeholder="Qty * Kode / Barcode * Harga [F2]"
-            class="col col-12 q-pa-sm bg-white"
-            outlined
-            clearable
-            autofocus
-            dense
-          />
-        </div>
-        <div class="row q-px-sm">
-          <div class="col">
-            <CheckBox
-              v-model="mergeItem"
-              label="Gabungkan item [F4]"
+        <div class="row q-col-gutter-none full-width">
+          <div class="col-sm-6 col-12">
+            <q-input
+              ref="userInputRef"
+              v-model="userInput"
+              @keyup.enter.prevent="addItem()"
+              :loading="isProcessing"
               :disable="isProcessing"
+              placeholder="Qty * Kode / Barcode * Harga [F2]"
+              class="col col-12 q-pa-sm bg-white"
+              outlined
+              clearable
+              autofocus
+              dense
             />
+            <div class="q-ml-sm">
+              <CheckBox
+                v-model="mergeItem"
+                label="Gabungkan item [F4]"
+                :disable="isProcessing"
+              />
+            </div>
+          </div>
+          <div class="col-sm-6 col-12 col">
+            <div class="row full-width">
+              <CustomerAutocomplete
+                ref="customerAutocompleteRef"
+                class="custom-select full-width col col-12 bg-white q-pa-sm"
+                v-model="customer.id"
+                label="Pelanggan [F3]"
+                :disable="isProcessing"
+                @customer-selected="handleCustomerSelected"
+                :min-length="1"
+                outlined
+                dense
+              />
+              <div v-if="customer.data" class="text-grey q-mt-xs q-ml-sm">
+                Saldo: Rp.
+                {{ formatNumber(customer.data ? customer.data.balance : 0) }}
+              </div>
+            </div>
           </div>
         </div>
         <div class="row col grow">
@@ -403,18 +407,38 @@ const handleCustomerSelected = (data) => {
               @edit-item="showItemEditor"
               :is-processing="isProcessing"
             />
-            <div class="row">
-              <div class="col"></div>
-              <div class="col">
-                <div class="text-caption text-grey-6 q-mt-xs text-right">
-                  {{ form.items.length }} item(s)
-                </div>
+          </div>
+        </div>
+
+        <div class="row q-px-sm q-pb-sm">
+          <div class="col" v-if="$q.screen.gt.sm">
+            <div class="text-caption text-grey-6 q-mt-xs">
+              {{ form.items.length }} item(s)
+            </div>
+          </div>
+          <div class="col">
+            <div class="row justify-end items-center q-gutter-sm">
+              <div
+                class="col"
+                style="
+                  background: #eee;
+                  padding: 10px;
+                  text-align: right;
+                  border: 1px solid #ddd;
+                "
+              >
+                <span class="text-grey-8 text-subtitle-2" style="float: left">
+                  Total: Rp.
+                </span>
+                <span class="text-h4 text-weight-bold text-primary">
+                  {{ formatNumber(total) }}
+                </span>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="row">
+        <div v-if="false" class="row">
           <div v-if="false" class="col-xs-12 col-md-8 q-pa-sm">
             <table>
               <tr>
@@ -454,21 +478,20 @@ const handleCustomerSelected = (data) => {
               </tr>
             </table>
           </div>
-          <div class="col-12 col-xs-12 q-pa-sm">
-            <TransactionSummary
-              ref="transactionSummaryRef"
-              v-model:barcode="userInput"
-              :total="total"
-              :item-count="form.items.length"
-              :is-processing="isProcessing"
-              :form-processing="form.processing"
-              @add-item="addItem(userInput)"
-              @process-payment="handlePayment"
-              :is-product-browser-open="showProductBrowserDialog"
-            />
-          </div>
         </div>
       </q-card>
+
+      <div class="row q-mt-sm">
+        <q-btn
+          class="full-width"
+          label="Bayar"
+          color="primary"
+          icon="payment"
+          @click="$emit('process-payment')"
+          :disable="isProcessing || form.items.length === 0"
+          :loading="isProcessing"
+        />
+      </div>
 
       <ItemEditorDialog
         ref="itemEditorRef"
@@ -478,7 +501,6 @@ const handleCustomerSelected = (data) => {
         :is-processing="isProcessing"
       />
 
-      <CustomerEditorDialog v-model="showCustomerEditor" />
       <PaymentDialog v-model="showPaymentDialog" />
       <ProductBrowserDialog
         v-model="showProductBrowserDialog"

@@ -168,7 +168,7 @@ watch(
                 <LongTextView
                   v-if="props.row.description"
                   :text="props.row.description"
-                  max-length="50"
+                  :max-length="50"
                   class="text-grey-6"
                 />
                 <!-- <div

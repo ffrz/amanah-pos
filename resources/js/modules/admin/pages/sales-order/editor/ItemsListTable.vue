@@ -2,8 +2,10 @@
 import { formatNumber } from "@/helpers/formatter";
 import useTableHeight from "@/composables/useTableHeight";
 import LongTextView from "@/components/LongTextView.vue";
+import { useQuasar } from "quasar";
 
-const tableHeight = useTableHeight(null, 390);
+const $q = useQuasar();
+const tableHeight = useTableHeight(null, $q.screen.lt.sm ? 390 : 320);
 const porps = defineProps({
   items: {
     type: Array,

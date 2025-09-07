@@ -14,7 +14,7 @@ const emit = defineEmits(["update:modelValue"]);
     :model-value="modelValue"
     @update:model-value="(val) => $emit('update:modelValue', val)"
   >
-    <q-card style="min-width: 400px">
+    <q-card style="min-width: 300px">
       <q-card-section class="q-py-none q-pt-md">
         <div class="text-bold text-grey-8">Bantuan</div>
       </q-card-section>
