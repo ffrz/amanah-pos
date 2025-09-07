@@ -5,7 +5,7 @@ import LongTextView from "@/components/LongTextView.vue";
 import { useQuasar } from "quasar";
 
 const $q = useQuasar();
-const tableHeight = useTableHeight(null, $q.screen.lt.sm ? 410 : 340);
+const tableHeight = useTableHeight(null, $q.screen.lt.sm ? 410 : 360);
 const porps = defineProps({
   items: {
     type: Array,
