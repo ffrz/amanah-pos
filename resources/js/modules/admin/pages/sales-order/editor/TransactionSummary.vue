@@ -5,7 +5,7 @@ import { nextTick, onMounted, ref } from "vue";
 const barcodeInputRef = ref(null);
 
 const props = defineProps({
-  subtotal: {
+  total: {
     type: Number,
     required: true,
   },
@@ -59,9 +59,9 @@ defineExpose({
 <template>
   <div class="column">
     <div class="row justify-end items-center q-gutter-sm">
-      <span class="text-weight-bold text-grey-8">GRAND TOTAL: Rp.</span>
-      <span class="text-h4 text-weight-bold text-primary">
-        {{ formatNumber(subtotal) }}
+      <span class="text-grey-8 text-subtitle-2">Total: Rp.</span>
+      <span class="text-h5 text-weight-bold text-primary">
+        {{ formatNumber(total) }}
       </span>
     </div>
     <div class="q-py-xs">
@@ -69,19 +69,16 @@ defineExpose({
         ref="barcodeInputRef"
         :model-value="barcode"
         @update:model-value="(val) => $emit('update:barcode', val)"
-        placeholder="Qty*Kode/Barcode*Harga"
-        outlined
-        class="col bg-white"
         @keyup.enter.prevent="addItem()"
         :loading="isProcessing"
+        :disable="isProcessing"
+        placeholder="Qty * Kode / Barcode * Harga(opsional)"
+        class="col bg-white"
+        outlined
         clearable
         autofocus
-        :disable="isProcessing"
-      >
-        <template v-slot:prepend>
-          <q-icon name="qr_code_scanner" />
-        </template>
-      </q-input>
+        dense
+      />
     </div>
 
     <div class="q-py-xs">

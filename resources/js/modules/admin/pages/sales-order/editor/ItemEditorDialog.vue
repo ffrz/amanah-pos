@@ -109,6 +109,17 @@ defineExpose({
           hide-bottom-space
           readonly
         />
+
+        <q-input
+          v-model="item.notes"
+          label="Catatan"
+          autogrow
+          type="textarea"
+          counter
+          maxlength="50"
+          hide-bottom-space
+          clearable
+        />
       </q-card-section>
       <q-card-actions align="right">
         <q-btn

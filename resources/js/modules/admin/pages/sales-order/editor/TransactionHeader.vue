@@ -1,7 +1,7 @@
 <template>
-  <div class="row q-col-gutter-md items-center q-px-md q-py-sm">
+  <div class="row q-col-gutter-xs items-center q-pa-sm full-width">
     <div class="col-12 col-sm-6 col-md-4">
-      <div>
+      <div class="full-width">
         <CustomerAutocomplete
           class="custom-select"
           v-model="customer.id"
@@ -10,12 +10,13 @@
           @customer-selected="updateCustomerData"
         />
         <div v-if="customer.data" class="text-grey q-mt-xs">
-          Saldo: Rp. {{ formatNumber(customer.data.balance) }}
+          Saldo: Rp.
+          {{ formatNumber(customer.data ? customer.data.balance : 0) }}
         </div>
       </div>
     </div>
 
-    <div v-if="$q.screen.gt.sm" class="col-12 col-md-4 text-center">
+    <!-- <div v-if="$q.screen.gt.sm" class="col-12 col-md-4 text-center">
       <div class="text-h6 text-weight-bold text-grey-8">
         {{ company.name }}
       </div>
@@ -40,7 +41,7 @@
     >
       <div class="text-weight-bold">{{ user.username }} - {{ user.name }}</div>
       <DigitalClock />
-    </div>
+    </div> -->
   </div>
 </template>
 
@@ -49,7 +50,6 @@ import CustomerAutocomplete from "@/components/CustomerAutocomplete.vue";
 import DigitalClock from "@/components/DigitalClock.vue";
 import { formatNumber } from "@/helpers/formatter";
 import { ref } from "vue";
-import { useForm } from "@inertiajs/vue3";
 
 const props = defineProps({
   user: {

@@ -1,6 +1,6 @@
 <template>
   <q-select
-    dense
+    :class="class"
     v-model="selectedId"
     use-input
     input-debounce="0"
@@ -16,6 +16,8 @@
     hide-bottom-space
     emit-value
     map-options
+    :outlined="outlined"
+    style="min-width: 150px !important"
   />
 </template>
 
@@ -27,6 +29,10 @@ const props = defineProps({
   modelValue: {
     type: [String, Number, null],
     default: null,
+  },
+  class: {
+    type: String,
+    default: "",
   },
   label: {
     type: String,
@@ -41,6 +47,10 @@ const props = defineProps({
     default: "",
   },
   disable: {
+    type: Boolean,
+    default: false,
+  },
+  outlined: {
     type: Boolean,
     default: false,
   },

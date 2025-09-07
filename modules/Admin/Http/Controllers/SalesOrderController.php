@@ -290,13 +290,12 @@ class SalesOrderController extends Controller
             return JsonResponseHelper::error('Order sudah tidak dapat diubah.');
         }
 
-        $quantity = $request->post('qty', 0);
-        $price = $request->post('price');
-
         $order->total_cost  -= $detail->subtotal_cost;
         $order->total_price -= $detail->subtotal_price;
 
-        $detail->quantity = $quantity;
+        $detail->quantity = $request->post('qty', 0);
+
+        $price = $request->post('price');
         if ($price !== null && $price >= 0) {
             $detail->price = $price;
         }
@@ -304,6 +303,7 @@ class SalesOrderController extends Controller
         // perbarui subtotal
         $detail->subtotal_cost  = $detail->cost  * $detail->quantity;
         $detail->subtotal_price = $detail->price * $detail->quantity;
+        $detail->notes = $request->post('notes', '');
 
         DB::beginTransaction();
         $detail->save();

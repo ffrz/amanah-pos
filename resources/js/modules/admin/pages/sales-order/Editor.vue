@@ -12,13 +12,14 @@ import PaymentDialog from "./editor/PaymentDialog.vue";
 import ProductBrowserDialog from "@/components/ProductBrowserDialog.vue";
 import CheckBox from "@/components/CheckBox.vue";
 import ItemEditorDialog from "./editor/ItemEditorDialog.vue";
+import DigitalClock from "@/components/DigitalClock.vue";
 
-const title = "Penjualan";
 const $q = useQuasar();
 const page = usePage();
 const mergeItem = ref(true);
 const transactionSummaryRef = ref(null);
 const itemEditorRef = ref(null);
+const title = page.props.company.name;
 
 const form = useForm({
   id: page.props.data.id,
@@ -28,9 +29,6 @@ const form = useForm({
   status: page.props.data.status,
   payment_status: page.props.data.payment_status,
   delivery_status: page.props.data.delivery_status,
-  subtotal: page.props.data.total_price,
-  tax: page.props.data.tax,
-  total: page.props.data.total,
   notes: page.props.data.notes,
   items: page.props.data.details ?? [],
 });
@@ -43,13 +41,10 @@ const showProductBrowserDialog = ref(false);
 const showItemEditorDialog = ref(false);
 const itemToEdit = ref(null);
 
-const subtotal = computed(() => {
-  const total = form.items.reduce((sum, item) => {
+const total = computed(() => {
+  return form.items.reduce((sum, item) => {
     return sum + item.price * item.quantity;
   }, 0);
-  form.subtotal = total;
-  form.total = total + form.tax;
-  return total;
 });
 
 // helpers
@@ -228,6 +223,10 @@ const updateItem = () => {
     data.price = item.price;
   }
 
+  if (item.notes) {
+    data.notes = item.notes;
+  }
+
   axios
     .post(route("admin.sales-order.update-item"), data)
     .then((response) => {
@@ -263,6 +262,7 @@ const handlePayment = () => {
     <template #left-button>
       <div class="q-gutter-sm">
         <q-btn
+          v-if="$q.screen.gt.sm"
           icon="arrow_back"
           dense
           color="grey-7"
@@ -270,6 +270,17 @@ const handlePayment = () => {
           rounded
           @click="router.get(route('admin.sales-order.index'))"
         />
+      </div>
+    </template>
+    <template #right-button>
+      <div class="row items-center" v-if="$q.screen.gt.sm">
+        <div class="text-weight-bold">
+          {{ page.props.auth.user.username }}
+        </div>
+        <div class="q-mx-sm">|</div>
+        <div>
+          <DigitalClock />
+        </div>
       </div>
     </template>
     <q-page class="bg-grey-2 q-pa-sm column fit">
@@ -351,7 +362,7 @@ const handlePayment = () => {
             <TransactionSummary
               ref="transactionSummaryRef"
               v-model:barcode="userInput"
-              :subtotal="subtotal"
+              :total="total"
               :item-count="form.items.length"
               :is-processing="isProcessing"
               :form-processing="form.processing"
@@ -380,24 +391,3 @@ const handlePayment = () => {
     </q-page>
   </authenticated-layout>
 </template>
-
-<style scoped>
-.pos-table .q-table__top,
-.pos-table .q-table__bottom,
-.pos-table thead tr:first-child th {
-  background-color: #f5f5f5;
-}
-
-.hover-highlight:hover {
-  background-color: #f8f9fa;
-}
-
-.q-table tbody td {
-  padding: 0px 8px;
-}
-
-.q-table thead th {
-  padding: 0px 8px;
-  font-weight: 600;
-}
-</style>

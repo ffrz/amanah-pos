@@ -1,10 +1,9 @@
 <script setup>
-import CheckBox from "@/components/CheckBox.vue";
 import { formatNumber } from "@/helpers/formatter";
-import { useQuasar } from "quasar";
+import useTableHeight from "@/composables/useTableHeight";
+import LongTextView from "@/components/LongTextView.vue";
 
-const $q = useQuasar();
-
+const tableHeight = useTableHeight(null, 390);
 const porps = defineProps({
   items: {
     type: Array,
@@ -50,13 +49,14 @@ defineEmits(["update-quantity", "remove-item", "edit-item"]);
     flat
     square
     bordered
-    class="bg-grey-1 pos-table q-pa-none col full-height-table"
+    class="full-height-table"
     :rows-per-page-options="[0]"
     hide-pagination
     :no-data-label="'Belum ada item'"
     virtual-scroll
     :virtual-scroll-item-size="48"
     :virtual-scroll-sticky-size-start="48"
+    :style="{ height: tableHeight }"
   >
     <template v-slot:header="props">
       <q-tr :props="props" class="bg-grey-4">
@@ -78,9 +78,14 @@ defineEmits(["update-quantity", "remove-item", "edit-item"]);
             {{ props.row.product_name }}
           </div>
           <div class="text-caption text-grey-6">
-            {{ props.row.product_barcode }}<br />
-            {{ props.row.product_description }}
+            {{ props.row.product_barcode }}
           </div>
+          <LongTextView
+            v-if="props.row.notes"
+            :text="props.row.notes"
+            icon="notes"
+            class="text-grey-6"
+          />
         </q-td>
 
         <q-td key="subtotal_price" :props="props" class="text-right">
@@ -95,7 +100,7 @@ defineEmits(["update-quantity", "remove-item", "edit-item"]);
           </div>
         </q-td>
 
-        <q-td key="action" :props="props" class="text-right">
+        <q-td key="action" :props="props" class="text-right" style="width: 5%">
           <q-btn
             icon="edit"
             color="grey"
