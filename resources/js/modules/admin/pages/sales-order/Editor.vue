@@ -366,7 +366,6 @@ const handleCustomerSelected = (data) => {
               outlined
               clearable
               autofocus
-              dense
             >
               <template #prepend>
                 <q-icon
@@ -380,7 +379,7 @@ const handleCustomerSelected = (data) => {
                   v-if="userInput.length > 0"
                   name="send"
                   @click="addItem()"
-                  class="cursor-pointer"
+                  class="cursor-pointer q-ml-md"
                 />
               </template>
             </q-input>
@@ -403,7 +402,6 @@ const handleCustomerSelected = (data) => {
                 @customer-selected="handleCustomerSelected"
                 :min-length="1"
                 outlined
-                dense
               />
               <div v-if="customer.data" class="text-grey q-mt-xs q-ml-sm">
                 Saldo: Rp.
@@ -442,9 +440,10 @@ const handleCustomerSelected = (data) => {
                 "
               >
                 <span class="text-grey-8 text-subtitle-2" style="float: left">
-                  Total: Rp.
+                  Total
                 </span>
-                <span class="text-h4 text-weight-bold text-primary">
+                <span class="text-h4 text-weight-bold">
+                  <sup style="font-size: 13px">Rp.</sup>
                   {{ formatNumber(total) }}
                 </span>
               </div>

@@ -5,7 +5,7 @@ import LongTextView from "@/components/LongTextView.vue";
 import { useQuasar } from "quasar";
 
 const $q = useQuasar();
-const tableHeight = useTableHeight(null, $q.screen.lt.sm ? 390 : 320);
+const tableHeight = useTableHeight(null, $q.screen.lt.sm ? 410 : 340);
 const porps = defineProps({
   items: {
     type: Array,
@@ -106,7 +106,7 @@ defineEmits(["update-quantity", "remove-item", "edit-item"]);
             color="grey"
             flat
             round
-            size="xs"
+            size="sm"
             @click="$emit('edit-item', props.row)"
             :disable="isProcessing"
           />
@@ -115,7 +115,7 @@ defineEmits(["update-quantity", "remove-item", "edit-item"]);
             color="negative"
             flat
             round
-            size="xs"
+            size="sm"
             @click="$emit('remove-item', props.row)"
             :disable="isProcessing"
           />
