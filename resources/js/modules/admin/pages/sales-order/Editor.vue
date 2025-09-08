@@ -22,7 +22,6 @@ import CustomerAutocomplete from "@/components/CustomerAutocomplete.vue";
 import { formatNumber } from "@/helpers/formatter";
 import HelpDialog from "./editor/HelpDialog.vue";
 import { useFullscreen } from "@/composables/useFullscreen";
-import { useApiForm } from "@/composables/useApiForm";
 
 const $q = useQuasar();
 const page = usePage();
@@ -36,10 +35,7 @@ const targetDiv = ref(null);
 const { isFullscreen, toggleFullscreen } = useFullscreen(targetDiv);
 
 const title = page.props.company.name;
-const customer = ref({
-  id: null,
-  data: null,
-});
+const customer = ref(page.props.data.customer);
 
 const form = reactive({
   id: page.props.data.id,
@@ -316,13 +312,14 @@ onMounted(() => {
 });
 
 const handleCustomerSelected = (data) => {
-  customer.value.data = data;
+  customer.value = data;
   form.customer_id = data?.id;
   updateOrder();
 };
 
 const updateOrder = () => {
   isProcessing.value = true;
+
   const data = { ...toRaw(form) };
   delete data["items"];
   axios
@@ -388,17 +385,16 @@ const updateOrder = () => {
               <CustomerAutocomplete
                 ref="customerAutocompleteRef"
                 class="custom-select full-width col col-12 bg-white q-pa-sm"
-                v-model="customer.data"
+                v-model="customer"
                 label="Pelanggan"
                 :disable="isProcessing"
                 @customer-selected="handleCustomerSelected"
                 :min-length="1"
-                :initialData="page.props.data.customer"
                 outlined
               />
-              <div v-if="customer.data" class="text-grey q-mt-xs q-ml-sm">
+              <div v-if="customer" class="text-grey q-mt-xs q-ml-sm">
                 Saldo: Rp.
-                {{ formatNumber(customer.data ? customer.data.balance : 0) }}
+                {{ formatNumber(customer ? customer.balance : 0) }}
               </div>
             </div>
           </div>
@@ -530,7 +526,7 @@ const updateOrder = () => {
           label="Bayar"
           color="primary"
           icon="payment"
-          @click="$emit('process-payment')"
+          @click="handlePayment()"
           :disable="isProcessing || form.items.length === 0"
           :loading="isProcessing"
         />
@@ -543,7 +539,6 @@ const updateOrder = () => {
         @save="updateItem"
         :is-processing="isProcessing"
       />
-
       <PaymentDialog v-model="showPaymentDialog" />
       <ProductBrowserDialog
         v-model="showProductBrowserDialog"
