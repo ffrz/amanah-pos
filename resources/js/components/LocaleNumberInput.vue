@@ -1,46 +1,79 @@
 <template>
-  <q-input :model-value="displayValue" :label="props.label" :outlined="props.outlined" @update:model-value="onInput"
-    @blur="onBlur" @keydown="filterInput" :lazy-rules="lazyRules" :disable="disable" :error="error" :rules="rules"
-    :error-message="errorMessage" />
+  <q-input
+    ref="qInputRef"
+    :model-value="displayValue"
+    :label="props.label"
+    :outlined="props.outlined"
+    @update:model-value="onInput"
+    @blur="onBlur"
+    @keydown="filterInput"
+    :lazy-rules="lazyRules"
+    :disable="disable"
+    :error="error"
+    :rules="rules"
+    :error-message="errorMessage"
+  >
+    <template v-slot:prepend>
+      <slot name="prepend"></slot>
+    </template>
+    <template v-slot:append>
+      <slot name="append"></slot>
+    </template>
+  </q-input>
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue';
+import { computed, ref, watch } from "vue";
+
+const qInputRef = ref(null);
+
+defineExpose({
+  focus: () => {
+    qInputRef.value.focus();
+  },
+  select: () => {
+    qInputRef.value.select();
+  },
+});
 
 // Props
 const props = defineProps({
-  modelValue: { type: Number, required: true, default: 0 }, // Always expect a Number
-  label: { type: String, default: '' },
-  locale: { type: String, default: 'id-ID' },
+  modelValue: { type: Number, required: true, default: 0 },
+  label: { type: String, default: "" },
+  locale: { type: String, default: "id-ID" },
   outlined: { type: Boolean, default: false },
   allowNegative: { type: Boolean, default: false },
   maxDecimals: { type: Number, default: 0 },
   lazyRules: { type: String },
   disable: { type: Boolean, default: false },
   error: { type: Boolean, default: false },
-  errorMessage: { type: String, default: '' },
-  rules: {type: Array, default: []}
+  errorMessage: { type: String, default: "" },
+  rules: { type: Array, default: [] },
 });
 
 // Emit events
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(["update:modelValue"]);
 
 // Internal state for display value
-const displayValue = ref('');
+const displayValue = ref("");
 
 // Detect locale's decimal and thousand separators
 const getLocaleSeparators = (locale) => {
   const sampleNumber = 1234567.89;
   const formatted = new Intl.NumberFormat(locale).format(sampleNumber);
-  const [integerPart, decimalPart] = formatted.split('.');
+  const [integerPart, decimalPart] = formatted.split(".");
 
-  const decimalSeparator = decimalPart ? formatted[formatted.indexOf(decimalPart[0])] : '.';
-  const thousandSeparator = formatted[integerPart.length] === ',' ? ',' : '.';
+  const decimalSeparator = decimalPart
+    ? formatted[formatted.indexOf(decimalPart[0])]
+    : ".";
+  const thousandSeparator = formatted[integerPart.length] === "," ? "," : ".";
 
   return { decimalSeparator, thousandSeparator };
 };
 
-const { decimalSeparator, thousandSeparator } = getLocaleSeparators(props.locale);
+const { decimalSeparator, thousandSeparator } = getLocaleSeparators(
+  props.locale
+);
 
 // Format a number according to the locale
 const formatNumber = (value) => {
@@ -76,9 +109,9 @@ const sanitizeInput = (value) => {
 
   // Remove invalid characters and normalize decimal separator
   const sanitized = value
-    .replace(/[^0-9.,-]+/g, '') // Remove unwanted characters
-    .replace(new RegExp(`\\${thousandSeparator}`, 'g'), '') // Remove thousand separator
-    .replace(new RegExp(`\\${decimalSeparator}`, 'g'), '.'); // Replace decimal separator
+    .replace(/[^0-9.,-]+/g, "") // Remove unwanted characters
+    .replace(new RegExp(`\\${thousandSeparator}`, "g"), "") // Remove thousand separator
+    .replace(new RegExp(`\\${decimalSeparator}`, "g"), "."); // Replace decimal separator
 
   if (!regex.test(sanitized)) {
     return props.modelValue || 0; // Fallback to current modelValue if input is invalid
@@ -90,8 +123,8 @@ const sanitizeInput = (value) => {
 
 const emitUpdateModelValue = () => {
   const sanitizedValue = sanitizeInput(displayValue.value);
-  emit('update:modelValue', sanitizedValue); // Emit as Number
-}
+  emit("update:modelValue", sanitizedValue); // Emit as Number
+};
 
 // Update display value on input
 const onInput = (value) => {
@@ -108,19 +141,28 @@ const onBlur = () => {
 // Filter keyboard input
 const filterInput = (event) => {
   const allowedKeys = [
-    'Backspace',
-    'Delete',
-    'Tab',
-    'ArrowLeft',
-    'ArrowRight',
-    'Home',
-    'End',
+    "Backspace",
+    "Delete",
+    "Tab",
+    "ArrowLeft",
+    "ArrowRight",
+    "Home",
+    "End",
   ];
 
   if (event.ctrlKey || event.metaKey) return;
-  if (event.key >= '0' && event.key <= '9') return;
-  if ((event.key === decimalSeparator || event.key === thousandSeparator) && !displayValue.value.includes(decimalSeparator)) return;
-  if (props.allowNegative && event.key === '-' && event.target.selectionStart === 0) return;
+  if (event.key >= "0" && event.key <= "9") return;
+  if (
+    (event.key === decimalSeparator || event.key === thousandSeparator) &&
+    !displayValue.value.includes(decimalSeparator)
+  )
+    return;
+  if (
+    props.allowNegative &&
+    event.key === "-" &&
+    event.target.selectionStart === 0
+  )
+    return;
   if (allowedKeys.includes(event.key)) return;
 
   event.preventDefault(); // Block other keys

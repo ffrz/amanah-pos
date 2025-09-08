@@ -42,6 +42,8 @@ const form = reactive({
   delivery_status: page.props.data.delivery_status,
   notes: page.props.data.notes,
   items: page.props.data.details ?? [],
+  total: 0,
+  total_paid: 0,
 });
 
 const userInput = ref("");
@@ -257,11 +259,13 @@ const updateItem = () => {
     });
 };
 
-const handlePayment = () => {
+const handlePayment = (data) => {
   if (form.items.length === 0) {
     showInfo("Item masih kosong", "top");
     return;
   }
+
+  console.log(data);
 };
 
 onMounted(() => {
@@ -278,6 +282,9 @@ onMounted(() => {
     } else if (e.key === "F4") {
       e.preventDefault();
       mergeItem.value = !mergeItem.value;
+    } else if (e.key === "F10") {
+      e.preventDefault();
+      showPaymentDialog.value = true;
     } else if (e.key === "F11") {
       e.preventDefault();
       handleFullScreenClicked();
@@ -507,7 +514,7 @@ const updateOrder = () => {
             label="Bayar"
             color="primary"
             icon="payment"
-            @click="handlePayment()"
+            @click="showPaymentDialog = true"
             :disable="isProcessing || form.items.length === 0"
             :loading="isProcessing"
           />
@@ -521,7 +528,13 @@ const updateOrder = () => {
         @save="updateItem()"
         :is-processing="isProcessing"
       />
-      <PaymentDialog v-model="showPaymentDialog" />
+      <PaymentDialog
+        v-model="showPaymentDialog"
+        @accepted="handlePayment"
+        :form="form"
+        :customer="customer"
+        :total="total"
+      />
       <ProductBrowserDialog
         v-model="showProductBrowserDialog"
         @product-selected="handleProductSelection"

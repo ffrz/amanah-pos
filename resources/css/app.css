@@ -271,3 +271,28 @@ table.detail tr:nth-child(even) td {
   line-height: 1;
   margin-right: 2px;
 }
+
+/*
+ * Gaya umum untuk menghilangkan outline bawaan browser
+ * Ini adalah langkah opsional tapi direkomendasikan
+ */
+:focus {
+  outline: none;
+}
+
+/*
+ * Gaya dasar untuk tombol saat fokus
+ * Memberikan outline yang solid dan kontras
+ */
+.q-btn:focus {
+  outline: 1px solid #ff00bf; /* Warna biru yang kontras */
+  outline-offset: 1px; /* Jarak antara outline dan tombol */
+}
+
+/*
+ * Gaya lain yang lebih menarik:
+ * Menggunakan box-shadow sebagai pengganti outline
+ */
+.q-btn:focus-visible {
+  box-shadow: 0 0 0 2px rgb(234, 0, 255);
+}
