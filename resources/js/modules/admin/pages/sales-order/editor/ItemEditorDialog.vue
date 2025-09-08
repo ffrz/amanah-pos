@@ -72,7 +72,7 @@ defineExpose({
           <div class="col-auto">
             <q-btn
               flat
-              size="xs"
+              size="sm"
               round
               icon="close"
               @click="$emit('update:modelValue', false)"

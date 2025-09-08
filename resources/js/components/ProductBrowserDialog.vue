@@ -108,7 +108,7 @@ watch(
             <q-btn
               flat
               round
-              size="xs"
+              size="sm"
               icon="close"
               @click="$emit('update:modelValue', false)"
             />
@@ -116,7 +116,7 @@ watch(
         </div>
       </q-card-section>
 
-      <q-card-section class="q-py-sm">
+      <q-card-section class="q-py-sm" :class="$q.screen.lt.sm ? 'q-px-xs' : ''">
         <q-input
           autofocus
           outlined
@@ -133,11 +133,14 @@ watch(
         </q-input>
       </q-card-section>
 
-      <q-card-section class="q-py-sm col">
+      <q-card-section
+        class="q-py-xs col"
+        :class="$q.screen.lt.sm ? 'q-px-xs' : ''"
+      >
         <q-table
           ref="tableRef"
           flat
-          class="fit"
+          class="fit full-height-table"
           square
           bordered
           dense
