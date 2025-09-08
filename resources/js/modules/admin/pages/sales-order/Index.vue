@@ -311,7 +311,7 @@ watch(
         </div>
       </q-toolbar>
     </template>
-    <div class="q-pa-sm">
+    <div class="q-pa-xs">
       <q-table
         ref="tableRef"
         class="full-height-table"

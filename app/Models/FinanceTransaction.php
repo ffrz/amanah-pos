@@ -43,7 +43,7 @@ class FinanceTransaction extends BaseModel
 
     const RefTypes = [
         self::RefType_FinanceTransaction => 'Transaksi Keuangan',
-        self::RefType_CustomerWalletTransaction => 'Transaksi Dompet Santri',
+        self::RefType_CustomerWalletTransaction => 'Transaksi Dompet Pelanggan',
     ];
 
     const RefTypeModels = [
@@ -101,7 +101,7 @@ class FinanceTransaction extends BaseModel
     {
         switch (get_class($model)) {
             case \App\Models\CustomerWalletTransaction::class:
-                return 'Transaksi Dompet Santri';
+                return 'Transaksi Dompet Pelanggan';
             case \App\Models\OperationalCost::class:
                 return 'Biaya Operasional';
             default:

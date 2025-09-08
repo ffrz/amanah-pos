@@ -116,7 +116,7 @@ const computedColumns = computed(() => {
       </div>
     </template>
     <q-page class="row justify-center">
-      <div class="col col-lg-6 q-pa-sm">
+      <div class="col col-md-6 q-pa-xs">
         <q-form
           class="row"
           @submit.prevent="submit"
@@ -152,7 +152,7 @@ const computedColumns = computed(() => {
                 type="textarea"
                 autogrow
                 counter
-                maxlength="1000"
+                maxlength="200"
                 label="Catatan"
                 lazy-rules
                 :disable="form.processing"

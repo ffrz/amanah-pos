@@ -139,10 +139,13 @@ const showAttachment = (url) => {
         size="sm"
         dense
         color="primary"
+        class="q-ml-sm"
         label="Konfirmasi&nbsp;"
         @click="router.get(route('customer.wallet-topup-confirmation.add'))"
       />
       <q-btn
+        flat
+        rounded
         size="sm"
         class="q-ml-sm"
         :icon="!showFilter ? 'filter_alt' : 'filter_alt_off'"
@@ -205,8 +208,9 @@ const showAttachment = (url) => {
         </div>
       </q-toolbar>
     </template>
-    <div class="q-pa-sm">
+    <div class="q-pa-xs">
       <q-table
+        dense
         class="full-height-table"
         ref="tableRef"
         flat
@@ -295,7 +299,6 @@ const showAttachment = (url) => {
                 color="red"
                 dense
                 flat
-                :disable="props.row.image_path == null"
                 @click="showAttachment(props.row.image_path)"
               >
                 <q-tooltip>Batalkan</q-tooltip>

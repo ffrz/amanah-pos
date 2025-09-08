@@ -8,7 +8,7 @@ import DateTimePicker from "@/components/DateTimePicker.vue";
 import dayjs from "dayjs";
 const page = usePage();
 const title =
-  (!!page.props.data.id ? "Edit" : "Catat") + " Transaksi Dompet Santri";
+  (!!page.props.data.id ? "Edit" : "Catat") + " Transaksi Dompet Pelanggan";
 
 const { filteredCustomers, filterCustomersFn } = useCustomerFilter(
   page.props.customers,
@@ -60,7 +60,7 @@ const submit = () =>
       </div>
     </template>
     <q-page class="row justify-center">
-      <div class="col col-lg-6 q-pa-sm">
+      <div class="col col-md-6 q-pa-xs">
         <q-form
           class="row"
           @submit.prevent="submit"
@@ -75,11 +75,12 @@ const submit = () =>
                 label="Tanggal"
                 :error="!!form.errors.datetime"
                 :disable="form.processing"
+                hide-bottom-space
               />
               <q-select
                 class="custom-select"
                 v-model="form.customer_id"
-                label="Santri"
+                label="Pelanggan"
                 use-input
                 input-debounce="300"
                 clearable
@@ -94,7 +95,7 @@ const submit = () =>
               >
                 <template v-slot:no-option>
                   <q-item>
-                    <q-item-section>Santri tidak ditemukan</q-item-section>
+                    <q-item-section>Pelanggan tidak ditemukan</q-item-section>
                   </q-item>
                 </template>
               </q-select>
@@ -131,13 +132,14 @@ const submit = () =>
                 :error="!!form.errors.amount"
                 :errorMessage="form.errors.amount"
                 :rules="[]"
+                hide-bottom-space
               />
               <q-input
                 v-model.trim="form.notes"
                 type="textarea"
                 autogrow
                 counter
-                maxlength="255"
+                maxlength="200"
                 label="Catatan"
                 lazy-rules
                 :disable="form.processing"

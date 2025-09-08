@@ -4,9 +4,9 @@ return [
     'welcome' => 'Welcome to our application!',
     'greeting' => 'Hello, :name!',
 
-    'customer-created' => 'Santri :name telah ditambahkan.',
-    'customer-updated' => 'Santri :name telah diperbarui.',
-    'customer-deleted' => 'Santri :name telah dihapus.',
+    'customer-created' => 'Pelanggan :name telah ditambahkan.',
+    'customer-updated' => 'Pelanggan :name telah diperbarui.',
+    'customer-deleted' => 'Pelanggan :name telah dihapus.',
 
     'supplier-created' => 'Pemasok :name telah ditambahkan.',
     'supplier-updated' => 'Pemasok :name telah diperbarui.',

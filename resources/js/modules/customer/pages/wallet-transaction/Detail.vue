@@ -10,7 +10,7 @@ const title = "Rincian Teknisi";
   <authenticated-layout>
     <template #title>{{ title }}</template>
     <q-page class="row justify-center">
-      <div class="col col-lg-6 q-pa-sm">
+      <div class="col col-md-6 q-pa-xs">
         <div class="row">
           <q-card square flat bordered class="col">
             <q-card-section>
@@ -20,8 +20,8 @@ const title = "Rincian Teknisi";
               <table class="detail">
                 <tbody>
                   <tr>
-                    <td style="width:125px;">Akun Pengguna</td>
-                    <td style="width:1px;">:</td>
+                    <td style="width: 125px">Akun Pengguna</td>
+                    <td style="width: 1px">:</td>
                     <td>
                       <template v-if="!!page.props.data.user">
                         <i-link
@@ -69,8 +69,8 @@ const title = "Rincian Teknisi";
               <table class="detail">
                 <tbody>
                   <tr>
-                    <td style="width:125px;">Servis Ditangani</td>
-                    <td style="width:1px;">:</td>
+                    <td style="width: 125px">Servis Ditangani</td>
+                    <td style="width: 1px">:</td>
                     <td>0</td>
                   </tr>
                   <tr>
@@ -93,8 +93,8 @@ const title = "Rincian Teknisi";
               <table class="detail">
                 <tbody>
                   <tr>
-                    <td style="width:125px;">Dibuat</td>
-                    <td style="width:1px;">:</td>
+                    <td style="width: 125px">Dibuat</td>
+                    <td style="width: 1px">:</td>
                     <td>
                       {{
                         $dayjs(new Date(page.props.data.created_at)).format(

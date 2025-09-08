@@ -164,7 +164,7 @@ const computedColumns = computed(() => {
         </div>
       </q-toolbar>
     </template>
-    <div class="q-pa-sm">
+    <div class="q-pa-xs">
       <div class="q-my-sm text-subtitle">
         Total Saldo Akun Aktif:
         <span class="text-bold text-grey-8"

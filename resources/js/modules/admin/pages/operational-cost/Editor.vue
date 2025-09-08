@@ -52,7 +52,7 @@ const filterCategories = (val, update) => {
     </template>
 
     <q-page class="row justify-center">
-      <div class="col col-lg-6 q-pa-sm">
+      <div class="col col-md-6 q-pa-xs">
         <q-form
           class="row"
           @submit.prevent="submit"
@@ -87,6 +87,7 @@ const filterCategories = (val, update) => {
                 label="Tanggal"
                 :error="!!form.errors.date"
                 :disable="form.processing"
+                hide-bottom-space
               />
               <q-input
                 v-model.trim="form.description"
@@ -108,13 +109,14 @@ const filterCategories = (val, update) => {
                 :error="!!form.errors.amount"
                 :errorMessage="form.errors.amount"
                 :rules="[]"
+                hide-bottom-space
               />
               <q-input
                 v-model.trim="form.notes"
                 type="textarea"
                 autogrow
                 counter
-                maxlength="1000"
+                maxlength="200"
                 label="Catatan"
                 lazy-rules
                 :disable="form.processing"

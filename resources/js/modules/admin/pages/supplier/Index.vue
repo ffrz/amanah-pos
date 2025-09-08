@@ -156,7 +156,7 @@ const computedColumns = computed(() => {
         </div>
       </q-toolbar>
     </template>
-    <div class="q-pa-sm">
+    <div class="q-pa-xs">
       <q-table
         class="full-height-table"
         ref="tableRef"

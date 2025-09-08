@@ -81,7 +81,7 @@ onMounted(() => {
 
 const deleteItem = (row) =>
   handleDelete({
-    message: `Hapus Santri ${row.name}?`,
+    message: `Hapus Pelanggan ${row.name}?`,
     url: route("admin.customer.delete", row.id),
     fetchItemsCallback: fetchItems,
     loading,
@@ -165,7 +165,7 @@ const computedColumns = computed(() => {
         </div>
       </q-toolbar>
     </template>
-    <div class="q-pa-sm">
+    <div class="q-pa-xs">
       <q-table
         class="full-height-table"
         :style="{ height: tableHeight }"

@@ -101,7 +101,7 @@ const computedColumns = computed(() => {
     </template>
 
     <div class="row justify-center">
-      <div class="col col-lg-6 q-pa-sm">
+      <div class="col col-md-6 q-pa-xs">
         <div class="row">
           <q-card square flat bordered class="q-card col">
             <q-tabs v-model="tab" align="left">

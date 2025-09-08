@@ -6,7 +6,7 @@ import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
 import DateTimePicker from "@/components/DateTimePicker.vue";
 import { formatDateTimeForEditing } from "@/helpers/formatter";
 import { useFinanceAccount } from "@/composables/useFinanceAccount";
-import ImageUpload from "@/components/ImageUpload.vue"; 
+import ImageUpload from "@/components/ImageUpload.vue";
 
 const page = usePage();
 const title = "Konfirmasi Topup";
@@ -18,8 +18,8 @@ const form = useForm({
   finance_account_id: null,
   datetime: formatDateTimeForEditing(new Date()),
   amount: page.props.data?.amount ?? 0,
-  notes: page.props.data?.notes ?? '',
-  image_path: page.props.data?.image_path ?? '',
+  notes: page.props.data?.notes ?? "",
+  image_path: page.props.data?.image_path ?? "",
   image: null,
 });
 
@@ -46,7 +46,7 @@ const submit = () =>
       </div>
     </template>
     <q-page class="row justify-center">
-      <div class="col col-lg-6 q-pa-sm">
+      <div class="col col-md-6 q-pa-xs">
         <q-form
           class="row"
           @submit.prevent="submit"
@@ -59,7 +59,7 @@ const submit = () =>
               <q-input
                 readonly
                 v-model.trim="form.username"
-                label="NIS"
+                label="Username"
                 :disable="form.processing"
                 hide-bottom-space
               />
@@ -113,8 +113,8 @@ const submit = () =>
                 :error-message="form.errors.notes"
                 hide-bottom-space
               />
-              <ImageUpload 
-                v-model="form.image" 
+              <ImageUpload
+                v-model="form.image"
                 :initial-image-path="form.image_path"
                 :disabled="form.processing"
                 :error="!!form.errors.image || !!form.errors.image_path"

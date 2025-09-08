@@ -22,20 +22,19 @@ const showPassword = ref(false);
           <q-form class="q-gutter-md" @submit.prevent="submit">
             <q-card square bordered class="q-pa-md shadow-1">
               <q-card-section>
-                <h5 class="q-my-sm text-center">Masuk Wali Santri</h5>
+                <h5 class="q-my-sm text-center">Masuk Pelanggan</h5>
               </q-card-section>
               <q-card-section>
                 <q-input
                   v-model.trim="form.username"
-                  label="NIS"
+                  label="Username"
                   lazy-rules
                   :error="!!form.errors.username"
                   autocomplete="username"
                   :error-message="form.errors.username"
                   :disable="form.processing"
                   :rules="[
-                    (val) =>
-                      (val && val.length > 0) || 'Masukkan Nomor Induk Santri',
+                    (val) => (val && val.length > 0) || 'Masukkan Username',
                   ]"
                   hide-bottom-space
                 >

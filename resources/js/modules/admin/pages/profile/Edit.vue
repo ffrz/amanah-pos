@@ -9,7 +9,7 @@ const title = "Profil Saya";
   <i-head :title="title" />
   <authenticated-layout>
     <template #title>{{ title }}</template>
-    <div class="q-pa-sm">
+    <div class="q-pa-xs">
       <div class="row justify-center">
         <div class="col col-lg-6">
           <UpdateProfileInformationForm class="q-mb-md" />

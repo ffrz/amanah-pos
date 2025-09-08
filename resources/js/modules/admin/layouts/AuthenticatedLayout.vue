@@ -516,7 +516,7 @@ defineExpose({
                 <q-icon name="apartment" />
               </q-item-section>
               <q-item-section>
-                <q-item-label>Profil Maqsof</q-item-label>
+                <q-item-label>Profil Perusahaan</q-item-label>
               </q-item-section>
             </q-item>
           </q-expansion-item>

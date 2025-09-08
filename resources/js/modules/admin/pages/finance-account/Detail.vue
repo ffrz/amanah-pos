@@ -102,7 +102,7 @@ const computedColumns = computed(() => {
       </div>
     </template>
     <q-page class="row justify-center">
-      <div class="col col-lg-6 q-pa-sm">
+      <div class="col col-md-6 q-pa-xs">
         <div class="row">
           <q-card square flat bordered class="col">
             <q-tabs v-model="tab" align="left">

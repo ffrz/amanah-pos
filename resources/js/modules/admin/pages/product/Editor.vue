@@ -63,7 +63,7 @@ const margin = computed(() => {
       </div>
     </template>
     <q-page class="row justify-center">
-      <div class="col col-lg-6 q-pa-sm">
+      <div class="col col-md-6 q-pa-xs">
         <q-form
           class="row"
           @submit.prevent="submit"
@@ -100,7 +100,7 @@ const margin = computed(() => {
                 type="textarea"
                 autogrow
                 counter
-                maxlength="1000"
+                maxlength="200"
                 label="Deskripsi"
                 lazy-rules
                 :disable="form.processing"
@@ -183,6 +183,7 @@ const margin = computed(() => {
                 :disable="form.processing"
                 :error="!!form.errors.stock"
                 :errorMessage="form.errors.stock"
+                hide-bottom-space
               />
               <LocaleNumberInput
                 v-model:modelValue="form.min_stock"
@@ -191,6 +192,7 @@ const margin = computed(() => {
                 :disable="form.processing"
                 :error="!!form.errors.min_stock"
                 :errorMessage="form.errors.min_stock"
+                hide-bottom-space
               />
               <LocaleNumberInput
                 v-model:modelValue="form.max_stock"
@@ -239,7 +241,7 @@ const margin = computed(() => {
                 type="textarea"
                 autogrow
                 counter
-                maxlength="1000"
+                maxlength="200"
                 label="Catatan"
                 lazy-rules
                 :disable="form.processing"

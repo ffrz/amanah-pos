@@ -37,7 +37,7 @@ const submit = () => handleSubmit({ form, url: route("admin.user.save") });
       </div>
     </template>
     <div class="row justify-center">
-      <div class="col col-lg-6 q-pa-sm">
+      <div class="col col-md-6 q-pa-xs">
         <q-form class="row" @submit.prevent="submit">
           <q-card square flat bordered class="col">
             <q-card-section class="q-pt-none">

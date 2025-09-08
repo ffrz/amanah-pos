@@ -33,7 +33,7 @@ class AuthController extends Controller
             'username' => 'required',
             'password' => 'required',
         ], [
-            'username.required' => 'NIS harus diisi.',
+            'username.required' => 'Username harus diisi.',
             'password.required' => 'Kata sandi harus diisi.',
         ]);
 

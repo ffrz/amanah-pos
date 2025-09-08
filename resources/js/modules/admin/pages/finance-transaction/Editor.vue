@@ -24,7 +24,9 @@ const form = useForm({
   account_id: page.props.data.account_id,
   to_account_id: page.props.data.to_account_id ?? null,
   type: page.props.data.type,
-  datetime: formatDateTimeForEditing(page.props.data.datetime ? page.props.data.datetime : new Date),
+  datetime: formatDateTimeForEditing(
+    page.props.data.datetime ? page.props.data.datetime : new Date()
+  ),
   notes: page.props.data.notes,
   amount: parseFloat(page.props.data.amount),
 });
@@ -50,7 +52,7 @@ const submit = () =>
       </div>
     </template>
     <q-page class="row justify-center">
-      <div class="col col-lg-6 q-pa-sm">
+      <div class="col col-md-6 q-pa-xs">
         <q-form
           class="row"
           @submit.prevent="submit"
@@ -122,7 +124,7 @@ const submit = () =>
                 type="textarea"
                 autogrow
                 counter
-                maxlength="255"
+                maxlength="200"
                 label="Catatan"
                 lazy-rules
                 :disable="form.processing"

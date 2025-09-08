@@ -24,7 +24,7 @@ const submit = () =>
   >
     <q-card flat bordered square class="col">
       <q-card-section>
-        <div class="text-subtitle1 q-my-xs">Profil Maqsof</div>
+        <div class="text-subtitle1 q-my-xs">Profil Perusahaan</div>
         <p class="text-caption text-grey-9">Perbarui profil koperasi.</p>
         <q-input
           ref="nameInputRef"

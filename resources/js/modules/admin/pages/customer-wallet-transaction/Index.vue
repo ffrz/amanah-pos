@@ -14,7 +14,7 @@ import {
 import useTableHeight from "@/composables/useTableHeight";
 import LongTextView from "@/components/LongTextView.vue";
 
-const title = "Transaksi Dompet Santri";
+const title = "Transaksi Dompet Pelanggan";
 const $q = useQuasar();
 const showFilter = ref(false);
 const rows = ref([]);
@@ -61,7 +61,7 @@ const columns = [
   },
   {
     name: "customer",
-    label: "Santri",
+    label: "Pelanggan",
     field: "customer",
     align: "left",
   },
@@ -192,7 +192,7 @@ watch(
         </div>
       </q-toolbar>
     </template>
-    <div class="q-pa-sm">
+    <div class="q-pa-xs">
       <q-table
         ref="tableRef"
         :style="{ height: tableHeight }"

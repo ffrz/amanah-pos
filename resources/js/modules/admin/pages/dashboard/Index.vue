@@ -181,7 +181,7 @@ const pieChartOptions = computed(() => ({
 
 const summaryItems = ref([
   {
-    label: "Total Santri",
+    label: "Total Pelanggan",
     value: computed(() => dashboardData.value.summary.total_santri),
     icon: "groups",
     color: "primary",
@@ -197,7 +197,7 @@ const summaryItems = ref([
     bgColor: "#e8f5e9",
   },
   {
-    label: "Saldo Dompet Santri",
+    label: "Saldo Dompet Pelanggan",
     value: computed(() =>
       formatNumber(dashboardData.value.summary.total_wallet_balance)
     ),
@@ -249,7 +249,7 @@ const summaryItems = ref([
       </q-toolbar>
     </template>
 
-    <div class="q-pa-sm">
+    <div class="q-pa-xs">
       <div class="q-pa-none">
         <div class="q-pb-sm">
           <div class="text-h6 text-bold text-grey-8 q-mb-sm">
@@ -299,7 +299,7 @@ const summaryItems = ref([
       <div class="row q-col-gutter-sm q-pb-sm">
         <div class="col-md-6 col-12">
           <q-card square bordered flat class="full-width full-height q-pa-md">
-            <div class="text-h6 q-mb-sm">Top 5 Pembelian Santri</div>
+            <div class="text-h6 q-mb-sm">Top 5 Pembelian Pelanggan</div>
             <q-list separator>
               <q-item
                 v-for="(item, index) in dashboardData.top_customers_sales"
@@ -324,7 +324,7 @@ const summaryItems = ref([
         </div>
         <div class="col-md-6 col-12">
           <q-card square bordered flat class="full-width full-height q-pa-md">
-            <div class="text-h6 q-mb-sm">Top 5 Top Up Santri</div>
+            <div class="text-h6 q-mb-sm">Top 5 Top Up Pelanggan</div>
             <q-list separator>
               <q-item
                 v-for="(item, index) in dashboardData.top_customers_topup"

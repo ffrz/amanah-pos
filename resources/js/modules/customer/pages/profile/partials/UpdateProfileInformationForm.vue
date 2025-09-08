@@ -22,11 +22,11 @@ const submit = () =>
   <q-form class="row q-mb-xs">
     <q-card square flat bordered class="col">
       <q-card-section>
-        <div class="text-h6 q-my-xs text-subtitle1">Info Santri</div>
+        <div class="text-h6 q-my-xs text-subtitle1">Info Pelanggan</div>
         <table class="detail">
           <tbody>
             <tr>
-              <td style="width: 100px">NIS</td>
+              <td style="width: 100px">Username</td>
               <td style="width: 1px">:</td>
               <td>{{ user.username }}</td>
             </tr>

@@ -55,7 +55,7 @@ const goToUrl = (url, newFilter) => {
                 <q-item-label class="text-white text-h6 text-weight-bolder">
                   {{ $page.props.data.active_customer_count }}
                 </q-item-label>
-                <q-item-label>Santri Aktif</q-item-label>
+                <q-item-label>Pelanggan Aktif</q-item-label>
               </q-item-section>
             </q-item>
           </div>
@@ -134,7 +134,7 @@ const goToUrl = (url, newFilter) => {
                   Rp.
                   {{ formatNumber($page.props.data.total_customer_balance) }}
                 </q-item-label>
-                <q-item-label>Total Saldo Santri</q-item-label>
+                <q-item-label>Total Saldo Pelanggan</q-item-label>
               </q-item-section>
             </q-item>
           </div>
@@ -156,7 +156,7 @@ const goToUrl = (url, newFilter) => {
                 <q-item-label class="text-white text-weight-bold">
                   Rp. {{ formatNumber($page.props.data.total_customer_debt) }}
                 </q-item-label>
-                <q-item-label>Total Utang Santri</q-item-label>
+                <q-item-label>Total Utang Pelanggan</q-item-label>
               </q-item-section>
             </q-item>
           </div>
@@ -178,7 +178,7 @@ const goToUrl = (url, newFilter) => {
                 <q-item-label class="text-white text-weight-bold">
                   Rp. {{ formatNumber($page.props.data.total_customer_credit) }}
                 </q-item-label>
-                <q-item-label>Total Piutang Santri</q-item-label>
+                <q-item-label>Total Piutang Pelanggan</q-item-label>
               </q-item-section>
             </q-item>
           </div>

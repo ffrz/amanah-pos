@@ -55,7 +55,7 @@ const handlePayment = (method) => {
           </div>
           <div class="col-12">
             <q-btn
-              label="Dompet Santri"
+              label="Dompet Pelanggan"
               icon="wallet"
               color="green-6"
               class="full-width"

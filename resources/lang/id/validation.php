@@ -26,8 +26,7 @@ return [
     //     ],
     // ],
     'attributes' => [
-        'username' => 'ID Pengguna',
-        'username' => 'NIS',
+        'username' => 'Username',
         'name' => 'Nama',
         'email' => 'Email',
         'phone' => 'No Telepon',
@@ -38,7 +37,7 @@ return [
         'category_id' => 'Kategori',
         'notes' => 'Catatan',
         'amount' => 'Jumlah',
-        'customer_name' => 'Nama Santri',
+        'customer_name' => 'Nama Pelanggan',
         'customer_phone' => 'No Telepon',
         'customer_address' => 'Alamat',
         'company_name' => 'Nama Perusahaan',

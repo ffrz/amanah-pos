@@ -6,7 +6,7 @@ import { scrollToFirstErrorField } from "@/helpers/utils";
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
 import { computed, watch } from "vue";
 const page = usePage();
-const title = "Penyesuaian Saldo Dompet Santri";
+const title = "Penyesuaian Saldo Dompet Pelanggan";
 
 const { filteredCustomers, filterCustomersFn } = useCustomerFilter(
   page.props.customers,
@@ -63,7 +63,7 @@ const submit = () =>
   <authenticated-layout>
     <template #title>{{ title }}</template>
     <q-page class="row justify-center">
-      <div class="col col-lg-6 q-pa-sm">
+      <div class="col col-md-6 q-pa-xs">
         <q-form
           class="row"
           @submit.prevent="submit"
@@ -74,7 +74,7 @@ const submit = () =>
               <q-select
                 class="custom-select"
                 v-model="form.customer_id"
-                label="Santri"
+                label="Pelanggan"
                 use-input
                 input-debounce="300"
                 clearable
@@ -89,7 +89,7 @@ const submit = () =>
               >
                 <template v-slot:no-option>
                   <q-item>
-                    <q-item-section>Santri tidak ditemukan</q-item-section>
+                    <q-item-section>Pelanggan tidak ditemukan</q-item-section>
                   </q-item>
                 </template>
               </q-select>
@@ -122,7 +122,7 @@ const submit = () =>
                 type="textarea"
                 autogrow
                 counter
-                maxlength="255"
+                maxlength="200"
                 label="Catatan"
                 lazy-rules
                 :disable="form.processing"

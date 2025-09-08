@@ -12,7 +12,7 @@ const $q = useQuasar();
 const page = usePage();
 const leftDrawerOpen = ref(
   JSON.parse(localStorage.getItem(LEFT_DRAWER_STORAGE_KEY))
-);  
+);
 const isDropdownOpen = ref(false);
 const toggleLeftDrawer = () => (leftDrawerOpen.value = !leftDrawerOpen.value);
 
@@ -99,7 +99,7 @@ onMounted(() => {
                 <q-item-section>
                   <q-item-label>
                     <div class="text-bold">
-                      NIS: {{ page.props.auth.customer.username }}
+                      Username: {{ page.props.auth.customer.username }}
                     </div>
                     <div>{{ page.props.auth.customer.name }}</div>
                   </q-item-label>

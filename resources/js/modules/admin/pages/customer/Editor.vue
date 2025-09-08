@@ -36,7 +36,7 @@ const submit = () => handleSubmit({ form, url: route("admin.customer.save") });
       </div>
     </template>
     <q-page class="row justify-center">
-      <div class="col col-lg-6 q-pa-sm">
+      <div class="col col-md-6 q-pa-xs">
         <q-form
           class="row"
           @submit.prevent="submit"
@@ -47,12 +47,12 @@ const submit = () => handleSubmit({ form, url: route("admin.customer.save") });
             <q-card-section class="q-pt-none">
               <q-input
                 v-model.trim="form.username"
-                label="NIS"
+                label="Username"
                 :error="!!form.errors.username"
                 :disable="form.processing"
                 :error-message="form.errors.username"
                 :rules="[
-                  (val) => (val && val.length > 0) || 'NIS harus diisi.',
+                  (val) => (val && val.length > 0) || 'Username harus diisi.',
                 ]"
                 autofocus
                 lazy-rules
@@ -60,7 +60,7 @@ const submit = () => handleSubmit({ form, url: route("admin.customer.save") });
               />
               <q-input
                 v-model.trim="form.name"
-                label="Nama Santri"
+                label="Nama Pelanggan"
                 :error="!!form.errors.name"
                 :disable="form.processing"
                 :error-message="form.errors.name"

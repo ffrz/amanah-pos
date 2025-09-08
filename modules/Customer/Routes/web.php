@@ -9,7 +9,7 @@ use Modules\Customer\Http\Controllers\DashboardController;
 use Modules\Customer\Http\Controllers\ProfileController;
 use Modules\Customer\Http\Controllers\WalletTransactionController;
 
-Route::middleware([NonAuthenticated::class])->group(function() {
+Route::middleware([NonAuthenticated::class])->group(function () {
     Route::match(['get', 'post'], 'auth/login', [AuthController::class, 'login'])->name('customer.auth.login');
 });
 
@@ -35,6 +35,7 @@ Route::middleware([CustomerAuth::class])->group(function () {
         Route::post('save', [WalletTopUpConfirmationController::class, 'save'])->name('customer.wallet-topup-confirmation.save');
         Route::get('data', [WalletTopUpConfirmationController::class, 'data'])->name('customer.wallet-topup-confirmation.data');
         Route::get('detail/{id}', [WalletTopUpConfirmationController::class, 'detail'])->name('customer.wallet-topup-confirmation.detail');
+        Route::post('cancel', [WalletTopUpConfirmationController::class, 'cancel'])->name('customer.wallet-topup-confirmation.cancel');
     });
 
     Route::get('profile/edit', [ProfileController::class, 'edit'])->name('customer.profile.edit');

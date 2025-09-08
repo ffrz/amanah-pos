@@ -106,6 +106,8 @@ const onRowClick = (row) => {
         :icon="!showFilter ? 'filter_alt' : 'filter_alt_off'"
         color="grey"
         dense
+        flat
+        rounded
         @click="showFilter = !showFilter"
       />
     </template>
@@ -152,8 +154,9 @@ const onRowClick = (row) => {
         </div>
       </q-toolbar>
     </template>
-    <div class="q-pa-sm">
+    <div class="q-pa-xs">
       <q-table
+        dense
         ref="tableRef"
         class="full-height-table"
         v-model:pagination="pagination"
