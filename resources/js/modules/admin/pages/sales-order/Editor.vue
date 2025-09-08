@@ -1,14 +1,6 @@
 <script setup>
 import { router, usePage } from "@inertiajs/vue3";
-import {
-  ref,
-  computed,
-  nextTick,
-  onMounted,
-  onUnmounted,
-  reactive,
-  toRaw,
-} from "vue";
+import { ref, computed, nextTick, onMounted, onUnmounted, reactive } from "vue";
 import { useQuasar } from "quasar";
 import axios from "axios";
 
@@ -19,10 +11,12 @@ import CheckBox from "@/components/CheckBox.vue";
 import ItemEditorDialog from "./editor/ItemEditorDialog.vue";
 import DigitalClock from "@/components/DigitalClock.vue";
 import CustomerAutocomplete from "@/components/CustomerAutocomplete.vue";
-import { formatNumber } from "@/helpers/formatter";
+import { formatDateTime, formatNumber } from "@/helpers/formatter";
 import HelpDialog from "./editor/HelpDialog.vue";
 import { useFullscreen } from "@/composables/useFullscreen";
 import { showError, showWarning, showInfo } from "@/composables/useNotify";
+import OrderInfoDialog from "./editor/OrderInfoDialog.vue";
+import LongTextView from "@/components/LongTextView.vue";
 
 const $q = useQuasar();
 const page = usePage();
@@ -55,6 +49,7 @@ const isProcessing = ref(false);
 const showPaymentDialog = ref(false);
 const showProductBrowserDialog = ref(false);
 const showItemEditorDialog = ref(false);
+const showOrderInfoDialog = ref(false);
 const itemToEdit = ref(null);
 
 const total = computed(() => {
@@ -307,8 +302,13 @@ const handleCustomerSelected = (data) => {
 const updateOrder = () => {
   isProcessing.value = true;
 
-  const data = { ...toRaw(form) };
-  delete data["items"];
+  const data = {
+    id: form.id,
+    customer_id: form.customer_id,
+    datetime: form.datetime,
+    notes: form.notes,
+  };
+
   axios
     .post(route("admin.sales-order.update"), data)
     .then((response) => {
@@ -344,17 +344,18 @@ const updateOrder = () => {
       </div>
     </template>
     <template #right-button>
-      <div class="row items-center" v-if="$q.screen.gt.sm">
-        <div class="text-weight-bold">
-          {{ page.props.auth.user.username }}
-        </div>
-        <div class="q-mx-sm">|</div>
-        <div>
-          <DigitalClock />
-        </div>
+      <div class="row items-center">
+        <template v-if="$q.screen.gt.sm">
+          <div class="text-weight-bold">
+            {{ page.props.auth.user.username }}
+          </div>
+          <div class="q-mx-sm">|</div>
+          <div>
+            <DigitalClock />
+          </div>
+        </template>
         <q-btn
           class="q-ml-sm"
-          v-if="$q.screen.gt.sm"
           :icon="isFullscreen ? 'fullscreen_exit' : 'fullscreen'"
           dense
           color="grey-7"
@@ -364,8 +365,8 @@ const updateOrder = () => {
         />
       </div>
     </template>
-    <q-page class="bg-grey-2 q-pa-sm column fit">
-      <q-card square flat bordered class="full-width col column">
+    <q-page class="bg-grey-2 q-pa-none column fit">
+      <q-card square flat class="full-width col column q-pb-none">
         <div class="row q-col-gutter-none full-width">
           <div class="col-sm-6 col-12 col">
             <div class="row full-width">
@@ -414,12 +415,27 @@ const updateOrder = () => {
                 />
               </template>
             </q-input>
-            <div class="q-ml-sm">
+
+            <div class="row q-ml-sm items-end">
               <CheckBox
+                class="col"
                 v-model="mergeItem"
                 label="Gabungkan item"
                 :disable="isProcessing"
               />
+
+              <div class="col text-right q-mr-sm" v-if="!$q.screen.gt.sm">
+                <q-btn
+                  flat
+                  icon="edit"
+                  color="grey"
+                  dense
+                  rounded
+                  size="sm"
+                  title="Edit Order Info"
+                  @click="showOrderInfoDialog = true"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -435,101 +451,79 @@ const updateOrder = () => {
           </div>
         </div>
 
-        <div class="row q-px-sm q-pb-sm">
+        <div class="row items-start q-col-gutter-md q-px-sm">
           <div class="col" v-if="$q.screen.gt.sm">
             <div class="text-caption text-grey-6 q-mt-xs">
               {{ form.items.length }} item(s)
             </div>
-          </div>
-          <div class="col">
-            <div class="row justify-end items-center q-gutter-sm">
-              <div
-                class="col"
-                style="
-                  background: #eee;
-                  padding: 10px;
-                  text-align: right;
-                  border: 1px solid #ddd;
-                "
-              >
-                <span class="text-grey-8 text-subtitle-2" style="float: left">
-                  Total
-                </span>
-                <span class="text-h4 text-weight-bold">
-                  <sup style="font-size: 13px">Rp.</sup>
-                  {{ formatNumber(total) }}
-                </span>
+            <div class="text-caption text-grey-8 q-mt-xs" v-if="form.notes">
+              <div class="text-bold">Catatan:</div>
+              <div class="text-italic">
+                <LongTextView :text="form.notes" />
               </div>
             </div>
           </div>
-        </div>
 
-        <div v-if="false" class="row">
-          <div v-if="false" class="col-xs-12 col-md-8 q-pa-sm">
-            <table>
-              <tr>
-                <td>#</td>
-                <td>:</td>
-                <td>{{ page.props.data.formatted_id }}</td>
-              </tr>
-              <tr>
-                <td>Status</td>
-                <td>:</td>
-                <td>{{ page.props.data.status_label }}</td>
-              </tr>
-              <tr>
-                <td>Pembayaran</td>
-                <td>:</td>
-                <td>{{ page.props.data.payment_status_label }}</td>
-              </tr>
-              <tr>
-                <td>Pengiriman</td>
-                <td>:</td>
-                <td>{{ page.props.data.delivery_status_label }}</td>
-              </tr>
-              <tr>
-                <td>Catatan</td>
-                <td>:</td>
-                <td>
-                  <q-btn
-                    color="grey"
-                    flat
-                    size="sm"
-                    dense
-                    rounded
-                    small
-                    icon="notes"
-                  />
-                </td>
-              </tr>
-            </table>
+          <div class="col" v-if="$q.screen.gt.sm">
+            <div class="q-pa-sm q-pb-none text-grey-8">
+              <div>
+                #: {{ form.formatted_id }}
+                <q-btn
+                  icon="edit"
+                  flat
+                  size="xs"
+                  dense
+                  rounded
+                  @click="showOrderInfoDialog = true"
+                />
+              </div>
+              <div>{{ formatDateTime(form.datetime) }}</div>
+            </div>
+          </div>
+
+          <div class="col">
+            <div
+              class="row no-wrap items-start justify-between"
+              style="background: #eee; padding: 10px; border: 1px solid #ddd"
+            >
+              <span class="text-grey-8 text-subtitle-2 text-bold">TOTAL</span>
+              <span class="text-h4 text-weight-bold">
+                <sup style="font-size: 13px">Rp.</sup>
+                {{ formatNumber(total) }}
+              </span>
+            </div>
           </div>
         </div>
+        <div class="row q-px-sm q-py-sm">
+          <q-btn
+            class="full-width"
+            label="Bayar"
+            color="primary"
+            icon="payment"
+            @click="handlePayment()"
+            :disable="isProcessing || form.items.length === 0"
+            :loading="isProcessing"
+          />
+        </div>
       </q-card>
-
-      <div class="row q-mt-sm">
-        <q-btn
-          class="full-width"
-          label="Bayar"
-          color="primary"
-          icon="payment"
-          @click="handlePayment()"
-          :disable="isProcessing || form.items.length === 0"
-          :loading="isProcessing"
-        />
-      </div>
 
       <ItemEditorDialog
         ref="itemEditorRef"
         v-model="showItemEditorDialog"
         :item="itemToEdit"
-        @save="updateItem"
+        @save="updateItem()"
         :is-processing="isProcessing"
       />
       <PaymentDialog v-model="showPaymentDialog" />
       <ProductBrowserDialog
         v-model="showProductBrowserDialog"
         @product-selected="handleProductSelection"
+      />
+      <OrderInfoDialog
+        v-model="showOrderInfoDialog"
+        :data="form"
+        @save="updateOrder()"
+        :is-processing="isProcessing"
       />
       <HelpDialog v-model="showHelpDialog" />
     </q-page>

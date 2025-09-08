@@ -1,9 +1,9 @@
 {
-  "_BaseGuestLayout-CvzTRqzt.js": {
-    "file": "assets/BaseGuestLayout-CvzTRqzt.js",
+  "_BaseGuestLayout-CX29nLyL.js": {
+    "file": "assets/BaseGuestLayout-CX29nLyL.js",
     "name": "BaseGuestLayout",
     "imports": [
-      "_vendor1-36SLAqTl.js"
+      "_vendor1-DGRjJv6y.js"
     ],
     "css": [
       "assets/BaseGuestLayout-qWJc9uaU.css"
@@ -29,8 +29,12 @@
     "file": "assets/BaseGuestLayout-qWJc9uaU.css",
     "src": "_BaseGuestLayout-qWJc9uaU.css"
   },
-  "_vendor1-36SLAqTl.js": {
-    "file": "assets/vendor1-36SLAqTl.js",
+  "_vendor1-B66eveH2.css": {
+    "file": "assets/vendor1-B66eveH2.css",
+    "src": "_vendor1-B66eveH2.css"
+  },
+  "_vendor1-DGRjJv6y.js": {
+    "file": "assets/vendor1-DGRjJv6y.js",
     "name": "vendor1",
     "css": [
       "assets/vendor1-B66eveH2.css"
@@ -42,22 +46,18 @@
       "assets/MaterialIcons-Regular-DEUTIz1o.ttf"
     ]
   },
-  "_vendor1-B66eveH2.css": {
-    "file": "assets/vendor1-B66eveH2.css",
-    "src": "_vendor1-B66eveH2.css"
-  },
-  "_vendor2-CHyfV_e3.js": {
-    "file": "assets/vendor2-CHyfV_e3.js",
+  "_vendor2-DqWvZxRf.js": {
+    "file": "assets/vendor2-DqWvZxRf.js",
     "name": "vendor2",
     "imports": [
-      "_vendor1-36SLAqTl.js"
+      "_vendor1-DGRjJv6y.js"
     ]
   },
-  "_vendor3-GrkmMsoH.js": {
-    "file": "assets/vendor3-GrkmMsoH.js",
+  "_vendor3-DzuCbnqO.js": {
+    "file": "assets/vendor3-DzuCbnqO.js",
     "name": "vendor3",
     "imports": [
-      "_vendor2-CHyfV_e3.js"
+      "_vendor2-DqWvZxRf.js"
     ]
   },
   "node_modules/@quasar/extras/fontawesome-v6/fa-brands-400.ttf": {
@@ -138,30 +138,30 @@
     "isEntry": true
   },
   "resources/js/modules/admin/app.js": {
-    "file": "assets/app-Dv9-9vwk.js",
+    "file": "assets/app-Podr9lex.js",
     "name": "app",
     "src": "resources/js/modules/admin/app.js",
     "isEntry": true,
     "imports": [
-      "_BaseGuestLayout-CvzTRqzt.js",
-      "_vendor1-36SLAqTl.js",
-      "_vendor2-CHyfV_e3.js",
-      "_vendor3-GrkmMsoH.js"
+      "_BaseGuestLayout-CX29nLyL.js",
+      "_vendor1-DGRjJv6y.js",
+      "_vendor2-DqWvZxRf.js",
+      "_vendor3-DzuCbnqO.js"
     ],
     "css": [
       "assets/app-CnS4Hil2.css"
     ]
   },
   "resources/js/modules/customer/app.js": {
-    "file": "assets/app-DX4WKaEx.js",
+    "file": "assets/app-9BE0CoLL.js",
     "name": "app",
     "src": "resources/js/modules/customer/app.js",
     "isEntry": true,
     "imports": [
-      "_BaseGuestLayout-CvzTRqzt.js",
-      "_vendor1-36SLAqTl.js",
-      "_vendor2-CHyfV_e3.js",
-      "_vendor3-GrkmMsoH.js"
+      "_BaseGuestLayout-CX29nLyL.js",
+      "_vendor1-DGRjJv6y.js",
+      "_vendor2-DqWvZxRf.js",
+      "_vendor3-DzuCbnqO.js"
     ],
     "css": [
       "assets/app-C8CuMTtw.css"
