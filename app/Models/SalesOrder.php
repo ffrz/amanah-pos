@@ -84,6 +84,21 @@ class SalesOrder extends BaseModel
         ];
     }
 
+    protected function getTotalPriceAttribute(string $value): float
+    {
+        return (float) $value;
+    }
+
+    protected function getTotalCostAttribute(string $value): float
+    {
+        return (float) $value;
+    }
+
+    protected function getTotalPaidAttribute(string $value): float
+    {
+        return (float) $value;
+    }
+
     public function getFormattedIdAttribute()
     {
         return Setting::value('sales_order_code_prefix', 'SO-')

@@ -35,6 +35,31 @@ class SalesOrderDetail extends BaseModel
         ];
     }
 
+    protected function getQuantityAttribute(string $value): float
+    {
+        return (float) $value;
+    }
+
+    protected function getCostAttribute(string $value): float
+    {
+        return (float) $value;
+    }
+
+    protected function getPriceAttribute(string $value): float
+    {
+        return (float) $value;
+    }
+
+    protected function getSubtotalCostAttribute(string $value): float
+    {
+        return (float) $value;
+    }
+
+    protected function getSubtotalPriceAttribute(string $value): float
+    {
+        return (float) $value;
+    }
+
     public function parent()
     {
         return $this->belongsTo(SalesOrder::class, 'parent_id');
