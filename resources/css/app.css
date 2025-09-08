@@ -271,3 +271,11 @@ table.detail tr:nth-child(even) td {
   line-height: 1;
   margin-right: 2px;
 }
+/* 
+.material-icons {
+  font-size: inherit !important;
+} */
+
+.q-table th.sorted .q-table__sort-icon {
+  font-size: inherit !important;
+}
