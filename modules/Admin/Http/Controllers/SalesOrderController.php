@@ -15,22 +15,6 @@ use Illuminate\Support\Facades\DB;
 
 class SalesOrderController extends Controller
 {
-    protected function _customers()
-    {
-        return Customer::where('active', '=', true)
-            ->orderBy('username', 'asc')
-            ->select(['id', 'username', 'name', 'balance'])
-            ->get();
-    }
-
-    protected function _products()
-    {
-        return Product::where('active', '=', true)
-            ->orderBy('name', 'asc')
-            ->select(['id', 'barcode', 'name', 'description', 'price', 'price_2', 'price_3', 'uom'])
-            ->get();
-    }
-
     public function index()
     {
         return inertia('sales-order/Index');
@@ -80,16 +64,16 @@ class SalesOrderController extends Controller
         return response()->json($items);
     }
 
-    public function duplicate($id)
-    {
-        allowed_roles([User::Role_Admin]);
-        $item = SalesOrder::findOrFail($id);
-        $item->id = null;
-        return inertia('sales-order/Editor', [
-            'data' => $item,
-            'categories' => $this->_customers(),
-        ]);
-    }
+    // public function duplicate($id)
+    // {
+    //     allowed_roles([User::Role_Admin]);
+    //     $item = SalesOrder::findOrFail($id);
+    //     $item->id = null;
+    //     return inertia('sales-order/Editor', [
+    //         'data' => $item,
+    //         'categories' => $this->_customers(),
+    //     ]);
+    // }
 
     public function editor($id = 0)
     {
