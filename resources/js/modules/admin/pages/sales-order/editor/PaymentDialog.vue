@@ -14,7 +14,7 @@ const props = defineProps({
   },
   customer: {
     type: Object,
-    required: true,
+    required: false,
   },
   total: {
     type: Number,
@@ -108,7 +108,7 @@ const fixWalletAmount = (newValue) => {
     @update:model-value="(val) => $emit('update:modelValue', val)"
     v-on:before-show="focusOnInput"
   >
-    <q-card style="min-width: 350px">
+    <q-card style="min-width: 300px">
       <q-card-section>
         <div class="text-subtitle1 text-bold text-center">
           Rincian Pembayaran
@@ -139,7 +139,7 @@ const fixWalletAmount = (newValue) => {
             />
           </div>
 
-          <div class="col-12">
+          <div class="col-12" v-if="customer">
             <LocaleNumberInput
               v-model="walletAmount"
               :label="'Jumlah Dompet Pelanggan'"
@@ -179,13 +179,14 @@ const fixWalletAmount = (newValue) => {
         />
         <q-btn
           v-if="remainingTotal > 0"
-          :label="remainingTotal > 0 ? 'Catat Utang' : 'Bayar'"
+          :label="customer && remainingTotal > 0 ? 'Catat Utang' : 'Bayar'"
           :color="remainingTotal > 0 ? 'red' : 'positive'"
           @click="handleFinalizePayment"
           :disable="
             form.processing ||
             !isWalletAmountValid ||
-            (remainingTotal > 0 && totalPayment === 0)
+            (remainingTotal > 0 && totalPayment === 0) ||
+            (remainingTotal > 0 && !customer)
           "
           :loading="form.processing"
         />

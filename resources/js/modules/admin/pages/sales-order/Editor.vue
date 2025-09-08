@@ -1,7 +1,7 @@
 <script setup>
 import { router, usePage } from "@inertiajs/vue3";
 import { ref, computed, nextTick, onMounted, onUnmounted, reactive } from "vue";
-import { useQuasar } from "quasar";
+import { debounce, useQuasar } from "quasar";
 import axios from "axios";
 
 import ItemListTable from "./editor/ItemsListTable.vue";
@@ -21,6 +21,7 @@ import { useFullscreen } from "@/composables/useFullscreen";
 import { showError, showWarning, showInfo } from "@/composables/useNotify";
 import OrderInfoDialog from "./editor/OrderInfoDialog.vue";
 import LongTextView from "@/components/LongTextView.vue";
+import SuccessDialog from "./editor/SuccessDialog.vue";
 
 const $q = useQuasar();
 const page = usePage();
@@ -46,9 +47,9 @@ const form = reactive({
   delivery_status: page.props.data.delivery_status,
   notes: page.props.data.notes,
   items: page.props.data.details ?? [],
-  total: 0,
-  total_paid: 0,
 });
+
+const payment = ref(null);
 
 const userInput = ref("");
 const isProcessing = ref(false);
@@ -56,6 +57,7 @@ const showPaymentDialog = ref(false);
 const showProductBrowserDialog = ref(false);
 const showItemEditorDialog = ref(false);
 const showOrderInfoDialog = ref(false);
+const showSuccessDialog = ref(false);
 const itemToEdit = ref(null);
 
 const total = computed(() => {
@@ -269,7 +271,24 @@ const handlePayment = (data) => {
     return;
   }
 
-  console.log(data);
+  isProcessing.value = true;
+  setTimeout(() => {
+    isProcessing.value = false;
+    showPaymentDialog.value = false;
+    showSuccessDialog.value = true;
+  }, 500);
+
+  const postData = {
+    ...data,
+    ...form,
+    action: "payment",
+  };
+
+  payment.value = postData;
+
+  console.log(postData);
+  return;
+  axios.post(route("admin.sales-order.update"), postData);
 };
 
 onMounted(() => {
@@ -550,6 +569,13 @@ const updateOrder = () => {
         :is-processing="isProcessing"
       />
       <HelpDialog v-model="showHelpDialog" />
+      <SuccessDialog
+        v-model="showSuccessDialog"
+        :order="form"
+        :customer="customer"
+        :total="total"
+        :payment="payment"
+      />
     </q-page>
   </authenticated-layout>
 </template>

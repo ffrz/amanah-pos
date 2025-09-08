@@ -59,6 +59,7 @@ const props = defineProps({
   initialData: {
     type: Object,
     default: null,
+    required: false,
   },
 });
 const emit = defineEmits(["update:modelValue", "customerSelected"]);
