@@ -380,9 +380,13 @@ const updateOrder = () => {
                 :min-length="1"
                 outlined
               />
-              <div v-if="customer" class="text-grey q-mt-xs q-ml-sm">
-                Saldo: Rp.
-                {{ formatNumber(customer ? customer.balance : 0) }}
+              <div class="text-grey q-mt-xs q-ml-sm">
+                Saldo:
+                {{
+                  customer
+                    ? "Rp. " + formatNumber(customer ? customer.balance : 0)
+                    : "Tidak tersedia"
+                }}
               </div>
             </div>
           </div>
