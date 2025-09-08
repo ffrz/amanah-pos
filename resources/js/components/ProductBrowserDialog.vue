@@ -45,8 +45,13 @@ const computedColumns = computed(() => {
 });
 
 onMounted(() => {
-  fetchItems();
+  fetchItemsWithoutProps();
 });
+
+const fetchItemsWithoutProps = () => {
+  if (props.modelValue === false) return;
+  fetchItems();
+};
 
 const fetchItems = (props = null) => {
   loading.value = true;
@@ -63,7 +68,7 @@ const fetchItems = (props = null) => {
 };
 
 const onFilterChange = () => {
-  fetchItems();
+  fetchItemsWithoutProps();
 };
 
 const onProductSelect = (product) => {
@@ -81,7 +86,9 @@ watch(
   (newValue, oldValue) => {
     if (oldValue === true && newValue === false) {
       filter.search = "";
-    } else {
+    }
+
+    if (newValue === true) {
       fetchItems();
     }
   }
