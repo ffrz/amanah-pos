@@ -327,9 +327,9 @@ const updateOrder = () => {
     .then((response) => {
       const updated = response.data.data.id;
       form.customer_id = updated.customer_id;
-      notify("Berhasil disimpan");
     })
     .catch((error) => {
+      notify("Terdapat kesalahan saat menyimpan!", "negative");
       console.error(error);
     })
     .finally(() => {
