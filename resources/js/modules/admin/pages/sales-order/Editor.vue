@@ -451,7 +451,10 @@ const updateOrder = () => {
           </div>
         </div>
 
-        <div class="row items-start q-col-gutter-md q-px-sm">
+        <div
+          class="row items-start q-col-gutter-none q-px-sm"
+          style="max-height: 80px"
+        >
           <div class="col" v-if="$q.screen.gt.sm">
             <div class="text-caption text-grey-6 q-mt-xs">
               {{ form.items.length }} item(s)
