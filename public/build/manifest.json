@@ -1,10 +1,11 @@
 {
-  "_BaseGuestLayout-CX29nLyL.js": {
-    "file": "assets/BaseGuestLayout-CX29nLyL.js",
+  "_BaseGuestLayout-qWJc9uaU.css": {
+    "file": "assets/BaseGuestLayout-qWJc9uaU.css",
+    "src": "_BaseGuestLayout-qWJc9uaU.css"
+  },
+  "_BaseGuestLayout-zYu8B9OC.js": {
+    "file": "assets/BaseGuestLayout-zYu8B9OC.js",
     "name": "BaseGuestLayout",
-    "imports": [
-      "_vendor1-DGRjJv6y.js"
-    ],
     "css": [
       "assets/BaseGuestLayout-qWJc9uaU.css"
     ],
@@ -23,41 +24,6 @@
       "assets/fa-solid-900-BAw_JAW6.ttf",
       "assets/fa-v4compatibility-B9t6EWrS.woff2",
       "assets/fa-v4compatibility-ch80hpM0.ttf"
-    ]
-  },
-  "_BaseGuestLayout-qWJc9uaU.css": {
-    "file": "assets/BaseGuestLayout-qWJc9uaU.css",
-    "src": "_BaseGuestLayout-qWJc9uaU.css"
-  },
-  "_vendor1-B66eveH2.css": {
-    "file": "assets/vendor1-B66eveH2.css",
-    "src": "_vendor1-B66eveH2.css"
-  },
-  "_vendor1-DGRjJv6y.js": {
-    "file": "assets/vendor1-DGRjJv6y.js",
-    "name": "vendor1",
-    "css": [
-      "assets/vendor1-B66eveH2.css"
-    ],
-    "assets": [
-      "assets/MaterialIcons-Regular-BjXOXp5c.eot",
-      "assets/MaterialIcons-Regular-DOtZ65Va.woff2",
-      "assets/MaterialIcons-Regular-FsbMSDLx.woff",
-      "assets/MaterialIcons-Regular-DEUTIz1o.ttf"
-    ]
-  },
-  "_vendor2-DqWvZxRf.js": {
-    "file": "assets/vendor2-DqWvZxRf.js",
-    "name": "vendor2",
-    "imports": [
-      "_vendor1-DGRjJv6y.js"
-    ]
-  },
-  "_vendor3-DzuCbnqO.js": {
-    "file": "assets/vendor3-DzuCbnqO.js",
-    "name": "vendor3",
-    "imports": [
-      "_vendor2-DqWvZxRf.js"
     ]
   },
   "node_modules/@quasar/extras/fontawesome-v6/fa-brands-400.ttf": {
@@ -116,52 +82,30 @@
     "file": "assets/kJF1BvYX7BgnkSrUwT8OhrdQw4oELdPIeeII9v6oDMzByHX9rA6RzaxHMPdY43zj-jCxv3fzvRNU22ZXGJpEpjC_1p-p_4MrImHCIJIZrDCvHeel-DvgLlWu5.woff",
     "src": "node_modules/@quasar/extras/material-symbols-outlined/web-font/kJF1BvYX7BgnkSrUwT8OhrdQw4oELdPIeeII9v6oDMzByHX9rA6RzaxHMPdY43zj-jCxv3fzvRNU22ZXGJpEpjC_1p-p_4MrImHCIJIZrDCvHeel.woff"
   },
-  "node_modules/material-design-icons-iconfont/dist/fonts/MaterialIcons-Regular.eot": {
-    "file": "assets/MaterialIcons-Regular-BjXOXp5c.eot",
-    "src": "node_modules/material-design-icons-iconfont/dist/fonts/MaterialIcons-Regular.eot"
-  },
-  "node_modules/material-design-icons-iconfont/dist/fonts/MaterialIcons-Regular.ttf": {
-    "file": "assets/MaterialIcons-Regular-DEUTIz1o.ttf",
-    "src": "node_modules/material-design-icons-iconfont/dist/fonts/MaterialIcons-Regular.ttf"
-  },
-  "node_modules/material-design-icons-iconfont/dist/fonts/MaterialIcons-Regular.woff": {
-    "file": "assets/MaterialIcons-Regular-FsbMSDLx.woff",
-    "src": "node_modules/material-design-icons-iconfont/dist/fonts/MaterialIcons-Regular.woff"
-  },
-  "node_modules/material-design-icons-iconfont/dist/fonts/MaterialIcons-Regular.woff2": {
-    "file": "assets/MaterialIcons-Regular-DOtZ65Va.woff2",
-    "src": "node_modules/material-design-icons-iconfont/dist/fonts/MaterialIcons-Regular.woff2"
-  },
   "resources/css/app.css": {
-    "file": "assets/app-CkG0XDsI.css",
+    "file": "assets/app-D6N-QJqv.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/js/modules/admin/app.js": {
-    "file": "assets/app-Podr9lex.js",
+    "file": "assets/app-C87QQGWb.js",
     "name": "app",
     "src": "resources/js/modules/admin/app.js",
     "isEntry": true,
     "imports": [
-      "_BaseGuestLayout-CX29nLyL.js",
-      "_vendor1-DGRjJv6y.js",
-      "_vendor2-DqWvZxRf.js",
-      "_vendor3-DzuCbnqO.js"
+      "_BaseGuestLayout-zYu8B9OC.js"
     ],
     "css": [
       "assets/app-CnS4Hil2.css"
     ]
   },
   "resources/js/modules/customer/app.js": {
-    "file": "assets/app-9BE0CoLL.js",
+    "file": "assets/app-DFSgiOGH.js",
     "name": "app",
     "src": "resources/js/modules/customer/app.js",
     "isEntry": true,
     "imports": [
-      "_BaseGuestLayout-CX29nLyL.js",
-      "_vendor1-DGRjJv6y.js",
-      "_vendor2-DqWvZxRf.js",
-      "_vendor3-DzuCbnqO.js"
+      "_BaseGuestLayout-zYu8B9OC.js"
     ],
     "css": [
       "assets/app-C8CuMTtw.css"

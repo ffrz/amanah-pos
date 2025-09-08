@@ -7,15 +7,15 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor1: ['vue', 'quasar', 'dayjs', 'material-design-icons-iconfont', 'vue-i18n'],
-          vendor2: ['vue-echarts'],
-          vendor3: ['echarts'],
-          // components: [
-          //   '/resources/js/pages/admin/auth/Login.vue',
-          //   '/resources/js/pages/admin/auth/Register.vue',
-          // ],
-        },
+        // manualChunks: {
+        //   vendor1: ['vue', 'quasar', 'dayjs', 'material-design-icons-iconfont', 'vue-i18n'],
+        //   vendor2: ['vue-echarts'],
+        //   vendor3: ['echarts'],
+        //   // components: [
+        //   //   '/resources/js/pages/admin/auth/Login.vue',
+        //   //   '/resources/js/pages/admin/auth/Register.vue',
+        //   // ],
+        // },
       },
     },
   },
@@ -32,8 +32,8 @@ export default defineConfig({
       input: [
         "resources/css/app.css",
         // "resources/js/app.js",
-        'resources/js/modules/admin/app.js',
-        'resources/js/modules/customer/app.js',
+        "resources/js/modules/admin/app.js",
+        "resources/js/modules/customer/app.js",
       ],
       refresh: true,
     }),
