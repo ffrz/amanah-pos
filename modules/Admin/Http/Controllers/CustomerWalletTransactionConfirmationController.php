@@ -4,7 +4,6 @@ namespace Modules\Admin\Http\Controllers;
 
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
-use App\Models\Customer;
 use App\Models\CustomerWalletTransaction;
 use App\Models\CustomerWalletTransactionConfirmation;
 use App\Models\FinanceAccount;

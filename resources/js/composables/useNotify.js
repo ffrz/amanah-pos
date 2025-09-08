@@ -1,9 +1,7 @@
-import { useQuasar } from "quasar";
-
-const $q = useQuasar();
+import { Notify } from "quasar";
 
 const notify = (msg, color = null, pos = "bottom", icon = null) => {
-  $q.notify({
+  Notify.create({
     message: msg,
     color: color,
     position: pos,

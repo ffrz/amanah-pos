@@ -19,6 +19,7 @@ import { getCurrentMonth, getCurrentYear } from "@/helpers/datetime";
 import { createMonthOptions, createYearOptions } from "@/helpers/options";
 import { handleFetchItems } from "@/helpers/client-req-handler";
 import useTableHeight from "@/composables/useTableHeight";
+import { showError, showInfo } from "@/composables/useNotify";
 
 const title = "Konfirmasi Top Up Wallet";
 const $q = useQuasar();
@@ -124,6 +125,44 @@ watch(
 const showAttachment = (url) => {
   activeImagePath.value = url;
   showImageViewer.value = true;
+};
+
+const cancelWalletTopupConfirmation = (row) => {
+  $q.dialog({
+    title: "Batalkan Konfirmasi",
+    message: `Apakah Anda yakin akan membatalkan transaksi #${row.formatted_id}?`,
+    cancel: {
+      label: "Tidak",
+      color: "grey",
+    },
+    ok: {
+      label: "Batalkan",
+      color: "negative",
+    },
+    persistent: true,
+  }).onOk(() => {
+    loading.value = true;
+    axios
+      .post(route("customer.wallet-topup-confirmation.cancel"), {
+        id: row.id,
+      })
+      .then((response) => {
+        const item = response.data.data;
+        const index = rows.value.findIndex((tRow) => tRow.id == item.id);
+        if (index !== -1) {
+          rows.value[index] = item;
+          showInfo(`Transaksi #${row.formatted_id} telah dibatalkan.`);
+        }
+      })
+      .catch((e) => {
+        const errorMessage = e.response?.data?.message || e.message;
+        showError(errorMessage);
+        console.error(e);
+      })
+      .finally(() => {
+        loading.value = false;
+      });
+  });
 };
 </script>
 
@@ -299,7 +338,7 @@ const showAttachment = (url) => {
                 color="red"
                 dense
                 flat
-                @click="showAttachment(props.row.image_path)"
+                @click="cancelWalletTopupConfirmation(props.row)"
               >
                 <q-tooltip>Batalkan</q-tooltip>
               </q-btn>

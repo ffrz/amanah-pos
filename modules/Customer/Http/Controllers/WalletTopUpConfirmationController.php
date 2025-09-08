@@ -3,11 +3,13 @@
 namespace Modules\Customer\Http\Controllers;
 
 use App\Helpers\ImageUploaderHelper;
+use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\CustomerWalletTopUpConfirmation;
 use App\Models\CustomerWalletTransaction;
 use App\Models\CustomerWalletTransactionConfirmation;
 use App\Models\FinanceAccount;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -129,5 +131,35 @@ class WalletTopUpConfirmationController extends Controller
 
             throw $e;
         }
+    }
+
+    public function cancel(Request $request)
+    {
+        $currentUser = Auth::guard('customer')->user();
+        $record = CustomerWalletTransactionConfirmation
+            ::with(['financeAccount:id,name,bank,number,holder'])
+            ->find($request->post('id'));
+
+        if (!$record) {
+            JsonResponseHelper::error('Rekaman tidak ditemukan', 400);
+        }
+
+        if ($currentUser->id !== $record->customer_id) {
+            JsonResponseHelper::error('Authentication error', 403);
+        }
+
+        if (!$record->status != CustomerWalletTransactionConfirmation::Status_Pending) {
+            JsonResponseHelper::error('Hanya status pending yang bisa dibatalkan.', 400);
+        }
+
+        $record->status = CustomerWalletTransactionConfirmation::Status_Canceled;
+
+        try {
+            $record->save();
+        } catch (Exception $ex) {
+            return JsonResponseHelper::error('Terdapat kesalahan saat memperbarui.', 500, $ex->getMessage());
+        }
+
+        return JsonResponseHelper::success($record, 'Konfirmasi telah dibatalkan.');
     }
 }

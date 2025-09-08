@@ -22,6 +22,7 @@ import CustomerAutocomplete from "@/components/CustomerAutocomplete.vue";
 import { formatNumber } from "@/helpers/formatter";
 import HelpDialog from "./editor/HelpDialog.vue";
 import { useFullscreen } from "@/composables/useFullscreen";
+import { showError, showWarning, showInfo } from "@/composables/useNotify";
 
 const $q = useQuasar();
 const page = usePage();
@@ -69,24 +70,10 @@ const handleFullScreenClicked = () => {
   }
 };
 
-// helpers
-const notify = (msg, color = null, pos = "top", icon = null) => {
-  $q.notify({
-    message: msg,
-    color: color,
-    position: pos,
-    icon: icon,
-  });
-};
-
-const showWarning = (msg) => {
-  notify(msg, "warning");
-};
-
 // validations
 const validateQuantity = (qty) => {
   if (isNaN(qty) || qty <= 0) {
-    showWarning("Kuantitas tidak valid.");
+    showWarning("Kuantitas tidak valid.", "top");
     return false;
   }
 
@@ -95,7 +82,7 @@ const validateQuantity = (qty) => {
 
 const validatePrice = (price) => {
   if (isNaN(price) || price < 0) {
-    showWarning("Harga tidak valid.");
+    showWarning("Harga tidak valid.", "top");
     return false;
   }
 
@@ -104,7 +91,7 @@ const validatePrice = (price) => {
 
 const validateBarcode = (code) => {
   if (!code || code.length == 0) {
-    showWarning("Barcode tidak valid.");
+    showWarning("Barcode tidak valid.", "top");
     return false;
   }
 
@@ -142,7 +129,7 @@ const addItem = async () => {
       inputPrice = parseFloat(parts[2]);
     }
   } else {
-    showWarning("Input tidak valid.");
+    showWarning("Input tidak valid.", "top");
     return;
   }
 
@@ -187,11 +174,11 @@ const addItem = async () => {
 
       userInput.value = "";
       if (inputPrice !== null && inputPrice !== parseFloat(currentItem.price)) {
-        showWarning("Harga tidak dapat diubah!");
+        showWarning("Harga tidak dapat diubah!", "top");
       }
     })
     .catch((error) => {
-      notify(error.response?.data?.message, "negative");
+      showError(error.response?.data?.message, "top");
       console.error("Gagal mengambil data produk:", error);
     });
 
@@ -227,11 +214,11 @@ const removeItem = (item) => {
         const index = form.items.findIndex((data) => data.id === item.id);
         if (index !== -1) {
           form.items.splice(index, 1)[0];
-          notify("Item telah dihapus");
+          showInfo("Item telah dihapus", "top");
         }
       })
       .catch((error) => {
-        notify("Gagal menghapus item", "negative");
+        showError("Gagal menghapus item", "top");
         console.error(error);
       })
       .finally(() => {
@@ -263,11 +250,11 @@ const updateItem = () => {
       const index = form.items.findIndex((data) => data.id === item.id);
       if (index !== -1) {
         form.items[index] = item;
-        notify("Item telah diperbarui");
+        showInfo("Item telah diperbarui", "top");
       }
     })
     .catch((error) => {
-      notify("Gagal memperbarui item", "negative");
+      showError("Gagal memperbarui item", "top");
       console.error(error);
     })
     .finally(() => {
@@ -277,7 +264,7 @@ const updateItem = () => {
 
 const handlePayment = () => {
   if (form.items.length === 0) {
-    notify("Item masih kosong");
+    showInfo("Item masih kosong", "top");
     return;
   }
 };
@@ -329,7 +316,7 @@ const updateOrder = () => {
       form.customer_id = updated.customer_id;
     })
     .catch((error) => {
-      notify("Terdapat kesalahan saat menyimpan!", "negative");
+      showError("Terdapat kesalahan saat menyimpan!", "top");
       console.error(error);
     })
     .finally(() => {
