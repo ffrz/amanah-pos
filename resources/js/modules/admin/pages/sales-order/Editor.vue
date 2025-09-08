@@ -11,7 +11,11 @@ import CheckBox from "@/components/CheckBox.vue";
 import ItemEditorDialog from "./editor/ItemEditorDialog.vue";
 import DigitalClock from "@/components/DigitalClock.vue";
 import CustomerAutocomplete from "@/components/CustomerAutocomplete.vue";
-import { formatDateTime, formatNumber } from "@/helpers/formatter";
+import {
+  formatDateTime,
+  formatDateTimeForEditing,
+  formatNumber,
+} from "@/helpers/formatter";
 import HelpDialog from "./editor/HelpDialog.vue";
 import { useFullscreen } from "@/composables/useFullscreen";
 import { showError, showWarning, showInfo } from "@/composables/useNotify";
@@ -36,7 +40,7 @@ const form = reactive({
   id: page.props.data.id,
   formatted_id: page.props.data.formatted_id,
   customer_id: page.props.data.customer_id,
-  datetime: page.props.data.datetime,
+  datetime: formatDateTimeForEditing(page.props.data.datetime),
   status: page.props.data.status,
   payment_status: page.props.data.payment_status,
   delivery_status: page.props.data.delivery_status,
