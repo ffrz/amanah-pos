@@ -41,7 +41,7 @@ const form = reactive({
   id: page.props.data.id,
   formatted_id: page.props.data.formatted_id,
   customer_id: page.props.data.customer_id,
-  datetime: formatDateTimeForEditing(page.props.data.datetime),
+  datetime: new Date(page.props.data.datetime),
   status: page.props.data.status,
   payment_status: page.props.data.payment_status,
   delivery_status: page.props.data.delivery_status,
@@ -335,7 +335,7 @@ const updateOrder = () => {
   const data = {
     id: form.id,
     customer_id: form.customer_id,
-    datetime: form.datetime,
+    datetime: formatDateTimeForEditing(form.datetime),
     notes: form.notes,
   };
 

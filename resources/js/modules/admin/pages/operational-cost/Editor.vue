@@ -1,6 +1,6 @@
 <script setup>
 import { router, useForm, usePage } from "@inertiajs/vue3";
-import { handleSubmit } from "@/helpers/client-req-handler";
+import { handleSubmit, transformPayload } from "@/helpers/client-req-handler";
 import { scrollToFirstErrorField } from "@/helpers/utils";
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
 import DatePicker from "@/components/DatePicker.vue";
@@ -25,13 +25,7 @@ const form = useForm({
 });
 
 const submit = () => {
-  form.transform((data) => {
-    const payload = { ...data };
-    if (payload.date) {
-      payload.date = formatDateForEditing(payload.date);
-    }
-    return payload;
-  });
+  transformPayload(form, { date: "YYYY-MM-DD" });
   handleSubmit({ form, url: route("admin.operational-cost.save") });
 };
 

@@ -1,6 +1,6 @@
 <script setup>
 import { router, useForm, usePage } from "@inertiajs/vue3";
-import { handleSubmit } from "@/helpers/client-req-handler";
+import { handleSubmit, transformPayload } from "@/helpers/client-req-handler";
 import { useCustomerFilter } from "@/composables/useCustomerFilter";
 import { scrollToFirstErrorField } from "@/helpers/utils";
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";

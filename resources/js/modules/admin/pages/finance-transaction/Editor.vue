@@ -1,6 +1,6 @@
 <script setup>
 import { router, useForm, usePage } from "@inertiajs/vue3";
-import { handleSubmit } from "@/helpers/client-req-handler";
+import { handleSubmit, transformPayload } from "@/helpers/client-req-handler";
 import { scrollToFirstErrorField } from "@/helpers/utils";
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
 import DateTimePicker from "@/components/DateTimePicker.vue";
@@ -30,13 +30,7 @@ const form = useForm({
 });
 
 const submit = () => {
-  form.transform((data) => {
-    const payload = { ...data };
-    if (payload.datetime) {
-      payload.datetime = formatDateTimeForEditing(payload.datetime);
-    }
-    return payload;
-  });
+  transformPayload(form, { datetime: "YYYY-MM-DD HH:mm:ss" });
   handleSubmit({ form, url: route("admin.finance-transaction.save") });
 };
 </script>
