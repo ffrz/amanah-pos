@@ -1,12 +1,22 @@
 <template>
-  <q-input v-model="pickedDate" :label="props.label" :readonly="props.readonly" :disable="props.disable"
-    :error="props.error" :rules="[...props.rules]" :error-message="errorMessage" :mask="props.mask"
-    >
+  <q-input
+    v-model="displayDate"
+    :label="props.label"
+    :readonly="props.readonly"
+    :disable="props.disable"
+    :error="props.error"
+    :rules="props.rules"
+    :error-message="props.errorMessage"
+    mask="##/##/####"
+  >
     <template v-slot:append>
-      <!-- Date Picker Icon -->
       <q-icon name="event" class="cursor-pointer">
         <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-          <q-date v-model="dateValue" mask="YYYY-MM-DD" @update:model-value="updateDate">
+          <q-date
+            v-model="dbDate"
+            :options="dateOptions"
+            @update:model-value="updateDate"
+          >
             <div class="row items-center justify-end">
               <q-btn v-close-popup label="Close" color="primary" flat />
             </div>
@@ -18,70 +28,88 @@
 </template>
 
 <script setup>
-import { ref, watch, defineEmits } from 'vue';
+import { ref, watch, defineEmits, computed } from "vue";
+import { date as QuasarDate } from "quasar";
 
-// Props passed from the parent
 const props = defineProps({
   modelValue: {
-    type: String,
-    required: true,
+    type: [String, null],
+    required: false,
+    default: null,
   },
-  label: {
-    type: String,
-    default: '',
-  },
-  readonly: {
-    type: Boolean,
-    default: false,
-  },
-  disable: {
-    type: Boolean,
-    default: false,
-  },
-  error: {
-    type: Boolean,
-    default: false,
-  },
-  errorMessage: {
-    type: String,
-    default: '',
-  },
+  label: String,
+  readonly: Boolean,
+  disable: Boolean,
+  error: Boolean,
+  errorMessage: String,
   rules: {
     type: Array,
-    default: [],
+    default: () => [],
   },
-  mask: {
+  minDate: {
     type: String,
-    default: '####-##-##',
-  }
+    default: null,
+  },
+  maxDate: {
+    type: String,
+    default: null,
+  },
 });
 
-// Emits to update parent value
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(["update:modelValue"]);
 
-// Internal states for date and time
-const dateValue = ref('');
+const displayDate = ref("");
+const dbDate = ref("");
 
-// Watch for changes to modelValue (pickedDate) and sync with internal states
-watch(() => props.modelValue, (newValue) => {
-  const [date, time] = newValue.split(' ');
-  dateValue.value = date || '';
-});
+const displayFormat = "DD/MM/YYYY";
+const dbFormat = "YYYY-MM-DD";
 
-// Use the combined pickedDate for q-input value
-const pickedDate = ref(props.modelValue);
+const dateOptions = (dateStr) => {
+  let isAllowed = true;
 
-// Update modelValue when either date or time changes
-const updateDate = () => {
-  let val = '';
-  if (dateValue.value) {
-    val = `${dateValue.value} 00:00`;
+  if (props.minDate) {
+    isAllowed =
+      isAllowed &&
+      QuasarDate.isBetweenDates(
+        dateStr,
+        QuasarDate.formatDate(props.minDate, "YYYY/MM/DD"),
+        "2999/01/01",
+        { inclusiveFrom: true }
+      );
   }
 
-  emit('update:modelValue', val);
-  pickedDate.value = val;
+  if (props.maxDate) {
+    isAllowed =
+      isAllowed &&
+      QuasarDate.isBetweenDates(
+        dateStr,
+        "1900/01/01",
+        QuasarDate.formatDate(props.maxDate, "YYYY/MM/DD"),
+        { inclusiveTo: true }
+      );
+  }
+
+  return isAllowed;
 };
 
+watch(
+  () => props.modelValue,
+  (newValue) => {
+    if (newValue) {
+      dbDate.value = newValue;
+      displayDate.value = QuasarDate.formatDate(newValue, displayFormat);
+    } else {
+      dbDate.value = null;
+      displayDate.value = null;
+    }
+  },
+  { immediate: true }
+);
+
+const updateDate = (newDate) => {
+  emit("update:modelValue", newDate);
+  displayDate.value = QuasarDate.formatDate(newDate, displayFormat);
+};
 </script>
 
 <style scoped>
@@ -89,4 +117,3 @@ const updateDate = () => {
   cursor: pointer;
 }
 </style>
-

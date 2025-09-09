@@ -1,7 +1,13 @@
 <script setup>
-import { formatNumber } from "@/helpers/formatter";
-import { ref, computed, nextTick, watch } from "vue";
+import { formatDateForEditing, formatNumber } from "@/helpers/formatter";
+import { ref, computed, nextTick, reactive } from "vue";
+import { usePage } from "@inertiajs/vue3";
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
+import { QSelect, QBtnToggle } from "quasar";
+import DatePicker from "@/components/DatePicker.vue";
+import { date as QuasarDate } from "quasar";
+
+const page = usePage();
 
 const props = defineProps({
   modelValue: {
@@ -22,83 +28,144 @@ const props = defineProps({
   },
 });
 
+const isProcessing = ref(false);
+const paymentMode = ref("cash");
+const debtDueDate = ref(QuasarDate.formatDate(new Date(), "YYYY-MM-DD"));
+
 const emit = defineEmits(["update:modelValue", "accepted"]);
 
-// State untuk jumlah pembayaran tunai dan dompet
-const cashAmount = ref(0);
-const walletAmount = ref(0);
+const firstPaymentInputRef = ref(null);
 
-// Ref untuk input tunai agar bisa di-fokus
-const cashInputRef = ref(null);
+const paymentOptions = computed(() => [
+  { label: "Tunai", value: "cash", type: "cash" },
+  ...(props.customer
+    ? [{ label: "Dompet", value: "wallet", type: "wallet" }]
+    : []),
+  ...page.props.accounts.map((a) => ({
+    label: a.name + " - " + a.number,
+    value: a.id,
+    type: "transfer",
+  })),
+]);
 
-// Hitung total pembayaran
+const payments = reactive([{ id: 1, type: "cash", amount: 0.0 }]);
+
 const totalPayment = computed(() => {
-  return cashAmount.value + walletAmount.value;
+  return payments.reduce((sum, p) => sum + (p.amount || 0.0), 0.0);
 });
 
-// Hitung sisa saldo (atau kembalian jika lebih)
 const remainingTotal = computed(() => {
   return props.total - totalPayment.value;
 });
 
-// Computed untuk validasi saldo dompet
 const isWalletAmountValid = computed(() => {
-  // Hanya validasi jika ada pelanggan dan jumlah dompet > 0
-  if (!props.customer || walletAmount.value === 0) {
-    return true;
-  }
-  return walletAmount.value <= props.customer.balance;
+  if (!props.customer) return true;
+  const walletPayment = payments.find((p) => p.type === "wallet");
+  const amount = walletPayment ? walletPayment.amount : 0.0;
+  return amount <= props.customer.balance;
 });
+
+// DEFINISI TANGGAL KONSISTEN
+const minDate = QuasarDate.formatDate(new Date(), "YYYY-MM-DD");
+const maxDate = QuasarDate.formatDate(
+  QuasarDate.addToDate(new Date(), { days: 30 }),
+  "YYYY-MM-DD"
+);
+
+const debtDateRules = computed(() => [
+  (val) => !!val || "Tanggal jatuh tempo harus diisi",
+  (val) => {
+    // Pastikan val juga dalam format YYYY-MM-DD
+    if (
+      !QuasarDate.isBetweenDates(val, minDate, maxDate, {
+        inclusiveFrom: true,
+        inclusiveTo: true,
+      })
+    ) {
+      return `Tanggal tidak boleh kurang dari hari ini dan lebih dari 30 hari dari sekarang.`;
+    }
+    return true;
+  },
+]);
+
+const isValid = computed(() => {
+  if (paymentMode.value === "debt") {
+    return (
+      !!props.customer &&
+      debtDateRules.value.every((rule) => rule(debtDueDate.value) === true)
+    );
+  }
+
+  const walletValid = isWalletAmountValid.value;
+  const hasPaymentAmount = payments.some((p) => (p.amount || 0) > 0);
+  const noNegativePayment = payments.every((p) => (p.amount || 0) >= 0);
+  const isFullyPaid = remainingTotal.value <= 0;
+
+  return walletValid && hasPaymentAmount && noNegativePayment && isFullyPaid;
+});
+
+const addPayment = () => {
+  if (payments.length < 3) {
+    payments.push({ id: payments.length + 1, type: "cash", amount: 0.0 });
+  }
+};
+
+const removePayment = (id) => {
+  if (payments.length > 1) {
+    const index = payments.findIndex((p) => p.id === id);
+    if (index !== -1) {
+      payments.splice(index, 1);
+    }
+  }
+};
+
+const changePaymentMode = (mode) => {
+  paymentMode.value = mode;
+  debtDueDate.value = QuasarDate.formatDate(new Date(), "YYYY-MM-DD");
+  payments.splice(0, payments.length);
+
+  if (mode === "cash") {
+    payments.splice(0, payments.length, {
+      id: 1,
+      type: "cash",
+      amount: props.total,
+    });
+    nextTick(() => {
+      if (firstPaymentInputRef.value && firstPaymentInputRef.value.length > 0) {
+        firstPaymentInputRef.value[0].focus();
+        firstPaymentInputRef.value[0].select();
+      }
+    });
+  }
+};
 
 const handleFinalizePayment = () => {
-  // PENTING: Lakukan validasi sebelum emit
-  if (!isWalletAmountValid.value) {
+  if (!isValid.value) {
     return;
   }
-
-  const totalPaid = cashAmount.value + walletAmount.value;
-  const change = totalPaid > props.total ? totalPaid - props.total : 0;
-
-  // Emit event dengan rincian pembayaran
-  emit("accepted", {
+  isProcessing.value = true;
+  let payload = {
     total: props.total,
-    cash_amount: cashAmount.value,
-    wallet_amount: walletAmount.value,
-    remaining_debt: remainingTotal.value > 0 ? remainingTotal.value : 0,
-    change: change,
-  });
+    is_debt: paymentMode.value === "debt",
+  };
+  if (paymentMode.value === "debt") {
+    payload.due_date = debtDueDate.value;
+    payload.payments = [];
+  } else {
+    const totalPaid = totalPayment.value;
+    const change = totalPaid > props.total ? totalPaid - props.total : 0;
+    const remainingDebt = remainingTotal.value > 0 ? remainingTotal.value : 0;
+    payload.payments = payments;
+    payload.remaining_debt = remainingDebt;
+    payload.change = change;
+  }
+  emit("accepted", payload);
+  isProcessing.value = false;
 };
 
-const focusOnInput = () => {
-  nextTick(() => {
-    if (cashInputRef.value) {
-      cashInputRef.value.focus();
-      cashInputRef.value.select();
-    }
-  });
-};
-
-watch(cashAmount, (newValue) => {
-  if (newValue >= props.total) {
-    walletAmount.value = 0;
-  }
-
-  fixWalletAmount(walletAmount.value);
-});
-
-watch(walletAmount, (newValue) => {
-  fixWalletAmount(newValue);
-});
-
-const fixWalletAmount = (newValue) => {
-  const amountToPay = props.total - cashAmount.value;
-  if (amountToPay < 0) {
-    return;
-  }
-
-  if (newValue > amountToPay) {
-    walletAmount.value = amountToPay;
-  }
+const onBeforeShow = () => {
+  changePaymentMode("cash");
+  nextTick(() => {});
 };
 </script>
 
@@ -106,7 +173,7 @@ const fixWalletAmount = (newValue) => {
   <q-dialog
     :model-value="modelValue"
     @update:model-value="(val) => $emit('update:modelValue', val)"
-    v-on:before-show="focusOnInput"
+    @before-show="onBeforeShow"
   >
     <q-card style="min-width: 300px">
       <q-card-section>
@@ -114,7 +181,6 @@ const fixWalletAmount = (newValue) => {
           Rincian Pembayaran
         </div>
       </q-card-section>
-
       <q-card-section class="q-pt-none">
         <div v-if="customer" class="text-center q-mb-md text-grey-8">
           <div class="text-subtitle2 text-weight-medium">
@@ -123,54 +189,126 @@ const fixWalletAmount = (newValue) => {
             Saldo: Rp. {{ formatNumber(customer.balance) }}
           </div>
         </div>
-
         <div class="text-h5 text-center text-primary q-pb-md">
           Total: Rp. {{ formatNumber(total) }}
         </div>
-
-        <div class="row q-col-gutter-sm justify-center">
-          <div class="col-12">
-            <LocaleNumberInput
-              v-model="cashAmount"
-              :label="'Jumlah Tunai'"
-              :disable="form.processing"
-              :outlined="true"
-              ref="cashInputRef"
+        <div class="q-mb-md flex flex-center">
+          <q-btn-toggle
+            v-model="paymentMode"
+            @update:model-value="changePaymentMode"
+            :options="[
+              { label: 'Tunai', value: 'cash', slot: 'cash', color: 'green' },
+              {
+                label: 'Tempo',
+                value: 'debt',
+                slot: 'debt',
+                disable: !customer,
+                color: 'red',
+              },
+            ]"
+            flat
+            spread
+            class="bg-grey-2"
+          />
+        </div>
+        <div v-if="paymentMode === 'cash'">
+          <div
+            v-for="(payment, index) in payments"
+            :key="payment.id"
+            class="row q-col-gutter-sm q-mb-sm"
+          >
+            <div class="col-6">
+              <q-select
+                v-model="payment.type"
+                :options="paymentOptions"
+                label="Metode Pembayaran"
+                :outlined="true"
+                emit-value
+                map-options
+                dense
+                class="custom-select"
+                :disable="isProcessing"
+                hide-bottom-space
+              />
+            </div>
+            <div class="col-6">
+              <LocaleNumberInput
+                v-model="payment.amount"
+                label="Jumlah"
+                :outlined="true"
+                dense
+                :disable="isProcessing"
+                :error="payment.type === 'wallet' && !isWalletAmountValid"
+                :error-message="
+                  payment.type === 'wallet' && !isWalletAmountValid
+                    ? 'Saldo tidak cukup!'
+                    : ''
+                "
+                hide-bottom-space
+                :ref="index === 0 ? 'firstPaymentInputRef' : null"
+              >
+                <template v-slot:append v-if="payments.length > 1">
+                  <q-icon
+                    size="xs"
+                    name="close"
+                    class="cursor-pointer"
+                    @click="removePayment(payment.id)"
+                  />
+                </template>
+              </LocaleNumberInput>
+            </div>
+          </div>
+          <div class="row">
+            <q-btn
+              :disable="!(payments.length < 3 && remainingTotal > 0)"
+              flat
+              dense
+              icon="add"
+              label="Tambah Pembayaran"
+              @click="addPayment"
+              size="sm"
             />
           </div>
-
-          <div class="col-12" v-if="customer">
-            <LocaleNumberInput
-              v-model="walletAmount"
-              :label="'Jumlah Dompet Pelanggan'"
-              :disable="cashAmount >= total || form.processing"
-              :outlined="true"
-              :error="!isWalletAmountValid"
-              :error-message="'Jumlah melebihi saldo dompet!'"
-            />
+          <div class="text-center q-mt-md">
+            <div
+              v-if="remainingTotal > 0"
+              class="text-h6 text-negative text-weight-bold"
+            >
+              Sisa Tagihan: Rp. {{ formatNumber(remainingTotal) }}
+            </div>
+            <div
+              v-else-if="remainingTotal < 0"
+              class="text-h6 text-green-8 text-weight-bold"
+            >
+              Kembalian: Rp. {{ formatNumber(Math.abs(remainingTotal)) }}
+            </div>
+            <div v-else class="text-h6 text-positive text-weight-bold">
+              Tagihan Terbayar
+            </div>
           </div>
         </div>
-
-        <div class="text-center">
-          <div
-            v-if="remainingTotal > 0"
-            class="text-h6 text-negative text-weight-bold"
-          >
-            Sisa Tagihan: Rp. {{ formatNumber(remainingTotal) }}
+        <div v-else-if="paymentMode === 'debt' && customer">
+          <DatePicker
+            outlined
+            v-model="debtDueDate"
+            label="Tanggal Jatuh Tempo"
+            hint="Pilih tanggal jatuh tempo pembayaran utang"
+            class="q-mb-md"
+            :min-date="minDate"
+            :max-date="maxDate"
+            :rules="debtDateRules"
+          />
+          <div class="text-h6 text-negative text-center">
+            Total Utang: Rp. {{ formatNumber(total) }}
           </div>
-          <div
-            v-else-if="remainingTotal < 0"
-            class="text-h6 text-green-8 text-weight-bold"
-          >
-            Kembalian: Rp. {{ formatNumber(Math.abs(remainingTotal)) }}
-          </div>
-          <div v-else class="text-h6 text-positive text-weight-bold">
-            Tagihan Terbayar
+        </div>
+        <div v-else-if="paymentMode === 'debt' && !customer">
+          <div class="text-center text-negative text-h6">
+            Tidak dapat mencatat utang tanpa memilih pelanggan.
           </div>
         </div>
       </q-card-section>
-
-      <q-card-actions align="center">
+      <q-card-actions align="center" class="q-mb-sm">
         <q-btn
           flat
           label="Batal"
@@ -178,25 +316,11 @@ const fixWalletAmount = (newValue) => {
           @click="$emit('update:modelValue', false)"
         />
         <q-btn
-          v-if="remainingTotal > 0"
-          :label="customer && remainingTotal > 0 ? 'Catat Utang' : 'Bayar'"
-          :color="remainingTotal > 0 ? 'red' : 'positive'"
-          @click="handleFinalizePayment"
-          :disable="
-            form.processing ||
-            !isWalletAmountValid ||
-            (remainingTotal > 0 && totalPayment === 0) ||
-            (remainingTotal > 0 && !customer)
-          "
-          :loading="form.processing"
-        />
-        <q-btn
-          v-else
-          label="Bayar"
+          :label="paymentMode === 'debt' ? 'Catat Utang' : 'Bayar'"
           color="positive"
           @click="handleFinalizePayment"
-          :disable="form.processing || !isWalletAmountValid"
-          :loading="form.processing"
+          :disable="isProcessing || !isValid.value"
+          :loading="isProcessing"
         />
       </q-card-actions>
     </q-card>

@@ -6,6 +6,7 @@ use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\SalesOrder;
 use App\Models\Customer;
+use App\Models\FinanceAccount;
 use App\Models\Product;
 use App\Models\SalesOrderDetail;
 use App\Models\User;
@@ -103,6 +104,10 @@ class SalesOrderController extends Controller
 
         return inertia('sales-order/Editor', [
             'data' => $item,
+            'accounts' => FinanceAccount::where('active', '=', true)
+                ->where('type', '<>', 'cash')
+                ->orderBy('name')
+                ->get()
         ]);
     }
 

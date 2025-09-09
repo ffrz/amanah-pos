@@ -557,6 +557,7 @@ const updateOrder = () => {
         :form="form"
         :customer="customer"
         :total="total"
+        :accounts="page.props.accounts"
       />
       <ProductBrowserDialog
         v-model="showProductBrowserDialog"
