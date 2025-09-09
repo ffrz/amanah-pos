@@ -27,6 +27,8 @@ const form = useForm({
   uom: page.props.data.uom,
   cost: parseFloat(page.props.data.cost),
   price: parseFloat(page.props.data.price),
+  price_2: parseFloat(page.props.data.price_2),
+  price_3: parseFloat(page.props.data.price_3),
   active: !!page.props.data.active,
   price_editable: !!page.props.data.price_editable,
   notes: page.props.data.notes,
@@ -220,11 +222,29 @@ const margin = computed(() => {
               />
               <LocaleNumberInput
                 v-model:modelValue="form.price"
-                label="Harga Jual (Rp)"
+                label="Harga Eceran (Rp)"
                 lazyRules
                 :disable="form.processing"
-                :error="!!form.errors.max_stock"
+                :error="!!form.errors.price"
                 :errorMessage="form.errors.price"
+                hide-bottom-space
+              />
+              <LocaleNumberInput
+                v-model:modelValue="form.price_2"
+                label="Harga Partai (Rp)"
+                lazyRules
+                :disable="form.processing"
+                :error="!!form.errors.price_2"
+                :errorMessage="form.errors.price_2"
+                hide-bottom-space
+              />
+              <LocaleNumberInput
+                v-model:modelValue="form.price_3"
+                label="Harga Grosir (Rp)"
+                lazyRules
+                :disable="form.processing"
+                :error="!!form.errors.price_3"
+                :errorMessage="form.errors.price_3"
                 hide-bottom-space
               />
               <LocaleNumberInput

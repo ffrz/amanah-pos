@@ -69,6 +69,14 @@ const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return columns;
   return columns.filter((col) => col.name === "id");
 });
+
+const marginInfo = (price) => {
+  const val =
+    price > 0
+      ? formatNumber(((price - page.props.data.cost) / price) * 100, 2)
+      : 0;
+  return `${val}%`;
+};
 </script>
 
 <template>
@@ -287,30 +295,48 @@ const computedColumns = computed(() => {
                       <td>Rp. {{ formatNumber(page.props.data.cost) }}</td>
                     </tr>
                     <tr>
-                      <td>Harga Jual</td>
-                      <td>:</td>
-                      <td>Rp. {{ formatNumber(page.props.data.price) }}</td>
-                    </tr>
-                    <tr
-                      v-if="
-                        $page.props.auth.user.role == $CONSTANTS.USER_ROLE_ADMIN
-                      "
-                    >
-                      <td>Margin</td>
+                      <td>Harga Eceran</td>
                       <td>:</td>
                       <td>
-                        {{
-                          page.props.data.price > 0
-                            ? formatNumber(
-                                ((page.props.data.price -
-                                  page.props.data.cost) /
-                                  page.props.data.price) *
-                                  100,
-                                2
-                              )
-                            : 0
-                        }}
-                        %
+                        Rp. {{ formatNumber(page.props.data.price) }}
+                        <span
+                          v-if="
+                            $page.props.auth.user.role ==
+                            $CONSTANTS.USER_ROLE_ADMIN
+                          "
+                        >
+                          ({{ marginInfo(page.props.data.price) }})
+                        </span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Harga Partai</td>
+                      <td>:</td>
+                      <td>
+                        Rp. {{ formatNumber(page.props.data.price_2) }}
+                        <span
+                          v-if="
+                            $page.props.auth.user.role ==
+                            $CONSTANTS.USER_ROLE_ADMIN
+                          "
+                        >
+                          ({{ marginInfo(page.props.data.price_2) }})
+                        </span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Harga Grosir</td>
+                      <td>:</td>
+                      <td>
+                        Rp. {{ formatNumber(page.props.data.price_3) }}
+                        <span
+                          v-if="
+                            $page.props.auth.user.role ==
+                            $CONSTANTS.USER_ROLE_ADMIN
+                          "
+                        >
+                          ({{ marginInfo(page.props.data.price_3) }})
+                        </span>
                       </td>
                     </tr>
                   </tbody>
