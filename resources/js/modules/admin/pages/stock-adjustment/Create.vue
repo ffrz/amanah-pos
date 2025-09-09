@@ -1,11 +1,10 @@
 <script setup>
 import { router, useForm, usePage } from "@inertiajs/vue3";
-import { handleSubmit } from "@/helpers/client-req-handler";
+import { handleSubmit, transformPayload } from "@/helpers/client-req-handler";
 import { formatNumber } from "@/helpers/formatter";
 import { scrollToFirstErrorField } from "@/helpers/utils";
 import { createOptions } from "@/helpers/options";
 import DateTimePicker from "@/components/DateTimePicker.vue";
-import dayjs from "dayjs";
 import { useQuasar } from "quasar";
 import { computed, ref } from "vue";
 
@@ -15,7 +14,7 @@ const products = page.props.products;
 const selectedProducts = ref([]);
 const form = useForm({
   type: "stock_opname",
-  datetime: dayjs().format("YYYY-MM-DD HH:mm:ss"),
+  datetime: new Date(),
   notes: null,
   product_ids: [],
 });
@@ -42,6 +41,7 @@ const types = createOptions(window.CONSTANTS.STOCKADJUSTMENT_TYPES);
 
 const submit = () => {
   form.product_ids = selectedProducts.value.map((p) => p.id);
+  transformPayload(form, { datetime: "YYYY-MM-DD HH:mm:ss" });
   handleSubmit({ form, url: route("admin.stock-adjustment.create") });
 };
 const $q = useQuasar();

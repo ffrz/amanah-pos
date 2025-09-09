@@ -32,13 +32,15 @@ const form = useForm({
   customer_id: page.props.data.customer_id,
   finance_account_id: page.props.data.finance_account_id,
   type: page.props.data.type,
-  datetime: dayjs(page.props.data.datetime).format("YYYY-MM-DD HH:mm:ss"),
+  datetime: new Date(page.props.data.datetime),
   notes: page.props.data.notes,
   amount: parseFloat(page.props.data.amount),
 });
 
-const submit = () =>
+const submit = () => {
+  transformPayload(form, { datetime: "YYYY-MM-DD HH:mm:ss" });
   handleSubmit({ form, url: route("admin.customer-wallet-transaction.save") });
+};
 </script>
 
 <template>

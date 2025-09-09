@@ -1,10 +1,9 @@
 <script setup>
 import { router, useForm, usePage } from "@inertiajs/vue3";
-import { handleSubmit } from "@/helpers/client-req-handler";
+import { handleSubmit, transformPayload } from "@/helpers/client-req-handler";
 import { scrollToFirstErrorField } from "@/helpers/utils";
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
 import DateTimePicker from "@/components/DateTimePicker.vue";
-import { formatDateTimeForEditing } from "@/helpers/formatter";
 import { useFinanceAccount } from "@/composables/useFinanceAccount";
 import ImageUpload from "@/components/ImageUpload.vue";
 
@@ -16,15 +15,17 @@ const form = useForm({
   username: page.props.auth.customer.username,
   name: page.props.auth.customer.name,
   finance_account_id: null,
-  datetime: formatDateTimeForEditing(new Date()),
+  datetime: new Date(),
   amount: page.props.data?.amount ?? 0,
   notes: page.props.data?.notes ?? "",
   image_path: page.props.data?.image_path ?? "",
   image: null,
 });
 
-const submit = () =>
+const submit = () => {
+  transformPayload(form, { datetime: "YYYY-MM-DD HH:mm:ss" });
   handleSubmit({ form, url: route("customer.wallet-topup-confirmation.save") });
+};
 </script>
 
 <template>

@@ -1,12 +1,11 @@
 <script setup>
 import { useForm, usePage } from "@inertiajs/vue3";
-import { handleSubmit } from "@/helpers/client-req-handler";
+import { handleSubmit, transformPayload } from "@/helpers/client-req-handler";
 import { scrollToFirstErrorField } from "@/helpers/utils";
 import { Dialog, useQuasar } from "quasar";
 import { computed } from "vue";
 import { createOptions } from "@/helpers/options";
 import DateTimePicker from "@/components/DateTimePicker.vue";
-import dayjs from "dayjs";
 import { formatNumber } from "@/helpers/formatter";
 
 const page = usePage();
@@ -14,7 +13,7 @@ const title = "Penyesuaian Stok";
 const form = useForm({
   id: page.props.item.id,
   type: page.props.item.type,
-  datetime: dayjs(page.props.item.datetime).format("YYYY-MM-DD HH:mm:ss"),
+  datetime: new Date(page.props.item.datetime),
   notes: page.props.item.notes,
   action: "save",
   details: [],
@@ -30,6 +29,7 @@ const submit = (action) => {
       new_quantity: d.new_quantity,
     }));
 
+    transformPayload(form, { datetime: "YYYY-MM-DD HH:mm:ss" });
     handleSubmit({ form, url: route("admin.stock-adjustment.save") });
   };
 

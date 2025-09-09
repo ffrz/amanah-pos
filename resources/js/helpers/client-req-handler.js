@@ -2,6 +2,7 @@ import { usePage } from "@inertiajs/vue3";
 import axios from "axios";
 import { Notify, Dialog } from "quasar";
 import { nextTick } from "vue";
+import dayjs from "dayjs";
 
 const _scrollToFirstError = () => {
   const page = usePage();
@@ -15,6 +16,27 @@ const _scrollToFirstError = () => {
       }
     }, 0);
   }
+};
+
+/**
+ * Transforms an Inertia form's payload by converting specified Date/Time fields
+ * into strings with a given format.
+ * * @param {object} form The Inertia form object.
+ * @param {object} fields An object where keys are field names and values are their formats.
+ * Example: { 'start_date': 'YYYY-MM-DD', 'end_time': 'HH:mm', 'transaction_dt': 'YYYY-MM-DD HH:mm:ss' }
+ */
+export const transformPayload = (form, fields) => {
+  form.transform((data) => {
+    const payload = { ...data };
+
+    for (const field in fields) {
+      if (payload[field] instanceof Date) {
+        payload[field] = dayjs(payload[field]).format(fields[field]);
+      }
+    }
+
+    return payload;
+  });
 };
 
 export function handleSubmit(data) {
