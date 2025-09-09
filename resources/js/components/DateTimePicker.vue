@@ -1,27 +1,33 @@
 <template>
-  <q-input v-model="pickedDatetime" :label="props.label" :readonly="props.readonly" :disable="props.disable"
-    :error="props.error" :rules="[...props.rules]" :error-message="errorMessage" :mask="props.mask"
-    >
+  <q-input
+    v-model="displayDatetime"
+    :label="props.label"
+    :readonly="props.readonly"
+    :disable="props.disable"
+    :error="props.error"
+    :error-message="props.errorMessage"
+    :mask="props.displayMask"
+    :rules="displayRules"
+  >
     <template v-slot:append>
-      <!-- Date Picker Icon -->
       <q-icon name="event" class="cursor-pointer">
         <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-          <q-date v-model="dateValue" mask="YYYY-MM-DD" @update:model-value="updateDateTime">
-            <div class="row items-center justify-end">
-              <q-btn v-close-popup label="Close" color="primary" flat />
-            </div>
-          </q-date>
+          <q-date
+            v-model="dateValue"
+            mask="YYYY-MM-DD"
+            @update:model-value="updateDateTime"
+          />
         </q-popup-proxy>
       </q-icon>
 
-      <!-- Time Picker Icon -->
       <q-icon name="access_time" class="cursor-pointer">
         <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-          <q-time v-model="timeValue" mask="HH:mm" format24h @update:model-value="updateDateTime">
-            <div class="row items-center justify-end">
-              <q-btn v-close-popup label="Close" color="primary" flat />
-            </div>
-          </q-time>
+          <q-time
+            v-model="timeValue"
+            mask="HH:mm"
+            format24h
+            @update:model-value="updateDateTime"
+          />
         </q-popup-proxy>
       </q-icon>
     </template>
@@ -29,17 +35,20 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, computed, defineEmits } from "vue";
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+dayjs.extend(customParseFormat);
 
-// Props passed from the parent
 const props = defineProps({
   modelValue: {
-    type: String,
-    required: true,
+    type: [Date, null],
+    required: false,
+    default: null,
   },
   label: {
     type: String,
-    default: '',
+    default: "",
   },
   readonly: {
     type: Boolean,
@@ -55,49 +64,101 @@ const props = defineProps({
   },
   errorMessage: {
     type: String,
-    default: '',
+    default: "",
   },
   rules: {
     type: Array,
-    default: [],
+    default: () => [],
   },
-  mask: {
+  displayFormat: {
     type: String,
-    default: '####-##-## ##:##',
+    default: "DD/MM/YYYY HH:mm",
+  },
+  displayMask: {
+    type: String,
+    default: "##/##/#### ##:##",
+  },
+  minDate: {
+    type: [Date, null],
+    default: null,
+  },
+  maxDate: {
+    type: [Date, null],
+    default: null,
+  },
+});
+
+const emit = defineEmits(["update:modelValue"]);
+
+const dateValue = ref("");
+const timeValue = ref("");
+const displayDatetime = ref("");
+
+// Gabungkan dateValue dan timeValue menjadi satu objek dayjs
+const combinedDatetime = computed(() => {
+  if (!timeValue.value) {
+    timeValue.value = "00:00:00";
   }
-});
 
-// Emits to update parent value
-const emit = defineEmits(['update:modelValue']);
-
-// Internal states for date and time
-const dateValue = ref('');
-const timeValue = ref('00:00');
-
-// Watch for changes to modelValue (pickedDatetime) and sync with internal states
-watch(() => props.modelValue, (newValue) => {
-  const [date, time] = newValue.split(' ');
-  dateValue.value = date || '';
-  timeValue.value = time || '';
-});
-
-// Use the combined pickedDatetime for q-input value
-const pickedDatetime = ref(props.modelValue);
-
-// Update modelValue when either date or time changes
-const updateDateTime = () => {
-  let val = '';
   if (dateValue.value && timeValue.value) {
-    val = `${dateValue.value} ${timeValue.value}`;
+    return dayjs(`${dateValue.value} ${timeValue.value}`, "YYYY-MM-DD HH:mm");
   }
-  else if (dateValue.value) {
-    val = `${dateValue.value} 00:00`;
-  }
+  return null;
+});
 
-  emit('update:modelValue', val);
-  pickedDatetime.value = val;
+const displayRules = computed(() => [
+  (val) => !!val || "Tanggal dan waktu harus diisi",
+  (val) => {
+    const datetimeObj = dayjs(val, props.displayFormat, true);
+    if (!datetimeObj.isValid()) {
+      return "Format tanggal dan waktu tidak valid";
+    }
+
+    const minDateCleaned = props.minDate ? dayjs(props.minDate) : null;
+    const maxDateCleaned = props.maxDate ? dayjs(props.maxDate) : null;
+
+    if (minDateCleaned && datetimeObj.isBefore(minDateCleaned)) {
+      return `Tanggal tidak boleh kurang dari ${minDateCleaned.format(
+        props.displayFormat
+      )}`;
+    }
+    if (maxDateCleaned && datetimeObj.isAfter(maxDateCleaned)) {
+      return `Tanggal tidak boleh lebih dari ${maxDateCleaned.format(
+        props.displayFormat
+      )}`;
+    }
+
+    emit("update:modelValue", datetimeObj.toDate());
+    return true;
+  },
+]);
+
+const updateDateTime = () => {
+  if (combinedDatetime.value) {
+    emit("update:modelValue", combinedDatetime.value.toDate());
+    displayDatetime.value = combinedDatetime.value.format(props.displayFormat);
+  } else {
+    emit("update:modelValue", null);
+    displayDatetime.value = null;
+  }
 };
 
+watch(
+  () => props.modelValue,
+  (newValue) => {
+    if (newValue instanceof Date) {
+      console.log(newValue);
+      dateValue.value = dayjs(newValue).format("YYYY-MM-DD");
+      timeValue.value = dayjs(newValue).format("HH:mm");
+      displayDatetime.value = dayjs(newValue).format(props.displayFormat);
+    } else {
+      dateValue.value = "";
+      timeValue.value = "";
+      displayDatetime.value = "";
+    }
+  },
+  { immediate: true }
+);
 </script>
 
 <style scoped>
@@ -105,4 +166,3 @@ const updateDateTime = () => {
   cursor: pointer;
 }
 </style>
-

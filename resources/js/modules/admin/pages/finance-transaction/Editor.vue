@@ -24,15 +24,21 @@ const form = useForm({
   account_id: page.props.data.account_id,
   to_account_id: page.props.data.to_account_id ?? null,
   type: page.props.data.type,
-  datetime: formatDateTimeForEditing(
-    page.props.data.datetime ? page.props.data.datetime : new Date()
-  ),
+  datetime: new Date(page.props.data.datetime),
   notes: page.props.data.notes,
   amount: parseFloat(page.props.data.amount),
 });
 
-const submit = () =>
+const submit = () => {
+  form.transform((data) => {
+    const payload = { ...data };
+    if (payload.datetime) {
+      payload.datetime = formatDateTimeForEditing(payload.datetime);
+    }
+    return payload;
+  });
   handleSubmit({ form, url: route("admin.finance-transaction.save") });
+};
 </script>
 
 <template>

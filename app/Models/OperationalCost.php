@@ -20,14 +20,14 @@ class OperationalCost extends BaseModel
     {
         return [
             'category_id' => 'integer',
-            'date' => 'date',
+            'date' => 'string',
             'description' => 'string',
             'amount' => 'decimal:2',
             'notes' => 'string',
             'created_by' => 'integer',
             'updated_by' => 'integer',
-            'created_at' => 'datetime',
-            'updated_at' => 'datetime',
+            'created_at' => 'string',
+            'updated_at' => 'string',
         ];
     }
 

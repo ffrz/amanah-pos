@@ -6,6 +6,7 @@ import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
 import DatePicker from "@/components/DatePicker.vue";
 import { ref } from "vue";
 import { useCostCategoryFilter } from "@/composables/useCostCategoryOptions";
+import { formatDateForEditing } from "@/helpers/formatter";
 
 const page = usePage();
 const title = (!!page.props.data.id ? "Edit" : "Tambah") + " Biaya Operasional";
@@ -17,14 +18,23 @@ const filteredCategories = ref([...categories.value]);
 const form = useForm({
   id: page.props.data.id,
   category_id: page.props.data.category_id,
-  date: page.props.data.date,
+  date: new Date(page.props.data.date),
   description: page.props.data.description,
   notes: page.props.data.notes,
   amount: parseFloat(page.props.data.amount),
 });
 
-const submit = () =>
+const submit = () => {
+  form.transform((data) => {
+    const payload = { ...data };
+    if (payload.date) {
+      payload.date = formatDateForEditing(payload.date);
+    }
+    return payload;
+  });
   handleSubmit({ form, url: route("admin.operational-cost.save") });
+};
+
 const filterCategories = (val, update) => {
   update(() => {
     filteredCategories.value = categories.value.filter((item) =>

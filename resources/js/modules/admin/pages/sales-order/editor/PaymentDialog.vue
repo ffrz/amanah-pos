@@ -1,5 +1,5 @@
 <script setup>
-import { formatDateForEditing, formatNumber } from "@/helpers/formatter";
+import { formatNumber } from "@/helpers/formatter";
 import { ref, computed, nextTick, reactive } from "vue";
 import { usePage } from "@inertiajs/vue3";
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
@@ -30,7 +30,8 @@ const props = defineProps({
 
 const isProcessing = ref(false);
 const paymentMode = ref("cash");
-const debtDueDate = ref(QuasarDate.formatDate(new Date(), "YYYY-MM-DD"));
+// Gunakan objek Date, bukan string
+const debtDueDate = ref(new Date());
 
 const emit = defineEmits(["update:modelValue", "accepted"]);
 
@@ -65,19 +66,16 @@ const isWalletAmountValid = computed(() => {
   return amount <= props.customer.balance;
 });
 
-// DEFINISI TANGGAL KONSISTEN
-const minDate = QuasarDate.formatDate(new Date(), "YYYY-MM-DD");
-const maxDate = QuasarDate.formatDate(
-  QuasarDate.addToDate(new Date(), { days: 30 }),
-  "YYYY-MM-DD"
-);
+// DEFINISI TANGGAL KONSISTEN DENGAN OBJEK Date
+const today = new Date();
+const futureDate = QuasarDate.addToDate(new Date(), { days: 30 });
 
 const debtDateRules = computed(() => [
   (val) => !!val || "Tanggal jatuh tempo harus diisi",
   (val) => {
-    // Pastikan val juga dalam format YYYY-MM-DD
+    // Validasi langsung menggunakan objek Date
     if (
-      !QuasarDate.isBetweenDates(val, minDate, maxDate, {
+      !QuasarDate.isBetweenDates(val, today, futureDate, {
         inclusiveFrom: true,
         inclusiveTo: true,
       })
@@ -121,7 +119,7 @@ const removePayment = (id) => {
 
 const changePaymentMode = (mode) => {
   paymentMode.value = mode;
-  debtDueDate.value = QuasarDate.formatDate(new Date(), "YYYY-MM-DD");
+  debtDueDate.value = new Date();
   payments.splice(0, payments.length);
 
   if (mode === "cash") {
@@ -149,7 +147,8 @@ const handleFinalizePayment = () => {
     is_debt: paymentMode.value === "debt",
   };
   if (paymentMode.value === "debt") {
-    payload.due_date = debtDueDate.value;
+    // Konversi ke format string hanya saat mengirim ke backend
+    payload.due_date = QuasarDate.formatDate(debtDueDate.value, "YYYY-MM-DD");
     payload.payments = [];
   } else {
     const totalPaid = totalPayment.value;
@@ -294,8 +293,8 @@ const onBeforeShow = () => {
             label="Tanggal Jatuh Tempo"
             hint="Pilih tanggal jatuh tempo pembayaran utang"
             class="q-mb-md"
-            :min-date="minDate"
-            :max-date="maxDate"
+            :min-date="today"
+            :max-date="futureDate"
             :rules="debtDateRules"
           />
           <div class="text-h6 text-negative text-center">

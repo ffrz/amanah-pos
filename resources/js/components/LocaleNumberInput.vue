@@ -1,8 +1,9 @@
 <script setup>
-import { ref, watch } from "vue";
+import { ref, useSlots, watch } from "vue";
 import { QInput } from "quasar";
 
 const qInputRef = ref(null);
+const slots = useSlots();
 
 defineExpose({
   // Ekspor metode fokus dan select yang berfungsi
@@ -152,10 +153,10 @@ const filterInput = (event) => {
     :rules="rules"
     :error-message="errorMessage"
   >
-    <template v-slot:prepend>
+    <template v-if="slots.prepend" v-slot:prepend>
       <slot name="prepend"></slot>
     </template>
-    <template v-slot:append>
+    <template v-if="slots.append" v-slot:append>
       <slot name="append"></slot>
     </template>
   </q-input>
