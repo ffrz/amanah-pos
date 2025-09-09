@@ -34,7 +34,7 @@ const submit = () =>
       </div>
     </template>
     <q-page class="row justify-center">
-      <div class="col col-md-6 q-pa-sm">
+      <div class="col col-md-6 q-pa-xs">
         <q-form
           class="row"
           @submit.prevent="submit"

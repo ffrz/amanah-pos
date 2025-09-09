@@ -11,7 +11,7 @@ const title = "Profil Saya";
     <template #title>{{ title }}</template>
     <div class="q-pa-xs">
       <div class="row justify-center">
-        <div class="col col-lg-6">
+        <div class="col col-md-6">
           <UpdateProfileInformationForm class="q-mb-md" />
           <UpdatePasswordForm />
         </div>
