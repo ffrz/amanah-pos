@@ -10,7 +10,6 @@ use App\Models\StockAdjustmentDetail;
 use App\Models\StockMovement;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
@@ -28,7 +27,7 @@ class StockAdjustmentController extends Controller
         $orderType = $request->get('order_type', 'desc');
         $filter = $request->get('filter', []);
 
-        $q = StockAdjustment::with(['createdBy:id,username,name', 'updatedBy:id,username,name']);
+        $q = StockAdjustment::with(['creator:id,username,name', 'updater:id,username,name']);
         $q->orderBy($orderBy, $orderType);
 
         if (!empty($filter['status']) && $filter['status'] != 'all') {
@@ -53,7 +52,7 @@ class StockAdjustmentController extends Controller
 
     public function detail($id = 0)
     {
-        $item = StockAdjustment::with(['createdBy', 'updatedBy'])->findOrFail($id);
+        $item = StockAdjustment::with(['creator', 'updater'])->findOrFail($id);
 
         return inertia('stock-adjustment/Detail', [
             'data' => $item,

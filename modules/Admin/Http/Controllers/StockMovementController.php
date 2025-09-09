@@ -14,7 +14,7 @@ class StockMovementController extends Controller
         $orderType = $request->get('order_type', 'desc');
         $filter = $request->get('filter', []);
 
-        $q = StockMovement::with(['createdBy']);
+        $q = StockMovement::with(['creator']);
         $q->where('product_id', $request->get('product_id', 0));
 
         if (!empty($filter['search'])) {
