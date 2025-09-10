@@ -65,17 +65,6 @@ class SalesOrderController extends Controller
         return response()->json($items);
     }
 
-    // public function duplicate($id)
-    // {
-    //     allowed_roles([User::Role_Admin]);
-    //     $item = SalesOrder::findOrFail($id);
-    //     $item->id = null;
-    //     return inertia('sales-order/Editor', [
-    //         'data' => $item,
-    //         'categories' => $this->_customers(),
-    //     ]);
-    // }
-
     public function editor($id = 0)
     {
         allowed_roles([User::Role_Admin]);
@@ -91,15 +80,24 @@ class SalesOrderController extends Controller
             return redirect(route('admin.sales-order.edit', $item->id));
         }
 
-        // reopen order jika sudah bukan draft
         $item = SalesOrder::with(['details', 'customer'])->findOrFail($id);
-        if ($item->status === SalesOrder::Status_Closed) {
-            $item->status = SalesOrder::Status_Draft;
-            // TODO: kembalikan stok jika sudah ditutup, atau tolak kalau tidak boleh reopen
-            $item->save();
-        } else if ($item->status === SalesOrder::Status_Canceled) {
-            $item->status = SalesOrder::Status_Draft;
-            $item->save();
+
+        // FIX ME: Jika mau aktifkan reopen order, tangani bagian ini
+        if ($item->status !== SalesOrder::Status_Draft) {
+            // TODO: untuk reopen order, harusnya ada nilai yang dikirim client misal action=reopen
+            // agar lebih eksplisit, untuk MVP reopen tidak support
+            abort(403, 'Transaksi sudah tidak dapat diubah');
+            return;
+
+            // reopen order jika sudah bukan draft
+            if ($item->status === SalesOrder::Status_Closed) {
+                $item->status = SalesOrder::Status_Draft;
+                // TODO: kembalikan stok jika sudah ditutup, atau tolak kalau tidak boleh reopen
+                $item->save();
+            } else if ($item->status === SalesOrder::Status_Canceled) {
+                $item->status = SalesOrder::Status_Draft;
+                $item->save();
+            }
         }
 
         return inertia('sales-order/Editor', [
@@ -114,12 +112,18 @@ class SalesOrderController extends Controller
     public function update(Request $request)
     {
         $item = SalesOrder::find($request->post('id'));
+
+        if ($item->status != SalesOrder::Status_Draft) {
+            return JsonResponseHelper::error('Order tidak dapat diubah.', 403);
+        }
+
         $item->customer_id = $request->post('customer_id');
         $item->notes = $request->post('notes', '');
         $item->datetime = $request->post('datetime', Carbon::now());
         $item->status = $request->post('status', SalesOrder::Status_Draft);
         $item->payment_status = $request->post('payment_status', SalesOrder::PaymentStatus_Unpaid);
         $item->delivery_status = $request->post('delivery_status', SalesOrder::DeliveryStatus_NotSent);
+
         $item->save();
         return JsonResponseHelper::success($item, 'Order telah diperbarui');
     }
@@ -310,5 +314,13 @@ class SalesOrderController extends Controller
         $item->delete();
         DB::commit();
         return JsonResponseHelper::success($item, 'Item telah dihapus.');
+    }
+
+    public function close(Request $request)
+    {
+        $item = SalesOrder::find($request->post('id'));
+        $item->customer_id = $request->post('customer_id');
+        $item->status = SalesOrder::Status_Closed;
+        dd($item->toArray());
     }
 }

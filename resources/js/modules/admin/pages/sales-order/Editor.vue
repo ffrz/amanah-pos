@@ -1,7 +1,7 @@
 <script setup>
 import { router, usePage } from "@inertiajs/vue3";
 import { ref, computed, nextTick, onMounted, onUnmounted, reactive } from "vue";
-import { debounce, useQuasar } from "quasar";
+import { debounce, Dialog, useQuasar } from "quasar";
 import axios from "axios";
 
 import ItemListTable from "./editor/ItemsListTable.vue";
@@ -218,7 +218,11 @@ const removeItem = (item) => {
         }
       })
       .catch((error) => {
-        showError("Gagal menghapus item", "top");
+        showError(
+          error?.response?.data?.message ??
+            "Terdapat kesalahan saat menghapus item!",
+          "top"
+        );
         console.error(error);
       })
       .finally(() => {
@@ -254,38 +258,15 @@ const updateItem = () => {
       }
     })
     .catch((error) => {
-      showError("Gagal memperbarui item", "top");
+      showError(
+        error?.response?.data?.message ?? "Terdapat kesalahan saat menyimpan!",
+        "top"
+      );
       console.error(error);
     })
     .finally(() => {
       isProcessing.value = false;
     });
-};
-
-const handlePayment = (data) => {
-  if (form.items.length === 0) {
-    showInfo("Item masih kosong", "top");
-    return;
-  }
-
-  isProcessing.value = true;
-  setTimeout(() => {
-    isProcessing.value = false;
-    showPaymentDialog.value = false;
-    showSuccessDialog.value = true;
-  }, 500);
-
-  const postData = {
-    ...data,
-    ...form,
-    action: "payment",
-  };
-
-  payment.value = postData;
-
-  console.log(postData);
-  return;
-  axios.post(route("admin.sales-order.update"), postData);
 };
 
 onMounted(() => {
@@ -343,12 +324,76 @@ const updateOrder = () => {
       form.customer_id = updated.customer_id;
     })
     .catch((error) => {
-      showError("Terdapat kesalahan saat menyimpan!", "top");
+      showError(
+        error?.response?.data?.message ?? "Terdapat kesalahan saat menyimpan!",
+        "top"
+      );
       console.error(error);
     })
     .finally(() => {
       isProcessing.value = false;
     });
+};
+
+const handlePayment = (data) => {
+  if (form.items.length === 0) {
+    showInfo("Item masih kosong", "top");
+    return;
+  }
+
+  isProcessing.value = true;
+  setTimeout(() => {
+    isProcessing.value = false;
+    showPaymentDialog.value = false;
+    showSuccessDialog.value = true;
+  }, 500);
+
+  const postData = {
+    ...data,
+    ...form,
+  };
+
+  payment.value = postData;
+
+  console.log(postData);
+  return;
+  axios.post(route("admin.sales-order.close"), postData);
+};
+
+const cancelOrder = () => {
+  Dialog.create({
+    title: "Konfirmasi Pembatalan",
+    icon: "question",
+    message: `Batalkan transaksi #${form.formatted_id}?`,
+    focus: "cancel",
+    cancel: true,
+    persistent: true,
+  }).onOk(() => {
+    axios
+      .post(
+        route("admin.sales-order.cancel", {
+          id: form.id,
+        }),
+        {
+          id: form.id,
+        }
+      )
+      .then((response) => {
+        // TODO: alihkan ke halaman rincian
+        alert("transaksi telah dibatalkan");
+      })
+      .catch((error) => {
+        const errorMessage =
+          error.response?.data?.message ||
+          "Terjadi kesalahan saat membatalkan transaksi.";
+        $q.notify({
+          message: errorMessage,
+          color: "warning",
+          position: "bottom",
+        });
+        console.error(error);
+      });
+  });
 };
 </script>
 
@@ -454,19 +499,6 @@ const updateOrder = () => {
                 label="Gabungkan item"
                 :disable="isProcessing"
               />
-
-              <div class="col text-right q-mr-sm" v-if="!$q.screen.gt.sm">
-                <q-btn
-                  flat
-                  icon="edit"
-                  color="grey"
-                  dense
-                  rounded
-                  size="sm"
-                  title="Edit Order Info"
-                  @click="showOrderInfoDialog = true"
-                />
-              </div>
             </div>
           </div>
         </div>
@@ -500,17 +532,7 @@ const updateOrder = () => {
 
           <div class="col" v-if="$q.screen.gt.sm">
             <div class="q-pa-sm q-pb-none text-grey-8">
-              <div>
-                #: {{ form.formatted_id }}
-                <q-btn
-                  icon="edit"
-                  flat
-                  size="xs"
-                  dense
-                  rounded
-                  @click="showOrderInfoDialog = true"
-                />
-              </div>
+              <div>#: {{ form.formatted_id }}</div>
               <div>{{ formatDateTime(form.datetime) }}</div>
             </div>
           </div>
@@ -528,16 +550,66 @@ const updateOrder = () => {
             </div>
           </div>
         </div>
-        <div class="row q-px-sm q-py-sm">
-          <q-btn
-            class="full-width"
-            label="Bayar"
-            color="primary"
-            icon="payment"
-            @click="showPaymentDialog = true"
-            :disable="isProcessing || form.items.length === 0"
-            :loading="isProcessing"
-          />
+        <div class="row q-px-sm q-pb-none q-py-sm q-col-gutter-sm">
+          <div class="col q-py-sm">
+            <q-btn
+              class="full-width q-py-none"
+              label="Bayar"
+              color="primary"
+              icon="payment"
+              @click="showPaymentDialog = true"
+              :disable="
+                isProcessing ||
+                form.items.length === 0 ||
+                form.status !== 'draft'
+              "
+              :loading="isProcessing"
+            />
+          </div>
+          <div class="q-py-sm">
+            <q-btn
+              class="q-py-none"
+              icon="more_vert"
+              color="grey"
+              @click.stop
+              style="width: 10px"
+            >
+              <q-menu
+                anchor="bottom right"
+                self="top right"
+                transition-show="scale"
+                transition-hide="scale"
+              >
+                <q-list style="width: 200px">
+                  <q-item
+                    clickable
+                    v-ripple
+                    v-close-popup
+                    @click.stop="showOrderInfoDialog = true"
+                  >
+                    <q-item-section avatar>
+                      <q-icon name="edit" />
+                    </q-item-section>
+                    <q-item-section>Edit Rincian</q-item-section>
+                  </q-item>
+                  <q-item
+                    clickable
+                    v-ripple
+                    v-close-popup
+                    @click.stop="cancelOrder()"
+                  >
+                    <q-item-section avatar>
+                      <q-icon name="cancel" color="negative" />
+                    </q-item-section>
+                    <q-item-section class="text-negative">
+                      Batalkan
+                    </q-item-section>
+                  </q-item>
+                  <q-separator />
+                </q-list>
+              </q-menu>
+            </q-btn>
+          </div>
         </div>
       </q-card>
 

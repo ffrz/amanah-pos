@@ -7,8 +7,6 @@ import { QSelect, QBtnToggle } from "quasar";
 import DatePicker from "@/components/DatePicker.vue";
 import { date as QuasarDate } from "quasar";
 
-const page = usePage();
-
 const props = defineProps({
   modelValue: {
     type: Boolean,
@@ -28,14 +26,14 @@ const props = defineProps({
   },
 });
 
-const isProcessing = ref(false);
-const paymentMode = ref("cash");
-// Gunakan objek Date, bukan string
-const debtDueDate = ref(new Date());
-
 const emit = defineEmits(["update:modelValue", "accepted"]);
 
+const page = usePage();
+const isProcessing = ref(false);
+const paymentMode = ref("cash");
+const debtDueDate = ref(new Date());
 const firstPaymentInputRef = ref(null);
+const payments = reactive([{ id: 1, type: "cash", amount: 0.0 }]);
 
 const paymentOptions = computed(() => [
   { label: "Tunai", value: "cash", type: "cash" },
@@ -48,8 +46,6 @@ const paymentOptions = computed(() => [
     type: "transfer",
   })),
 ]);
-
-const payments = reactive([{ id: 1, type: "cash", amount: 0.0 }]);
 
 const totalPayment = computed(() => {
   return payments.reduce((sum, p) => sum + (p.amount || 0.0), 0.0);
@@ -66,14 +62,12 @@ const isWalletAmountValid = computed(() => {
   return amount <= props.customer.balance;
 });
 
-// DEFINISI TANGGAL KONSISTEN DENGAN OBJEK Date
 const today = new Date();
 const futureDate = QuasarDate.addToDate(new Date(), { days: 30 });
 
 const debtDateRules = computed(() => [
   (val) => !!val || "Tanggal jatuh tempo harus diisi",
   (val) => {
-    // Validasi langsung menggunakan objek Date
     if (
       !QuasarDate.isBetweenDates(val, today, futureDate, {
         inclusiveFrom: true,
