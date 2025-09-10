@@ -33,17 +33,14 @@ const isProcessing = ref(false);
 const paymentMode = ref("cash");
 const debtDueDate = ref(new Date());
 const firstPaymentInputRef = ref(null);
-const payments = reactive([{ id: 1, type: "cash", amount: 0.0 }]);
+const payments = reactive([{ id: "cash", amount: 0.0 }]);
 
 const paymentOptions = computed(() => [
-  { label: "Tunai", value: "cash", type: "cash" },
-  ...(props.customer
-    ? [{ label: "Dompet", value: "wallet", type: "wallet" }]
-    : []),
+  { label: "Tunai", value: "cash" },
+  ...(props.customer ? [{ label: "Wallet", value: "wallet" }] : []),
   ...page.props.accounts.map((a) => ({
     label: a.name + " - " + a.number,
     value: a.id,
-    type: "transfer",
   })),
 ]);
 
@@ -57,7 +54,7 @@ const remainingTotal = computed(() => {
 
 const isWalletAmountValid = computed(() => {
   if (!props.customer) return true;
-  const walletPayment = payments.find((p) => p.type === "wallet");
+  const walletPayment = payments.find((p) => p.id === "wallet");
   const amount = walletPayment ? walletPayment.amount : 0.0;
   return amount <= props.customer.balance;
 });
@@ -98,7 +95,7 @@ const isValid = computed(() => {
 
 const addPayment = () => {
   if (payments.length < 3) {
-    payments.push({ id: payments.length + 1, type: "cash", amount: 0.0 });
+    payments.push({ id: "cash", amount: 0.0 });
   }
 };
 
@@ -118,8 +115,7 @@ const changePaymentMode = (mode) => {
 
   if (mode === "cash") {
     payments.splice(0, payments.length, {
-      id: 1,
-      type: "cash",
+      id: "cash",
       amount: props.total,
     });
     nextTick(() => {
@@ -135,13 +131,14 @@ const handleFinalizePayment = () => {
   if (!isValid.value) {
     return;
   }
+
   isProcessing.value = true;
   let payload = {
     total: props.total,
     is_debt: paymentMode.value === "debt",
   };
+
   if (paymentMode.value === "debt") {
-    // Konversi ke format string hanya saat mengirim ke backend
     payload.due_date = QuasarDate.formatDate(debtDueDate.value, "YYYY-MM-DD");
     payload.payments = [];
   } else {
@@ -152,6 +149,7 @@ const handleFinalizePayment = () => {
     payload.remaining_debt = remainingDebt;
     payload.change = change;
   }
+
   emit("accepted", payload);
   isProcessing.value = false;
 };
@@ -212,7 +210,7 @@ const onBeforeShow = () => {
           >
             <div class="col-6">
               <q-select
-                v-model="payment.type"
+                v-model="payment.id"
                 :options="paymentOptions"
                 label="Metode Pembayaran"
                 :outlined="true"
@@ -231,9 +229,9 @@ const onBeforeShow = () => {
                 :outlined="true"
                 dense
                 :disable="isProcessing"
-                :error="payment.type === 'wallet' && !isWalletAmountValid"
+                :error="payment.id === 'wallet' && !isWalletAmountValid"
                 :error-message="
-                  payment.type === 'wallet' && !isWalletAmountValid
+                  payment.id === 'wallet' && !isWalletAmountValid
                     ? 'Saldo tidak cukup!'
                     : ''
                 "

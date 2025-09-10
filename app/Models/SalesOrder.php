@@ -17,6 +17,9 @@ class SalesOrder extends BaseModel
         'total_cost',
         'total_price',
         'total_paid',
+        'grand_total',
+        'remaining_debt',
+        'change',
         'notes',
     ];
 
@@ -76,6 +79,11 @@ class SalesOrder extends BaseModel
             'total_cost'      => 'decimal:2',
             'total_price'     => 'decimal:2',
             'total_paid'      => 'decimal:2',
+
+            'grand_total'     => 'decimal:2',
+            'remaining_debt'  => 'decimal:2',
+            'change'          => 'decimal:2',
+
             'notes'           => 'string',
             'created_by' => 'integer',
             'updated_by' => 'integer',

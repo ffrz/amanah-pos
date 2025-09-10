@@ -22,7 +22,12 @@ return new class extends Migration
             $table->date('due_date')->nullable();
             $table->decimal('total_cost', 18, 2)->default(0.);
             $table->decimal('total_price', 18, 2)->default(0.);
-            $table->decimal('total_paid', 18, 2)->default(0.);
+            $table->decimal('total_paid', 18, 2)->default(0.); // jumlah yang dibayar
+
+            $table->decimal('grand_total', 18, 2)->default(0.); // grand total setelah pajak dan diskon
+            $table->decimal('remaining_debt', 18, 2)->default(0.); // jumlah sisa utang
+            $table->decimal('change', 18, 2)->default(0.); // kembalian
+
             $table->text('notes')->nullable();
             $table->createdUpdatedTimestamps();
             $table->index(['customer_id']);

@@ -341,23 +341,25 @@ const handlePayment = (data) => {
     return;
   }
 
-  isProcessing.value = true;
-  setTimeout(() => {
-    isProcessing.value = false;
-    showPaymentDialog.value = false;
-    showSuccessDialog.value = true;
-  }, 500);
-
-  const postData = {
+  const payload = {
+    id: form.id,
     ...data,
-    ...form,
   };
 
-  payment.value = postData;
-
-  console.log(postData);
-  return;
-  axios.post(route("admin.sales-order.close"), postData);
+  console.log(data);
+  isProcessing.value = true;
+  axios
+    .post(route("admin.sales-order.close"), payload)
+    .then((response) => {
+      showInfo("Transaksi selesai");
+      router.visit(route("admin.sales-order.detail", { id: form.id }));
+    })
+    .catch((error) => {
+      console.error(error);
+    })
+    .finally(() => {
+      isProcessing.value = false;
+    });
 };
 
 const cancelOrder = () => {

@@ -59,5 +59,11 @@ class AppServiceProvider extends ServiceProvider
             $this->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
             $this->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
         });
+
+        Blueprint::macro('createdTimestamps', function () {
+            /** @var Blueprint $this */
+            $this->dateTime('created_at')->nullable();
+            $this->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
+        });
     }
 }

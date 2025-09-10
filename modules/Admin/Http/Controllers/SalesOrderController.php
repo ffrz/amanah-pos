@@ -9,8 +9,10 @@ use App\Models\Customer;
 use App\Models\FinanceAccount;
 use App\Models\Product;
 use App\Models\SalesOrderDetail;
+use App\Models\SalesOrderPayment;
 use App\Models\User;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -318,9 +320,87 @@ class SalesOrderController extends Controller
 
     public function close(Request $request)
     {
-        $item = SalesOrder::find($request->post('id'));
-        $item->customer_id = $request->post('customer_id');
-        $item->status = SalesOrder::Status_Closed;
-        dd($item->toArray());
+        $order = SalesOrder::with('details')->find($request->post('id'));
+
+        if (!$order) {
+            return JsonResponseHelper::error('Item tidak ditemukan');
+        }
+
+        if ($order->status !== SalesOrder::Status_Draft) {
+            return JsonResponseHelper::error('Order selesai tidak dapat diubah!');
+        }
+
+        $details = $order->details;
+        $total_cost = 0;
+        $total_price = 0;
+        foreach ($details as $detail) {
+            $total_cost += $detail->cost * $detail->quantity;
+            $total_price += $detail->price * $detail->quantity;
+        }
+
+        $order->total_cost = $total_cost;
+        $order->total_price = $total_price;
+
+        // karena belum ada pajak dan diskon, grand total selalu dali total harga jual
+        $order->grand_total = $order->total_price;
+
+        // TODO: ini validasi lanjutan untuk memastikan total yang ditampilkan di client sama dengan jumlah total di server
+        if (floatval($order->grand_total) !== floatval($request->post('total', 0))) {
+            return JsonResponseHelper::error('Gagal menyimpan transaksi, coba refresh halaman!');
+        }
+
+        $order->due_date = $request->post('due_date', null);
+        if (!$request->post('is_debt', false)) {
+            $order->total_paid = $request->post('total', 0);
+        }
+        $order->change = $request->post('change', 0);
+        $order->remaining_debt = $request->post('remaining_debt', 0);
+
+        // tutup status
+        $order->status = SalesOrder::Status_Closed;
+        if ($order->total_paid >= $order->grand_total) {
+            $order->payment_status = SalesOrder::PaymentStatus_FullyPaid;
+        } else if ($order->total_paid > 0) {
+            $order->payment_status = SalesOrder::PaymentStatus_PartiallyPaid;
+        } else {
+            $order->payment_status = SalesOrder::PaymentStatus_Unpaid;
+        }
+
+        DB::beginTransaction();
+        $order->save();
+        $payments = $request->post('payments', []);
+        foreach ($payments as $inputPayment) {
+            if (!isset($inputPayment['id'])) {
+                return JsonResponseHelper::error('Invalid payment input format!');
+            }
+
+            $account_id = null;
+            $type = 'cash'; // TODO: Jadikan konstanta di model
+            if ($inputPayment['id'] == 'cash') {
+                $type = 'cash'; // TODO: Jadikan konstanta di model
+                // TODO: disini harus catat transaksi kasir dan tambahkan uang kas di kasir
+            } else if ($inputPayment['id'] == 'wallet') {
+                $type = 'wallet'; // TODO: Jadikan konstanta di model
+                // TODO: disini harus cata transaksi wallet dan kurangi saldo wallet milik pealnggan
+            } else if ($id = intval($inputPayment['id'])) {
+                $type = 'transer'; // TODO: Jadikan konstanta di model
+                $account_id = $id;
+                // TODO: disini harus catat transaksi di kas dan tambahkan saldo akun kas tersebut
+            }
+
+            $payment = new SalesOrderPayment([
+                'order_id' => $order->id,
+                'finance_account_id' => $account_id ? $account_id : null,
+                'customer_id' => $order->customer_id ? $order->customer_id : null,
+                'type' => $type,
+            ]);
+            $payment->type = $type;
+            $payment->amount = floatval($inputPayment['amount']);
+            $payment->save();
+        }
+
+        DB::commit();
+
+        return JsonResponseHelper::success($order, "Order telah selesai.");
     }
 }
