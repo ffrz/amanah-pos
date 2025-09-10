@@ -318,7 +318,7 @@ const onBeforeShow = () => {
           :label="paymentMode === 'debt' ? 'Catat Utang' : 'Bayar'"
           color="positive"
           @click="handleFinalizePayment"
-          :disable="isProcessing || !isValid.value"
+          :disable="isProcessing || !isValid"
           :loading="isProcessing"
         />
       </q-card-actions>

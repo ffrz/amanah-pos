@@ -33,9 +33,17 @@ const showHelpDialog = ref(false);
 const authLayoutRef = ref(null);
 const targetDiv = ref(null);
 const { isFullscreen, toggleFullscreen } = useFullscreen(targetDiv);
-
 const title = page.props.company.name;
 const customer = ref(page.props.data.customer);
+const payment = ref(null);
+const userInput = ref("");
+const isProcessing = ref(false);
+const showPaymentDialog = ref(false);
+const showProductBrowserDialog = ref(false);
+const showItemEditorDialog = ref(false);
+const showOrderInfoDialog = ref(false);
+const showSuccessDialog = ref(false);
+const itemToEdit = ref(null);
 
 const form = reactive({
   id: page.props.data.id,
@@ -48,17 +56,6 @@ const form = reactive({
   notes: page.props.data.notes,
   items: page.props.data.details ?? [],
 });
-
-const payment = ref(null);
-
-const userInput = ref("");
-const isProcessing = ref(false);
-const showPaymentDialog = ref(false);
-const showProductBrowserDialog = ref(false);
-const showItemEditorDialog = ref(false);
-const showOrderInfoDialog = ref(false);
-const showSuccessDialog = ref(false);
-const itemToEdit = ref(null);
 
 const total = computed(() => {
   return form.items.reduce((sum, item) => {
