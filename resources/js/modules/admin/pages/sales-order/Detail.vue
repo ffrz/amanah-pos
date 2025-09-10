@@ -21,5 +21,18 @@ const title = `Rincian ${data.formatted_id}`;
         />
       </div>
     </template>
+    <q-page class="row justify-center">
+      <div class="col col-md-6 q-pa-xs">
+        <div class="row">
+          <q-card square flat bordered class="col">
+            <q-card-section>
+              <div class="text-subtitle1 text-bold text-grey-8">
+                Info Pemasok
+              </div>
+            </q-card-section>
+          </q-card>
+        </div>
+      </div>
+    </q-page>
   </authenticated-layout>
 </template>

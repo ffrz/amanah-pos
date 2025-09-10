@@ -374,13 +374,11 @@ const cancelOrder = () => {
         route("admin.sales-order.cancel", {
           id: form.id,
         }),
-        {
-          id: form.id,
-        }
+        { id: form.id }
       )
-      .then((response) => {
-        // TODO: alihkan ke halaman rincian
-        alert("transaksi telah dibatalkan");
+      .then(() => {
+        showInfo("Transaksi telah dibatalkan.");
+        router.visit(route("admin.sales-order.detail", { id: form.id }));
       })
       .catch((error) => {
         const errorMessage =
