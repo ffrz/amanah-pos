@@ -162,7 +162,8 @@ class SalesOrderController extends Controller
     public function detail($id)
     {
         return inertia('sales-order/Detail', [
-            'data' => SalesOrder::findOrFail($id),
+            'data' => SalesOrder::with(['customer', 'details'])
+                ->findOrFail($id),
         ]);
     }
 

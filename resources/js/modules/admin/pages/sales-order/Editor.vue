@@ -395,6 +395,12 @@ const cancelOrder = () => {
       });
   });
 };
+
+const invoicePreview = () => {
+  router.visit(route("admin.sales-order.detail", { id: form.id }), {
+    target: "_blank",
+  });
+};
 </script>
 
 <template>
@@ -591,6 +597,17 @@ const cancelOrder = () => {
                       <q-icon name="edit" />
                     </q-item-section>
                     <q-item-section>Edit Rincian</q-item-section>
+                  </q-item>
+                  <q-item
+                    clickable
+                    v-ripple
+                    v-close-popup
+                    @click.stop="invoicePreview()"
+                  >
+                    <q-item-section avatar>
+                      <q-icon name="preview" />
+                    </q-item-section>
+                    <q-item-section>Pratinjau</q-item-section>
                   </q-item>
                   <q-item
                     clickable

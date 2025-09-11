@@ -46,66 +46,68 @@ const focusOnButton = () => {
       <q-card-section align="center">
         <div class="q-mb-md">Transaksi Berhasil</div>
         <table>
-          <tr>
-            <td>ID</td>
-            <td>:</td>
-            <td>{{ order.formatted_id }}</td>
-          </tr>
-          <tr v-if="customer">
-            <td style="vertical-align: top">Pelanggan</td>
-            <td style="vertical-align: top">:</td>
-            <td>{{ customer.name }} <br />{{ customer.username }}</td>
-          </tr>
-          <tr>
-            <td>Total</td>
-            <td>:</td>
-            <td>
-              Rp.
-              <div style="float: right">
-                {{ formatNumber(payment.total) }}
-              </div>
-            </td>
-          </tr>
-          <tr v-if="payment.cash_amount">
-            <td>Tunai</td>
-            <td>:</td>
-            <td>
-              Rp.
-              <div style="float: right">
-                {{ formatNumber(payment.cash_amount) }}
-              </div>
-            </td>
-          </tr>
-          <tr v-if="payment.wallet_amount">
-            <td>Wallet</td>
-            <td>:</td>
-            <td>
-              Rp.
-              <div style="float: right">
-                {{ formatNumber(payment.wallet_amount) }}
-              </div>
-            </td>
-          </tr>
-          <tr v-if="payment.remaining_debt">
-            <td>Piutang</td>
-            <td>:</td>
-            <td>
-              Rp.
-              <span style="float: right">{{
-                formatNumber(payment.remaining_debt)
-              }}</span>
-            </td>
-          </tr>
-          <tr>
-            <td>Kembalian</td>
-            <td>:</td>
-            <td>
-              Rp.
-              <div style="float: right">
-                {{ formatNumber(payment.change) }}
-              </div>
-            </td>
-          </tr>
+          <tbody>
+            <tr>
+              <td>ID</td>
+              <td>:</td>
+              <td>{{ order.formatted_id }}</td>
+            </tr>
+            <tr v-if="customer">
+              <td style="vertical-align: top">Pelanggan</td>
+              <td style="vertical-align: top">:</td>
+              <td>{{ customer.name }} <br />{{ customer.username }}</td>
+            </tr>
+            <tr>
+              <td>Total</td>
+              <td>:</td>
+              <td>
+                Rp.
+                <div style="float: right">
+                  {{ formatNumber(payment.total) }}
+                </div>
+              </td>
+            </tr>
+            <tr v-if="payment.cash_amount">
+              <td>Tunai</td>
+              <td>:</td>
+              <td>
+                Rp.
+                <div style="float: right">
+                  {{ formatNumber(payment.cash_amount) }}
+                </div>
+              </td>
+            </tr>
+            <tr v-if="payment.wallet_amount">
+              <td>Wallet</td>
+              <td>:</td>
+              <td>
+                Rp.
+                <div style="float: right">
+                  {{ formatNumber(payment.wallet_amount) }}
+                </div>
+              </td>
+            </tr>
+            <tr v-if="payment.remaining_debt">
+              <td>Piutang</td>
+              <td>:</td>
+              <td>
+                Rp.
+                <span style="float: right">{{
+                  formatNumber(payment.remaining_debt)
+                }}</span>
+              </td>
+            </tr>
+            <tr>
+              <td>Kembalian</td>
+              <td>:</td>
+              <td>
+                Rp.
+                <div style="float: right">
+                  {{ formatNumber(payment.change) }}
+                </div>
+              </td>
+            </tr>
+          </tbody>
         </table>
       </q-card-section>
       <q-card-actions align="center">
