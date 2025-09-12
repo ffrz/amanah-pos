@@ -3,6 +3,7 @@
 namespace Modules\Admin\Http\Controllers;
 
 use App\Helpers\JsonResponseHelper;
+use App\Helpers\NumberHelper;
 use App\Http\Controllers\Controller;
 use App\Models\SalesOrder;
 use App\Models\Customer;
@@ -19,7 +20,6 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Nette\NotImplementedException;
 
 class SalesOrderController extends Controller
 {
@@ -399,137 +399,133 @@ class SalesOrderController extends Controller
             return JsonResponseHelper::error('Order selesai tidak dapat diubah!');
         }
 
-        $details = $order->details;
-        $total_cost = 0;
-        $total_price = 0;
-        foreach ($details as $detail) {
-            $total_cost += $detail->cost * $detail->quantity;
-            $total_price += $detail->price * $detail->quantity;
-        }
+        try {
+            DB::beginTransaction();
 
-        $order->total_cost = $total_cost;
-        $order->total_price = $total_price;
+            // 1. Hitung total biaya dan harga di server
+            // Anggap kita punya helper parseToInt untuk semua angka
+            $total_cost = $order->details->sum(function ($detail) {
+                return round($detail->cost * $detail->quantity);
+            });
 
-        // karena belum ada pajak dan diskon, grand total selalu dali total harga jual
-        $order->grand_total = $order->total_price;
+            // Lakukan hal yang sama untuk total_price
+            $total_price = $order->details->sum(function ($detail) {
+                return round($detail->cost * $detail->quantity);
+            });
 
-        // TODO: ini validasi lanjutan untuk memastikan total yang ditampilkan di client sama dengan jumlah total di server
-        if (floatval($order->grand_total) !== floatval($request->post('total', 0))) {
-            return JsonResponseHelper::error('Gagal menyimpan transaksi, coba refresh halaman!');
-        }
+            $order->total_cost = $total_cost;
+            $order->total_price = $total_price;
+            $order->grand_total = $order->total_price;
 
-        $order->due_date = $request->post('due_date', null);
-        if (!$request->post('is_debt', false)) {
-            $order->total_paid = $request->post('total', 0);
-        }
-        $order->change = $request->post('change', 0);
-        $order->remaining_debt = $request->post('remaining_debt', 0);
+            // 2. Validasi grand total dengan input dari klien
+            $clientTotal = intval($request->post('total', 0));
+            $serverTotal = intval($order->grand_total);
 
-        // tutup status
-        $order->status = SalesOrder::Status_Closed;
-        if ($order->total_paid >= $order->grand_total) {
-            $order->payment_status = SalesOrder::PaymentStatus_FullyPaid;
-        } else if ($order->total_paid > 0) {
-            $order->payment_status = SalesOrder::PaymentStatus_PartiallyPaid;
-        } else {
-            $order->payment_status = SalesOrder::PaymentStatus_Unpaid;
-        }
-
-        DB::beginTransaction();
-        $order->save();
-        $payments = $request->post('payments', []);
-        foreach ($payments as $inputPayment) {
-            if (!isset($inputPayment['id'])) {
-                return JsonResponseHelper::error('Invalid payment input format!');
+            if ($serverTotal !== $clientTotal) {
+                DB::rollBack();
+                return JsonResponseHelper::error('Gagal menyimpan transaksi, coba refresh halaman!');
             }
 
-            $id_or_type = $inputPayment['id'];
-            $amount = floatval($inputPayment['amount']);
+            // 3. Simpan dan proses pembayaran
+            $payments = $request->post('payments', []);
+            $totalPaidAmount = 0;
+            foreach ($payments as $inputPayment) {
+                if (!isset($inputPayment['id'])) {
+                    DB::rollBack();
+                    throw new Exception('Invalid input payment format!');
+                }
 
-            $account_id = null;
-            $customer = $order->customer;
+                $amount = intval($inputPayment['amount']);
+                $totalPaidAmount += $amount;
 
-            $type = SalesOrderPayment::Type_Cash;
-            if ($id_or_type === 'cash') {
-                $type = SalesOrderPayment::Type_Cash;
-            } else if ($id_or_type === 'wallet') {
-                $type = SalesOrderPayment::Type_Wallet;
-            } else if ($id_or_type = intval($id_or_type)) {
-                $type = SalesOrderPayment::Type_Transfer;
-                $account_id = $id_or_type;
-            }
+                $accountId = null;
+                $type = null;
 
-            $payment = new SalesOrderPayment([
-                'order_id' => $order->id,
-                'finance_account_id' => $account_id,
-                'customer_id' => $customer ? $customer->id : null,
-                'type' => $type,
-                'amount' => $amount,
-            ]);
-            $payment->save();
+                if ($inputPayment['id'] === 'cash') {
+                    $type = SalesOrderPayment::Type_Cash;
+                    // Ambil account ID kasir dari user yang login
+                    $accountId = Auth::user()->cashier_account_id;
+                    if (!$accountId) {
+                        DB::rollBack();
+                        throw new Exception("Akun kas belum diset!");
+                    }
+                } else if ($inputPayment['id'] === 'wallet') {
+                    $type = SalesOrderPayment::Type_Wallet;
+                } else if (intval($inputPayment['id'])) {
+                    $type = SalesOrderPayment::Type_Transfer;
+                    $accountId = (int)$inputPayment['id'];
+                }
 
-            if ($type == SalesOrderPayment::Type_Cash) {
-                $account_id = Auth::user()->cashier_account_id;
-                if (!$account_id) {
-                    throw new Exception("Akun kas belum diset!");
+                $payment = new SalesOrderPayment([
+                    'order_id' => $order->id,
+                    'finance_account_id' => $accountId,
+                    'customer_id' => $order->customer?->id,
+                    'type' => $type,
+                    'amount' => $amount,
+                ]);
+                $payment->save();
+
+                // Catat transaksi keuangan dan perbarui saldo
+                if ($type === SalesOrderPayment::Type_Transfer || $type === SalesOrderPayment::Type_Cash) {
+                    FinanceTransaction::create([
+                        'account_id' => $accountId,
+                        'datetime' => now(),
+                        'type' => FinanceTransaction::Type_Income,
+                        'amount' => $amount,
+                        'ref_id' => $payment->id,
+                        'ref_type' => FinanceTransaction::RefType_SalesOrderPayment,
+                        'notes' => "Pembayaran transaksi #$order->formatted_id",
+                    ]);
+                    FinanceAccount::where('id', $accountId)->increment('balance', $amount);
+                } else if ($type === SalesOrderPayment::Type_Wallet) {
+                    CustomerWalletTransaction::create([
+                        'customer_id' => $order->customer->id,
+                        'datetime' => now(),
+                        'type' => CustomerWalletTransaction::Type_SalesOrderPayment,
+                        'amount' => -$amount,
+                        'ref_type' => CustomerWalletTransaction::RefType_SalesOrderPayment,
+                        'ref_id' => $payment->id,
+                        'notes' => "Pembayaran transaksi #$order->formatted_id",
+                    ]);
+                    Customer::where('id', $order->customer->id)->decrement('balance', $amount);
                 }
             }
 
-            if ($type === SalesOrderPayment::Type_Transfer || $account_id !== null) {
-                // catat transaksi keuangan
-                $trx = new FinanceTransaction([
-                    'account_id' => $account_id,
-                    'datetime' => Carbon::now(),
-                    'type' => FinanceTransaction::Type_Income,
-                    'amount' => $amount, // nilai positif menambah kas
-                    'ref_id' => $payment->id,
-                    'ref_type' => FinanceTransaction::RefType_SalesOrderPayment,
-                    'notes' => "Pembayaran transaksi #$order->formatted_id",
-                ]);
-                $trx->save();
+            // 4. Update status pembayaran dan total yang dibayar
+            $order->total_paid = $totalPaidAmount;
+            $order->change = max(0, $order->total_paid - $order->grand_total);
+            $order->remaining_debt = max(0, $order->grand_total - $order->total_paid);
 
-                // tambahkan saldo rekening
-                $account = FinanceAccount::find($account_id);
-                $account->balance += $amount; // saldo kas bertambah
-                $account->save();
-            } else if ($type === SalesOrderPayment::Type_Wallet) {
-                // catat transaksi
-                $trx = new CustomerWalletTransaction([
-                    'customer_id' => $customer->id,
-                    'finance_account_id' => null,
-                    'datetime' => Carbon::now(),
-                    'type' => CustomerWalletTransaction::Type_SalesOrderPayment,
-                    'amount' => -$amount, // nilai negatif karena mengurangi saldo
-                    'ref_type' => CustomerWalletTransaction::RefType_SalesOrderPayment,
-                    'ref_id' => $payment->id,
-                    'notes' => "Pembayaran transaksi #$order->formatted_id",
-                ]);
-                $trx->save();
-
-                // kurangi saldo wallet
-                $customer->balance -= $amount;
-                $customer->save();
+            if ($order->total_paid >= $order->grand_total) {
+                $order->payment_status = SalesOrder::PaymentStatus_FullyPaid;
+            } else if ($order->total_paid > 0) {
+                $order->payment_status = SalesOrder::PaymentStatus_PartiallyPaid;
+            } else {
+                $order->payment_status = SalesOrder::PaymentStatus_Unpaid;
             }
+
+            $order->status = SalesOrder::Status_Closed;
+            $order->due_date = $request->post('due_date', null);
+            $order->save();
+
+            // 5. Perbarui stok produk secara massal
+            foreach ($order->details as $detail) {
+                $quantity = $detail->quantity;
+                StockMovement::create([
+                    'product_id' => $detail->product_id,
+                    'ref_id'     => $detail->id,
+                    'ref_type'   => StockMovement::RefType_SalesOrderDetail,
+                    'quantity'   => -$quantity,
+                ]);
+
+                Product::where('id', $detail->product_id)->decrement('stock', $quantity);
+            }
+
+            DB::commit();
+        } catch (\Throwable $ex) {
+            DB::rollBack();
+            return JsonResponseHelper::error($ex->getMessage(), 500, $ex);
         }
-
-        foreach ($order->details as $detail) {
-            $quantity = abs($detail->quantity);
-            // catat stock movement
-            $stockMovement = new StockMovement([
-                'product_id' => $detail->product_id,
-                'ref_id'     => $detail->id,
-                'ref_type'   => StockMovement::RefType_SalesOrderDetail,
-                'quantity'   => -$quantity, // negatif karena keluar dari stok
-            ]);
-            $stockMovement->save();
-
-            // update stok produk
-            $product = $detail->product;
-            $product->stock -= $quantity;
-            $product->save();
-        }
-
-        DB::commit();
 
         return JsonResponseHelper::success($order, "Order telah selesai.");
     }
