@@ -321,7 +321,7 @@ class SalesOrderController extends Controller
 
     public function close(Request $request)
     {
-        $order = SalesOrder::with('details')->find($request->post('id'));
+        $order = SalesOrder::with(['customer', 'details'])->find($request->post('id'));
 
         if (!$order) {
             return JsonResponseHelper::error('Item tidak ditemukan');
@@ -376,15 +376,17 @@ class SalesOrderController extends Controller
             }
 
             $account_id = null;
-            $type = 'cash'; // TODO: Jadikan konstanta di model
+            $type = SalesOrderPayment::Type_Cash; // TODO: Jadikan konstanta di model
             if ($inputPayment['id'] == 'cash') {
-                $type = 'cash'; // TODO: Jadikan konstanta di model
+                $type = SalesOrderPayment::Type_Cash;
                 // TODO: disini harus catat transaksi kasir dan tambahkan uang kas di kasir
             } else if ($inputPayment['id'] == 'wallet') {
-                $type = 'wallet'; // TODO: Jadikan konstanta di model
-                // TODO: disini harus cata transaksi wallet dan kurangi saldo wallet milik pealnggan
+                $type = SalesOrderPayment::Type_Wallet;
+                $customer = $order->customer;
+                if (!$order->customer) {
+                }
             } else if ($id = intval($inputPayment['id'])) {
-                $type = 'transer'; // TODO: Jadikan konstanta di model
+                $type = SalesOrderPayment::Type_Transfer;
                 $account_id = $id;
                 // TODO: disini harus catat transaksi di kas dan tambahkan saldo akun kas tersebut
             }

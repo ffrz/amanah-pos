@@ -12,6 +12,19 @@ class SalesOrderPayment extends BaseModel
         'amount',
     ];
 
+    /**
+     * Transaction types.
+     */
+    const Type_Transfer = 'transfer';
+    const Type_Cash = 'cash';
+    const Type_Wallet = 'wallet';
+
+    const Types = [
+        self::Type_Transfer => 'Transfer',
+        self::Type_Cash => 'Tunai',
+        self::Type_Wallet => 'Wallet',
+    ];
+
     protected function casts(): array
     {
         return [
@@ -23,6 +36,12 @@ class SalesOrderPayment extends BaseModel
             'created_at'  => 'datetime',
         ];
     }
+
+    public function getTypeLabelAttribute()
+    {
+        return self::Types[$this->type] ?? '-';
+    }
+
 
     public function order()
     {
