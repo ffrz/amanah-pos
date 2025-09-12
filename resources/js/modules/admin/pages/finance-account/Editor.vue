@@ -12,7 +12,6 @@ const title = (!!page.props.data.id ? "Edit" : "Tambah") + " Akun / Kas";
 const form = useForm({
   id: page.props.data.id,
   name: page.props.data.name,
-  cashier_code: page.props.data.cashier_code,
   type: page.props.data.type,
   bank: page.props.data.bank,
   number: page.props.data.number,
@@ -98,16 +97,6 @@ watch(
                 hide-bottom-space
               >
               </q-select>
-              <q-input
-                v-if="form.type == 'cashier_cash'"
-                v-model.trim="form.cashier_code"
-                label="Kode Kasir"
-                lazy-rules
-                :error="!!form.errors.cashier_code"
-                :disable="form.processing"
-                :error-message="form.errors.cashier_code"
-                hide-bottom-space
-              />
               <template v-if="form.type == 'bank'">
                 <q-input
                   v-model.trim="form.bank"

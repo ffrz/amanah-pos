@@ -85,7 +85,6 @@ class FinanceAccountController extends Controller
         $validated = $request->validate([
             'name'     => 'required|string|max:40|unique:finance_accounts,name' . ($request->id ? ',' . $request->id : ''),
             'type'     => 'required|in:' . implode(',', array_keys(FinanceAccount::Types)),
-            'cashier_code' => 'nullable|string|max:40|unique:finance_accounts,cashier_code' . ($request->id ? ',' . $request->id : ''),
             'bank'     => 'nullable|string|max:40',
             'number'   => 'nullable|string|max:20',
             'holder'   => 'nullable|string|max:100',

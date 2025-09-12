@@ -21,9 +21,6 @@ class FinanceAccount extends BaseModel
         'show_in_purchasing_payment',
         'balance',
         'notes',
-
-        // ---
-        'cashier_code',
     ];
 
     /**

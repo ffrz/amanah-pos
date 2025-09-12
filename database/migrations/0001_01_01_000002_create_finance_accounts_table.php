@@ -15,9 +15,6 @@ return new class extends Migration
         Schema::create('finance_accounts', function (Blueprint $table) {
             $table->id();
             $table->string('name', 40)->unique();
-
-            // FIXME: kemungkinan harus dihapus kalau tiap user kasir wajib punya akun kas
-            $table->string('cashier_code', 40)->nullable();
             $table->string('type', 30);
             $table->string('bank', 40)->default('');
             $table->string('number', 20)->default('');
