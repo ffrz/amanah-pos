@@ -77,7 +77,7 @@ class CustomerWalletTransactionController extends Controller
 
         if (
             in_array($validated['type'], [
-                CustomerWalletTransaction::Type_Purchase,
+                CustomerWalletTransaction::Type_PurchaseOrderPayment,
                 CustomerWalletTransaction::Type_Withdrawal,
             ])
         ) {
