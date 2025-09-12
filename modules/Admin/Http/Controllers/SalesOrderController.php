@@ -17,6 +17,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Nette\NotImplementedException;
 
@@ -157,14 +158,72 @@ class SalesOrderController extends Controller
     {
         allowed_roles([User::Role_Admin]);
 
-        $item = SalesOrder::findOrFail($id);
+        $order = SalesOrder::with([
+            'details',
+            'payments',
+            'details.product',
+            'payments.account'
+        ])
+            ->findOrFail($id);
 
-        // TODO: handle jika statusnya closed harus di restock
+        DB::beginTransaction();
+        if ($order->status == SalesOrder::Status_Closed) {
+            // refund stok
+            foreach ($order->details as $detail) {
+                $product = $detail->product;
+                $product->stock += abs($detail->quantity);
+                $product->save();
 
-        $item->delete();
+                $movement = StockMovement::where('ref_type', '=', StockMovement::RefType_SalesOrderDetail)
+                    ->where('ref_id', '=', $detail->id)
+                    ->get()->first();
+                if ($movement) {
+                    $movement->delete();
+                }
+            }
+
+            foreach ($order->payments as $payment) {
+                $amount = abs($payment->amount);
+
+                // refund customer wallet
+                if ($payment->type == SalesOrderPayment::Type_Wallet) {
+                    $customer = $payment->customer;
+                    $customer->balance += $amount;
+                    $customer->save();
+
+                    $walletTx = CustomerWalletTransaction::where('ref_type', '=', CustomerWalletTransaction::RefType_SalesOrderPayment)
+                        ->where('ref_id', '=', $payment->id)
+                        ->get()->first();
+                    if ($walletTx) {
+                        $walletTx->delete();
+                    }
+                }
+                // restore saldo akun
+                else if (
+                    $payment->type == SalesOrderPayment::Type_Transfer
+                    || $payment->type == SalesOrderPayment::Type_Cash
+                ) {
+                    $account = $payment->account;
+                    $account->balance -= $amount;
+                    $account->save();
+
+                    $financeTx = FinanceTransaction::where('ref_type', '=', FinanceTransaction::RefType_SalesOrderPayment)
+                        ->where('ref_id', '=', $payment->id)
+                        ->get()->first();
+                    if ($financeTx) {
+                        $financeTx->delete();
+                    }
+                }
+
+                $payment->delete();
+            }
+        }
+
+        $order->delete();
+        DB::commit();
 
         return response()->json([
-            'message' => "Transaksi #$item->formatted_id telah dihapus.",
+            'message' => "Transaksi #$order->formatted_id telah dihapus.",
         ]);
     }
 
@@ -410,9 +469,10 @@ class SalesOrderController extends Controller
             $payment->save();
 
             if ($type == SalesOrderPayment::Type_Cash) {
-                throw new NotImplementedException("Belum diimplementasikan");
-                // TODO: cari akun id yang digunakan sebagai kas kasir
-                $account_id = null;
+                $account_id = Auth::user()->cashier_account_id;
+                if (!$account_id) {
+                    throw new Exception("Akun kas belum diset!");
+                }
             }
 
             if ($type === SalesOrderPayment::Type_Transfer || $account_id !== null) {
@@ -438,9 +498,9 @@ class SalesOrderController extends Controller
                     'customer_id' => $customer->id,
                     'finance_account_id' => null,
                     'datetime' => Carbon::now(),
-                    'type' => CustomerWalletTransaction::Type_PurchaseOrderPayment,
+                    'type' => CustomerWalletTransaction::Type_SalesOrderPayment,
                     'amount' => -$amount, // nilai negatif karena mengurangi saldo
-                    'ref_type' => CustomerWalletTransaction::RefType_PurchaseOrderPayment,
+                    'ref_type' => CustomerWalletTransaction::RefType_SalesOrderPayment,
                     'ref_id' => $payment->id,
                     'notes' => "Pembayaran transaksi #$order->formatted_id",
                 ]);

@@ -135,6 +135,11 @@ class SalesOrder extends BaseModel
         return $this->hasMany(SalesOrderDetail::class, 'parent_id');
     }
 
+    public function payments()
+    {
+        return $this->hasMany(SalesOrderPayment::class, 'order_id');
+    }
+
     /**
      * Get the supplier for the product.
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo

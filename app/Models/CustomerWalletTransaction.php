@@ -30,26 +30,26 @@ class CustomerWalletTransaction extends BaseModel
      */
     const Type_Deposit = 'deposit';
     const Type_Refund = 'refund';
-    const Type_PurchaseOrderPayment = 'purchase_order_payment';
+    const Type_SalesOrderPayment = 'sales_order_payment';
     const Type_Withdrawal = 'withdrawal';
     const Type_Adjustment = 'adjustment';
 
     const Types = [
         self::Type_Deposit => 'Deposit',
         self::Type_Refund => 'Refund',
-        self::Type_PurchaseOrderPayment => 'Pembayaran Transaksi Pembelian',
+        self::Type_SalesOrderPayment => 'Pembayaran Transaksi Penjualan',
         self::Type_Withdrawal => 'Penarikan',
         self::Type_Adjustment => 'Penyesuaian',
     ];
 
-    const RefType_PurchaseOrderPayment = 'purchase_order_payment';
+    const RefType_SalesOrderPayment = 'sales_order_payment';
 
     const RefTypes = [
-        self::RefType_PurchaseOrderPayment => 'Pembayaran Transaksi Pembelian',
+        self::RefType_SalesOrderPayment => 'Pembayaran Transaksi Penjualan',
     ];
 
     const RefTypeModels = [
-        self::RefType_PurchaseOrderPayment => \App\Models\SalesOrderPayment::class,
+        self::RefType_SalesOrderPayment => \App\Models\SalesOrderPayment::class,
     ];
 
     protected function casts(): array
