@@ -526,7 +526,7 @@ defineExpose({
             v-close-popup
             v-ripple
             style="color: inherit"
-            :href="route('customer.auth.logout')"
+            :href="route('admin.auth.logout')"
           >
             <q-item-section avatar>
               <q-icon name="logout" />

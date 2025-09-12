@@ -29,7 +29,10 @@ return new class extends Migration
         });
 
         Schema::table('users', function (Blueprint $table) {
-            $table->foreignId('cashier_account_id')->nullable();
+            $table->foreignId('cashier_account_id')
+                ->nullable()
+                ->constrained('finance_accounts')
+                ->nullOnDelete();
         });
     }
 

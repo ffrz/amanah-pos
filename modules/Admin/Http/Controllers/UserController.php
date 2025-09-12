@@ -3,6 +3,7 @@
 namespace Modules\Admin\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\FinanceAccount;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -24,7 +25,7 @@ class UserController extends Controller
     public function detail($id = 0)
     {
         return inertia('user/Detail', [
-            'data' => User::findOrFail($id),
+            'data' => User::with(['cashierAccount'])->findOrFail($id),
         ]);
     }
 
@@ -34,8 +35,11 @@ class UserController extends Controller
         $orderType = $request->get('order_type', 'asc');
         $filter = $request->get('filter', []);
 
-        $q = User::query();
+        $q = User::with(['cashierAccount']);
+
         $q->orderBy($orderBy, $orderType);
+
+        // dd($q->get());
 
         if (!empty($filter['role'] && $filter['role'] != 'all')) {
             $q->where('role', '=', $filter['role']);
@@ -74,11 +78,14 @@ class UserController extends Controller
             $user->active = true;
             $user->admin = true;
         } else if ($user == Auth::user()) {
-            return redirect(route('admin.user.index'))->with('warning', 'TIdak dapat mengubah akun anda sendiri.');
+            // return redirect(route('admin.user.index'))->with('warning', 'TIdak dapat mengubah akun anda sendiri.');
         }
 
         return inertia('user/Editor', [
             'data' => $user,
+            'finance_accounts' => FinanceAccount::where('type', '=', FinanceAccount::Type_CashierCash)
+                ->orderBy('name', 'asc')
+                ->get(),
         ]);
     }
 
@@ -90,6 +97,7 @@ class UserController extends Controller
         $rules = [
             'name'     => 'required|max:255',
             'role'     => 'required',
+            'cashier_account_id' => ['nullable', Rule::exists('finance_accounts', 'id')],
             'username' => [
                 'required',
                 'alpha_num',
@@ -106,7 +114,7 @@ class UserController extends Controller
 
         $user = $isNew ? new User() : User::findOrFail($request->id);
 
-        $fields = ['name', 'username', 'role', 'active'];
+        $fields = ['name', 'username', 'role', 'active', 'cashier_account_id'];
         $user->fill($request->only($fields));
 
         if (!empty($password)) {

@@ -4,7 +4,6 @@ import { handleSubmit, transformPayload } from "@/helpers/client-req-handler";
 import { scrollToFirstErrorField } from "@/helpers/utils";
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
 import DateTimePicker from "@/components/DateTimePicker.vue";
-import { formatDateTimeForEditing } from "@/helpers/formatter";
 const page = usePage();
 const title = (!!page.props.data.id ? "Edit" : "Catat") + " Transaksi Keuangan";
 

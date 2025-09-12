@@ -88,7 +88,7 @@
     "isEntry": true
   },
   "resources/js/modules/admin/app.js": {
-    "file": "assets/app-Cy_zJdTM.js",
+    "file": "assets/app-DW478Kyn.js",
     "name": "app",
     "src": "resources/js/modules/admin/app.js",
     "isEntry": true,
@@ -96,7 +96,7 @@
       "_BaseGuestLayout-CnOwYQNu.js"
     ],
     "css": [
-      "assets/app-p-ImqoL8.css"
+      "assets/app-DS-BKqKW.css"
     ]
   },
   "resources/js/modules/customer/app.js": {

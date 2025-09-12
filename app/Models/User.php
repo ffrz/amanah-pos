@@ -49,7 +49,8 @@ class User extends BaseModel implements
         'role',  // TODO: remove jika sudah integrasi full pakai spatie laravel
         'last_login_datetime',
         'last_activity_description',
-        'last_activity_datetime'
+        'last_activity_datetime',
+        'cashier_account_id',
     ];
 
     /**
@@ -78,6 +79,7 @@ class User extends BaseModel implements
             'last_login_datetime'       => 'datetime',
             'last_activity_description' => 'string',
             'last_activity_datetime'    => 'datetime',
+            'cashier_account_id'        => 'integer',
         ];
     }
 
@@ -106,4 +108,8 @@ class User extends BaseModel implements
         return $this->where('username', $username)->first();
     }
 
+    public function cashierAccount()
+    {
+        return $this->belongsTo(FinanceAccount::class, 'cashier_account_id');
+    }
 }

@@ -74,7 +74,7 @@ class SalesOrderController extends Controller
 
     public function editor($id = 0)
     {
-        allowed_roles([User::Role_Admin]);
+        // allowed_roles([User::Role_Admin]);
 
         if (!$id) {
             $item = new SalesOrder([
@@ -156,7 +156,7 @@ class SalesOrderController extends Controller
 
     public function delete($id)
     {
-        allowed_roles([User::Role_Admin]);
+        // allowed_roles([User::Role_Admin]);
 
         $order = SalesOrder::with([
             'details',
@@ -410,7 +410,7 @@ class SalesOrderController extends Controller
 
             // Lakukan hal yang sama untuk total_price
             $total_price = $order->details->sum(function ($detail) {
-                return round($detail->cost * $detail->quantity);
+                return round($detail->price * $detail->quantity);
             });
 
             $order->total_cost = $total_cost;
@@ -420,7 +420,6 @@ class SalesOrderController extends Controller
             // 2. Validasi grand total dengan input dari klien
             $clientTotal = intval($request->post('total', 0));
             $serverTotal = intval($order->grand_total);
-
             if ($serverTotal !== $clientTotal) {
                 DB::rollBack();
                 return JsonResponseHelper::error('Gagal menyimpan transaksi, coba refresh halaman!');
