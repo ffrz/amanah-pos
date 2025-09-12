@@ -233,7 +233,7 @@ watch(
                   formatDateTimeFromNow(props.row.datetime)
                 }})
               </div>
-              <div>
+              <div v-if="props.row.finance_account">
                 <q-icon name="account_balance" class="inline-icon" />
                 {{
                   props.row.finance_account
@@ -265,7 +265,7 @@ watch(
             <q-td key="customer" :props="props">
               <LongTextView
                 :text="
-                  props.row.customer.username + ' -' + props.row.customer.name
+                  props.row.customer.username + ' - ' + props.row.customer.name
                 "
               />
             </q-td>

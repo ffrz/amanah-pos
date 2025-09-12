@@ -6,7 +6,9 @@ use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\SalesOrder;
 use App\Models\Customer;
+use App\Models\CustomerWalletTransaction;
 use App\Models\FinanceAccount;
+use App\Models\FinanceTransaction;
 use App\Models\Product;
 use App\Models\SalesOrderDetail;
 use App\Models\SalesOrderPayment;
@@ -15,6 +17,7 @@ use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Nette\NotImplementedException;
 
 class SalesOrderController extends Controller
 {
@@ -375,31 +378,72 @@ class SalesOrderController extends Controller
                 return JsonResponseHelper::error('Invalid payment input format!');
             }
 
+            $id_or_type = $inputPayment['id'];
+            $amount = floatval($inputPayment['amount']);
+
             $account_id = null;
-            $type = SalesOrderPayment::Type_Cash; // TODO: Jadikan konstanta di model
-            if ($inputPayment['id'] == 'cash') {
+            $customer = $order->customer;
+
+            $type = SalesOrderPayment::Type_Cash;
+            if ($id_or_type === 'cash') {
                 $type = SalesOrderPayment::Type_Cash;
-                // TODO: disini harus catat transaksi kasir dan tambahkan uang kas di kasir
-            } else if ($inputPayment['id'] == 'wallet') {
+            } else if ($id_or_type === 'wallet') {
                 $type = SalesOrderPayment::Type_Wallet;
-                $customer = $order->customer;
-                if (!$order->customer) {
-                }
-            } else if ($id = intval($inputPayment['id'])) {
+            } else if ($id_or_type = intval($id_or_type)) {
                 $type = SalesOrderPayment::Type_Transfer;
-                $account_id = $id;
-                // TODO: disini harus catat transaksi di kas dan tambahkan saldo akun kas tersebut
+                $account_id = $id_or_type;
             }
 
             $payment = new SalesOrderPayment([
                 'order_id' => $order->id,
-                'finance_account_id' => $account_id ? $account_id : null,
-                'customer_id' => $order->customer_id ? $order->customer_id : null,
+                'finance_account_id' => $account_id,
+                'customer_id' => $customer ? $customer->id : null,
                 'type' => $type,
+                'amount' => $amount,
             ]);
-            $payment->type = $type;
-            $payment->amount = floatval($inputPayment['amount']);
             $payment->save();
+
+            if ($type == SalesOrderPayment::Type_Cash) {
+                throw new NotImplementedException("Belum diimplementasikan");
+                // TODO: cari akun id yang digunakan sebagai kas kasir
+                $account_id = null;
+            }
+
+            if ($type === SalesOrderPayment::Type_Transfer || $account_id !== null) {
+                // catat transaksi keuangan
+                $trx = new FinanceTransaction([
+                    'account_id' => $account_id,
+                    'datetime' => Carbon::now(),
+                    'type' => FinanceTransaction::Type_Income,
+                    'amount' => $amount, // nilai positif menambah kas
+                    'ref_id' => $payment->id,
+                    'ref_type' => FinanceTransaction::RefType_SalesOrderPayment,
+                    'notes' => "Pembayaran transaksi #$order->formatted_id",
+                ]);
+                $trx->save();
+
+                // tambahkan saldo rekening
+                $account = FinanceAccount::find($account_id);
+                $account->balance += $amount; // saldo kas bertambah
+                $account->save();
+            } else if ($type === SalesOrderPayment::Type_Wallet) {
+                // catat transaksi
+                $trx = new CustomerWalletTransaction([
+                    'customer_id' => $customer->id,
+                    'finance_account_id' => null,
+                    'datetime' => Carbon::now(),
+                    'type' => CustomerWalletTransaction::Type_PurchaseOrderPayment,
+                    'amount' => -$amount, // nilai negatif karena mengurangi saldo
+                    'ref_type' => CustomerWalletTransaction::RefType_PurchaseOrderPayment,
+                    'ref_id' => $payment->id,
+                    'notes' => "Pembayaran transaksi #$order->formatted_id",
+                ]);
+                $trx->save();
+
+                // kurangi saldo wallet
+                $customer->balance -= $amount;
+                $customer->save();
+            }
         }
 
         DB::commit();

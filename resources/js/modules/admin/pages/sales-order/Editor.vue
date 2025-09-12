@@ -355,6 +355,7 @@ const handlePayment = (data) => {
       router.visit(route("admin.sales-order.detail", { id: form.id }));
     })
     .catch((error) => {
+      showError(error.response?.data?.message);
       console.error(error);
     })
     .finally(() => {

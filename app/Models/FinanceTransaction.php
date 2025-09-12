@@ -40,15 +40,18 @@ class FinanceTransaction extends BaseModel
 
     const RefType_FinanceTransaction = 'finance_transaction';
     const RefType_CustomerWalletTransaction = 'customer_wallet_transaction';
+    const RefType_SalesOrderPayment = 'sales_order_payment';
 
     const RefTypes = [
         self::RefType_FinanceTransaction => 'Transaksi Keuangan',
         self::RefType_CustomerWalletTransaction => 'Transaksi Dompet Pelanggan',
+        self::RefType_SalesOrderPayment => 'Transaksi Pembayaran Penjualan',
     ];
 
     const RefTypeModels = [
         self::RefType_FinanceTransaction => \App\Models\FinanceTransaction::class,
         self::RefType_CustomerWalletTransaction => \App\Models\CustomerWalletTransaction::class,
+        self::RefType_SalesOrderPayment => \App\Models\SalesOrderPayment::class,
     ];
 
     protected function casts(): array
