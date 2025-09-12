@@ -17,8 +17,13 @@ class FinanceAccount extends BaseModel
         'holder',
         'active',
         'has_wallet_access',
+        'show_in_pos_payment',
+        'show_in_purchasing_payment',
         'balance',
-        'notes'
+        'notes',
+
+        // ---
+        'cashier_code',
     ];
 
     /**
@@ -26,9 +31,13 @@ class FinanceAccount extends BaseModel
      */
     const Type_Cash = 'cash';
     const Type_Bank = 'bank';
+    const Type_PettyCash = 'petty_cash';
+    const Type_CashierCash = 'cashier_cash';
 
     const Types = [
-        self::Type_Cash => 'Kas / Tunai',
+        self::Type_CashierCash => 'Kas Kasir',
+        self::Type_PettyCash => 'Kasir Tunai Kecil',
+        self::Type_Cash => 'Kas Tunai Besar',
         self::Type_Bank => 'Rekening Bank',
     ];
 
@@ -42,13 +51,14 @@ class FinanceAccount extends BaseModel
             'holder' => 'string',
             'active' => 'boolean',
             'has_wallet_access' => 'boolean',
+            'show_in_pos_payment' => 'boolean',
+            'show_in_purchasing_payment' => 'boolean',
             'balance' => 'decimal:2',
             'notes' => 'string',
             'created_by' => 'integer',
             'updated_by' => 'integer',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
-
         ];
     }
 

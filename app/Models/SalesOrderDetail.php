@@ -64,4 +64,9 @@ class SalesOrderDetail extends BaseModel
     {
         return $this->belongsTo(SalesOrder::class, 'parent_id');
     }
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class, 'product_id');
+    }
 }

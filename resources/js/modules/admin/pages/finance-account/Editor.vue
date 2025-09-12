@@ -4,19 +4,24 @@ import { handleSubmit } from "@/helpers/client-req-handler";
 import { scrollToFirstErrorField } from "@/helpers/utils";
 import { createOptions } from "@/helpers/options";
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
+import CheckBox from "@/components/CheckBox.vue";
+import { onMounted, watch } from "vue";
 
 const page = usePage();
 const title = (!!page.props.data.id ? "Edit" : "Tambah") + " Akun / Kas";
 const form = useForm({
   id: page.props.data.id,
   name: page.props.data.name,
+  cashier_code: page.props.data.cashier_code,
   type: page.props.data.type,
   bank: page.props.data.bank,
   number: page.props.data.number,
   holder: page.props.data.holder,
-  balance: page.props.data.balance,
+  balance: parseFloat(page.props.data.balance),
   active: !!page.props.data.active,
   has_wallet_access: !!page.props.data.has_wallet_access,
+  show_in_pos_payment: !!page.props.data.show_in_pos_payment,
+  show_in_purchasing_payment: !!page.props.data.show_in_purchasing_payment,
   notes: page.props.data.notes,
 });
 
@@ -24,6 +29,23 @@ const types = createOptions(window.CONSTANTS.FINANCE_ACCOUNT_TYPES);
 
 const submit = () =>
   handleSubmit({ form, url: route("admin.finance-account.save") });
+
+const updateShowInPosPaymentState = (type) => {
+  if (type === "cashier_cash") {
+    form.show_in_pos_payment = true;
+  }
+};
+
+onMounted(() => {
+  updateShowInPosPaymentState(form.type);
+});
+
+watch(
+  () => form.type,
+  (newVal) => {
+    updateShowInPosPaymentState(newVal);
+  }
+);
 </script>
 
 <template>
@@ -76,6 +98,16 @@ const submit = () =>
                 hide-bottom-space
               >
               </q-select>
+              <q-input
+                v-if="form.type == 'cashier_cash'"
+                v-model.trim="form.cashier_code"
+                label="Kode Kasir"
+                lazy-rules
+                :error="!!form.errors.cashier_code"
+                :disable="form.processing"
+                :error-message="form.errors.cashier_code"
+                hide-bottom-space
+              />
               <template v-if="form.type == 'bank'">
                 <q-input
                   v-model.trim="form.bank"
@@ -110,27 +142,31 @@ const submit = () =>
                 label="Saldo"
                 lazyRules
                 :disable="form.processing"
-                allow-negative="true"
+                :allow-negative="true"
                 :error="!!form.errors.balance"
                 :errorMessage="form.errors.balance"
                 :rules="[]"
               />
-              <div style="margin-left: -10px">
-                <q-checkbox
-                  class="full-width q-pl-none"
-                  v-model="form.has_wallet_access"
-                  :disable="form.processing"
-                  label="Tampilkan di Konfirmasi Topup Wallet"
-                />
-              </div>
-              <div style="margin-left: -10px">
-                <q-checkbox
-                  class="full-width q-pl-none"
-                  v-model="form.active"
-                  :disable="form.processing"
-                  label="Aktif"
-                />
-              </div>
+              <CheckBox
+                v-model="form.show_in_pos_payment"
+                :disable="form.processing || form.type == 'cashier_cash'"
+                label="Tampilkan di Pembayaran Penjualan"
+              />
+              <CheckBox
+                v-model="form.show_in_purchasing_payment"
+                :disable="form.processing"
+                label="Tampilkan di Pembayaran Pembelian"
+              />
+              <CheckBox
+                v-model="form.has_wallet_access"
+                :disable="form.processing"
+                label="Tampilkan di Konfirmasi Topup Wallet"
+              />
+              <CheckBox
+                v-model="form.active"
+                :disable="form.processing"
+                label="Aktif"
+              />
               <q-input
                 v-model.trim="form.notes"
                 type="textarea"

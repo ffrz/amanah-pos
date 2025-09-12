@@ -12,6 +12,7 @@ use App\Models\FinanceTransaction;
 use App\Models\Product;
 use App\Models\SalesOrderDetail;
 use App\Models\SalesOrderPayment;
+use App\Models\StockMovement;
 use App\Models\User;
 use Carbon\Carbon;
 use Exception;
@@ -108,7 +109,12 @@ class SalesOrderController extends Controller
         return inertia('sales-order/Editor', [
             'data' => $item,
             'accounts' => FinanceAccount::where('active', '=', true)
-                ->where('type', '<>', 'cash')
+                ->where(function ($query) {
+                    $query->where('type', '=', FinanceAccount::Type_Cash)
+                        ->orWhere('type', '=', FinanceAccount::Type_Bank)
+                        ->orWhere('type', '=', FinanceAccount::Type_PettyCash);
+                })
+                ->where('show_in_pos_payment', '=', true)
                 ->orderBy('name')
                 ->get()
         ]);
@@ -324,7 +330,7 @@ class SalesOrderController extends Controller
 
     public function close(Request $request)
     {
-        $order = SalesOrder::with(['customer', 'details'])->find($request->post('id'));
+        $order = SalesOrder::with(['customer', 'details', 'details.product'])->find($request->post('id'));
 
         if (!$order) {
             return JsonResponseHelper::error('Item tidak ditemukan');
@@ -444,6 +450,23 @@ class SalesOrderController extends Controller
                 $customer->balance -= $amount;
                 $customer->save();
             }
+        }
+
+        foreach ($order->details as $detail) {
+            $quantity = abs($detail->quantity);
+            // catat stock movement
+            $stockMovement = new StockMovement([
+                'product_id' => $detail->product_id,
+                'ref_id'     => $detail->id,
+                'ref_type'   => StockMovement::RefType_SalesOrderDetail,
+                'quantity'   => -$quantity, // negatif karena keluar dari stok
+            ]);
+            $stockMovement->save();
+
+            // update stok produk
+            $product = $detail->product;
+            $product->stock -= $quantity;
+            $product->save();
         }
 
         DB::commit();
