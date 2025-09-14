@@ -50,6 +50,7 @@ const columns = [
     align: "left",
     sortable: true,
   },
+  { name: "category", label: "Kategori", field: "category", align: "left" },
   { name: "notes", label: "Catatan", field: "notes", align: "left" },
   { name: "amount", label: "Jumlah (Rp.)", field: "amount", align: "right" },
 ];
@@ -90,8 +91,8 @@ watch(
   }
 );
 
-const onRowClick = (row) => {
-  alert(row);
+const onRowClicked = () => {
+  // TODO: handle on row clicked
 };
 </script>
 
@@ -188,7 +189,11 @@ const onRowClick = (row) => {
           </div>
         </template>
         <template v-slot:body="props">
-          <q-tr :props="props" @click="onRowClick(props.row)">
+          <q-tr
+            :props="props"
+            @click="onRowClicked(props.row)"
+            class="cursor-pointer"
+          >
             <q-td key="id" :props="props" class="wrap-column">
               {{ props.row.formatted_id }}
             </q-td>
@@ -198,17 +203,13 @@ const onRowClick = (row) => {
                 {{ props.row.formatted_id }}
               </template>
               <div>
-                <q-icon name="calendar_today" class="inline-icon" />
+                <template v-if="!$q.screen.gt.sm">
+                  <q-icon name="calendar_today" class="inline-icon" />
+                </template>
+                <q-tooltip>
+                  {{ formatDateTimeFromNow(props.row.datetime) }}
+                </q-tooltip>
                 {{ formatDateTime(props.row.datetime) }}
-                <span class="text-grey-8">
-                  ({{ formatDateTimeFromNow(props.row.datetime) }})
-                </span>
-              </div>
-              <div>
-                <q-icon name="category" class="inline-icon" />
-                {{
-                  $CONSTANTS.CUSTOMER_WALLET_TRANSACTION_TYPES[props.row.type]
-                }}
               </div>
 
               <template v-if="!$q.screen.gt.sm">
@@ -224,6 +225,9 @@ const onRowClick = (row) => {
                   }}
                 </div>
               </template>
+            </q-td>
+            <q-td key="category" :props="props" class="wrap-column">
+              {{ $CONSTANTS.CUSTOMER_WALLET_TRANSACTION_TYPES[props.row.type] }}
             </q-td>
             <q-td key="notes" :props="props">
               {{ props.row.notes }}

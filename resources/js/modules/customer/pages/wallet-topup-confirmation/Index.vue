@@ -56,6 +56,12 @@ const pagination = ref({
 
 const columns = [
   {
+    name: "id",
+    label: "#",
+    field: "id",
+    align: "left",
+  },
+  {
     name: "datetime",
     label: $q.screen.lt.md ? "Item" : "Tanggal",
     field: "datetime",
@@ -163,6 +169,10 @@ const cancelWalletTopupConfirmation = (row) => {
         loading.value = false;
       });
   });
+};
+
+const onRowClicked = (row) => {
+  // TODO: handle on row clicked
 };
 </script>
 
@@ -273,11 +283,23 @@ const cancelWalletTopupConfirmation = (row) => {
         </template>
 
         <template v-slot:body="props">
-          <q-tr :props="props">
+          <q-tr
+            :props="props"
+            class="cursor-pointer"
+            @click.stop="onRowClicked(props.row)"
+          >
+            <q-td key="id" :props="props">
+              {{ props.row.formatted_id }}
+            </q-td>
             <q-td key="datetime" :props="props" class="wrap-column">
-              # {{ props.row.formatted_id }}
+              <div v-if="!$q.screen.gt.sm">
+                <q-icon name="grid_3x3" class="inline-icon" />
+                {{ props.row.formatted_id }}
+              </div>
               <div>
-                <q-icon name="calendar_today" class="inline-icon" />
+                <template v-if="!$q.screen.gt.sm">
+                  <q-icon name="calendar_today" class="inline-icon" />
+                </template>
                 {{ formatDateTime(props.row.datetime) }}
               </div>
               <template v-if="!$q.screen.gt.sm">
@@ -294,6 +316,11 @@ const cancelWalletTopupConfirmation = (row) => {
                   <q-icon name="notes" class="inline-icon" />
                   {{ props.row.description }}
                 </div>
+                <LongTextView
+                  icon="notes"
+                  :text="props.row.notes"
+                  :maxLength="30"
+                />
                 <CustomerWalletTransactionConfirmationStatusChip
                   :status="props.row.status"
                 />

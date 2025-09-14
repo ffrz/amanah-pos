@@ -8,7 +8,8 @@
       overflow-wrap: break-word;
     "
   >
-    <q-icon v-if="icon != ''" :name="icon" />{{ truncatedText }}
+    <q-icon v-if="icon != ''" :name="icon" class="inline-icon" />
+    {{ truncatedText }}
     <q-tooltip v-if="text.length > maxLength">{{ text }}</q-tooltip>
   </div>
 </template>
