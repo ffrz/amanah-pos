@@ -1,22 +1,23 @@
-<script setup>
+<script setup lang="ts">
 import { ref, useSlots, watch } from "vue";
 import { QInput } from "quasar";
 
-const qInputRef = ref(null);
+const qInputRef = ref<InstanceType<typeof QInput> | null>(null);
 const slots = useSlots();
 
+// Expose focus & select methods
 defineExpose({
-  // Ekspor metode fokus dan select yang berfungsi
   focus: () => {
-    // Memanggil metode fokus pada instance QInput
     if (qInputRef.value) {
       qInputRef.value.focus();
     }
   },
   select: () => {
-    // PENTING: Panggil metode select pada elemen input asli
-    if (qInputRef.value) {
-      qInputRef.value.select();
+    if (qInputRef.value?.$el) {
+      const input = qInputRef.value.$el.querySelector(
+        "input"
+      ) as HTMLInputElement;
+      input?.select();
     }
   },
 });
@@ -29,32 +30,28 @@ const props = defineProps({
   outlined: { type: Boolean, default: false },
   allowNegative: { type: Boolean, default: false },
   maxDecimals: { type: Number, default: 0 },
-  lazyRules: { type: String },
+  lazyRules: { type: [Boolean, String], default: false },
   disable: { type: Boolean, default: false },
   error: { type: Boolean, default: false },
   errorMessage: { type: String, default: "" },
   rules: { type: Array, default: () => [] },
 });
 
-// Emit events
+// Emit
 const emit = defineEmits(["update:modelValue"]);
 
-// Internal state for display value
+// Internal display value
 const displayValue = ref("");
 
-// Detect locale's decimal and thousand separators
-const getLocaleSeparators = (locale) => {
+// Detect locale separators
+const getLocaleSeparators = (locale: string) => {
   const sampleNumber = 1234567.89;
   const formatted = new Intl.NumberFormat(locale).format(sampleNumber);
-  const decimalSeparator = formatted.includes(".")
-    ? "."
-    : formatted.includes(",")
-    ? ","
-    : ".";
+  const decimalSeparator = formatted.includes(",") ? "," : ".";
   const thousandSeparator = formatted
     .replace(/\d/g, "")
     .replace(decimalSeparator, "")
-    .slice(0, 1);
+    .charAt(0);
   return { decimalSeparator, thousandSeparator };
 };
 
@@ -62,8 +59,8 @@ const { decimalSeparator, thousandSeparator } = getLocaleSeparators(
   props.locale
 );
 
-// Format a number according to the locale
-const formatNumber = (value) => {
+// Format number
+const formatNumber = (value: number) => {
   if (value === null || value === undefined || isNaN(value)) {
     value = 0;
   }
@@ -73,7 +70,7 @@ const formatNumber = (value) => {
   }).format(value);
 };
 
-// Watch for changes in modelValue and sync displayValue
+// Sync displayValue with modelValue
 watch(
   () => props.modelValue,
   (newValue) => {
@@ -82,33 +79,43 @@ watch(
   { immediate: true }
 );
 
-// Sanitize input and convert to a valid number
-const sanitizeInput = (value) => {
-  if (value === null || value === undefined) return 0;
+// Sanitize input
+const sanitizeInput = (value: string): number => {
+  const regex = props.allowNegative
+    ? /^-?[0-9]+([.,][0-9]*)?$/
+    : /^[0-9]+([.,][0-9]*)?$/;
 
   const sanitized = value
-    .toString()
+    .replace(/[^0-9.,-]+/g, "")
     .replace(new RegExp(`\\${thousandSeparator}`, "g"), "")
     .replace(new RegExp(`\\${decimalSeparator}`, "g"), ".");
 
+  if (!regex.test(sanitized)) {
+    return props.modelValue || 0;
+  }
+
   const parsed = parseFloat(sanitized);
-  return isNaN(parsed) ? 0 : parsed;
+  return isNaN(parsed) ? 0 : parseFloat(parsed.toFixed(props.maxDecimals));
 };
 
-// Update display value on input
-const onInput = (value) => {
-  displayValue.value = value;
-};
-
-// Emit sanitized value on blur
-const onBlur = () => {
+const emitUpdate = () => {
   const sanitizedValue = sanitizeInput(displayValue.value);
-  displayValue.value = formatNumber(sanitizedValue);
   emit("update:modelValue", sanitizedValue);
 };
 
-// Filter keyboard input
-const filterInput = (event) => {
+// Input handlers
+const onInput = (value: string) => {
+  displayValue.value = value;
+  emitUpdate();
+};
+
+const onBlur = () => {
+  displayValue.value = formatNumber(sanitizeInput(displayValue.value));
+  emitUpdate();
+};
+
+// Keyboard filter
+const filterInput = (event: KeyboardEvent) => {
   const allowedKeys = [
     "Backspace",
     "Delete",
@@ -119,22 +126,23 @@ const filterInput = (event) => {
     "End",
     "Shift",
   ];
-  const isNumber = event.key >= "0" && event.key <= "9";
-  const isSeparator =
-    event.key === decimalSeparator || event.key === thousandSeparator;
-  const isAllowed =
-    allowedKeys.includes(event.key) ||
-    (event.key === "-" && props.allowNegative);
+  if (event.ctrlKey || event.metaKey) return;
 
+  if (event.key >= "0" && event.key <= "9") return;
   if (
-    !isNumber &&
-    !isSeparator &&
-    !isAllowed &&
-    !event.ctrlKey &&
-    !event.metaKey
-  ) {
-    event.preventDefault();
-  }
+    (event.key === decimalSeparator || event.key === thousandSeparator) &&
+    !displayValue.value.includes(decimalSeparator)
+  )
+    return;
+  if (
+    props.allowNegative &&
+    event.key === "-" &&
+    (event.target as HTMLInputElement).selectionStart === 0
+  )
+    return;
+  if (allowedKeys.includes(event.key)) return;
+
+  event.preventDefault();
 };
 </script>
 
@@ -147,11 +155,11 @@ const filterInput = (event) => {
     @update:model-value="onInput"
     @blur="onBlur"
     @keydown="filterInput"
-    :lazy-rules="lazyRules"
-    :disable="disable"
-    :error="error"
-    :rules="rules"
-    :error-message="errorMessage"
+    :lazy-rules="props.lazyRules"
+    :disable="props.disable"
+    :error="props.error"
+    :rules="props.rules"
+    :error-message="props.errorMessage"
   >
     <template v-if="slots.prepend" v-slot:prepend>
       <slot name="prepend"></slot>
