@@ -172,7 +172,9 @@ const cancelWalletTopupConfirmation = (row) => {
 };
 
 const onRowClicked = (row) => {
-  // TODO: handle on row clicked
+  router.get(
+    route("customer.wallet-topup-confirmation.detail", { id: row.id })
+  );
 };
 </script>
 

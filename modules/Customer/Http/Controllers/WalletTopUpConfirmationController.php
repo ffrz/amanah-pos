@@ -19,15 +19,12 @@ namespace Modules\Customer\Http\Controllers;
 use App\Helpers\ImageUploaderHelper;
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
-use App\Models\CustomerWalletTopUpConfirmation;
-use App\Models\CustomerWalletTransaction;
 use App\Models\CustomerWalletTransactionConfirmation;
 use App\Models\FinanceAccount;
-use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Modules\Admin\Http\Controllers\CustomerWalletTransactionController;
+use Exception;
 
 class WalletTopUpConfirmationController extends Controller
 {
@@ -179,7 +176,14 @@ class WalletTopUpConfirmationController extends Controller
 
     public function detail($id)
     {
+        $item = CustomerWalletTransactionConfirmation::with(['financeAccount', 'customer'])
+            ->findOrFail($id);
 
-        return inertia('wallet-topup-confirmation/Detail', []);
+        if ($item->customer_id !== Auth::guard("customer")->user()->id) {
+            return abort(403);
+        }
+        return inertia('wallet-topup-confirmation/Detail', [
+            'data' => $item
+        ]);
     }
 }
