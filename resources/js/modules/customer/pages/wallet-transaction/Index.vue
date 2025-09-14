@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from "vue";
+import { router } from "@inertiajs/vue3";
 import { handleFetchItems } from "@/helpers/client-req-handler";
 import { getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
@@ -15,7 +16,7 @@ import useTableHeight from "@/composables/useTableHeight";
 
 const title = "Riwayat Transaksi";
 const $q = useQuasar();
-const showFilter = ref(true);
+const showFilter = ref(false);
 const rows = ref([]);
 const loading = ref(true);
 const currentYear = getCurrentYear();
@@ -42,7 +43,7 @@ const pagination = ref({
 });
 
 const columns = [
-  { name: "id", label: "ID", field: "id", align: "left", sortable: true },
+  { name: "id", label: "Kode Trx", field: "id", align: "left", sortable: true },
   {
     name: "datetime",
     label: $q.screen.lt.md ? "Item" : "Waktu",
@@ -91,8 +92,8 @@ watch(
   }
 );
 
-const onRowClicked = () => {
-  // TODO: handle on row clicked
+const onRowClicked = (row) => {
+  router.get(route("customer.wallet-transaction.detail", { id: row.id }));
 };
 </script>
 
@@ -213,6 +214,12 @@ const onRowClicked = () => {
               </div>
 
               <template v-if="!$q.screen.gt.sm">
+                <div>
+                  <q-icon name="category" class="inline-icon" />
+                  {{
+                    $CONSTANTS.CUSTOMER_WALLET_TRANSACTION_TYPES[props.row.type]
+                  }}
+                </div>
                 <div>
                   <q-icon name="notes" class="inline-icon" />
                   {{ props.row.notes }}

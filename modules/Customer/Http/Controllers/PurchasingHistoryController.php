@@ -18,15 +18,16 @@ namespace Modules\Customer\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\CustomerWalletTransaction;
+use App\Models\SalesOrder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class WalletTransactionController extends Controller
+class PurchasingHistoryController extends Controller
 {
 
     public function index()
     {
-        return inertia('wallet-transaction/Index', []);
+        return inertia('purchasing-history/Index', []);
     }
 
     public function data(Request $request)
@@ -35,17 +36,14 @@ class WalletTransactionController extends Controller
         $orderType = $request->get('order_type', 'desc');
         $filter = $request->get('filter', []);
 
-        $q = CustomerWalletTransaction::with('customer')
-            ->where('customer_id', Auth::guard('customer')->user()->id);
+        $q = SalesOrder::with('customer')
+            ->where('customer_id', Auth::guard('customer')->user()->id)
+            ->where('status', '=', 'closed');
 
         if (!empty($filter['search'])) {
             $q->where(function ($q) use ($filter) {
                 $q->orWhere('notes', 'like', '%' . $filter['search'] . '%');
             });
-        }
-
-        if (!empty($filter['type']) && $filter['type'] !== 'all') {
-            $q->where('type', $filter['type']);
         }
 
         if (!empty($filter['year']) && $filter['year'] !== 'all') {
@@ -65,14 +63,7 @@ class WalletTransactionController extends Controller
 
     public function detail($id)
     {
-        $trx = CustomerWalletTransaction::findOrFail($id);
 
-        if ($trx->customer_id !== Auth::guard("customer")->user()->id) {
-            return abort(403);
-        }
-
-        return inertia('wallet-transaction/Detail', [
-            'data' => $trx
-        ]);
+        return inertia('purchasing-history/Detail', []);
     }
 }

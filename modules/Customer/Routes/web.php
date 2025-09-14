@@ -3,13 +3,13 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
+ *
  * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
+ *
  * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
+ *
  * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
@@ -50,6 +50,12 @@ Route::middleware([CustomerAuth::class])->group(function () {
         Route::get('data', [WalletTopUpConfirmationController::class, 'data'])->name('customer.wallet-topup-confirmation.data');
         Route::get('detail/{id}', [WalletTopUpConfirmationController::class, 'detail'])->name('customer.wallet-topup-confirmation.detail');
         Route::post('cancel', [WalletTopUpConfirmationController::class, 'cancel'])->name('customer.wallet-topup-confirmation.cancel');
+    });
+
+    Route::prefix('purchasing-history')->group(function () {
+        Route::get('', [PurchasingHistoryController::class, 'index'])->name('customer.purchasing-history.index');
+        Route::get('data', [PurchasingHistoryController::class, 'data'])->name('customer.purchasing-history.data');
+        Route::get('detail/{id}', [PurchasingHistoryController::class, 'detail'])->name('customer.purchasing-history.detail');
     });
 
     Route::get('profile/edit', [ProfileController::class, 'edit'])->name('customer.profile.edit');

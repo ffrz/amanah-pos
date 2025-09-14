@@ -3,13 +3,13 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
+ *
  * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
+ *
  * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
+ *
  * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
@@ -88,7 +88,7 @@ class CustomerWalletTransactionConfirmationController extends Controller
             $item->status = CustomerWalletTransactionConfirmation::Status_Rejected;
             $item->save();
             return redirect(route('admin.customer-wallet-transaction-confirmation.index'))
-                ->with('success', "Konfirmasi topup $item->id telah ditolak.");
+                ->with('success', "Konfirmasi topup $item->formatted_id telah ditolak.");
         }
 
         if ($request->action != 'accept') {
@@ -105,7 +105,7 @@ class CustomerWalletTransactionConfirmationController extends Controller
             'datetime' => Carbon::now(),
             'type' => CustomerWalletTransaction::Type_Deposit,
             'amount' => $item->amount,
-            'notes' => 'Konfirmasi topup wallet otomatis #' . $item->id,
+            'notes' => 'Konfirmasi topup wallet otomatis #' . $item->formatted_id,
         ]);
         $walletTransaction->save();
 

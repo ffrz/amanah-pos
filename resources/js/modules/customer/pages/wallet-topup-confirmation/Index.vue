@@ -57,7 +57,7 @@ const pagination = ref({
 const columns = [
   {
     name: "id",
-    label: "#",
+    label: "Kode Trx",
     field: "id",
     align: "left",
   },
