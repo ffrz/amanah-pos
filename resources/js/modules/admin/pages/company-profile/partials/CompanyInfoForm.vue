@@ -25,17 +25,17 @@ const submit = () =>
     <q-card flat bordered square class="col">
       <q-card-section>
         <div class="text-subtitle1 q-my-xs">Profil Perusahaan</div>
-        <p class="text-caption text-grey-9">Perbarui profil koperasi.</p>
+        <p class="text-caption text-grey-9">Perbarui profil perusahaan.</p>
         <q-input
           ref="nameInputRef"
           v-model.trim="form.name"
-          label="Nama Koperasi"
+          label="Nama Perusahaan"
           :disable="form.processing"
           lazy-rules
           :error="!!form.errors.name"
           :error-message="form.errors.name"
           :rules="[
-            (val) => (val && val.length > 0) || 'Nama Koperasi harus diisi.',
+            (val) => (val && val.length > 0) || 'Nama perusahaan harus diisi.',
           ]"
           hide-bottom-space
         />

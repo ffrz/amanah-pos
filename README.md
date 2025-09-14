@@ -20,7 +20,7 @@
 
 -   Input top-up saldo santri
 -   Catat pembelian/penarikan saldo
--   Aprroval konfirmasi topup
+-   Persetujuan konfirmasi topup
 -   Lihat dan kelola riwayat transaksi
 -   Dashboard saldo dan laporan
 
