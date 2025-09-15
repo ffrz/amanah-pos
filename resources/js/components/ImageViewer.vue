@@ -2,7 +2,7 @@
   <q-dialog v-model="visible" transition-show="scale" transition-hide="scale">
     <q-card
       class="bg-white"
-      style="max-width: 95vw; max-height: 95vh; overflow: hidden"
+      style="max-width: 95vw; max-height: 95vh; overflow: auto"
     >
       <q-card-section class="q-pa-none q-py-sm">
         <div class="text-subtitle text-bold text-grey-8 text-center">
@@ -13,7 +13,7 @@
         <div
           ref="container"
           class="relative-position overflow-hidden flex flex-center"
-          style="touch-action: none"
+          style="touch-action: none; max-height: 75vh"
           @mousedown="startPan"
           @mousemove="onPan"
           @mouseup="endPan"
