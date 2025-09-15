@@ -296,3 +296,8 @@ table.detail tr:nth-child(even) td {
 .q-btn:focus-visible {
   box-shadow: 0 0 0 2px rgb(234, 0, 255);
 }
+
+.q-notification__message {
+  max-width: 350px !important;
+  white-space: normal !important;
+}
