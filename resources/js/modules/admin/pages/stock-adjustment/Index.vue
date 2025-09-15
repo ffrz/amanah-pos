@@ -242,16 +242,12 @@ const computedColumns = computed(() => {
             <q-td key="id" :props="props">
               <template v-if="!$q.screen.lt.md">
                 <div class="flex q-gutter-xs">
-                  <div>
-                    <b>#{{ props.row.id }}</b>
-                  </div>
+                  #{{ props.row.formatted_id }}
                 </div>
               </template>
               <template v-else>
                 <div class="flex q-col-gutter-xs">
-                  <div>
-                    <b>#{{ props.row.id }}</b>
-                  </div>
+                  <div>#{{ props.row.formatted_id }}</div>
                   <div>
                     <q-icon name="history" />
                     {{

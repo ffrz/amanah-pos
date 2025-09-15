@@ -99,7 +99,6 @@ class ProductCategoryController extends Controller
             return JsonResponseHelper::error('Gagal menghapus kategori', 500, $ex);
         }
 
-
         return JsonResponseHelper::success($item, "Kategori $item->name telah dihapus.");
     }
 }

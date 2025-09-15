@@ -16,6 +16,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class StockAdjustment extends BaseModel
@@ -57,6 +58,10 @@ class StockAdjustment extends BaseModel
         self::Status_Cancelled => 'Dibatalkan',
     ];
 
+    protected $appends = [
+        'formatted_id',
+    ];
+
     protected function casts(): array
     {
         return [
@@ -76,5 +81,13 @@ class StockAdjustment extends BaseModel
     public function details()
     {
         return $this->hasMany(StockAdjustmentDetail::class, 'parent_id');
+    }
+
+    public function getFormattedIdAttribute()
+    {
+        return Setting::value('stock_adjustment_code_prefix', 'SA-')
+            . Carbon::parse($this->created_at)->format('Ymd')
+            . '-'
+            . $this->id;
     }
 }

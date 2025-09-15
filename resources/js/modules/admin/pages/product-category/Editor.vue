@@ -19,12 +19,18 @@ const submit = () =>
   handleSubmit({
     form,
     url: route("admin.product-category.save"),
+    onSuccess: () => {
+      // untuk rekaman baru alihkan ke daftar kategori supaya cepat
+      if (!page.props.data.id) {
+        router.get(route("admin.product-category.index"));
+      }
+    },
   });
 </script>
 
 <template>
   <i-head :title="title" />
-  <authenticated-layout :show-drawer-button="false">
+  <authenticated-layout :show-drawer-button="!$q.screen.lt.md">
     <template #title>{{ title }}</template>
 
     <template #left-button v-if="$q.screen.lt.md">
@@ -83,12 +89,13 @@ const submit = () =>
                 label="Simpan"
                 color="primary"
                 :disable="form.processing"
+                :loading="form.processing"
               />
               <q-btn
                 icon="cancel"
                 label="Batal"
                 :disable="form.processing"
-                @click="router.get(route('admin.product-category.index'))"
+                @click="form.reset()"
               />
             </q-card-section>
           </q-card>

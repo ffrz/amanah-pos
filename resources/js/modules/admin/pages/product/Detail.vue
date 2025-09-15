@@ -35,6 +35,13 @@ const columns = [
     sortable: true,
   },
   {
+    name: "created_at",
+    label: "Waktu",
+    field: "created_at",
+    align: "left",
+    sortable: true,
+  },
+  {
     name: "type",
     label: "Jenis",
     field: "type",
@@ -109,7 +116,7 @@ const marginInfo = (price) => {
     </template>
 
     <div class="row justify-center">
-      <div class="col col-md-6 q-pa-xs">
+      <div class="col col-lg-6 q-pa-xs">
         <div class="row">
           <q-card square flat bordered class="q-card col">
             <q-tabs v-model="tab" align="left">
@@ -360,7 +367,7 @@ const marginInfo = (price) => {
                 </table>
               </q-tab-panel>
 
-              <q-tab-panel name="history">
+              <q-tab-panel name="history" class="q-pa-xs">
                 <q-table
                   flat
                   bordered
@@ -398,23 +405,7 @@ const marginInfo = (price) => {
                       <q-td key="id" :props="props">
                         <div class="flex q-gutter-sm">
                           <div>
-                            <b>#{{ props.row.id }}</b>
-                          </div>
-                          <div>
-                            -
-                            {{
-                              $dayjs(new Date(props.row.created_at)).format(
-                                "DD/MM/YYYY hh:mm:ss"
-                              )
-                            }}
-                          </div>
-                          <div>
-                            -
-                            {{
-                              props.row.created_by
-                                ? props.row.created_by.username
-                                : "--"
-                            }}
+                            {{ props.row.formatted_id }}
                           </div>
                         </div>
                         <template v-if="$q.screen.lt.md">
@@ -447,10 +438,30 @@ const marginInfo = (price) => {
                           </div>
                         </template>
                       </q-td>
+                      <q-td key="created_at" :props="props">
+                        Dibuat {{ formatDateTime(props.row.created_at) }} oleh
+                        {{ props.row.creator.name }}
+                      </q-td>
                       <q-td key="type" :props="props">
                         {{
                           $CONSTANTS.STOCKMOVEMENT_REFTYPES[props.row.ref_type]
                         }}
+                      </q-td>
+                      <q-td>
+                        Ref:
+                        <template
+                          v-if="props.row.ref_type == 'stock_adjustment'"
+                        >
+                          <a
+                            :href="
+                              route('admin.stock-adjustment.detail', {
+                                id: props.row.ref_id,
+                              })
+                            "
+                            target="_blank"
+                            >Penyesuaian Stok #{{ props.row.ref_id }}</a
+                          >
+                        </template>
                       </q-td>
                       <q-td key="quantity" :props="props">
                         <div

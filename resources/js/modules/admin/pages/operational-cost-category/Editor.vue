@@ -14,7 +14,10 @@ const form = useForm({
 });
 
 const submit = () =>
-  handleSubmit({ form, url: route("admin.operational-cost-category.save") });
+  handleSubmit({
+    form,
+    url: route("admin.operational-cost-category.save"),
+  });
 </script>
 
 <template>
@@ -29,7 +32,7 @@ const submit = () =>
           color="grey-7"
           flat
           rounded
-          @click="$inertia.get(route('admin.operational-cost-category.index'))"
+          @click="$goBack()"
         />
       </div>
     </template>
@@ -82,9 +85,7 @@ const submit = () =>
                 icon="cancel"
                 label="Batal"
                 :disable="form.processing"
-                @click="
-                  router.get(route('admin.operational-cost-category.index'))
-                "
+                @click="form.reset()"
               />
             </q-card-section>
           </q-card>

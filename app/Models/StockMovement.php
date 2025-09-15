@@ -16,6 +16,8 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
+
 /**
  * StockMovement Model
  */
@@ -55,6 +57,10 @@ class StockMovement extends BaseModel
         self::RefType_PurchaseOrderDetailReturn => 'Retur Order Pembelian',
     ];
 
+    protected $appends = [
+        'formatted_id',
+    ];
+
     protected function casts(): array
     {
         return [
@@ -65,6 +71,14 @@ class StockMovement extends BaseModel
             'created_at' => 'datetime',
             'created_by' => 'integer',
         ];
+    }
+
+    public function getFormattedIdAttribute()
+    {
+        return Setting::value('stock_movement_code_prefix', 'SM-')
+            . Carbon::parse($this->created_at)->format('Ymd')
+            . '-'
+            . $this->id;
     }
 
     // Define the ref relationship dynamically based on ref_type and ref_id
