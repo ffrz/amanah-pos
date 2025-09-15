@@ -40,20 +40,30 @@ export const transformPayload = (form, fields) => {
 };
 
 export function handleSubmit(data) {
-  const { form, url } = data;
+  const { form, url, onSuccess, onError } = data;
 
   form.clearErrors();
   form.post(url, {
     preserveScroll: true,
     onSuccess: (response) => {
-      // Notify.create({
-      //   message: response.message,
-      //   icon: "info",
-      //   color: "positive",
-      //   actions: [
-      //     { icon: "close", color: "white", round: true, dense: true },
-      //   ],
-      // });
+      if (response.message) {
+        Notify.create({
+          message: response.message,
+          icon: "info",
+          color: "grey",
+          actions: [
+            { icon: "close", color: "white", round: true, dense: true },
+          ],
+        });
+      }
+
+      if (response.data?.id) {
+        form.id = response.data.id;
+      }
+
+      if (onSuccess) {
+        onSuccess(response);
+      }
     },
     onError: (error) => {
       _scrollToFirstError();
@@ -70,6 +80,10 @@ export function handleSubmit(data) {
         color: "negative",
         actions: [{ icon: "close", color: "white", round: true, dense: true }],
       });
+
+      if (onError) {
+        onError(response);
+      }
     },
   });
 }

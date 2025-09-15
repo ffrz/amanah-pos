@@ -16,9 +16,11 @@
 
 namespace Modules\Admin\Http\Controllers;
 
+use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Supplier;
 use App\Models\User;
+use Exception;
 use Illuminate\Http\Request;
 
 class SupplierController extends Controller
@@ -94,10 +96,13 @@ class SupplierController extends Controller
         ]);
 
         $item = !$request->filled('id') ? new Supplier() : Supplier::findOrFail($request->post('id'));
+        $validated['phone'] = $validated['phone'] ?? '';
+        $validated['address'] = $validated['address'] ?? '';
+        $validated['bank_account_number'] = $validated['bank_account_number'] ?? '';
+        $validated['return_address'] = $validated['return_address'] ?? '';
         $item->fill($validated)->save();
 
-        return redirect()->route('admin.supplier.index')
-            ->with('success', "Supplier $item->name telah disimpan.");
+        return JsonResponseHelper::success($item, "Supplier $item->name telah disimpan.");
     }
 
     public function delete($id)
@@ -105,10 +110,12 @@ class SupplierController extends Controller
         allowed_roles([User::Role_Admin]);
 
         $item = Supplier::findOrFail($id);
-        $item->delete();
+        try {
+            $item->delete();
+        } catch (Exception $ex) {
+            return JsonResponseHelper::error('Gagal menghapus supplier', 500, $ex);
+        }
 
-        return response()->json([
-            'message' => __('messages.supplier-deleted', ['name' => $item->name])
-        ]);
+        return JsonResponseHelper::success($item, "Supplier $item->name telah dihapus.");
     }
 }

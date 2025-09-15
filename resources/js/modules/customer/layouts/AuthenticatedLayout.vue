@@ -1,10 +1,17 @@
 <script setup>
-import { computed, defineComponent, onMounted, ref, watch } from "vue";
+import { defineComponent, onMounted, ref, watch } from "vue";
 import { router, usePage } from "@inertiajs/vue3";
 import { useQuasar } from "quasar";
 
 defineComponent({
   name: "CustomerLayout",
+});
+
+const props = defineProps({
+  showDrawerButton: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 const LEFT_DRAWER_STORAGE_KEY = "amanah-pos.customer-layout.left-drawer-open";
@@ -36,7 +43,7 @@ onMounted(() => {
     <q-header>
       <q-toolbar class="bg-grey-1 text-black toolbar-scrolled">
         <q-btn
-          v-if="!leftDrawerOpen"
+          v-if="showDrawerButton && !leftDrawerOpen"
           flat
           dense
           aria-label="Menu"

@@ -1,11 +1,12 @@
 <script setup>
-import { router, useForm, usePage } from "@inertiajs/vue3";
+import { usePage } from "@inertiajs/vue3";
 import { handleSubmit } from "@/helpers/client-req-handler";
 import { scrollToFirstErrorField } from "@/helpers/utils";
+import { useApiForm } from "@/composables/useApiForm";
 
 const page = usePage();
 const title = (!!page.props.data.id ? "Edit" : "Tambah") + " Pemasok";
-const form = useForm({
+const form = useApiForm({
   id: page.props.data.id,
   name: page.props.data.name,
   phone: page.props.data.phone,
@@ -20,7 +21,7 @@ const submit = () => handleSubmit({ form, url: route("admin.supplier.save") });
 
 <template>
   <i-head :title="title" />
-  <authenticated-layout>
+  <authenticated-layout :show-drawer-button="false">
     <template #title>{{ title }}</template>
 
     <template #left-button>
@@ -31,7 +32,7 @@ const submit = () => handleSubmit({ form, url: route("admin.supplier.save") });
           color="grey-7"
           flat
           rounded
-          @click="router.get(route('admin.supplier.index'))"
+          @click="$goBack()"
         />
       </div>
     </template>
@@ -128,7 +129,7 @@ const submit = () => handleSubmit({ form, url: route("admin.supplier.save") });
                 icon="cancel"
                 label="Batal"
                 :disable="form.processing"
-                @click="router.get(route('admin.supplier.index'))"
+                @click="$goBack()"
               />
             </q-card-section>
           </q-card>

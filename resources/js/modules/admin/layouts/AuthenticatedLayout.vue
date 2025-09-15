@@ -7,6 +7,13 @@ defineComponent({
   name: "AuthenticatedLayout",
 });
 
+const props = defineProps({
+  showDrawerButton: {
+    type: Boolean,
+    default: true,
+  },
+});
+
 const LEFT_DRAWER_STORAGE_KEY = "amanah-pos.layout.left-drawer-open";
 const $q = useQuasar();
 const page = usePage();
@@ -44,7 +51,7 @@ defineExpose({
     <q-header>
       <q-toolbar class="bg-grey-1 text-black toolbar-scrolled">
         <q-btn
-          v-if="!leftDrawerOpen"
+          v-if="showDrawerButton && !leftDrawerOpen"
           flat
           dense
           aria-label="Menu"
@@ -53,10 +60,7 @@ defineExpose({
           <q-icon class="material-symbols-outlined">dock_to_right</q-icon>
         </q-btn>
         <slot name="left-button"></slot>
-        <q-toolbar-title
-          :class="{ 'q-ml-sm': leftDrawerOpen }"
-          style="font-size: 18px"
-        >
+        <q-toolbar-title style="font-size: 16px">
           <slot name="title">{{ $config.APP_NAME }}</slot>
         </q-toolbar-title>
         <slot name="right-button"></slot>

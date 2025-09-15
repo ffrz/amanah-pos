@@ -100,7 +100,7 @@ const computedColumns = computed(() => {
 
 <template>
   <i-head :title="title" />
-  <authenticated-layout>
+  <authenticated-layout :show-drawer-button="false">
     <template #title>{{ title }}</template>
 
     <template #left-button>

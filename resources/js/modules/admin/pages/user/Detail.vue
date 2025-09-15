@@ -7,7 +7,7 @@ const title = "Rincian Pengguna";
 
 <template>
   <i-head :title="title" />
-  <authenticated-layout>
+  <authenticated-layout :show-drawer-button="false">
     <template #title>{{ title }}</template>
     <template #left-button>
       <div class="q-gutter-sm">
@@ -26,7 +26,10 @@ const title = "Rincian Pengguna";
         <q-btn
           icon="edit"
           dense
-          color="primary"
+          rounded
+          flat
+          size="sm"
+          color="grey"
           @click="
             $inertia.get(route('admin.user.edit', { id: page.props.data.id }))
           "

@@ -7,7 +7,7 @@ const title = "Rincian Pemasok";
 
 <template>
   <i-head :title="title" />
-  <authenticated-layout>
+  <authenticated-layout :show-drawer-button="false">
     <template #title>{{ title }}</template>
     <template #left-button>
       <div class="q-gutter-sm">
@@ -17,7 +17,7 @@ const title = "Rincian Pemasok";
           color="grey-7"
           flat
           rounded
-          @click="router.get(route('admin.supplier.index'))"
+          @click="$goBack()"
         />
       </div>
     </template>
@@ -26,7 +26,10 @@ const title = "Rincian Pemasok";
         <q-btn
           icon="edit"
           dense
-          color="primary"
+          color="grey"
+          size="sm"
+          rounded
+          flat
           @click="
             router.get(route('admin.supplier.edit', { id: page.props.data.id }))
           "
@@ -64,7 +67,7 @@ const title = "Rincian Pemasok";
                     <td>{{ page.props.data.bank_account_number }}</td>
                   </tr>
                   <tr>
-                    <td>Alamat Return</td>
+                    <td>Alamat Retur</td>
                     <td>:</td>
                     <td>{{ page.props.data.return_address }}</td>
                   </tr>

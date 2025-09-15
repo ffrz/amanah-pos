@@ -16,7 +16,7 @@ const print = () => {
 
 <template>
   <i-head :title="title" />
-  <authenticated-layout>
+  <authenticated-layout :show-drawer-button="false">
     <template #title>
       <div class="row items-center q-gutter-x-sm">
         <span>{{ title }}</span>

@@ -50,7 +50,7 @@ const margin = computed(() => {
 
 <template>
   <i-head :title="title" />
-  <authenticated-layout>
+  <authenticated-layout :show-drawer-button="false">
     <template #title>{{ title }}</template>
     <template #left-button>
       <div class="q-gutter-sm">
@@ -60,7 +60,7 @@ const margin = computed(() => {
           color="grey-7"
           flat
           rounded
-          @click="$inertia.get(route('admin.product.index'))"
+          @click="$goBack()"
         />
       </div>
     </template>
@@ -282,7 +282,7 @@ const margin = computed(() => {
                 icon="cancel"
                 label="Batal"
                 :disable="form.processing"
-                @click="router.get(route('admin.product.index'))"
+                @click="$goBack()"
               />
             </q-card-section>
           </q-card>

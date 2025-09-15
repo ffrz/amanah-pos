@@ -406,7 +406,7 @@ const invoicePreview = () => {
 
 <template>
   <i-head :title="title" />
-  <authenticated-layout ref="authLayoutRef">
+  <authenticated-layout ref="authLayoutRef" :show-drawer-button="false">
     <template #title>{{ title }}</template>
 
     <template #left-button>

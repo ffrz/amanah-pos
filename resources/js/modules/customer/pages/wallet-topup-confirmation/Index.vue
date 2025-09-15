@@ -181,9 +181,9 @@ const onRowClicked = (row) => {
 <template>
   <i-head :title="title" />
   <authenticated-layout>
-    <template #title
-      ><span class="text-subtitle2">{{ title }}</span></template
-    >
+    <template #title>
+      <span class="text-subtitle2">{{ title }}</span>
+    </template>
     <template #right-button>
       <q-btn
         icon="add"
@@ -355,7 +355,7 @@ const onRowClicked = (row) => {
                 dense
                 flat
                 :disable="props.row.image_path == null"
-                @click="showAttachment(props.row.image_path)"
+                @click.stop="showAttachment(props.row.image_path)"
               >
                 <q-tooltip v-if="props.row.image_path != null">
                   Lihat Bukti
@@ -367,7 +367,7 @@ const onRowClicked = (row) => {
                 color="red"
                 dense
                 flat
-                @click="cancelWalletTopupConfirmation(props.row)"
+                @click.stop="cancelWalletTopupConfirmation(props.row)"
               >
                 <q-tooltip>Batalkan</q-tooltip>
               </q-btn>

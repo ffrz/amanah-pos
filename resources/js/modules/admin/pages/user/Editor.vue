@@ -28,7 +28,7 @@ const submit = () => handleSubmit({ form, url: route("admin.user.save") });
 
 <template>
   <i-head :title="title" />
-  <authenticated-layout>
+  <authenticated-layout :show-drawer-button="false">
     <template #title>{{ title }}</template>
     <template #left-button>
       <div class="q-gutter-sm">
@@ -38,7 +38,7 @@ const submit = () => handleSubmit({ form, url: route("admin.user.save") });
           color="grey-7"
           flat
           rounded
-          @click="$inertia.get(route('admin.user.index'))"
+          @click="$goBack()"
         />
       </div>
     </template>
@@ -134,7 +134,7 @@ const submit = () => handleSubmit({ form, url: route("admin.user.save") });
                 label="Batal"
                 class="text-black"
                 :disable="form.processing"
-                @click="router.get(route('admin.user.index'))"
+                @click="$goBack()"
               />
             </q-card-section>
           </q-card>

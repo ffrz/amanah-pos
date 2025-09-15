@@ -16,11 +16,11 @@
 
 namespace Modules\Admin\Http\Controllers;
 
+use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\ProductCategory;
-use App\Models\User;
+use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
 class ProductCategoryController extends Controller
@@ -82,23 +82,24 @@ class ProductCategoryController extends Controller
             'description' => 'nullable|max:1000',
         ]);
 
-        $validated['description'] = $validated['description'] ? $validated['description'] : '';
+        $validated['description'] = $validated['description'] ?? '';
 
         $item->fill($validated);
         $item->save();
 
-        return redirect()
-            ->route('admin.product-category.index')
-            ->with('success', "Kategori $item->name telah disimpan.");
+        return JsonResponseHelper::success($item, "Kategori $item->name telah disimpan.");
     }
 
     public function delete($id)
     {
         $item = ProductCategory::findOrFail($id);
-        $item->delete();
+        try {
+            $item->delete();
+        } catch (Exception $ex) {
+            return JsonResponseHelper::error('Gagal menghapus kategori', 500, $ex);
+        }
 
-        return response()->json([
-            'message' => __('messages.product-category-deleted', ['name' => $item->name])
-        ]);
+
+        return JsonResponseHelper::success($item, "Kategori $item->name telah dihapus.");
     }
 }

@@ -1,15 +1,14 @@
 <script setup>
-import ImageViewer from "@/components/ImageViewer.vue";
-import { formatDate, formatDateTime, formatNumber } from "@/helpers/formatter";
-import { router, usePage } from "@inertiajs/vue3";
+import { formatDateTime, formatNumber } from "@/helpers/formatter";
+import { usePage } from "@inertiajs/vue3";
 
 const page = usePage();
-const title = "Rincian Konfirmasi Top Up Wallet";
+const title = "Rincian Konfirmasi Top Up";
 </script>
 
 <template>
   <i-head :title="title" />
-  <authenticated-layout>
+  <authenticated-layout :show-drawer-button="false">
     <template #left-button>
       <div class="q-gutter-sm">
         <q-btn
@@ -24,7 +23,9 @@ const title = "Rincian Konfirmasi Top Up Wallet";
         />
       </div>
     </template>
-    <template #title>{{ title }}</template>
+    <template #title>
+      <span class="text-subtitle2">{{ title }}</span>
+    </template>
     <q-page class="row justify-center">
       <div class="col col-md-6 q-pa-xs">
         <div class="row">
@@ -94,10 +95,14 @@ const title = "Rincian Konfirmasi Top Up Wallet";
                     <td>:</td>
                     <td>{{ page.props.data.notes }}</td>
                   </tr>
-                  <tr v-if="page.props.data.image_path">
-                    <td colspan="3" class="bg-white">
-                      <div class="q-mt-md">
-                        Lampiran:<br />
+                  <template v-if="page.props.data.image_path">
+                    <tr>
+                      <td>Lampiran</td>
+                      <td>:</td>
+                      <td></td>
+                    </tr>
+                    <tr>
+                      <td colspan="3" class="bg-white">
                         <q-img
                           :src="`/${page.props.data.image_path}`"
                           class="q-mt-none"
@@ -105,9 +110,9 @@ const title = "Rincian Konfirmasi Top Up Wallet";
                           :style="{ border: '1px solid #ddd' }"
                           @click="showViewer = true"
                         />
-                      </div>
-                    </td>
-                  </tr>
+                      </td>
+                    </tr>
+                  </template>
                 </tbody>
               </table>
             </q-card-section>
