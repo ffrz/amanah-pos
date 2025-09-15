@@ -74,12 +74,17 @@ export function handleSubmit(data) {
       )
         return;
 
-      Notify.create({
-        message: error.message,
-        icon: "info",
-        color: "negative",
-        actions: [{ icon: "close", color: "white", round: true, dense: true }],
-      });
+      if (error.response?.status !== 422) {
+        // jangan tampilkan kalau error validasi
+        Notify.create({
+          message: error.message,
+          icon: "info",
+          color: "negative",
+          actions: [
+            { icon: "close", color: "white", round: true, dense: true },
+          ],
+        });
+      }
 
       if (onError) {
         onError(response);
