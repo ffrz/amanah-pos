@@ -368,7 +368,7 @@ watch(
                   {{ props.row.customer.username }} -
                   {{ props.row.customer.name }}
                 </my-link>
-                <div>Rp. {{ formatNumber(props.row.total_price) }}</div>
+                <div>Rp. {{ formatNumber(props.row.grand_total) }}</div>
                 <div v-if="props.row.notes">
                   <q-icon name="notes" /> {{ props.row.notes }}
                 </div>
@@ -395,7 +395,7 @@ watch(
               {{ props.row.customer_address }}
             </q-td>
             <q-td key="total" :props="props">
-              {{ formatNumber(props.row.total_price) }}
+              {{ formatNumber(props.row.grand_total) }}
             </q-td>
             <q-td key="action" :props="props" @click.stop>
               <div class="flex justify-end">

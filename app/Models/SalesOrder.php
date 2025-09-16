@@ -40,6 +40,8 @@ class SalesOrder extends BaseModel
         'total_cost',
         'total_price',
         'total_paid',
+        'total_discount',
+        'total_tax',
         'grand_total',
         'remaining_debt',
         'change',
@@ -123,6 +125,9 @@ class SalesOrder extends BaseModel
             'total_cost'      => 'decimal:2',
             'total_price'     => 'decimal:2',
             'total_paid'      => 'decimal:2',
+
+            'total_discount'  => 'decimal:2',
+            'total_tax'       => 'decimal:2',
 
             'grand_total'     => 'decimal:2',
             'remaining_debt'  => 'decimal:2',

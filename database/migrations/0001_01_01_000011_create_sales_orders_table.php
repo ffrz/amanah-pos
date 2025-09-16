@@ -48,6 +48,8 @@ return new class extends Migration
             $table->decimal('total_price', 18, 2)->default(0.);
             $table->decimal('total_paid', 18, 2)->default(0.); // jumlah yang dibayar
 
+            $table->decimal('total_discount', 18, 2)->default(0.);
+            $table->decimal('total_tax', 18, 2)->default(0.);
             $table->decimal('grand_total', 18, 2)->default(0.); // grand total setelah pajak dan diskon
             $table->decimal('remaining_debt', 18, 2)->default(0.); // jumlah sisa utang
             $table->decimal('change', 18, 2)->default(0.); // kembalian
