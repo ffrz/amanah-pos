@@ -30,7 +30,7 @@ const monthlyChartData = computed(() => page.props.monthlyChartData);
 
 const barChartOption = ref({
   title: {
-    text: "Transaksi Bulanan",
+    text: "Transaksi Wallet Bulanan",
     left: "center",
     textStyle: { color: "#444", fontSize: 14 },
   },

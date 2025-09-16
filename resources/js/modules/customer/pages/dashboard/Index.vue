@@ -3,8 +3,8 @@ import { router, usePage } from "@inertiajs/vue3";
 import { ref } from "vue";
 import { getQueryParams } from "@/helpers/utils";
 import SummaryCard from "./cards/SummaryCard.vue";
-import ExpenseSummaryChartCard from "./cards/ExpenseSummaryChartCard.vue";
-import DailyExpenseChartCard from "./cards/DailyExpenseChartCard.vue";
+import WalletTransactionSummaryChartCard from "./cards/WalletTransactionSummaryChartCard.vue";
+import MonthlyWalleltTransactionChartCard from "./cards/MonthlyWalleltTransactionChartCard.vue";
 import RecentWalletTransactions from "./cards/RecentWalletTransactions.vue";
 import RecentPurchaseOrders from "./cards/RecentPurchaseOrders.vue";
 
@@ -73,10 +73,10 @@ const summaryData = ref({
     <div class="q-pa-xs q-pt-none">
       <div class="row q-col-gutter-xs">
         <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-          <ExpenseSummaryChartCard />
+          <WalletTransactionSummaryChartCard />
         </div>
         <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-          <DailyExpenseChartCard />
+          <MonthlyWalleltTransactionChartCard />
         </div>
       </div>
     </div>

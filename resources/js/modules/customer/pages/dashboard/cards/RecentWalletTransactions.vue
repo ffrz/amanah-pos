@@ -13,7 +13,7 @@ const page = usePage();
 <template>
   <q-card bordered square class="no-shadow q-pa-sm">
     <q-card-section class="q-pa-none">
-      <div class="text-subtitle1 text-bold text-grey-8">
+      <div class="text-subtitle2 text-bold text-grey-9 text-center q-mb-md">
         Transaksi Wallet Terkini
       </div>
       <template v-if="page.props.data.recent_wallet_transactions.length > 0">

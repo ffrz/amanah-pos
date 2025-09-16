@@ -49,7 +49,7 @@ class CustomerWalletTransaction extends BaseModel
     const Type_Adjustment = 'adjustment';
 
     const Types = [
-        self::Type_Deposit => 'Deposit',
+        self::Type_Deposit => 'Top Up',
         self::Type_Refund => 'Refund',
         self::Type_SalesOrderPayment => 'Pembelian',
         self::Type_Withdrawal => 'Penarikan',

@@ -55,6 +55,12 @@ class DashboardController extends Controller
             $endDate
         );
 
+        $transactionsByTypeChartData = $this->getMonthlyTransactionsByTypeChartData(
+            $customer->id,
+            $startDate,
+            $endDate
+        );
+
         return inertia('dashboard/Index', [
             'data' => [
                 'actual_balance' => $customer->balance,
@@ -63,7 +69,8 @@ class DashboardController extends Controller
                 'recent_wallet_transactions' => $recent_wallet_transactions,
                 'recent_purchase_orders' => $recent_purchase_orders,
             ],
-            'monthlyChartData' => $monthlyChartData
+            'monthlyChartData' => $monthlyChartData,
+            'transactionsByTypeChartData' => $transactionsByTypeChartData
         ]);
     }
 
@@ -140,5 +147,35 @@ class DashboardController extends Controller
             'income' => $monthlyIncomeData,
             'expense' => $monthlyExpenseData,
         ];
+    }
+
+    /**
+     * Mengambil dan memformat total transaksi per tipe.
+     *
+     * @param int $customerId
+     * @param Carbon $startDate
+     * @param Carbon $endDate
+     * @return array
+     */
+    private function getMonthlyTransactionsByTypeChartData(int $customerId, Carbon $startDate, Carbon $endDate): array
+    {
+        $transactions = CustomerWalletTransaction::where('customer_id', $customerId)
+            ->whereBetween('datetime', [$startDate, $endDate])
+            ->select(
+                'type',
+                DB::raw('SUM(ABS(amount)) as total_amount')
+            )
+            ->groupBy('type')
+            ->get();
+
+        $formattedData = [];
+        foreach ($transactions as $transaction) {
+            $formattedData[] = [
+                'name' => $transaction->typeLabel, // Format type menjadi nama yang mudah dibaca
+                'value' => $transaction->total_amount,
+            ];
+        }
+
+        return $formattedData;
     }
 }

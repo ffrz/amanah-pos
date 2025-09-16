@@ -1,28 +1,38 @@
 <script setup>
-import { ref } from "vue";
-
-// Import ECharts
+import { ref, computed } from "vue";
+import { usePage } from "@inertiajs/vue3";
 import VChart from "vue-echarts";
 import { use } from "echarts/core";
 import { PieChart } from "echarts/charts";
 import { TitleComponent, TooltipComponent } from "echarts/components";
 import { CanvasRenderer } from "echarts/renderers";
+import { formatNumber } from "@/helpers/formatter";
 
 use([CanvasRenderer, PieChart, TitleComponent, TooltipComponent]);
 
+const page = usePage();
+const transactionsByTypeChartData = computed(
+  () => page.props.transactionsByTypeChartData
+);
+
 const pieChartOption = ref({
   title: {
-    text: "Penggunaan Dana Bulan Ini",
+    text: "Rekap Transaksi Wallet",
     left: "center",
     textStyle: { color: "#444", fontSize: 14 },
   },
   tooltip: {
     trigger: "item",
-    formatter: "{a} <br/>{b}: Rp {c} ({d}%)",
+    formatter: (params) => {
+      const value = params.value;
+      const name = params.name;
+      const percent = params.percent;
+      return `${name}<br/>Rp ${formatNumber(Math.abs(value))} (${percent}%)`;
+    },
   },
   series: [
     {
-      name: "Penggunaan Dana",
+      name: "Jenis Transaksi",
       type: "pie",
       radius: ["40%", "70%"],
       center: ["50%", "50%"],
@@ -34,13 +44,7 @@ const pieChartOption = ref({
         fontWeight: "bold",
         color: "#333",
       },
-      emphasis: {
-        label: {
-          show: true,
-          fontSize: "15",
-          fontWeight: "bold",
-        },
-      },
+      // emphasis DIBUANG total untuk menonaktifkan semua efek hover
       labelLine: {
         show: true,
         length: 10,
@@ -49,12 +53,7 @@ const pieChartOption = ref({
           color: "#aaa",
         },
       },
-      data: [
-        { value: 75000, name: "Jajan" },
-        { value: 30000, name: "Kebutuhan Harian" },
-        { value: 20000, name: "Fotokopi" },
-        { value: 20000, name: "Lainnya" },
-      ],
+      data: transactionsByTypeChartData.value,
     },
   ],
 });
