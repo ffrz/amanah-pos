@@ -6,7 +6,7 @@ return [
     'alpha_num' => 'Format :attribute tidak valid, gunakan hanya huruf dan angka.',
     'regex' => 'Format :attribute tidak valid.',
     'unique' => ':attribute sudah digunakan.',
-    'numeric' => ':attribute sudah digunakan.',
+    'numeric' => ':attribute tidak valid.',
     'current_password' => ':attribute tidak valid.',
     'different' => ':attribute tidak boleh sama.',
     'confirmed' => 'Konfirmasi :attribute tidak cocok.',

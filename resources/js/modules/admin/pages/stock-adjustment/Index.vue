@@ -25,11 +25,11 @@ const filter = reactive({
 
 const statuses = [
   { value: "all", label: "Semua" },
-  ...createOptions(window.CONSTANTS.STOCKADJUSTMENT_STATUSES),
+  ...createOptions(window.CONSTANTS.STOCK_ADJUSTMENT_STATUSES),
 ];
 const types = [
   { value: "all", label: "Semua" },
-  ...createOptions(window.CONSTANTS.STOCKADJUSTMENT_TYPES),
+  ...createOptions(window.CONSTANTS.STOCK_ADJUSTMENT_TYPES),
 ];
 
 const pagination = ref({
@@ -278,13 +278,13 @@ const computedColumns = computed(() => {
                         : ''
                     "
                     >{{
-                      $CONSTANTS.STOCKADJUSTMENT_STATUSES[props.row.status]
+                      $CONSTANTS.STOCK_ADJUSTMENT_STATUSES[props.row.status]
                     }}</q-chip
                   >
                 </div>
                 <div>
                   <q-icon name="category" />
-                  {{ $CONSTANTS.STOCKADJUSTMENT_TYPES[props.row.type] }}
+                  {{ $CONSTANTS.STOCK_ADJUSTMENT_TYPES[props.row.type] }}
                 </div>
                 <div v-if="props.row.created_by">
                   <q-icon name="person" /> Dibuat:
@@ -327,10 +327,10 @@ const computedColumns = computed(() => {
               }}
             </q-td>
             <q-td key="status" :props="props" class="text-center">
-              {{ $CONSTANTS.STOCKADJUSTMENT_STATUSES[props.row.status] }}
+              {{ $CONSTANTS.STOCK_ADJUSTMENT_STATUSES[props.row.status] }}
             </q-td>
             <q-td key="type" :props="props">
-              {{ $CONSTANTS.STOCKADJUSTMENT_TYPES[props.row.type] }}
+              {{ $CONSTANTS.STOCK_ADJUSTMENT_TYPES[props.row.type] }}
             </q-td>
             <q-td key="total_cost" :props="props">
               <div

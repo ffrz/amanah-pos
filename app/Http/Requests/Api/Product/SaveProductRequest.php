@@ -39,8 +39,6 @@ class SaveProductRequest extends FormRequest
      */
     public function rules(): array
     {
-        // Mendapatkan instance produk jika ini adalah request update (melalui route model binding)
-        // Jika ini adalah request store, $product akan null
         $productId = $this->input('id');
 
         return [
@@ -53,19 +51,19 @@ class SaveProductRequest extends FormRequest
                 'max:255',
                 Rule::unique('products', 'name')->ignore($productId),
             ],
-            'description' => ['nullable', 'string', 'max:1000'],
-            'barcode'   => ['nullable', 'string', 'max:255'],
-            'uom'       => ['nullable', 'string', 'max:255'],
-            'stock'     => ['nullable', 'numeric'],
-            'min_stock' => ['nullable', 'numeric'],
-            'max_stock' => ['nullable', 'numeric'],
-            'cost'      => ['nullable', 'numeric'],
-            'price'     => ['nullable', 'numeric'],
-            'price_2'   => ['nullable', 'numeric'],
-            'price_3'   => ['nullable', 'numeric'],
-            'active'    => ['nullable', 'boolean'],
+            'description' => ['sometimes', 'nullable', 'string', 'max:1000'],
+            'barcode'   => ['sometimes', 'nullable', 'string', 'max:255'],
+            'uom'       => ['sometimes', 'nullable', 'string', 'max:255'],
+            'stock'     => ['sometimes', 'numeric'],
+            'min_stock' => ['sometimes', 'numeric'],
+            'max_stock' => ['sometimes', 'numeric'],
+            'cost'      => ['sometimes', 'numeric'],
+            'price'     => ['sometimes', 'numeric'],
+            'price_2'   => ['sometimes', 'numeric'],
+            'price_3'   => ['sometimes', 'numeric'],
+            'active'    => ['sometimes', 'boolean'],
             'price_editable' => ['nullable', 'boolean'],
-            'notes'     => ['nullable', 'string', 'max:1000'],
+            'notes'     => ['sometimes', 'nullable', 'string', 'max:1000'],
         ];
     }
 

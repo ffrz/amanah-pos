@@ -120,6 +120,11 @@ class ProductController extends Controller
     {
         try {
             $validatedData = $request->validated();
+            $validatedData['description'] = $validatedData['description'] ?? '';
+            $validatedData['barcode'] = $validatedData['barcode'] ?? '';
+            $validatedData['notes'] = $validatedData['notes'] ?? '';
+            $validatedData['uom'] = $validatedData['uom'] ?? '';
+
             $product = null;
 
             // Jika ada ID dalam request, coba temukan produk yang ada

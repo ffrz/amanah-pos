@@ -411,7 +411,7 @@ const marginInfo = (price) => {
                         <template v-if="$q.screen.lt.md">
                           <div class="">
                             {{
-                              $CONSTANTS.STOCKMOVEMENT_REFTYPES[
+                              $CONSTANTS.STOCK_MOVEMENT_REF_TYPES[
                                 props.row.ref_type
                               ]
                             }}
@@ -444,7 +444,9 @@ const marginInfo = (price) => {
                       </q-td>
                       <q-td key="type" :props="props">
                         {{
-                          $CONSTANTS.STOCKMOVEMENT_REFTYPES[props.row.ref_type]
+                          $CONSTANTS.STOCK_MOVEMENT_REF_TYPES[
+                            props.row.ref_type
+                          ]
                         }}
                       </q-td>
                       <q-td>

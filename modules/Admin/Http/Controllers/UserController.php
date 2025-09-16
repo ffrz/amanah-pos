@@ -53,8 +53,6 @@ class UserController extends Controller
 
         $q->orderBy($orderBy, $orderType);
 
-        // dd($q->get());
-
         if (!empty($filter['role'] && $filter['role'] != 'all')) {
             $q->where('role', '=', $filter['role']);
         }

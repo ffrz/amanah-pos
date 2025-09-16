@@ -80,7 +80,7 @@ watch(
 );
 
 // Sanitize input
-const sanitizeInput = (value: string): number => {
+const sanitizeInput = (value: string): number | null => {
   const regex = props.allowNegative
     ? /^-?[0-9]+([.,][0-9]*)?$/
     : /^[0-9]+([.,][0-9]*)?$/;
@@ -90,12 +90,13 @@ const sanitizeInput = (value: string): number => {
     .replace(new RegExp(`\\${thousandSeparator}`, "g"), "")
     .replace(new RegExp(`\\${decimalSeparator}`, "g"), ".");
 
-  if (!regex.test(sanitized)) {
-    return props.modelValue || 0;
+  // This is the bug fix. If the input is empty or just a minus sign, return null.
+  if (sanitized === "" || sanitized === "-") {
+    return null;
   }
 
   const parsed = parseFloat(sanitized);
-  return isNaN(parsed) ? 0 : parseFloat(parsed.toFixed(props.maxDecimals));
+  return isNaN(parsed) ? null : parseFloat(parsed.toFixed(props.maxDecimals));
 };
 
 const emitUpdate = () => {

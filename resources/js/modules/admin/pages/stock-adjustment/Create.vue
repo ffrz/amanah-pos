@@ -37,7 +37,7 @@ const columns = [
   },
 ];
 
-const types = createOptions(window.CONSTANTS.STOCKADJUSTMENT_TYPES);
+const types = createOptions(window.CONSTANTS.STOCK_ADJUSTMENT_TYPES);
 
 const submit = () => {
   form.product_ids = selectedProducts.value.map((p) => p.id);

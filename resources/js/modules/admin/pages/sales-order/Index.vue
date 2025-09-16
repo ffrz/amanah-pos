@@ -3,11 +3,7 @@ import { computed, onMounted, reactive, ref, watch } from "vue";
 import { router } from "@inertiajs/vue3";
 import { handleDelete, handleFetchItems } from "@/helpers/client-req-handler";
 import { check_role, getQueryParams } from "@/helpers/utils";
-import {
-  formatDateTime,
-  formatNumber,
-  plusMinusSymbol,
-} from "@/helpers/formatter";
+import { formatDateTime, formatNumber } from "@/helpers/formatter";
 import { Dialog, useQuasar } from "quasar";
 import { getCurrentMonth, getCurrentYear } from "@/helpers/datetime";
 import {

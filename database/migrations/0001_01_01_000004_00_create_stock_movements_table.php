@@ -14,7 +14,6 @@
  * Email: fahmifauzirahman@gmail.com
  */
 
-use App\Models\Product;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -30,8 +29,15 @@ return new class extends Migration
             $table->id();
             $table->foreignId('product_id')->nullable()->constrained('products')->onDelete('set null');
             $table->unsignedBigInteger('ref_id')->nullable();
-            $table->string('ref_type', 20)->default('');
+            $table->string('ref_type', 40)->default('');
             $table->decimal('quantity', 10, 3)->default(0.);
+
+            $table->string('product_name', 100)->default('');
+            $table->string('uom', 40)->default('');
+            $table->decimal('quantity_before', 10, 3)->default(0.);
+            $table->decimal('quantity_after', 10, 3)->default(0.);
+            $table->string('notes', 100);
+
             $table->createdUpdatedTimestamps();
             $table->index(['ref_id', 'ref_type']);
         });

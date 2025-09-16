@@ -26,9 +26,9 @@
     window.CONSTANTS = <?= json_encode([
                           'USER_ROLES' => \App\Models\User::Roles,
                           'PRODUCT_TYPES' => \App\Models\Product::Types,
-                          'STOCKMOVEMENT_REFTYPES' => \App\Models\StockMovement::RefTypes,
-                          'STOCKADJUSTMENT_TYPES' => \App\Models\StockAdjustment::Types,
-                          'STOCKADJUSTMENT_STATUSES' => \App\Models\StockAdjustment::Statuses,
+                          'STOCK_MOVEMENT_REF_TYPES' => \App\Models\StockMovement::RefTypes,
+                          'STOCK_ADJUSTMENT_TYPES' => \App\Models\StockAdjustment::Types,
+                          'STOCK_ADJUSTMENT_STATUSES' => \App\Models\StockAdjustment::Statuses,
                           'CUSTOMER_WALLET_TRANSACTION_TYPES' => \App\Models\CustomerWalletTransaction::Types,
                           'FINANCE_ACCOUNT_TYPES' => \App\Models\FinanceAccount::Types,
                           'FINANCE_TRANSACTION_TYPES' => \App\Models\FinanceTransaction::Types,

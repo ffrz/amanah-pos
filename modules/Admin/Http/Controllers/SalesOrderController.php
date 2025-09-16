@@ -69,7 +69,6 @@ class SalesOrderController extends Controller
             $q->where('delivery_status', '=', $filter['delivery_status']);
         }
 
-        // Tambahan filter tahun
         if (!empty($filter['year']) && $filter['year'] !== 'all') {
             $q->whereYear('datetime', $filter['year']);
 
@@ -188,12 +187,10 @@ class SalesOrderController extends Controller
                 $product->stock += abs($detail->quantity);
                 $product->save();
 
-                $movement = StockMovement::where('ref_type', '=', StockMovement::RefType_SalesOrderDetail)
-                    ->where('ref_id', '=', $detail->id)
-                    ->get()->first();
-                if ($movement) {
-                    $movement->delete();
-                }
+                DB::delete(
+                    'DELETE FROM stock_movements WHERE ref_type = ? AND ref_id = ?',
+                    [StockMovement::RefType_SalesOrderDetail, $detail->id]
+                );
             }
 
             foreach ($order->payments as $payment) {
@@ -524,12 +521,26 @@ class SalesOrderController extends Controller
 
             // 5. Perbarui stok produk secara massal
             foreach ($order->details as $detail) {
+                $productType = $detail->product->type;
+                // TODO: Skip tipe produk tertentu
+                if (
+                    $productType == Product::Type_NonStocked
+                    || $productType == Product::Type_Service
+                ) {
+                    continue;
+                }
+
                 $quantity = $detail->quantity;
                 StockMovement::create([
-                    'product_id' => $detail->product_id,
-                    'ref_id'     => $detail->id,
-                    'ref_type'   => StockMovement::RefType_SalesOrderDetail,
-                    'quantity'   => -$quantity,
+                    'product_id'      => $detail->product_id,
+                    'product_name'    => $detail->product_name,
+                    'uom'             => $detail->product_uom,
+                    'ref_id'          => $detail->id,
+                    'ref_type'        => StockMovement::RefType_SalesOrderDetail,
+                    'quantity'        => -$quantity,
+                    'quantity_before' => $detail->product->stock,
+                    'quantity_after'  => $detail->product->stock - $quantity,
+                    'notes'           => "Transaksi penjualan #$order->formatted_id",
                 ]);
 
                 Product::where('id', $detail->product_id)->decrement('stock', $quantity);

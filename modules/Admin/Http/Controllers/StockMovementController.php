@@ -22,52 +22,44 @@ use Illuminate\Http\Request;
 
 class StockMovementController extends Controller
 {
+    public function index(Request $request)
+    {
+        return inertia('stock-movement/Index');
+    }
+
     public function data(Request $request)
     {
-        $orderBy = $request->get('order_by', 'date');
+        $orderBy = $request->get('order_by', 'created_at');
         $orderType = $request->get('order_type', 'desc');
         $filter = $request->get('filter', []);
 
-        $q = StockMovement::with(['creator']);
-        $q->where('product_id', $request->get('product_id', 0));
+        $q = StockMovement::with(['creator', 'product']);
+
+        if ($request->has('product_id')) {
+            $q->where('product_id', $request->get('product_id', 0));
+        }
 
         if (!empty($filter['search'])) {
             $q->where(function ($q) use ($filter) {
-                // $q->where('name', 'like', '%' . $filter['search'] . '%');
-                // $q->orWhere('description', 'like', '%' . $filter['search'] . '%');
-                // $q->orWhere('notes', 'like', '%' . $filter['search'] . '%');
+                $q->orWhere('notes', 'like', '%' . $filter['search'] . '%');
+            });
+
+            $q->orWhereHas('product', function ($query) use ($filter) {
+                $query->where('name', 'like', '%' . $filter['search'] . '%');
             });
         }
 
-        // if (!empty($filter['type']) && $filter['type'] != 'all') {
-        //     $q->where('type', '=', $filter['type']);
-        //     if ($filter['type'] == Product::Type_Stocked) {
-        //         if (!empty($filter['stock_status']) && $filter['stock_status'] != 'all') {
-        //             if ($filter['stock_status'] == 'low') {
-        //                 $q->whereColumn('stock', '<', 'min_stock');
-        //                 $q->where('stock', '!=', 0);
-        //             } elseif ($filter['stock_status'] == 'out') {
-        //                 $q->where('stock', '=', 0);
-        //             } elseif ($filter['stock_status'] == 'over') {
-        //                 $q->whereColumn('stock', '>', 'max_stock');
-        //             } elseif ($filter['stock_status'] == 'ready') {
-        //                 $q->where('stock', '>', 0);
-        //             }
-        //         }
-        //     }
-        // }
+        if (!empty($filter['ref_type']) && $filter['ref_type'] != 'all') {
+            $q->where('ref_type', $filter['ref_type']);
+        }
 
-        // if (!empty($filter['category_id']) && $filter['category_id'] != 'all') {
-        //     $q->where('category_id', '=', $filter['category_id']);
-        // }
+        if (!empty($filter['year']) && $filter['year'] !== 'all') {
+            $q->whereYear('created_at', $filter['year']);
 
-        // if (!empty($filter['supplier_id']) && $filter['supplier_id'] != 'all') {
-        //     $q->where('supplier_id', '=', $filter['supplier_id']);
-        // }
-
-        // if (!empty($filter['status']) && ($filter['status'] == 'active' || $filter['status'] == 'inactive')) {
-        //     $q->where('active', '=', $filter['status'] == 'active' ? true : false);
-        // }
+            if (!empty($filter['month']) && $filter['month'] !== 'all') {
+                $q->whereMonth('created_at', $filter['month']);
+            }
+        }
 
         $q->orderBy($orderBy, $orderType);
 

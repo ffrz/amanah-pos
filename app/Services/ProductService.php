@@ -143,38 +143,33 @@ class ProductService
     {
         DB::beginTransaction();
         try {
-            $oldStock = $product ? $product->stock : 0; // Get old stock if updating, else 0 for new product
+            $oldStock = $product ? $product->stock : 0;
 
             if ($product) {
-                // Update existing product
                 $product->update($data);
                 $isNewProduct = false;
             } else {
-                // Create new product
                 $product = Product::create($data);
                 $isNewProduct = true;
             }
 
             $newStock = $product->stock;
 
-            // Handle stock movement only if stock is provided in data and it's a stocked product
             if (isset($data['stock']) && $product->type === Product::Type_Stocked) {
-                if ($isNewProduct) {
-                    // Initial stock for new product
+                $refType = $isNewProduct ? StockMovement::RefType_InitialStock : StockMovement::RefType_ManualAdjustment;
+                $quantityBefore = $isNewProduct ? 0 : $oldStock;
+                $quantity = $isNewProduct ? $newStock : $newStock - $oldStock;
+
+                if ($quantityBefore != $newStock) {
                     StockMovement::create([
-                        'ref_type' => StockMovement::RefType_InitialStock,
+                        'ref_type' => $refType,
                         'product_id' => $product->id,
-                        'quantity' => $newStock, // Use newStock directly for initial
-                        'user_id' => Auth::user()->id,
-                    ]);
-                } elseif ($oldStock != $newStock) {
-                    // Manual adjustment for updated product
-                    $diff = $newStock - $oldStock;
-                    StockMovement::create([
-                        'ref_type' => StockMovement::RefType_ManualAdjustment,
-                        'product_id' => $product->id,
-                        'quantity' => $diff,
-                        'user_id' => Auth::user()->id,
+                        'product_name' => $product->name,
+                        'uom' => $product->uom,
+                        'quantity_before' => $quantityBefore,
+                        'quantity_after' => $newStock,
+                        'quantity' => $quantity,
+                        'notes' => $isNewProduct ? 'Stok awal' : 'Edit stok manual',
                     ]);
                 }
             }

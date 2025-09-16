@@ -290,7 +290,8 @@ defineExpose({
             :default-opened="
               $page.url.startsWith('/admin/products') ||
               $page.url.startsWith('/admin/product-categories') ||
-              $page.url.startsWith('/admin/stock-adjustments')
+              $page.url.startsWith('/admin/stock-adjustments') ||
+              $page.url.startsWith('/admin/stock-movements')
             "
           >
             <q-item
@@ -305,6 +306,20 @@ defineExpose({
               </q-item-section>
               <q-item-section>
                 <q-item-label>Penyesuaian Stok</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item
+              class="subnav"
+              clickable
+              v-ripple
+              :active="$page.url.startsWith('/admin/stock-movements')"
+              @click="router.get(route('admin.stock-movement.index'))"
+            >
+              <q-item-section avatar>
+                <q-icon name="timeline" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Riwayat Stok</q-item-label>
               </q-item-section>
             </q-item>
             <q-item

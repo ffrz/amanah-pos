@@ -188,9 +188,14 @@ class StockAdjustmentController extends Controller
                 // simpan riwayat perubahan stok
                 $stockMovement = new StockMovement([
                     'product_id' => $detail->product_id,
-                    'ref_id' => $detail->id,
-                    'ref_type' => StockMovement::RefType_StockAdjustment,
+                    'product_name' => $detail->product_name,
+                    'uom' => $detail->uom,
+                    'ref_id' => $item->id,
+                    'ref_type' => StockMovement::RefType_StockAdjustmentDetail,
                     'quantity' => $detail->balance,
+                    'quantity_before' => $detail->old_quantity,
+                    'quantity_after' => $detail->new_quantity,
+                    'notes' => "Penyesuaian stok #$item->formatted_id",
                 ]);
                 $stockMovement->save();
             }
@@ -217,7 +222,7 @@ class StockAdjustmentController extends Controller
         return redirect(route($next_url, [
             'id' => $item->id
         ]),)->with([
-            'message' => __('messages.stock-adjustment-saved', ['id' => $item->id])
+            'message' => 'Penyesuaian stok telah disimpan.',
         ]);
     }
 
@@ -243,7 +248,7 @@ class StockAdjustmentController extends Controller
                 // Hapus stock movement terkait detail ini
                 DB::delete(
                     'DELETE FROM stock_movements WHERE ref_type = ? AND ref_id = ?',
-                    [StockMovement::RefType_StockAdjustment, $detail->id]
+                    [StockMovement::RefType_StockAdjustmentDetail, $detail->id]
                 );
             }
         }

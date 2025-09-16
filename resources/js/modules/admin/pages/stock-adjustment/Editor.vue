@@ -18,7 +18,7 @@ const form = useForm({
   action: "save",
   details: [],
 });
-const types = createOptions(window.CONSTANTS.STOCKADJUSTMENT_TYPES);
+const types = createOptions(window.CONSTANTS.STOCK_ADJUSTMENT_TYPES);
 const details = page.props.details;
 
 const submit = (action) => {

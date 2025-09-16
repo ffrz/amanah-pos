@@ -112,7 +112,7 @@ const computedColumns = computed(() => {
                     <td>:</td>
                     <td>
                       {{
-                        $CONSTANTS.STOCKADJUSTMENT_TYPES[page.props.data.type]
+                        $CONSTANTS.STOCK_ADJUSTMENT_TYPES[page.props.data.type]
                       }}
                     </td>
                   </tr>
@@ -121,7 +121,7 @@ const computedColumns = computed(() => {
                     <td>:</td>
                     <td>
                       {{
-                        $CONSTANTS.STOCKADJUSTMENT_STATUSES[
+                        $CONSTANTS.STOCK_ADJUSTMENT_STATUSES[
                           page.props.data.status
                         ]
                       }}
