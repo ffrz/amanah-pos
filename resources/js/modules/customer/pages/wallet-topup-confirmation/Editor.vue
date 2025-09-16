@@ -129,6 +129,7 @@ const submit = () => {
                 label="Kirim Konfirmasi"
                 color="primary"
                 :disable="form.processing"
+                :loading="form.processing"
               />
               <q-btn
                 icon="cancel"
