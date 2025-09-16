@@ -30,11 +30,11 @@ class Setting extends BaseModel
     protected $fillable = [
         'key',
         'value',
-        'lastmod_datetime',
-        'lastmod_user_id',
-        'lastmod_username',
     ];
 
+    // FIXME: This manual caching is not safe for stateless environments like Octane/Swoole.
+    // It should be replaced with a proper caching mechanism (e.g., Laravel Cache)
+    // for production.
     static $settings = [];
     static $is_initialized = false;
 

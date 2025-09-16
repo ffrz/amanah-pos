@@ -1,0 +1,199 @@
+<script setup>
+import { handleFetchItems } from "@/helpers/client-req-handler";
+import { getQueryParams } from "@/helpers/utils";
+import { useQuasar } from "quasar";
+import { computed, onMounted, reactive, ref } from "vue";
+import { formatDateTime, formatNumber } from "@/helpers/formatter";
+import LongTextView from "@/components/LongTextView.vue";
+
+const props = defineProps({
+  productId: {
+    type: [String, Number],
+    required: true,
+  },
+});
+
+const $q = useQuasar();
+const rows = ref([]);
+const loading = ref(true);
+const filter = reactive({
+  ...getQueryParams(),
+});
+const pagination = ref({
+  page: 1,
+  rowsPerPage: 10,
+  rowsNumber: 10,
+  sortBy: "created_at",
+  descending: true,
+});
+
+let columns = [
+  {
+    name: "id",
+    label: $q.screen.lt.sm ? "Item" : "#",
+    field: "id",
+    align: "left",
+    sortable: true,
+  },
+  {
+    name: "created_at",
+    label: "Waktu",
+    field: "created_at",
+    align: "left",
+    sortable: true,
+  },
+  {
+    name: "type",
+    label: "Jenis",
+    field: "type",
+    align: "left",
+    sortable: true,
+  },
+  {
+    name: "quantity_before",
+    label: "Qty Awal",
+    field: "quantity_before",
+    align: "right",
+  },
+  {
+    name: "quantity_after",
+    label: "Qty Akhir",
+    field: "quantity_after",
+    align: "right",
+  },
+  {
+    name: "quantity",
+    label: "Selisih",
+    field: "quantity",
+    align: "right",
+  },
+  {
+    name: "notes",
+    label: "Catatan",
+    field: "notes",
+    align: "left",
+  },
+];
+
+onMounted(() => {
+  fetchItems();
+});
+
+const fetchItems = (tableProps = null) =>
+  handleFetchItems({
+    pagination,
+    filter,
+    props: tableProps,
+    rows,
+    url: route("admin.stock-movement.data", { product_id: props.productId }),
+    loading,
+  });
+
+const computedColumns = computed(() => {
+  if ($q.screen.gt.sm) return columns;
+  return columns.filter((col) => col.name === "id" || col.name === "quantity");
+});
+</script>
+
+<template>
+  <q-table
+    flat
+    bordered
+    square
+    color="primary"
+    class="full-height-table full-height-table2"
+    row-key="id"
+    virtual-scroll
+    v-model:pagination="pagination"
+    :filter="filter.search"
+    :loading="loading"
+    :columns="computedColumns"
+    :rows="rows"
+    :rows-per-page-options="[10, 25, 50]"
+    @request="fetchItems"
+    binary-state-sort
+  >
+    <template v-slot:loading>
+      <q-inner-loading showing color="red" />
+    </template>
+
+    <template v-slot:no-data="{ icon, message, filter }">
+      <div class="full-width row flex-center text-grey-8 q-gutter-sm">
+        <span>
+          {{ message }}
+          {{ filter ? " with term " + filter : "" }}</span
+        >
+      </div>
+    </template>
+
+    <template v-slot:body="props">
+      <q-tr :props="props">
+        <q-td key="id" :props="props">
+          <div>
+            <template v-if="$q.screen.lt.sm">
+              <div>
+                <q-badge>
+                  {{ $CONSTANTS.STOCK_MOVEMENT_REF_TYPES[props.row.ref_type] }}
+                </q-badge>
+              </div>
+              <q-icon class="inline-icon" name="tag" />
+            </template>
+            {{ props.row.formatted_id }}
+          </div>
+          <template v-if="$q.screen.lt.sm">
+            <div>
+              <q-icon name="calendar_clock" class="inline-icon" />
+              {{ formatDateTime(props.row.created_at) }}
+            </div>
+
+            <div
+              :class="
+                props.row.quantity > 0 ? 'text-positive' : 'text-negative'
+              "
+            >
+              <q-icon class="inline-icon" name="compare_arrows" />
+              {{ formatNumber(props.row.quantity_before) }}
+              {{ props.row.uom }}
+              &rarr;
+              {{ formatNumber(props.row.quantity_after) }}
+              {{ props.row.uom }}
+            </div>
+            <LongTextView
+              :text="props.row.notes"
+              icon="notes"
+              class="text-grey-8"
+            />
+          </template>
+        </q-td>
+        <q-td key="created_at" :props="props">
+          {{ formatDateTime(props.row.created_at) }}
+        </q-td>
+        <q-td key="type" :props="props">
+          {{ $CONSTANTS.STOCK_MOVEMENT_REF_TYPES[props.row.ref_type] }}
+          <span v-if="props.row.ref">
+            {{ props.row.ref }}
+          </span>
+        </q-td>
+        <q-td key="quantity_before" :props="props">
+          {{ formatNumber(props.row.quantity_before) }}
+          {{ props.row.uom }}
+        </q-td>
+        <q-td key="quantity_after" :props="props">
+          {{ formatNumber(props.row.quantity_after) }}
+          {{ props.row.uom }}
+        </q-td>
+        <q-td
+          key="quantity"
+          :props="props"
+          :class="props.row.quantity > 0 ? 'text-positive' : 'text-negative'"
+        >
+          {{ formatNumber(props.row.quantity) }}
+          {{ props.row.uom }}
+        </q-td>
+        <q-td key="notes" :props="props">
+          <LongTextView :text="props.row.notes" />
+        </q-td>
+      </q-tr>
+    </template>
+  </q-table>
+</template>

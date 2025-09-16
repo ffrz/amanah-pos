@@ -345,13 +345,17 @@ watch(
             @click.prevent="onRowClicked(props.row)"
           >
             <q-td key="id" :props="props" class="wrap-column">
-              <div># {{ props.row.formatted_id }}</div>
+              <div>
+                <q-icon name="tag" />
+                {{ props.row.formatted_id }}
+              </div>
               <div>
                 <q-icon class="inline-icon" name="calendar_today" />{{
                   formatDateTime(props.row.datetime)
                 }}
               </div>
               <template v-if="!$q.screen.gt.sm">
+                <q-icon name="person" />
                 <my-link
                   v-if="props.row.customer"
                   :href="
@@ -361,8 +365,7 @@ watch(
                   "
                   @click.stop
                 >
-                  {{ props.row.customer.formatted_id }}
-                  <br />
+                  {{ props.row.customer.username }} -
                   {{ props.row.customer.name }}
                 </my-link>
                 <div>Rp. {{ formatNumber(props.row.total_price) }}</div>
@@ -380,18 +383,16 @@ watch(
                 />
               </div>
             </q-td>
-            <q-td key="customer_id" :props="props" @click.stop>
-              <my-link
-                v-if="props.row.customer"
-                :href="
-                  route('admin.customer.detail', { id: props.row.customer.id })
-                "
-                @click.stop
-              >
-                {{ props.row.customer.formatted_id }}
-                <br />
-                {{ props.row.customer.name }}
-              </my-link>
+            <q-td key="customer_id" :props="props">
+              <q-icon name="person" class="inline-icon" />
+              {{ props.row.customer_username }} -
+              {{ props.row.customer_name }}
+              <br />
+              <q-icon name="phone" class="inline-icon" />
+              {{ props.row.customer_phone }}
+              <br />
+              <q-icon name="home_pin" class="inline-icon" />
+              {{ props.row.customer_address }}
             </q-td>
             <q-td key="total" :props="props">
               {{ formatNumber(props.row.total_price) }}

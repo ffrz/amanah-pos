@@ -144,10 +144,6 @@ const computedColumns = computed(() => {
     (col) => col.name === "id" || col.name === "quantity"
   );
 });
-
-// const goToDetail = (props) => {
-//   router.get(route("admin.product.detail", props.row.id));
-// };
 </script>
 
 <template>

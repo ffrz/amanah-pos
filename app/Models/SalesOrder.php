@@ -23,7 +23,15 @@ class SalesOrder extends BaseModel
 {
     protected $fillable = [
         'cashier_id',
+
         'customer_id',
+        'customer_username',
+        'customer_name',
+        'customer_phone',
+        'customer_address',
+
+        'type',
+
         'datetime',
         'due_date',
         'status',
@@ -45,18 +53,24 @@ class SalesOrder extends BaseModel
         'formatted_id',
     ];
 
-    // === Status Order ===
+    public const Type_Pickup   = 'pickup';
+    public const Type_Delivery = 'delivery';
+
+    public const Types = [
+        self::Type_Pickup   => 'Diambil',
+        self::Type_Delivery => 'Dikirim',
+    ];
+
     public const Status_Draft     = 'draft';
     public const Status_Closed    = 'closed';
     public const Status_Canceled = 'canceled';
 
     public const Statuses = [
-        self::Status_Draft     => 'Draft',
-        self::Status_Closed    => 'Selesai',
+        self::Status_Draft    => 'Draft',
+        self::Status_Closed   => 'Selesai',
         self::Status_Canceled => 'Dibatalkan',
     ];
 
-    // === Status Pembayaran ===
     public const PaymentStatus_Unpaid        = 'unpaid';
     public const PaymentStatus_PartiallyPaid = 'partially_paid';
     public const PaymentStatus_FullyPaid     = 'fully_paid';
@@ -75,20 +89,34 @@ class SalesOrder extends BaseModel
     public const DeliveryStatus_Received = 'received';
     public const DeliveryStatus_Failed   = 'failed';
 
+    public const DeliveryStatus_ReadyForPickUp = 'ready_for_pickup';
+    public const DeliveryStatus_PickedUp = 'picked_up';
+
     public const DeliveryStatuses = [
         self::DeliveryStatus_NotSent  => 'Belum Dikirim',
         self::DeliveryStatus_Sent     => 'Sedang Dikirim',
         self::DeliveryStatus_Received => 'Terkirim',
         self::DeliveryStatus_Failed   => 'Gagal',
+
+        self::DeliveryStatus_ReadyForPickUp => 'Siap Diambil',
+        self::DeliveryStatus_PickedUp       => 'Sudah Diambil',
     ];
 
     protected function casts(): array
     {
         return [
-            'cashier_id'      => 'integer',
-            'customer_id'     => 'integer',
+            'type' => 'string',
+
+            'cashier_id'        => 'integer',
+
+            'customer_id'       => 'integer',
+            'customer_username' => 'string',
+            'customer_name'     => 'string',
+            'customer_phone'    => 'string',
+            'customer_address'  => 'string',
+
             'datetime'        => 'datetime',
-            'due_date'        => 'datetime',
+            'due_date'        => 'date',
             'status'          => 'string',
             'payment_status'  => 'string',
             'delivery_status' => 'string',
@@ -129,6 +157,11 @@ class SalesOrder extends BaseModel
             . Carbon::parse($this->created_at)->format('Ymd')
             . '-'
             . $this->id;
+    }
+
+    public function getTypeLabelAttribute()
+    {
+        return self::Types[$this->type] ?? '-';
     }
 
     public function getStatusLabelAttribute()

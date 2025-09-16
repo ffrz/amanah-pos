@@ -48,12 +48,20 @@ class SalesOrderController extends Controller
         $orderType = $request->get('order_type', 'desc');
         $filter = $request->get('filter', []);
 
-        $q = SalesOrder::with('customer');
+        $q = SalesOrder::with(['customer', 'details', 'details.product']);
 
         if (!empty($filter['search'])) {
             $q->where(function ($q) use ($filter) {
-                $q->where('description', 'like', '%' . $filter['search'] . '%');
                 $q->orWhere('notes', 'like', '%' . $filter['search'] . '%');
+                $q->orWhere('customer_username', 'like', '%' . $filter['search'] . '%');
+                $q->orWhere('customer_name', 'like', '%' . $filter['search'] . '%');
+                $q->orWhere('customer_phone', 'like', '%' . $filter['search'] . '%');
+                $q->orWhere('customer_address', 'like', '%' . $filter['search'] . '%');
+            });
+
+            $q->orWhereHas('details.product', function ($q) use ($filter) {
+                $q->where('name', 'like', "%" . $filter['search'] . "%")
+                    ->orWhere('barcode', 'like', "%" . $filter['search'] . "%");
             });
         }
 
@@ -77,8 +85,8 @@ class SalesOrderController extends Controller
             }
         }
 
-        $q->select(['id', 'total_price', 'datetime', 'status', 'payment_status', 'delivery_status'])
-            ->orderBy($orderBy, $orderType);
+        // $q->select(['id', 'total_price', 'datetime', 'status', 'payment_status', 'delivery_status'])
+        $q->orderBy($orderBy, $orderType);
 
         $items = $q->paginate($request->get('per_page', 10))->withQueryString();
 
@@ -91,10 +99,11 @@ class SalesOrderController extends Controller
 
         if (!$id) {
             $item = new SalesOrder([
+                'type' => SalesOrder::Type_Pickup,
                 'datetime' => Carbon::now(),
                 'status' => SalesOrder::Status_Draft,
                 'payment_status' => SalesOrder::PaymentStatus_Unpaid,
-                'delivery_status' => SalesOrder::DeliveryStatus_NotSent,
+                'delivery_status' => SalesOrder::DeliveryStatus_ReadyForPickUp,
             ]);
             $item->save();
             return redirect(route('admin.sales-order.edit', $item->id));
@@ -142,12 +151,22 @@ class SalesOrderController extends Controller
             return JsonResponseHelper::error('Order tidak dapat diubah.', 403);
         }
 
-        $item->customer_id = $request->post('customer_id');
+        $customer = Customer::findOrFail($request->post('customer_id'));
+
+        // Nilai awal customer info dari saat diganti customer
+        $item->customer_id = $customer->id;
+        $item->customer_username = $customer->username;
+        $item->customer_name = $customer->name;
+        $item->customer_phone = $customer->phone;
+        $item->customer_address = $customer->address;
+
         $item->notes = $request->post('notes', '');
         $item->datetime = $request->post('datetime', Carbon::now());
-        $item->status = $request->post('status', SalesOrder::Status_Draft);
-        $item->payment_status = $request->post('payment_status', SalesOrder::PaymentStatus_Unpaid);
-        $item->delivery_status = $request->post('delivery_status', SalesOrder::DeliveryStatus_NotSent);
+
+        // FIXME: Saat ini memang belum dibutuhkan karena gak bisa diubah dari client
+        // $item->status = $request->post('status', SalesOrder::Status_Draft);
+        // $item->payment_status = $request->post('payment_status', SalesOrder::PaymentStatus_Unpaid);
+        // $item->delivery_status = $request->post('delivery_status', SalesOrder::DeliveryStatus_ReadyForPickUp);
 
         $item->save();
         return JsonResponseHelper::success($item, 'Order telah diperbarui');
@@ -513,6 +532,10 @@ class SalesOrderController extends Controller
             } else {
                 $order->payment_status = SalesOrder::PaymentStatus_Unpaid;
             }
+
+
+            // FIXME: status langsung diambil tanpa harus seting di order
+            $order->delivery_status = SalesOrder::DeliveryStatus_PickedUp;
 
             $order->status = SalesOrder::Status_Closed;
             $order->due_date = $request->post('due_date', null);

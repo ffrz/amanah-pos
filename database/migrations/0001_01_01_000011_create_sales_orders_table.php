@@ -31,6 +31,14 @@ return new class extends Migration
             $table->foreignId('customer_id')->nullable()->constrained('customers')->onDelete('set null');
             $table->foreignId('cashier_id')->nullable()->constrained('users')->onDelete('set null');
 
+            $table->string('type', 40)->nullable()->deafult('');
+
+            // harus dicatat karena data historical
+            $table->string('customer_username', 100)->nullable()->deafult('');
+            $table->string('customer_name', 100)->nullable()->deafult('');
+            $table->string('customer_phone', 40)->nullable()->deafult('');
+            $table->string('customer_address', 200)->nullable()->deafult('');
+
             $table->string('status', 30);
             $table->string('payment_status', 30);
             $table->string('delivery_status', 30);
