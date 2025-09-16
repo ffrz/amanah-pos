@@ -1,16 +1,17 @@
 <script setup>
-import { router } from "@inertiajs/vue3";
+import { router, usePage } from "@inertiajs/vue3";
 import { ref } from "vue";
 import { getQueryParams } from "@/helpers/utils";
 import SummaryCard from "./cards/SummaryCard.vue";
-import RecentTopup from "./cards/RecentTopup.vue";
-import RecentTransaction from "./cards/RecentTransaction.vue";
 import ExpenseSummaryChartCard from "./cards/ExpenseSummaryChartCard.vue";
 import DailyExpenseChartCard from "./cards/DailyExpenseChartCard.vue";
+import RecentWalletTransactions from "./cards/RecentWalletTransactions.vue";
+import RecentPurchaseOrders from "./cards/RecentPurchaseOrders.vue";
 
 const title = "Dashboard";
 const showFilter = ref(true);
 const selected_month = ref(getQueryParams()["month"] ?? "this_month");
+const page = usePage();
 
 const month_options = ref([
   { value: "this_month", label: "Bulan Ini" },
@@ -24,9 +25,9 @@ const onFilterChange = () => {
 };
 
 const summaryData = ref({
-  balance: 55000,
-  total_in: 200000,
-  total_out: 145000,
+  balance: page.props.data.actual_balance,
+  total_in: page.props.data.total_income,
+  total_out: page.props.data.total_expense,
 });
 </script>
 
@@ -83,10 +84,10 @@ const summaryData = ref({
     <div class="q-pa-xs">
       <div class="row q-col-gutter-xs">
         <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-          <RecentTopup />
+          <RecentWalletTransactions />
         </div>
         <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-          <RecentTransaction />
+          <RecentPurchaseOrders />
         </div>
       </div>
     </div>

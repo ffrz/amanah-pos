@@ -65,7 +65,7 @@ class WalletTransactionController extends Controller
 
     public function detail($id)
     {
-        $trx = CustomerWalletTransaction::findOrFail($id);
+        $trx = CustomerWalletTransaction::with(['customer'])->findOrFail($id);
 
         if ($trx->customer_id !== Auth::guard("customer")->user()->id) {
             return abort(403);

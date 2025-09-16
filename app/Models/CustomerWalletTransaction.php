@@ -51,7 +51,7 @@ class CustomerWalletTransaction extends BaseModel
     const Types = [
         self::Type_Deposit => 'Deposit',
         self::Type_Refund => 'Refund',
-        self::Type_SalesOrderPayment => 'Pembayaran Transaksi Penjualan',
+        self::Type_SalesOrderPayment => 'Pembelian',
         self::Type_Withdrawal => 'Penarikan',
         self::Type_Adjustment => 'Penyesuaian',
     ];

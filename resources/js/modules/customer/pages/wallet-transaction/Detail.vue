@@ -1,5 +1,10 @@
 <script setup>
-import { formatDate, formatDateTime, formatNumber } from "@/helpers/formatter";
+import {
+  formatDate,
+  formatDateTime,
+  formatNumber,
+  plusMinusSymbol,
+} from "@/helpers/formatter";
 import { router, usePage } from "@inertiajs/vue3";
 
 const page = usePage();
@@ -28,7 +33,7 @@ const title = "Rincian Transaksi";
           <q-card square flat bordered class="col">
             <q-card-section>
               <div class="text-subtitle1 text-bold text-grey-8">
-                Rincian Transaksi
+                Rincian Transaksi Wallet
               </div>
               <table class="detail">
                 <tbody>
@@ -47,9 +52,14 @@ const title = "Rincian Transaksi";
                     </td>
                   </tr>
                   <tr>
-                    <td>Jumlah</td>
+                    <td>Pelanggan</td>
                     <td>:</td>
-                    <td>Rp. {{ formatNumber(page.props.data.amount) }}</td>
+                    <td>
+                      <div>
+                        {{ page.props.data.customer.username }}<br />
+                        {{ page.props.data.customer.name }}
+                      </div>
+                    </td>
                   </tr>
                   <tr>
                     <td>Jenis Transaksi</td>
@@ -60,6 +70,20 @@ const title = "Rincian Transaksi";
                           page.props.data.type
                         ]
                       }}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Jumlah</td>
+                    <td>:</td>
+                    <td
+                      :class="
+                        page.props.data.amount > 0
+                          ? 'text-positive'
+                          : 'text-negative'
+                      "
+                    >
+                      {{ plusMinusSymbol(page.props.data.amount) }}Rp.
+                      {{ formatNumber(Math.abs(page.props.data.amount)) }}
                     </td>
                   </tr>
                   <tr>

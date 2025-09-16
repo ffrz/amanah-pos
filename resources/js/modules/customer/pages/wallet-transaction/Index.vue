@@ -8,6 +8,7 @@ import {
   formatDateTime,
   formatDateTimeFromNow,
   formatNumber,
+  formatNumberWithSymbol,
   plusMinusSymbol,
 } from "@/helpers/formatter";
 import { createMonthOptions, createYearOptions } from "@/helpers/options";
@@ -221,11 +222,9 @@ const onRowClicked = (row) => {
                   }}
                 </div>
                 <div :class="props.row.amount < 0 ? 'text-red' : 'text-green'">
-                  <q-icon name="money" class="inline-icon" /> Rp.
-                  {{
-                    plusMinusSymbol(props.row.amount) +
-                    formatNumber(props.row.amount)
-                  }}
+                  <q-icon name="money" class="inline-icon" />
+                  {{ plusMinusSymbol(props.row.amount) }}Rp.
+                  {{ formatNumber(Math.abs(props.row.amount)) }}
                 </div>
               </template>
             </q-td>
@@ -238,10 +237,7 @@ const onRowClicked = (row) => {
               style="text-align: right"
               :class="props.row.amount < 0 ? 'text-red' : 'text-green'"
             >
-              {{
-                plusMinusSymbol(props.row.amount) +
-                formatNumber(props.row.amount)
-              }}
+              {{ formatNumberWithSymbol(props.row.amount) }}
             </q-td>
             <q-td key="notes" :props="props">
               <LongTextView :text="props.row.notes" />

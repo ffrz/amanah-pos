@@ -24,7 +24,7 @@ const props = defineProps({
   },
   maxLength: {
     type: Number,
-    default: 100, // Default panjang teks sebelum dipotong
+    default: 50, // Default panjang teks sebelum dipotong
   },
   icon: {
     type: String,

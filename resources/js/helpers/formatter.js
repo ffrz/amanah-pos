@@ -18,11 +18,11 @@ export function dateTimeFromNow(date) {
 }
 
 export function plusMinusSymbol(num) {
-  return num > 0 ? "+" : "";
+  return num > 0 ? "+" : "-";
 }
 
 export function formatNumberWithSymbol(num) {
-  return plusMinusSymbol(num) + formatNumber(num);
+  return plusMinusSymbol(num) + formatNumber(Math.abs(num));
 }
 
 export function formatDateTime(
