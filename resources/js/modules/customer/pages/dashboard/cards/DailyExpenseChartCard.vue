@@ -1,5 +1,6 @@
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
+import { usePage } from "@inertiajs/vue3"; // Import usePage
 
 // Import ECharts
 import VChart from "vue-echarts";
@@ -9,8 +10,10 @@ import {
   TitleComponent,
   TooltipComponent,
   GridComponent,
+  LegendComponent, // Tambahkan LegendComponent
 } from "echarts/components";
 import { CanvasRenderer } from "echarts/renderers";
+import { formatNumber } from "@/helpers/formatter";
 
 use([
   CanvasRenderer,
@@ -18,11 +21,16 @@ use([
   TitleComponent,
   TooltipComponent,
   GridComponent,
+  LegendComponent, // Gunakan LegendComponent
 ]);
+
+// Ambil data dari props yang dikirim oleh controller
+const page = usePage();
+const monthlyChartData = computed(() => page.props.monthlyChartData);
 
 const barChartOption = ref({
   title: {
-    text: "Transaksi Mingguan",
+    text: "Transaksi Bulanan",
     left: "center",
     textStyle: { color: "#444", fontSize: 14 },
   },
@@ -30,19 +38,29 @@ const barChartOption = ref({
     trigger: "axis",
     axisPointer: { type: "shadow" },
     formatter: (params) => {
-      let value = params[0].value;
-      return `Rp ${value.toLocaleString("id-ID")}`;
+      let tooltipContent = "";
+      params.forEach((param) => {
+        tooltipContent += `<br/>${param.marker} ${
+          param.seriesName
+        }: Rp ${formatNumber(param.value)}`;
+      });
+      return tooltipContent;
     },
+  },
+  legend: {
+    data: ["Pengeluaran", "Pemasukan"],
+    bottom: 0,
   },
   grid: {
     left: "3%",
     right: "4%",
-    bottom: "3%",
+    bottom: "15%", // Sesuaikan margin bawah karena ada legend
     containLabel: true,
   },
   xAxis: {
     type: "category",
-    data: ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"],
+    // Gunakan label (tanggal 1, 2, 3...) dari server
+    data: monthlyChartData.value.labels,
     axisLine: { lineStyle: { color: "#555", type: "dashed" } },
     axisLabel: { show: true },
   },
@@ -58,11 +76,21 @@ const barChartOption = ref({
   },
   series: [
     {
+      name: "Pemasukan",
+      type: "bar",
+      // Gunakan data pendapatan dari server
+      data: monthlyChartData.value.income,
+      itemStyle: {
+        color: "#4CAF50", // Hijau untuk pendapatan
+      },
+    },
+    {
       name: "Pengeluaran",
       type: "bar",
-      data: [15000, 10000, 25000, 5000, 30000, 0, 5000],
+      // Gunakan data pengeluaran dari server
+      data: monthlyChartData.value.expense,
       itemStyle: {
-        color: "#42A5F5",
+        color: "#F44336", // Merah untuk pengeluaran
       },
     },
   ],

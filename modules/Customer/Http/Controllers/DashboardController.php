@@ -1,19 +1,5 @@
 <?php
 
-/**
- * Proprietary Software / Perangkat Lunak Proprietary
- * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
- * EN: Unauthorized use, copying, modification, or distribution is prohibited.
- * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
- * See the LICENSE file in the project root for full license information.
- * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
- * GitHub: https://github.com/ffrz
- * Email: fahmifauzirahman@gmail.com
- */
-
 namespace Modules\Customer\Http\Controllers;
 
 use App\Http\Controllers\Controller;
@@ -23,6 +9,7 @@ use App\Models\SalesOrder;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -34,7 +21,61 @@ class DashboardController extends Controller
             $month = 'this_month';
         }
 
-        // Tentukan rentang tanggal berdasarkan bulan yang dipilih
+        // Panggil metode privat untuk mendapatkan rentang tanggal
+        $dateRange = $this->getMonthlyDateRange($month);
+        $startDate = $dateRange['startDate'];
+        $endDate = $dateRange['endDate'];
+
+        $total_income = CustomerWalletTransaction::where('customer_id', '=', $customer->id)
+            ->where('amount', '>', 0)
+            ->whereBetween('datetime', [$startDate, $endDate])
+            ->sum('amount');
+
+        $total_expense = abs(
+            CustomerWalletTransaction::where('customer_id', '=', $customer->id)
+                ->where('amount', '<', 0)
+                ->whereBetween('datetime', [$startDate, $endDate])
+                ->sum('amount')
+        );
+
+        $recent_wallet_transactions = CustomerWalletTransaction::where('customer_id', '=', $customer->id)
+            ->whereBetween('datetime', [$startDate, $endDate])
+            ->orderBy('id', 'desc')
+            ->get();
+
+        $recent_purchase_orders = SalesOrder::where('customer_id', '=', $customer->id)
+            ->where('status', '=', SalesOrder::Status_Closed)
+            ->orderBy('id', 'desc')
+            ->get();
+
+        // Panggil metode privat untuk mendapatkan data chart
+        $monthlyChartData = $this->getMonthlyTransactionsChartData(
+            $customer->id,
+            $startDate,
+            $endDate
+        );
+
+        return inertia('dashboard/Index', [
+            'data' => [
+                'actual_balance' => $customer->balance,
+                'total_income' => $total_income,
+                'total_expense' => $total_expense,
+                'recent_wallet_transactions' => $recent_wallet_transactions,
+                'recent_purchase_orders' => $recent_purchase_orders,
+            ],
+            'monthlyChartData' => $monthlyChartData
+        ]);
+    }
+
+    /**
+     * Menentukan rentang tanggal (start dan end) berdasarkan string bulan.
+     * Metode ini bersifat privat agar hanya bisa dipanggil di dalam kelas ini.
+     *
+     * @param string $month
+     * @return array
+     */
+    private function getMonthlyDateRange(string $month): array
+    {
         $now = Carbon::now();
         $startDate = $now->copy()->startOfMonth();
         $endDate = $now->copy()->endOfMonth();
@@ -50,38 +91,54 @@ class DashboardController extends Controller
             $endDate = $now->copy()->subMonths(3)->endOfMonth();
         }
 
-        $total_income = CustomerWalletTransaction::where('customer_id', '=', $customer->id)
-            ->where('amount', '>', 0)
-            ->whereBetween('datetime', [$startDate, $endDate])
-            ->sum('amount');
+        return [
+            'startDate' => $startDate,
+            'endDate' => $endDate
+        ];
+    }
 
-        // Ambil total expense dalam bulan yang dipilih
-        // Menggunakan abs() untuk mengubah nilai negatif menjadi positif untuk total expense
-        $total_expense = abs(
-            CustomerWalletTransaction::where('customer_id', '=', $customer->id)
-                ->where('amount', '<', 0)
-                ->whereBetween('created_at', [$startDate, $endDate])
-                ->sum('amount')
-        );
-
-        $recent_wallet_transactions = CustomerWalletTransaction::where('customer_id', '=', $customer->id)
+    /**
+     * Mengambil dan memformat data transaksi harian untuk chart bulanan.
+     * Metode ini bersifat privat agar hanya bisa dipanggil di dalam kelas ini.
+     *
+     * @param int $customerId
+     * @param Carbon $startDate
+     * @param Carbon $endDate
+     * @return array
+     */
+    private function getMonthlyTransactionsChartData(int $customerId, Carbon $startDate, Carbon $endDate): array
+    {
+        $transactions = CustomerWalletTransaction::where('customer_id', $customerId)
             ->whereBetween('datetime', [$startDate, $endDate])
-            ->orderBy('id', 'desc')
+            ->select(
+                DB::raw('DATE(datetime) as date'),
+                DB::raw('SUM(CASE WHEN amount > 0 THEN amount ELSE 0 END) as total_income'),
+                DB::raw('SUM(CASE WHEN amount < 0 THEN amount ELSE 0 END) as total_expense')
+            )
+            ->groupBy('date')
+            ->orderBy('date')
             ->get();
 
-        $recent_purchase_orders = SalesOrder::where('customer_id', '=', $customer->id)
-            ->where('status', '=', SalesOrder::Status_Closed)
-            ->orderBy('id', 'desc')
-            ->get();
+        $daysInMonth = $startDate->daysInMonth;
+        $monthlyIncomeData = array_fill(0, $daysInMonth, 0);
+        $monthlyExpenseData = array_fill(0, $daysInMonth, 0);
+        $monthlyLabels = [];
 
-        return inertia('dashboard/Index', [
-            'data' => [
-                'actual_balance' => $customer->balance,
-                'total_income' => $total_income,
-                'total_expense' => $total_expense,
-                'recent_wallet_transactions' => $recent_wallet_transactions,
-                'recent_purchase_orders' => $recent_purchase_orders,
-            ]
-        ]);
+        for ($i = 1; $i <= $daysInMonth; $i++) {
+            $monthlyLabels[] = $i;
+        }
+
+        foreach ($transactions as $transaction) {
+            $day = Carbon::parse($transaction->date)->day;
+            $index = $day - 1;
+            $monthlyIncomeData[$index] = $transaction->total_income;
+            $monthlyExpenseData[$index] = abs($transaction->total_expense);
+        }
+
+        return [
+            'labels' => $monthlyLabels,
+            'income' => $monthlyIncomeData,
+            'expense' => $monthlyExpenseData,
+        ];
     }
 }
