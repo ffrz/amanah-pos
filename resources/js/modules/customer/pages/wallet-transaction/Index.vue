@@ -226,6 +226,11 @@ const onRowClicked = (row) => {
                   {{ plusMinusSymbol(props.row.amount) }}Rp.
                   {{ formatNumber(Math.abs(props.row.amount)) }}
                 </div>
+                <LongTextView
+                  v-if="props.row.notes"
+                  icon="notes"
+                  :text="props.row.notes"
+                />
               </template>
             </q-td>
             <q-td key="category" :props="props" class="wrap-column">
