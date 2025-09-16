@@ -1,6 +1,6 @@
 <script setup>
 import { formatDate, formatDateTime, formatNumber } from "@/helpers/formatter";
-import { usePage } from "@inertiajs/vue3";
+import { router, usePage } from "@inertiajs/vue3";
 import { date } from "quasar";
 
 const page = usePage();
@@ -30,12 +30,20 @@ const print = () => {
           color="grey-7"
           flat
           rounded
-          @click="$goBack()"
+          @click="router.get(route('admin.sales-order.index'))"
         />
       </div>
     </template>
     <template #right-button>
       <q-btn icon="print" dense color="primary" flat rounded @click="print()" />
+      <q-btn
+        class="q-ml-sm"
+        icon="add"
+        dense
+        color="primary"
+        rounded
+        @click="router.get(route('admin.sales-order.add'))"
+      />
     </template>
 
     <q-page class="row justify-center print-visible">

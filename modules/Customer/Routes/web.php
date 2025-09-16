@@ -21,6 +21,7 @@ use Modules\Customer\Http\Controllers\AuthController;
 use Modules\Customer\Http\Controllers\WalletTopUpConfirmationController;
 use Modules\Customer\Http\Controllers\DashboardController;
 use Modules\Customer\Http\Controllers\ProfileController;
+use Modules\Customer\Http\Controllers\PurchasingHistoryController;
 use Modules\Customer\Http\Controllers\WalletTransactionController;
 
 Route::middleware([NonAuthenticated::class])->group(function () {

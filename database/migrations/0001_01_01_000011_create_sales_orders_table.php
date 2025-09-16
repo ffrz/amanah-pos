@@ -29,6 +29,8 @@ return new class extends Migration
         Schema::create('sales_orders', function (Blueprint $table) {
             $table->id();
             $table->foreignId('customer_id')->nullable()->constrained('customers')->onDelete('set null');
+            $table->foreignId('cashier_id')->nullable()->constrained('users')->onDelete('set null');
+
             $table->string('status', 30);
             $table->string('payment_status', 30);
             $table->string('delivery_status', 30);
@@ -43,8 +45,10 @@ return new class extends Migration
             $table->decimal('change', 18, 2)->default(0.); // kembalian
 
             $table->text('notes')->nullable();
+
             $table->createdUpdatedTimestamps();
             $table->index(['customer_id']);
+            $table->index(['cashier_id']);
             $table->index(['status']);
             $table->index(['payment_status']);
         });

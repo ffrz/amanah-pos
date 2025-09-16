@@ -36,7 +36,7 @@ class PurchasingHistoryController extends Controller
         $orderType = $request->get('order_type', 'desc');
         $filter = $request->get('filter', []);
 
-        $q = SalesOrder::with('customer')
+        $q = SalesOrder::with(['customer', 'details'])
             ->where('customer_id', Auth::guard('customer')->user()->id)
             ->where('status', '=', 'closed');
 
@@ -63,7 +63,15 @@ class PurchasingHistoryController extends Controller
 
     public function detail($id)
     {
+        $order = SalesOrder::with(['customer', 'details', 'payments', 'cashier'])->findOrFail($id);
 
-        return inertia('purchasing-history/Detail', []);
+        // authorize
+        if ($order->customer_id !== Auth::guard('customer')->user()->id) {
+            return abort(403);
+        }
+
+        return inertia('purchasing-history/Detail', [
+            'data' => $order
+        ]);
     }
 }

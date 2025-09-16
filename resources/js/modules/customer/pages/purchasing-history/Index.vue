@@ -15,7 +15,7 @@ import { getCurrentMonth, getCurrentYear } from "@/helpers/datetime";
 import useTableHeight from "@/composables/useTableHeight";
 import LongTextView from "@/components/LongTextView.vue";
 
-const title = "Riwayat Transaksi";
+const title = "Riwayat Pembelian";
 const $q = useQuasar();
 const showFilter = ref(false);
 const rows = ref([]);
@@ -44,16 +44,32 @@ const pagination = ref({
 });
 
 const columns = [
-  { name: "id", label: "Kode Trx", field: "id", align: "left", sortable: true },
+  {
+    name: "expand",
+    label: "",
+    field: "expand",
+    align: "left",
+  },
+  {
+    name: "id",
+    label: $q.screen.lt.md ? "Item" : "Kode Trx",
+    field: "id",
+    align: "left",
+    sortable: true,
+  },
   {
     name: "datetime",
-    label: $q.screen.lt.md ? "Item" : "Waktu",
+    label: "Waktu",
     field: "datetime",
     align: "left",
     sortable: true,
   },
-  { name: "category", label: "Kategori", field: "category", align: "left" },
-  { name: "amount", label: "Jumlah (Rp.)", field: "amount", align: "right" },
+  {
+    name: "grand_total",
+    label: "Jumlah (Rp.)",
+    field: "grand_total",
+    align: "right",
+  },
   { name: "notes", label: "Catatan", field: "notes", align: "left" },
 ];
 
@@ -67,7 +83,7 @@ const fetchItems = (props = null) => {
     filter,
     props,
     rows,
-    url: route("customer.wallet-transaction.data"),
+    url: route("customer.purchasing-history.data"),
     loading,
     tableRef,
   });
@@ -79,8 +95,8 @@ const onFilterChange = () => {
 
 const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return columns;
-  return columns.filter(
-    (col) => col.name === "datetime" || col.name === "action"
+  return columns.filter((col) =>
+    ["id", "action", "expand", "grand_total"].includes(col.name)
   );
 });
 
@@ -94,7 +110,7 @@ watch(
 );
 
 const onRowClicked = (row) => {
-  router.get(route("customer.wallet-transaction.detail", { id: row.id }));
+  router.get(route("customer.purchasing-history.detail", { id: row.id }));
 };
 </script>
 
@@ -192,13 +208,21 @@ const onRowClicked = (row) => {
         <template v-slot:body="props">
           <q-tr
             :props="props"
-            @click="onRowClicked(props.row)"
+            @click.stop="onRowClicked(props.row)"
             class="cursor-pointer"
           >
-            <q-td key="id" :props="props" class="wrap-column">
-              {{ props.row.formatted_id }}
+            <q-td auto-width @click.stop="props.expand = !props.expand">
+              <q-btn
+                size="xs"
+                color="grey"
+                round
+                dense
+                :icon="
+                  props.expand ? 'keyboard_arrow_up' : 'keyboard_arrow_down'
+                "
+              />
             </q-td>
-            <q-td key="datetime" :props="props" class="wrap-column">
+            <q-td key="id" :props="props" class="wrap-column">
               <template v-if="!$q.screen.gt.sm">
                 <q-icon name="tag" class="inline-icon" />
                 {{ props.row.formatted_id }}
@@ -214,37 +238,28 @@ const onRowClicked = (row) => {
               </div>
 
               <template v-if="!$q.screen.gt.sm">
-                <div>
-                  <q-icon name="category" class="inline-icon" />
-                  {{
-                    $CONSTANTS.CUSTOMER_WALLET_TRANSACTION_TYPES[props.row.type]
-                  }}
-                </div>
-                <div :class="props.row.amount < 0 ? 'text-red' : 'text-green'">
-                  <q-icon name="money" class="inline-icon" /> Rp.
-                  {{
-                    plusMinusSymbol(props.row.amount) +
-                    formatNumber(props.row.amount)
-                  }}
-                </div>
+                <LongTextView :text="props.row.notes" icon="notes" />
               </template>
             </q-td>
-            <q-td key="category" :props="props" class="wrap-column">
-              {{ $CONSTANTS.CUSTOMER_WALLET_TRANSACTION_TYPES[props.row.type] }}
+            <q-td key="datetime" :props="props" class="wrap-column">
+              {{ formatDateTime(props.row.datetime) }}
             </q-td>
-            <q-td
-              key="amount"
-              :props="props"
-              style="text-align: right"
-              :class="props.row.amount < 0 ? 'text-red' : 'text-green'"
-            >
-              {{
-                plusMinusSymbol(props.row.amount) +
-                formatNumber(props.row.amount)
-              }}
+            <q-td key="grand_total" :props="props" style="text-align: right">
+              {{ formatNumber(props.row.grand_total) }}
             </q-td>
             <q-td key="notes" :props="props">
               <LongTextView :text="props.row.notes" />
+            </q-td>
+          </q-tr>
+          <q-tr v-show="props.expand" :props="props">
+            <q-td colspan="100%">
+              <div v-for="(item, index) in props.row.details" :key="index">
+                {{ index + 1 }}) {{ item.quantity }} {{ item.product_uom }}
+                {{ item.product_name }} x Rp. {{ formatNumber(item.price) }} =
+                <b> Rp. {{ formatNumber(item.subtotal_price) }} </b>
+              </div>
+              <div v-if="props.row.total_discount > 0"></div>
+              <div v-if="props.row.total_tax > 0"></div>
             </q-td>
           </q-tr>
         </template>

@@ -261,7 +261,6 @@ const onRowClicked = (row) => {
     </template>
     <div class="q-pa-xs">
       <q-table
-        dense
         class="full-height-table"
         ref="tableRef"
         flat
@@ -295,7 +294,7 @@ const onRowClicked = (row) => {
             </q-td>
             <q-td key="datetime" :props="props" class="wrap-column">
               <div v-if="!$q.screen.gt.sm">
-                <q-icon name="grid_3x3" class="inline-icon" />
+                <q-icon name="tag" class="inline-icon" />
                 {{ props.row.formatted_id }}
               </div>
               <div>

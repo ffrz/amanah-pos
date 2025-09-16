@@ -519,6 +519,7 @@ class SalesOrderController extends Controller
 
             $order->status = SalesOrder::Status_Closed;
             $order->due_date = $request->post('due_date', null);
+            $order->cashier_id = Auth::user()->id;
             $order->save();
 
             // 5. Perbarui stok produk secara massal

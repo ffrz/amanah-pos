@@ -22,6 +22,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class SalesOrder extends BaseModel
 {
     protected $fillable = [
+        'cashier_id',
         'customer_id',
         'datetime',
         'due_date',
@@ -84,6 +85,7 @@ class SalesOrder extends BaseModel
     protected function casts(): array
     {
         return [
+            'cashier_id'      => 'integer',
             'customer_id'     => 'integer',
             'datetime'        => 'datetime',
             'due_date'        => 'datetime',
@@ -154,12 +156,13 @@ class SalesOrder extends BaseModel
         return $this->hasMany(SalesOrderPayment::class, 'order_id');
     }
 
-    /**
-     * Get the supplier for the product.
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
     public function customer()
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function cashier()
+    {
+        return $this->belongsTo(User::class);
     }
 }

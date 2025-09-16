@@ -195,6 +195,19 @@ onMounted(() => {
           <q-item
             clickable
             v-ripple
+            :active="$page.url.startsWith('/customer/purchasing-history')"
+            @click="router.get(route('customer.purchasing-history.index'))"
+          >
+            <q-item-section avatar>
+              <q-icon name="shopping_bag" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Riwayat Pembellian</q-item-label>
+            </q-item-section>
+          </q-item>
+          <q-item
+            clickable
+            v-ripple
             :active="$page.url.startsWith('/customer/wallet-transactions')"
             @click="router.get(route('customer.wallet-transaction.index'))"
           >
