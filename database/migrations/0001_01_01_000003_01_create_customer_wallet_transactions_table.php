@@ -33,6 +33,7 @@ return new class extends Migration
             $table->datetime('datetime')->nullable(); // transaction date time
             $table->string('type', 30);
             $table->decimal('amount', 12, 2)->default(0.);
+            $table->string('image_path', 255)->nullable();
             $table->text('notes')->nullable();
             $table->createdUpdatedTimestamps();
         });

@@ -64,6 +64,7 @@ class CustomerWalletTransactionConfirmation extends BaseModel
             'updated_by' => 'integer',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
+            'image_path' => 'string'
         ];
     }
 

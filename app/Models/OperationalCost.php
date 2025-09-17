@@ -24,9 +24,11 @@ class OperationalCost extends BaseModel
 
     protected $fillable = [
         'category_id',
+        'finance_account_id',
         'date',
         'description',
         'amount',
+        'image_path',
         'notes'
     ];
 
@@ -34,10 +36,12 @@ class OperationalCost extends BaseModel
     {
         return [
             'category_id' => 'integer',
+            'finance_account_id' => 'integer',
             'date' => 'string',
             'description' => 'string',
             'amount' => 'decimal:2',
             'notes' => 'string',
+            'image_path' => 'string',
             'created_by' => 'integer',
             'updated_by' => 'integer',
             'created_at' => 'string',
@@ -48,5 +52,10 @@ class OperationalCost extends BaseModel
     public function category()
     {
         return $this->belongsTo(OperationalCostCategory::class);
+    }
+
+    public function financeAccount()
+    {
+        return $this->belongsTo(FinanceAccount::class);
     }
 }

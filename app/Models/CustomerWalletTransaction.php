@@ -29,6 +29,7 @@ class CustomerWalletTransaction extends BaseModel
         'datetime',
         'type',
         'amount',
+        'image_path',
         'ref_type',
         'ref_id',
         'notes',
@@ -81,6 +82,7 @@ class CustomerWalletTransaction extends BaseModel
             'updated_by' => 'integer',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
+            'image_path' => 'string'
         ];
     }
 

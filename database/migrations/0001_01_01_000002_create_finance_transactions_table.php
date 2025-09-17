@@ -34,6 +34,7 @@ return new class extends Migration
             $table->enum('type', array_keys(FinanceTransaction::Types));
             $table->decimal('amount', 12, 2)->default(0.);
             $table->text('notes')->nullable();
+            $table->string('image_path', 255)->nullable();
             $table->createdUpdatedTimestamps();
         });
     }

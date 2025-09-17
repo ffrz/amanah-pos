@@ -31,6 +31,7 @@ class FinanceTransaction extends BaseModel
         'ref_id',
         'ref_type',
         'notes',
+        'image_path',
     ];
 
     protected $appends = [
@@ -84,6 +85,7 @@ class FinanceTransaction extends BaseModel
             'updated_by' => 'integer',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
+            'image_path' => 'string'
         ];
     }
 
