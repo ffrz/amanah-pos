@@ -1,14 +1,14 @@
 <script setup>
-import { router, usePage } from "@inertiajs/vue3";
+import { formatDate, formatDateTime, formatNumber } from "@/helpers/formatter";
+import { usePage } from "@inertiajs/vue3";
 
 const page = usePage();
-const title = "Rincian Teknisi";
+const title = "Rincian Biaya Operasional";
 </script>
 
 <template>
   <i-head :title="title" />
-  <authenticated-layout>
-    <template #title>{{ title }}</template>
+  <authenticated-layout :show-drawer-button="false">
     <template #left-button>
       <div class="q-gutter-sm">
         <q-btn
@@ -21,130 +21,104 @@ const title = "Rincian Teknisi";
         />
       </div>
     </template>
-
-    <template #right-button>
-      <div class="q-gutter-sm">
-        <q-btn
-          icon="edit"
-          size="sm"
-          dense
-          flat
-          rounded
-          color="grey"
-          @click="
-            router.get(
-              route('admin.operational-cost.edit', { id: page.props.data.id })
-            )
-          "
-        />
-      </div>
+    <template #title>
+      <span class="text-subtitle2">{{ title }}</span>
     </template>
-
     <q-page class="row justify-center">
       <div class="col col-md-6 q-pa-xs">
         <div class="row">
           <q-card square flat bordered class="col">
             <q-card-section>
               <div class="text-subtitle1 text-bold text-grey-8">
-                Profil Teknisi
+                Rincian Biaya Operasional
               </div>
               <table class="detail">
                 <tbody>
                   <tr>
-                    <td style="width: 125px">Akun Pengguna</td>
+                    <td style="width: 110px">ID</td>
                     <td style="width: 1px">:</td>
                     <td>
-                      <template v-if="!!page.props.data.user">
-                        <i-link
-                          :href="
-                            route('admin.user.detail', {
-                              id: page.props.data.user.id,
-                            })
-                          "
-                        >
-                          {{ page.props.data.user.username }}
-                        </i-link>
-                      </template>
-                      <template v-else>
-                        <span class="text-grey-9">Tidak terhubung</span>
-                      </template>
+                      {{ page.props.data.id }}
                     </td>
                   </tr>
                   <tr>
-                    <td>Nama Teknisi</td>
+                    <td>Tanggal</td>
                     <td>:</td>
-                    <td>{{ page.props.data.name }}</td>
-                  </tr>
-                  <tr>
-                    <td>No. Telepon</td>
-                    <td>:</td>
-                    <td>{{ page.props.data.phone }}</td>
-                  </tr>
-                  <tr>
-                    <td>Email</td>
-                    <td>:</td>
-                    <td>{{ page.props.data.email }}</td>
-                  </tr>
-                  <tr>
-                    <td>Alamat</td>
-                    <td>:</td>
-                    <td>{{ page.props.data.address }}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </q-card-section>
-            <q-card-section>
-              <div class="text-subtitle1 text-bold text-grey-8">
-                Statistik Servis
-              </div>
-              <table class="detail">
-                <tbody>
-                  <tr>
-                    <td style="width: 125px">Servis Ditangani</td>
-                    <td style="width: 1px">:</td>
-                    <td>0</td>
-                  </tr>
-                  <tr>
-                    <td>Servis Sukses</td>
-                    <td>:</td>
-                    <td>0</td>
-                  </tr>
-                  <tr>
-                    <td>Servis Gagal</td>
-                    <td>:</td>
-                    <td>0</td>
-                  </tr>
-                </tbody>
-              </table>
-            </q-card-section>
-            <q-card-section>
-              <div class="text-subtitle1 text-bold text-grey-8">
-                Informasi Ekstra
-              </div>
-              <table class="detail">
-                <tbody>
-                  <tr>
-                    <td style="width: 125px">Dibuat</td>
-                    <td style="width: 1px">:</td>
                     <td>
-                      {{
-                        $dayjs(new Date(page.props.data.created_at)).format(
-                          "DD MMMM YY HH:mm:ss"
-                        )
-                      }}
+                      {{ formatDate(page.props.data.date) }}
                     </td>
                   </tr>
+
+                  <tr v-if="page.props.data.finance_account">
+                    <td>Akun</td>
+                    <td>:</td>
+                    <td>
+                      {{ page.props.data.finance_account.name }}
+                      <template
+                        v-if="page.props.data.finance_account.type === 'bank'"
+                      >
+                        Rek {{ page.props.data.finance_account.bank }} an
+                        {{ page.props.data.finance_account.holder }}
+                        <br />
+                        {{ page.props.data.finance_account.number }}
+                      </template>
+                    </td>
+                  </tr>
+                  <tr v-if="page.props.data.category">
+                    <td>Kategori</td>
+                    <td>:</td>
+                    <td>{{ page.props.data.category.name }}</td>
+                  </tr>
                   <tr>
+                    <td>Deskripsi</td>
+                    <td>:</td>
+                    <td>{{ page.props.data.description }}</td>
+                  </tr>
+                  <tr>
+                    <td>Jumlah</td>
+                    <td>:</td>
+                    <td>Rp. {{ formatNumber(page.props.data.amount) }}</td>
+                  </tr>
+                  <tr>
+                    <td>Catatan</td>
+                    <td>:</td>
+                    <td>{{ page.props.data.notes }}</td>
+                  </tr>
+                  <tr v-if="page.props.data.creator">
+                    <td>Dibuat</td>
+                    <td>:</td>
+                    <td>
+                      {{ formatDateTime(page.props.data.created_at) }}
+                      oleh
+                      {{ page.props.data.creator.name }}
+                    </td>
+                  </tr>
+                  <tr v-if="page.props.data.updater">
                     <td>Diperbarui</td>
                     <td>:</td>
                     <td>
-                      {{
-                        $dayjs(new Date(page.props.data.updated_at)).format(
-                          "DD MMMM YY HH:mm:ss"
-                        )
-                      }}
+                      {{ formatDateTime(page.props.data.updated_at) }}
+                      oleh
+                      {{ page.props.data.updater.name }}
                     </td>
                   </tr>
+                  <template v-if="page.props.data.image_path">
+                    <tr>
+                      <td>Lampiran</td>
+                      <td>:</td>
+                      <td></td>
+                    </tr>
+                    <tr>
+                      <td colspan="3" class="bg-white">
+                        <q-img
+                          :src="`/${page.props.data.image_path}`"
+                          class="q-mt-none"
+                          style="max-width: 500px"
+                          :style="{ border: '1px solid #ddd' }"
+                        />
+                      </td>
+                    </tr>
+                  </template>
                 </tbody>
               </table>
             </q-card-section>

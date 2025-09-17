@@ -181,6 +181,7 @@ Route::middleware([Auth::class])
                 Route::get('edit/{id}', [OperationalCostController::class, 'editor'])->name('admin.operational-cost.edit');
                 Route::post('save', [OperationalCostController::class, 'save'])->name('admin.operational-cost.save');
                 Route::post('delete/{id}', [OperationalCostController::class, 'delete'])->name('admin.operational-cost.delete');
+                Route::get('detail/{id}', [OperationalCostController::class, 'detail'])->name('admin.operational-cost.detail');
             });
 
             Route::prefix('purchase-orders')->group(function () {

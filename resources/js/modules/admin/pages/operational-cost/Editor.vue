@@ -4,24 +4,32 @@ import { handleSubmit, transformPayload } from "@/helpers/client-req-handler";
 import { scrollToFirstErrorField } from "@/helpers/utils";
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
 import DatePicker from "@/components/DatePicker.vue";
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { useCostCategoryFilter } from "@/composables/useCostCategoryOptions";
-import { formatDateForEditing } from "@/helpers/formatter";
+import ImageUpload from "@/components/ImageUpload.vue";
 
 const page = usePage();
 const title = (!!page.props.data.id ? "Edit" : "Tambah") + " Biaya Operasional";
 
 const { costCategoryOptions } = useCostCategoryFilter(page.props.categories);
 
+const accounts = page.props.finance_accounts.map((account) => ({
+  label: account.name,
+  value: account.id,
+}));
+
 const categories = ref(costCategoryOptions);
 const filteredCategories = ref([...categories.value]);
 const form = useForm({
   id: page.props.data.id,
-  category_id: page.props.data.category_id,
+  finance_account_id: page.props.data.finance_account_id ?? null,
+  category_id: page.props.data.category_id ?? null,
   date: new Date(page.props.data.date),
   description: page.props.data.description,
   notes: page.props.data.notes,
   amount: parseFloat(page.props.data.amount),
+  image_path: page.props.data?.image_path ?? null,
+  image: null,
 });
 
 const submit = () => {
@@ -35,6 +43,10 @@ const filterCategories = (val, update) => {
       item.label.toLowerCase().includes(val.toLowerCase())
     );
   });
+};
+
+const onImageCleared = () => {
+  form.image_path = null;
 };
 </script>
 
@@ -115,6 +127,20 @@ const filterCategories = (val, update) => {
                 :rules="[]"
                 hide-bottom-space
               />
+              <q-select
+                class="custom-select"
+                v-model="form.finance_account_id"
+                label="Sumber Dana"
+                :options="accounts"
+                map-options
+                emit-value
+                clearable
+                :errorMessage="form.errors.finance_account_id"
+                :error="!!form.errors.finance_account_id"
+                :disable="form.processing"
+                hide-bottom-space
+              >
+              </q-select>
               <q-input
                 v-model.trim="form.notes"
                 type="textarea"
@@ -127,6 +153,14 @@ const filterCategories = (val, update) => {
                 :error="!!form.errors.notes"
                 :error-message="form.errors.notes"
                 hide-bottom-space
+              />
+              <ImageUpload
+                v-model="form.image"
+                :initial-image-path="form.image_path"
+                :disabled="form.processing"
+                :error="!!form.errors.image || !!form.errors.image_path"
+                :error-message="form.errors.image || form.errors.image_path"
+                @image-cleared="onImageCleared"
               />
             </q-card-section>
             <q-card-section class="q-gutter-sm">

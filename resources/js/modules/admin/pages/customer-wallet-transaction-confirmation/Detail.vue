@@ -73,10 +73,10 @@ const title = "Rincian Konfirmasi Top Up";
                     </td>
                   </tr>
                   <tr>
-                    <td>Aku Tujuan</td>
+                    <td>Akun Tujuan</td>
                     <td>:</td>
                     <td>
-                      <!-- {{ page.props.data.finance_account.name }}<br /> -->
+                      {{ page.props.data.finance_account.name }}<br />
                       <template
                         v-if="page.props.data.finance_account.type === 'bank'"
                       >

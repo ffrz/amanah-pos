@@ -4,12 +4,12 @@ import { router, usePage } from "@inertiajs/vue3";
 import { handleDelete, handleFetchItems } from "@/helpers/client-req-handler";
 import { check_role, getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
-import dayjs from "dayjs";
-import { formatNumber } from "@/helpers/formatter";
+import { formatDate, formatNumber } from "@/helpers/formatter";
 import { createMonthOptions, createYearOptions } from "@/helpers/options";
 import { useCostCategoryFilter } from "@/composables/useCostCategoryOptions";
 import useTableHeight from "@/composables/useTableHeight";
 import LongTextView from "@/components/LongTextView.vue";
+import ImageViewer from "@/components/ImageViewer.vue";
 
 const title = "Biaya Operasional";
 const page = usePage();
@@ -18,6 +18,8 @@ const showFilter = ref(false);
 const tableRef = ref(null);
 const filterToolbarRef = ref(null);
 const tableHeight = useTableHeight(filterToolbarRef);
+const activeImagePath = ref(null);
+const showImageViewer = ref(false);
 
 const rows = ref([]);
 const loading = ref(true);
@@ -51,14 +53,28 @@ const pagination = ref({
   page: 1,
   rowsPerPage: 10,
   rowsNumber: 10,
-  sortBy: "date",
+  sortBy: "id",
   descending: true,
 });
 const columns = [
   {
+    name: "id",
+    label: $q.screen.lt.md ? "Item" : "ID",
+    field: "id",
+    align: "left",
+    sortable: true,
+  },
+  {
     name: "date",
     label: "Tanggal",
     field: "date",
+    align: "left",
+    sortable: true,
+  },
+  {
+    name: "category_id",
+    label: "Kategori",
+    field: "category_id",
     align: "left",
     sortable: true,
   },
@@ -75,6 +91,12 @@ const columns = [
     field: "amount",
     align: "right",
     sortable: true,
+  },
+  {
+    name: "notes",
+    label: "Catatan",
+    field: "notes",
+    align: "left",
   },
   {
     name: "action",
@@ -112,7 +134,7 @@ const onFilterChange = () => {
 
 const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return columns;
-  return columns.filter((col) => col.name === "date" || col.name === "action");
+  return columns.filter((col) => col.name === "id" || col.name === "action");
 });
 
 watch(
@@ -123,6 +145,11 @@ watch(
     }
   }
 );
+
+const showAttachment = (url) => {
+  activeImagePath.value = url;
+  showImageViewer.value = true;
+};
 </script>
 
 <template>
@@ -232,34 +259,76 @@ watch(
           </div>
         </template>
         <template v-slot:body="props">
-          <q-tr :props="props">
-            <q-td key="date" :props="props" class="wrap-column">
-              <div class="flex items-center q-gutter-xs">
-                <q-icon name="calendar_today" />
-                <div>{{ dayjs(props.row.date).format("DD/MM/YYYY") }}</div>
-              </div>
+          <q-tr
+            :props="props"
+            class="cursor-pointer"
+            @click.stop="
+              router.get(
+                route('admin.operational-cost.detail', {
+                  id: props.row.id,
+                })
+              )
+            "
+          >
+            <q-td key="id" :props="props" class="wrap-column">
+              <template v-if="!$q.screen.gt.sm"> ID: </template>
+              {{ props.row.id }}
               <template v-if="!$q.screen.gt.sm">
-                <LongTextView icon="notes" :text="props.row.notes" />
-                <div v-if="props.row.category">
-                  <q-icon name="category" /> {{ props.row.category.name }}
-                </div>
                 <div>
-                  <q-icon name="paid" /> Rp.
+                  <q-icon name="calendar_clock" class="inline-icon" />
+                  {{ formatDate(props.row.date) }}
+                </div>
+                <div v-if="props.row.category">
+                  <q-icon name="category" class="inline-icon" />
+                  {{ props.row.category.name }}
+                </div>
+                <LongTextView
+                  icon="description"
+                  :text="props.row.description"
+                  class="inline-icon"
+                />
+                <div>
+                  <q-icon name="money" class="inline-icon" /> Rp.
                   {{ formatNumber(props.row.amount) }}
                 </div>
+                <LongTextView
+                  icon="notes"
+                  :text="props.row.notes"
+                  class="inline-icon text-grey-9"
+                />
               </template>
             </q-td>
-            <q-td key="description" :props="props">
-              {{ props.row.description }}
+            <q-td key="date" :props="props" class="wrap-column">
+              {{ formatDate(props.row.date) }}
+            </q-td>
+            <q-td key="category_id" :props="props">
               <div v-if="props.row.category">
-                <q-icon name="category" /> {{ props.row.category.name }}
+                {{ props.row.category.name }}
               </div>
             </q-td>
-            <q-td key="amount" :props="props" style="text-align: right">
+            <q-td key="description" :props="props">
+              <LongTextView :text="props.row.description" :max-length="50" />
+            </q-td>
+            <q-td key="amount" :props="props">
               {{ formatNumber(props.row.amount) }}
+            </q-td>
+            <q-td key="notes" :props="props">
+              <LongTextView :text="props.row.notes" :max-length="50" />
             </q-td>
             <q-td key="action" :props="props">
               <div class="flex justify-end">
+                <q-btn
+                  icon="image"
+                  color="primary"
+                  dense
+                  flat
+                  :disable="props.row.image_path == null"
+                  @click.stop="showAttachment(props.row.image_path)"
+                >
+                  <q-tooltip v-if="props.row.image_path != null">
+                    Lihat Bukti
+                  </q-tooltip>
+                </q-btn>
                 <q-btn
                   :disabled="!check_role($CONSTANTS.USER_ROLE_ADMIN)"
                   icon="more_vert"
@@ -328,5 +397,6 @@ watch(
         </template>
       </q-table>
     </div>
+    <ImageViewer v-model="showImageViewer" :imageUrl="`/${activeImagePath}`" />
   </authenticated-layout>
 </template>
