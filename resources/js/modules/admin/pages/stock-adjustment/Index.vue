@@ -363,13 +363,7 @@ const computedColumns = computed(() => {
             </q-td>
             <q-td key="action" :props="props">
               <div class="flex justify-end">
-                <q-btn
-                  icon="more_vert"
-                  dense
-                  flat
-                  style="height: 40px; width: 30px"
-                  @click.stop
-                >
+                <q-btn icon="more_vert" dense flat rounded @click.stop>
                   <q-menu
                     anchor="bottom right"
                     self="top right"

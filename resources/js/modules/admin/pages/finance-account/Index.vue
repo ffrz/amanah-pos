@@ -241,7 +241,7 @@ const computedColumns = computed(() => {
                   icon="more_vert"
                   dense
                   flat
-                  style="height: 40px; width: 30px"
+                  rounded
                   @click.stop
                 >
                   <q-menu

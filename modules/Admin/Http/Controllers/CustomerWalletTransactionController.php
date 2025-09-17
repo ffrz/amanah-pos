@@ -34,6 +34,15 @@ class CustomerWalletTransactionController extends Controller
         return inertia('customer-wallet-transaction/Index', []);
     }
 
+    public function detail($id)
+    {
+        $trx = CustomerWalletTransaction::with(['customer', 'creator', 'updater'])->findOrFail($id);
+
+        return inertia('customer-wallet-transaction/Detail', [
+            'data' => $trx
+        ]);
+    }
+
     public function data(Request $request)
     {
         $orderBy = $request->get('order_by', 'datetime');

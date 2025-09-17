@@ -147,8 +147,6 @@ Route::middleware([Auth::class])
             Route::prefix('customer-wallet-transaction-confirmations')->group(function () {
                 Route::get('', [CustomerWalletTransactionConfirmationController::class, 'index'])->name('admin.customer-wallet-transaction-confirmation.index');
                 Route::get('data', [CustomerWalletTransactionConfirmationController::class, 'data'])->name('admin.customer-wallet-transaction-confirmation.data');
-                // Route::get('add', [CustomerWalletTransactionConfirmationController::class, 'editor'])->name('admin.customer-wallet-transaction-confirmation.add');
-                // Route::get('edit/{id}', [CustomerWalletTransactionConfirmationController::class, 'editor'])->name('admin.customer-wallet-transaction-confirmation.edit');
                 Route::get('detail/{id}', [CustomerWalletTransactionConfirmationController::class, 'detail'])->name('admin.customer-wallet-transaction-confirmation.detail');
                 Route::post('save', [CustomerWalletTransactionConfirmationController::class, 'save'])->name('admin.customer-wallet-transaction-confirmation.save');
                 Route::post('delete/{id}', [CustomerWalletTransactionConfirmationController::class, 'delete'])->name('admin.customer-wallet-transaction-confirmation.delete');

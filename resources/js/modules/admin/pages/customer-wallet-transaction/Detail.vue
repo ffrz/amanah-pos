@@ -56,8 +56,20 @@ const title = "Rincian Transaksi";
                     <td>:</td>
                     <td>
                       <div>
-                        {{ page.props.data.customer.username }} -
+                        <q-icon name="person" class="inline-icon" />
+                        {{ page.props.data.customer.username }}
+                      </div>
+                      <div>
+                        <q-icon name="person" class="inline-icon" />
                         {{ page.props.data.customer.name }}
+                      </div>
+                      <div v-if="page.props.data.customer.phone">
+                        <q-icon name="phone" class="inline-icon" />
+                        {{ page.props.data.customer.phone }}
+                      </div>
+                      <div v-if="page.props.data.customer.address">
+                        <q-icon name="home_pin" class="inline-icon" />
+                        {{ page.props.data.customer.address }}
                       </div>
                     </td>
                   </tr>
@@ -90,6 +102,24 @@ const title = "Rincian Transaksi";
                     <td>Catatan</td>
                     <td>:</td>
                     <td>{{ page.props.data.notes }}</td>
+                  </tr>
+                  <tr v-if="page.props.data.creator">
+                    <td>Dibuat</td>
+                    <td>:</td>
+                    <td>
+                      {{ formatDateTime(page.props.data.created_at) }}
+                      oleh
+                      {{ page.props.data.creator.name }}
+                    </td>
+                  </tr>
+                  <tr v-if="page.props.data.updater">
+                    <td>Diperbarui</td>
+                    <td>:</td>
+                    <td>
+                      {{ formatDateTime(page.props.data.updated_at) }}
+                      oleh
+                      {{ page.props.data.updater.name }}
+                    </td>
                   </tr>
                 </tbody>
               </table>

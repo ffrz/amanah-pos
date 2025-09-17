@@ -2,6 +2,8 @@
 import { computed, onMounted, reactive, ref, watch } from "vue";
 import { getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
+import { router } from "@inertiajs/vue3";
+
 import {
   formatDateTime,
   formatDateTimeFromNow,
@@ -165,7 +167,7 @@ const rejectItem = (row) =>
 
 const deleteItem = (row) =>
   handleDelete({
-    message: `Hapus konfirmasi transaksi #${row.id}?`,
+    message: `Hapus konfirmasi transaksi ${row.formatted_id}?`,
     url: route("admin.customer-wallet-transaction-confirmation.delete", row.id),
     fetchItemsCallback: fetchItems,
     loading,
@@ -271,11 +273,24 @@ const showAttachment = (url) => {
         </template>
 
         <template v-slot:body="props">
-          <q-tr :props="props">
+          <q-tr
+            :props="props"
+            class="cursor-pointer"
+            @click.stop="
+              router.get(
+                route('admin.customer-wallet-transaction-confirmation.detail', {
+                  id: props.row.id,
+                })
+              )
+            "
+          >
             <q-td key="datetime" :props="props" class="wrap-column">
-              <div>#: {{ props.row.formatted_id }}</div>
               <div>
-                <q-icon name="calendar_today" class="inline-icon" />
+                <q-icon class="inline-icon" name="tag" />
+                {{ props.row.formatted_id }}
+              </div>
+              <div>
+                <q-icon name="calendar_clock" class="inline-icon" />
                 {{ formatDateTime(props.row.datetime) }} ({{
                   formatDateTimeFromNow(props.row.datetime)
                 }})
@@ -295,9 +310,9 @@ const showAttachment = (url) => {
                   Rp. {{ formatNumber(props.row.amount) }}
                 </div>
                 <LongTextView
-                  v-if="props.row.description"
+                  v-if="props.row.notes"
                   icon="notes"
-                  :text="props.row.description"
+                  :text="props.row.notes"
                 />
                 <div>
                   <CustomerWalletTransactionConfirmationStatusChip
@@ -329,10 +344,22 @@ const showAttachment = (url) => {
             <q-td key="action" :props="props" class="text-center">
               <div class="flex justify-end">
                 <q-btn
+                  icon="image"
+                  color="primary"
+                  dense
+                  flat
+                  :disable="props.row.image_path == null"
+                  @click.stop="showAttachment(props.row.image_path)"
+                >
+                  <q-tooltip v-if="props.row.image_path != null">
+                    Lihat Bukti
+                  </q-tooltip>
+                </q-btn>
+                <q-btn
                   icon="more_vert"
                   dense
                   flat
-                  style="height: 40px; width: 30px"
+                  rounded
                   @click.stop
                   :disable="props.row.status !== 'pending'"
                 >

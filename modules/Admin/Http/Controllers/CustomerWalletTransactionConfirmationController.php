@@ -35,6 +35,16 @@ class CustomerWalletTransactionConfirmationController extends Controller
         return inertia('customer-wallet-transaction-confirmation/Index', []);
     }
 
+    public function detail($id)
+    {
+        $item = CustomerWalletTransactionConfirmation::with(['financeAccount', 'customer', 'updater'])
+            ->findOrFail($id);
+
+        return inertia('customer-wallet-transaction-confirmation/Detail', [
+            'data' => $item
+        ]);
+    }
+
     public function data(Request $request)
     {
         $orderBy = $request->get('order_by', 'datetime');

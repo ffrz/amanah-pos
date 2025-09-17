@@ -9,6 +9,7 @@ import {
   formatDateTime,
   formatDateTimeFromNow,
   formatNumber,
+  formatNumberWithSymbol,
   plusMinusSymbol,
 } from "@/helpers/formatter";
 import useTableHeight from "@/composables/useTableHeight";
@@ -89,7 +90,7 @@ onMounted(() => {
 
 const deleteItem = (row) =>
   handleDelete({
-    message: `Hapus transaksi #-${row.id}?`,
+    message: `Hapus transaksi #${row.formatted_id}? Seluruh akun terkait akan di refund dan rekaman akan dihapus.`,
     url: route("admin.customer-wallet-transaction.delete", row.id),
     fetchItemsCallback: fetchItems,
     loading,
@@ -224,11 +225,24 @@ watch(
           </div>
         </template>
         <template v-slot:body="props">
-          <q-tr :props="props">
+          <q-tr
+            :props="props"
+            class="cursor-pointer"
+            @click.stop="
+              router.get(
+                route('admin.customer-wallet-transaction.detail', {
+                  id: props.row.id,
+                })
+              )
+            "
+          >
             <q-td key="datetime" :props="props" class="wrap-column">
               <div>
-                #: {{ props.row.formatted_id }} <br />
-                <q-icon name="calendar_today" />
+                <q-icon name="tag" class="inline-icon" />
+                {{ props.row.formatted_id }}
+              </div>
+              <div>
+                <q-icon name="calendar_today" class="inline-icon" />
                 {{ formatDateTime(props.row.datetime) }} ({{
                   formatDateTimeFromNow(props.row.datetime)
                 }})
@@ -245,21 +259,27 @@ watch(
                 <LongTextView
                   icon="person"
                   :text="
-                    props.row.customer.username + ' -' + props.row.customer.name
+                    props.row.customer.username +
+                    ' - ' +
+                    props.row.customer.name
                   "
                 />
-                <div>
-                  <q-icon name="money" class="inline-icon" /> Rp.
-                  {{
-                    plusMinusSymbol(props.row.amount) +
-                    formatNumber(props.row.amount)
-                  }}
-                  <q-badge
-                    ><q-icon name="category" />
-                    {{ props.row.type_label }}</q-badge
-                  >
+                <div
+                  :class="
+                    props.row.amount > 0 ? 'text-positive' : 'text-negative'
+                  "
+                  class="text-bold"
+                >
+                  <q-icon name="money" class="inline-icon" />
+                  {{ plusMinusSymbol(props.row.amount) }}Rp.
+                  {{ formatNumber(Math.abs(props.row.amount)) }}
                 </div>
                 <LongTextView :text="props.row.notes" icon="notes" />
+                <div>
+                  <q-badge>
+                    {{ props.row.type_label }}
+                  </q-badge>
+                </div>
               </template>
             </q-td>
             <q-td key="customer" :props="props">
@@ -273,19 +293,16 @@ watch(
               <LongTextView :text="props.row.notes" />
             </q-td>
             <q-td key="amount" :props="props" style="text-align: right">
-              {{
-                plusMinusSymbol(props.row.amount) +
-                formatNumber(props.row.amount)
-              }}
+              {{ formatNumberWithSymbol(props.row.amount) }}
             </q-td>
             <q-td key="action" :props="props">
               <div class="flex justify-end">
                 <q-btn
                   :disabled="!check_role($CONSTANTS.USER_ROLE_ADMIN)"
                   icon="more_vert"
+                  rounded
                   dense
                   flat
-                  style="height: 40px; width: 30px"
                   @click.stop
                 >
                   <q-menu
