@@ -91,8 +91,11 @@ const computedColumns = computed(() => {
       <div class="q-gutter-sm">
         <q-btn
           icon="edit"
+          size="sm"
           dense
-          color="primary"
+          flat
+          rounded
+          color="grey"
           @click="
             $inertia.get(
               route('admin.customer.edit', { id: page.props.data.id })

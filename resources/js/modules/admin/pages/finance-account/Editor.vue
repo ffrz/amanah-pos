@@ -135,7 +135,29 @@ watch(
                 :error="!!form.errors.balance"
                 :errorMessage="form.errors.balance"
                 :rules="[]"
+                hide-bottom-space
               />
+              <q-input
+                v-model.trim="form.notes"
+                type="textarea"
+                autogrow
+                counter
+                maxlength="200"
+                label="Catatan"
+                lazy-rules
+                :disable="form.processing"
+                :error="!!form.errors.notes"
+                :error-message="form.errors.notes"
+                hide-bottom-space
+              />
+              <CheckBox
+                v-model="form.active"
+                :disable="form.processing"
+                label="Aktif"
+              />
+              <div class="text-subtitle2 text-bold text-grey-8 q-pt-md">
+                Opsi Lanjutan
+              </div>
               <CheckBox
                 v-model="form.show_in_pos_payment"
                 :disable="form.processing || form.type == 'cashier_cash'"
@@ -150,24 +172,6 @@ watch(
                 v-model="form.has_wallet_access"
                 :disable="form.processing"
                 label="Tampilkan di Konfirmasi Topup Wallet"
-              />
-              <CheckBox
-                v-model="form.active"
-                :disable="form.processing"
-                label="Aktif"
-              />
-              <q-input
-                v-model.trim="form.notes"
-                type="textarea"
-                autogrow
-                counter
-                maxlength="200"
-                label="Catatan"
-                lazy-rules
-                :disable="form.processing"
-                :error="!!form.errors.notes"
-                :error-message="form.errors.notes"
-                hide-bottom-space
               />
             </q-card-section>
             <q-card-section class="q-gutter-sm">

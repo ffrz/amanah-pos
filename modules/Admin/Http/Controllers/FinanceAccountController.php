@@ -30,7 +30,7 @@ class FinanceAccountController extends Controller
     {
         $balance = FinanceAccount::where('active', '=', true)->sum('balance');
         return inertia('finance-account/Index', [
-            'totalBalance' => $balance, // TODO Ambil balance
+            'totalBalance' => $balance,
         ]);
     }
 
@@ -147,7 +147,8 @@ class FinanceAccountController extends Controller
 
         DB::commit();
 
-        return redirect(route('admin.finance-account.index'))->with('success', 'Informasi akun telah disimpan.');
+        return redirect(route('admin.finance-account.index'))
+            ->with('success', "Akun $item->name telah disimpan.");
     }
 
     public function delete($id)
@@ -158,7 +159,7 @@ class FinanceAccountController extends Controller
         $item->delete();
 
         return response()->json([
-            'message' => __('messages.finance-account-deleted', ['name' => $item->name])
+            'message' => "Akun kas $item->name telah dihapus."
         ]);
     }
 }

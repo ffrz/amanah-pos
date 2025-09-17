@@ -16,6 +16,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class FinanceTransaction extends BaseModel
@@ -35,6 +36,7 @@ class FinanceTransaction extends BaseModel
     protected $appends = [
         'ref_type_label',
         'type_label',
+        'formatted_id',
     ];
 
     /**
@@ -83,6 +85,14 @@ class FinanceTransaction extends BaseModel
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
+    }
+
+    public function getFormattedIdAttribute()
+    {
+        return Setting::value('finance_transaction_code_prefix', 'FTX-')
+            . Carbon::parse($this->created_at)->format('Ymd')
+            . '-'
+            . $this->id;
     }
 
     public function getTypeLabelAttribute()

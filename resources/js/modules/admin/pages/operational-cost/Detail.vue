@@ -26,8 +26,11 @@ const title = "Rincian Teknisi";
       <div class="q-gutter-sm">
         <q-btn
           icon="edit"
+          size="sm"
           dense
-          color="primary"
+          flat
+          rounded
+          color="grey"
           @click="
             router.get(
               route('admin.operational-cost.edit', { id: page.props.data.id })

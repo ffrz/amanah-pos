@@ -137,7 +137,7 @@ class CustomerWalletTransactionController extends Controller
                 'account_id' => $validated['finance_account_id'],
                 'amount' => $amount,
                 'type' => $amount >= 0 ? FinanceTransaction::Type_Income : FinanceTransaction::Type_Expense,
-                'notes' => 'Transaksi wallet customer #' . $customer->id,
+                'notes' => 'Transaksi wallet customer ' . $customer->username . ' Ref: ' . $item->formatted_id,
                 'ref_type' => FinanceTransaction::RefType_CustomerWalletTransaction,
                 'ref_id' => $item->id,
             ]);
@@ -146,7 +146,7 @@ class CustomerWalletTransactionController extends Controller
         DB::commit();
 
         return redirect(route('admin.customer-wallet-transaction.index'))
-            ->with('success', "Transaksi $item->id telah disimpan.");
+            ->with('success', "Transaksi $item->formatted_id telah disimpan.");
     }
 
     public function adjustment(Request $request)

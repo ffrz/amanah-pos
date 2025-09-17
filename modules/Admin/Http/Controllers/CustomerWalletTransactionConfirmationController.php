@@ -132,7 +132,7 @@ class CustomerWalletTransactionConfirmationController extends Controller
             'account_id' => $item->finance_account_id,
             'amount' => $item->amount,
             'type' => FinanceTransaction::Type_Income,
-            'notes' => 'Transaksi topup wallet customer #' . $customer->id,
+            'notes' => 'Transaksi topup wallet customer ' . $customer->username . ' Ref: #' . $walletTransaction->formatted_id,
             'ref_type' => FinanceTransaction::RefType_CustomerWalletTransaction,
             'ref_id' => $item->id,
         ]);

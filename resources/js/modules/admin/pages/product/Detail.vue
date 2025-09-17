@@ -31,8 +31,11 @@ const tab = ref("main");
       <div class="q-gutter-sm">
         <q-btn
           icon="edit"
+          size="sm"
           dense
-          color="primary"
+          flat
+          rounded
+          color="grey"
           @click="
             router.get(route('admin.product.edit', { id: page.props.data.id }))
           "

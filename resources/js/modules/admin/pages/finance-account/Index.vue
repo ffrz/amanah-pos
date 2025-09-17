@@ -7,7 +7,6 @@ import { useQuasar } from "quasar";
 import { createOptions } from "@/helpers/options";
 import { formatNumber } from "@/helpers/formatter";
 import useTableHeight from "@/composables/useTableHeight";
-import LongTextView from "@/components/LongTextView.vue";
 
 const page = usePage();
 const title = "Akun Kas";
@@ -16,7 +15,7 @@ const showFilter = ref(false);
 const rows = ref([]);
 const tableRef = ref(null);
 const filterToolbarRef = ref(null);
-const tableHeight = useTableHeight(filterToolbarRef, 67 + 37);
+const tableHeight = useTableHeight(filterToolbarRef, 67 + 50);
 const loading = ref(true);
 const filter = reactive({
   search: "",
@@ -39,6 +38,13 @@ const columns = [
     name: "name",
     label: "Nama",
     field: "name",
+    align: "left",
+    sortable: true,
+  },
+  {
+    name: "type",
+    label: "Jenis Akun",
+    field: "type",
     align: "left",
     sortable: true,
   },
@@ -127,9 +133,9 @@ const computedColumns = computed(() => {
           <q-select
             class="custom-select col-xs-6 col-sm-2"
             style="min-width: 150px"
-            v-model="filter.status"
-            :options="statuses"
-            label="Status"
+            v-model="filter.type"
+            :options="types"
+            label="Jenis Akun"
             dense
             map-options
             emit-value
@@ -139,15 +145,16 @@ const computedColumns = computed(() => {
           <q-select
             class="custom-select col-xs-6 col-sm-2"
             style="min-width: 150px"
-            v-model="filter.type"
-            :options="types"
-            label="Jenis"
+            v-model="filter.status"
+            :options="statuses"
+            label="Status"
             dense
             map-options
             emit-value
             outlined
             @update:model-value="onFilterChange"
           />
+
           <q-input
             class="col"
             outlined
@@ -165,12 +172,14 @@ const computedColumns = computed(() => {
       </q-toolbar>
     </template>
     <div class="q-pa-xs">
-      <div class="q-my-sm text-subtitle">
-        Total Saldo Akun Aktif:
-        <span class="text-bold text-grey-8"
-          >Rp. {{ formatNumber(totalBalance) }}</span
-        >
-      </div>
+      <q-card class="full-width q-pa-sm q-mb-xs" flat bordered square>
+        <div class="q-my-sm text-subtitle">
+          Total Saldo Akun Aktif:
+          <span class="text-bold text-grey-8"
+            >Rp. {{ formatNumber(totalBalance) }}</span
+          >
+        </div>
+      </q-card>
       <q-table
         ref="tableRef"
         class="full-height-table"
@@ -211,25 +220,27 @@ const computedColumns = computed(() => {
             @click="onRowClicked(props.row)"
           >
             <q-td key="name" :props="props" class="wrap-column">
-              <template v-if="!$q.screen.lt.md">
-                {{ props.row.name }}
-              </template>
-              <template v-else>
-                <LongTextView icon="wallet" :text="props.row.name" />
-              </template>
-              <div v-if="props.row.type == 'bank'">
-                {{ props.row.bank ?? "-" }} {{ props.row.number ?? "-" }} an
-                {{ props.row.holder ?? "-" }}
-              </div>
-              <div v-if="props.row.notes">
-                <q-icon name="notes" /> {{ props.row.notes }}
+              <div class="text-bold text-grey-9">{{ props.row.name }}</div>
+              <div class="text-grey-9">
+                <div v-if="props.row.type == 'bank'">
+                  <q-icon name="wallet" class="inline-icon" />
+                  Rekening {{ props.row.bank ?? "-" }}
+                  {{ props.row.number ?? "-" }} a.n.
+                  {{ props.row.holder ?? "-" }}
+                </div>
+                <div v-if="props.row.notes">
+                  <q-icon name="notes" /> {{ props.row.notes }}
+                </div>
               </div>
               <template v-if="$q.screen.lt.md">
                 <div>
-                  <q-icon name="money" /> Rp.
+                  <q-icon name="money" class="inline-icon" /> Rp.
                   {{ formatNumber(props.row.balance) }}
                 </div>
               </template>
+            </q-td>
+            <q-td key="type" :props="props">
+              {{ $CONSTANTS.FINANCE_ACCOUNT_TYPES[props.row.type] }}
             </q-td>
             <q-td key="balance" :props="props">
               {{ formatNumber(props.row.balance) }}

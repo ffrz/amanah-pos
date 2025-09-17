@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="text"
-    class="long-text-view inline-icon"
+    class="long-text-view"
     style="
       white-space: pre-wrap;
       word-break: break-word;
