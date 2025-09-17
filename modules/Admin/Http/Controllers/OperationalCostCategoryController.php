@@ -39,7 +39,8 @@ class OperationalCostCategoryController extends Controller
 
         if (!empty($filter['search'])) {
             $q->where(function ($q) use ($filter) {
-                $q->where('name', 'like', '%' . $filter['search'] . '%');
+                $q->where('name', 'like', '%' . $filter['search'] . '%')
+                    ->orWhere('description', 'like', '%' . $filter['search'] . '%');
             });
         }
 
@@ -82,17 +83,11 @@ class OperationalCostCategoryController extends Controller
             'description' => 'nullable|max:1000',
         ]);
 
-        $item->fill([
-            'name' => $validated['name'],
-            'description' => $data['description'] ?? '',
-        ]);
-
+        $item->fill($validated);
         $item->save();
 
-        $messageKey = $request->id ? 'operational-cost-category-updated' : 'operational-cost-category-created';
-
         return redirect(route('admin.operational-cost-category.index'))
-            ->with('success', __("messages.$messageKey", ['name' => $item->name]));
+            ->with('success', "Kategori $item->name telah disimpan.");
     }
 
     public function delete($id)
@@ -103,7 +98,7 @@ class OperationalCostCategoryController extends Controller
         $item->delete();
 
         return response()->json([
-            'message' => __('messages.operational-cost-category-deleted', ['name' => $item->name])
+            'message' => "Kategori $item->name telah dihapus"
         ]);
     }
 }
