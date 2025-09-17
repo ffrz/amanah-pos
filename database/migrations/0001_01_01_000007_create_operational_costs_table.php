@@ -31,7 +31,7 @@ return new class extends Migration
             $table->foreignId('finance_account_id')->nullable()->constrained('finance_accounts')->onDelete('set null');
             $table->date('date');
             $table->string('description', 100)->default('');
-            $table->string('image_path', 255)->nullabe();
+            $table->string('image_path', 255)->nullable()->default('');
             $table->decimal('amount', 8, 0)->default(0.);
             $table->text('notes');
             $table->createdUpdatedTimestamps();

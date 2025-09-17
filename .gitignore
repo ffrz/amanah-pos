@@ -23,3 +23,6 @@ Homestead.json
 .phpunit.result.cache
 vendor.zip
 /public/uploads
+/public/uploads
+/public/uploads/wallet-topup-confirmations
+/public/uploads/wallet-topup-confirmations

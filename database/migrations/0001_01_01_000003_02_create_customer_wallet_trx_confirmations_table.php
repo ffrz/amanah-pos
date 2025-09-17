@@ -31,7 +31,7 @@ return new class extends Migration
             $table->foreignId('customer_id')->nullable()->constrained('customers')->onDelete('restrict');
             $table->datetime('datetime')->nullable();
             $table->decimal('amount', 12, 2)->default(0.);
-            $table->string('image_path', 255)->nullable();
+            $table->string('image_path', 255)->nullable()->default('');
             $table->string('status', 20);
             $table->text('notes')->nullable();
             $table->createdUpdatedTimestamps();

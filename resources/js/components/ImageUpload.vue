@@ -1,46 +1,49 @@
 <script setup>
-import { ref, watch, onMounted } from 'vue';
+import { ref, watch, onMounted } from "vue";
 
 const props = defineProps({
   modelValue: {
     type: [File, String, null],
-    default: null
+    default: null,
   },
   initialImagePath: {
     type: String,
-    default: null
+    default: null,
   },
   label: {
     type: String,
-    default: 'Foto Lampiran:'
+    default: "Foto Lampiran:",
   },
   disabled: {
     type: Boolean,
-    default: false
+    default: false,
   },
   error: {
     type: Boolean,
-    default: false
+    default: false,
   },
   errorMessage: {
     type: String,
-    default: ''
-  }
+    default: "",
+  },
 });
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(["update:modelValue", "image-cleared"]);
 
 const fileInput = ref(null);
 const imagePreview = ref(null);
 
 // Watch untuk memperbarui pratinjau saat modelValue berubah dari luar
-watch(() => props.modelValue, (newFile) => {
-  if (newFile instanceof File) {
-    imagePreview.value = URL.createObjectURL(newFile);
-  } else if (!newFile) {
-    imagePreview.value = null;
+watch(
+  () => props.modelValue,
+  (newFile) => {
+    if (newFile instanceof File) {
+      imagePreview.value = URL.createObjectURL(newFile);
+    } else if (!newFile) {
+      imagePreview.value = null;
+    }
   }
-});
+);
 
 onMounted(() => {
   if (props.initialImagePath) {
@@ -57,12 +60,13 @@ function triggerInput() {
 function onFileChange(event) {
   const file = event.target.files[0];
   if (file) {
-    emit('update:modelValue', file);
+    emit("update:modelValue", file);
   }
 }
 
 function clearImage() {
-  emit('update:modelValue', null);
+  emit("update:modelValue", null);
+  emit("image-cleared");
   imagePreview.value = null;
   fileInput.value.value = null;
 }
@@ -107,7 +111,7 @@ function clearImage() {
       <q-img
         v-if="imagePreview"
         :src="imagePreview"
-        style="max-width: 500px; border: 1px solid #ddd; border-radius: 4px;"
+        style="max-width: 500px; border: 1px solid #ddd; border-radius: 4px"
       >
         <template v-slot:error>
           <div class="text-negative text-center q-pa-md">
