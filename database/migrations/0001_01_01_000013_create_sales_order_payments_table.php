@@ -29,8 +29,8 @@ return new class extends Migration
         Schema::create('sales_order_payments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('order_id')->nullable()->constrained('sales_orders')->onDelete('cascade');
-            $table->foreignId('customer_id')->nullable()->constrained('customers')->onDelete('set null');
-            $table->foreignId('finance_account_id')->nullable()->constrained('finance_accounts')->onDelete('set null');
+            $table->foreignId('customer_id')->nullable()->constrained('customers')->onDelete('restrict');
+            $table->foreignId('finance_account_id')->nullable()->constrained('finance_accounts')->onDelete('restrict');
             $table->string('type', 20)->nullable();
             $table->decimal('amount', 18, 2)->nullable();
             $table->createdTimestamps();

@@ -27,8 +27,8 @@ return new class extends Migration
     {
         Schema::create('operational_costs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('category_id')->nullable()->constrained('operational_cost_categories')->onDelete('set null');
-            $table->foreignId('finance_account_id')->nullable()->constrained('finance_accounts')->onDelete('set null');
+            $table->foreignId('category_id')->nullable()->constrained('operational_cost_categories')->onDelete('restrict');
+            $table->foreignId('finance_account_id')->nullable()->constrained('finance_accounts')->onDelete('restrict');
             $table->date('date');
             $table->string('description', 100)->default('');
             $table->string('image_path', 255)->nullable()->default('');

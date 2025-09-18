@@ -29,7 +29,7 @@ return new class extends Migration
         Schema::create('purchase_order_details', function (Blueprint $table) {
             $table->id();
             $table->foreignId('parent_id')->nullable()->constrained('purchase_orders')->onDelete('cascade');
-            $table->foreignId('product_id')->nullable()->constrained('products')->onDelete('set null');
+            $table->foreignId('product_id')->nullable()->constrained('products')->onDelete('restrict');
             $table->string('product_name', 100);
             $table->string('uom', 40)->default('');
             $table->decimal('quantity', 18, 3)->default(0.);

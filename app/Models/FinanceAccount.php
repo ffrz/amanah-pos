@@ -73,6 +73,16 @@ class FinanceAccount extends BaseModel
         ];
     }
 
+    public function transactions()
+    {
+        return $this->hasMany(FinanceTransaction::class, 'account_id');
+    }
+
+    public function isUsedInTransaction(): bool
+    {
+        return $this->transactions()->exists();
+    }
+
     public static function totalActiveBalance()
     {
         return DB::select(

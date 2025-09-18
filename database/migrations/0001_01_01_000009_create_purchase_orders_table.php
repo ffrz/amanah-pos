@@ -29,7 +29,7 @@ return new class extends Migration
     {
         Schema::create('purchase_orders', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('supplier_id')->nullable()->constrained('suppliers')->onDelete('set null');
+            $table->foreignId('supplier_id')->nullable()->constrained('suppliers')->onDelete('restrict');
             $table->string('status', 30);
             $table->string('payment_status', 30);
             $table->string('delivery_status', 30);

@@ -28,8 +28,8 @@ return new class extends Migration
     {
         Schema::create('sales_orders', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('customer_id')->nullable()->constrained('customers')->onDelete('set null');
-            $table->foreignId('cashier_id')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignId('customer_id')->nullable()->constrained('customers')->onDelete('restrict');
+            $table->foreignId('cashier_id')->nullable()->constrained('users')->onDelete('restrict');
 
             $table->string('type', 40)->nullable()->deafult('');
 

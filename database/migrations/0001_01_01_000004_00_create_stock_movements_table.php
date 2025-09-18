@@ -27,7 +27,7 @@ return new class extends Migration
     {
         Schema::create('stock_movements', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('product_id')->nullable()->constrained('products')->onDelete('set null');
+            $table->foreignId('product_id')->nullable()->constrained('products')->onDelete('restrict');
             $table->unsignedBigInteger('ref_id')->nullable();
             $table->string('ref_type', 40)->default('');
             $table->decimal('quantity', 10, 3)->default(0.);

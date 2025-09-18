@@ -16,6 +16,7 @@
 
 namespace Modules\Admin\Http\Controllers;
 
+use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\FinanceAccount;
 use App\Models\FinanceTransaction;
@@ -156,10 +157,14 @@ class FinanceAccountController extends Controller
         allowed_roles([User::Role_Admin]);
 
         $item = FinanceAccount::findOrFail($id);
+        if ($item->isUsedInTransaction()) {
+            return JsonResponseHelper::error('Akun tidak dapat dihapus karena sudah digunakan di transaksi!', 403);
+        }
         $item->delete();
 
-        return response()->json([
-            'message' => "Akun kas $item->name telah dihapus."
-        ]);
+        return JsonResponseHelper::success(
+            $item,
+            "Akun kas $item->name telah dihapus."
+        );
     }
 }

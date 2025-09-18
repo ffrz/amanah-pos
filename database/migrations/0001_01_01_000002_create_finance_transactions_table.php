@@ -28,7 +28,7 @@ return new class extends Migration
     {
         Schema::create('finance_transactions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('account_id')->nullable()->constrained('finance_accounts')->onDelete('set null');
+            $table->foreignId('account_id')->nullable()->constrained('finance_accounts')->onDelete('restrict');
             $table->nullableMorphs('ref');
             $table->datetime('datetime')->nullable();
             $table->enum('type', array_keys(FinanceTransaction::Types));
