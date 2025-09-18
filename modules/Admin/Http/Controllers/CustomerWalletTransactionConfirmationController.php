@@ -24,6 +24,7 @@ use App\Models\CustomerWalletTransactionConfirmation;
 use App\Models\FinanceAccount;
 use App\Models\FinanceTransaction;
 use App\Models\User;
+use App\Services\FinanceTransactionService;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -31,6 +32,14 @@ use Illuminate\Support\Facades\DB;
 
 class CustomerWalletTransactionConfirmationController extends Controller
 {
+
+    protected $financeTransactionService;
+
+    public function __construct(
+        FinanceTransactionService $financeTransactionService
+    ) {
+        $this->financeTransactionService = $financeTransactionService;
+    }
 
     public function index()
     {
@@ -105,11 +114,14 @@ class CustomerWalletTransactionConfirmationController extends Controller
 
         if ($request->action != 'accept') {
             abort(400, 'Aksi tidak dikenali!');
+            return;
         }
 
         DB::beginTransaction();
         $item->status = CustomerWalletTransactionConfirmation::Status_Approved;
         $item->save();
+
+        // TODO: pindahkan ke service
 
         $walletTransaction  = new CustomerWalletTransaction([
             'customer_id' => $item->customer_id,
@@ -127,11 +139,7 @@ class CustomerWalletTransactionConfirmationController extends Controller
         $customer->balance += $item->amount;
         $customer->save();
 
-        $account = FinanceAccount::findOrFail($item->finance_account_id);
-        $account->balance += $item->amount;
-        $account->save();
-
-        FinanceTransaction::create([
+        $this->financeTransactionService->handleTransaction([
             'datetime' => Carbon::now(),
             'account_id' => $item->finance_account_id,
             'amount' => $item->amount,
@@ -140,6 +148,8 @@ class CustomerWalletTransactionConfirmationController extends Controller
             'ref_type' => FinanceTransaction::RefType_CustomerWalletTransaction,
             'ref_id' => $item->id,
         ]);
+
+        FinanceTransaction::create();
 
         DB::commit();
 
@@ -151,22 +161,17 @@ class CustomerWalletTransactionConfirmationController extends Controller
         allowed_roles([User::Role_Admin]);
         $item = CustomerWalletTransactionConfirmation::findOrFail($id);
 
+        // TODO: pindahkan ke service
         // Get related wallet transaction and cash transaction, if they exist
         $walletTransaction = CustomerWalletTransaction::where('ref_id', $item->id)
             ->where('ref_type', CustomerWalletTransaction::RefType_CustomerWalletTransactionConfirmation)
             ->first();
 
-        // Check if the confirmation was approved and has a related finance transaction
-        $financeTransaction = null;
-        if ($walletTransaction && $item->status === CustomerWalletTransactionConfirmation::Status_Approved) {
-            $financeTransaction = FinanceTransaction::where('ref_id', $item->id)
-                ->where('ref_type', FinanceTransaction::RefType_CustomerWalletTransaction)
-                ->first();
-        }
-
         DB::beginTransaction();
         try {
             // Step 1: kembalikan saldo wallet dan hapus transaksi wallet jika sudah dicatat
+
+            // TODO: pindahkan ke service
             if ($walletTransaction) {
                 $customer = $walletTransaction->customer;
                 // HATI-HATI DENGAN SIMBOL NEGATIF SAAT MENGEMBALIKAN SALDO, JANGAN SAMPAI TERTUKAR!!!
@@ -176,21 +181,15 @@ class CustomerWalletTransactionConfirmationController extends Controller
             }
 
             // Step 2: kembalikan saldo akun jika sudah dicatat dan hapus transaksinya
-            if ($financeTransaction) {
-                $financeAccount = $financeTransaction->account;
-                // HATI-HATI DENGAN SIMBOL NEGATIF SAAT MENGEMBALIKAN SALDO, JANGAN SAMPAI TERTUKAR!!!
-                $financeAccount->balance -= abs($financeTransaction->amount);
-                $financeAccount->save();
-                $financeTransaction->delete();
+            if ($item->status === CustomerWalletTransactionConfirmation::Status_Approved) {
+                $this->financeTransactionService->reverseTransaction($item->id, FinanceTransaction::RefType_CustomerWalletTransaction);
             }
 
             // Step 3: Delete the confirmation record
             $item->delete();
 
             // Step 4: Delete the image
-            if ($item->image_path) {
-                ImageUploaderHelper::deleteImage($item->image_path);
-            }
+            ImageUploaderHelper::deleteImage($item->image_path);
 
             DB::commit();
 

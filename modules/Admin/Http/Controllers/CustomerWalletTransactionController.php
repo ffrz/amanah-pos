@@ -25,6 +25,8 @@ use App\Models\FinanceAccount;
 use App\Models\FinanceTransaction;
 use App\Models\User;
 use App\Services\CommonDataService;
+use App\Services\CustomerWalletTransactionService;
+use App\Services\FinanceTransactionService;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -34,10 +36,17 @@ class CustomerWalletTransactionController extends Controller
 {
 
     protected $commonDataService;
+    protected $financeTransactionService;
+    protected $customerWalletTransactionService;
 
-    public function __construct(CommonDataService $commonDataService) // Inject CommonDataService
-    {
+    public function __construct(
+        CommonDataService $commonDataService,
+        FinanceTransactionService $financeTransactionService,
+        CustomerWalletTransactionService $customerWalletTransactionService
+    ) {
         $this->commonDataService = $commonDataService;
+        $this->financeTransactionService = $financeTransactionService;
+        $this->customerWalletTransactionService = $customerWalletTransactionService;
     }
 
     public function index()
@@ -102,7 +111,7 @@ class CustomerWalletTransactionController extends Controller
     {
         $validated = $request->validate([
             'customer_id' => 'required|exists:customers,id',
-            'finance_account_id' => 'required|exists:finance_accounts,id',
+            'finance_account_id' => 'sometimes|nullable|exists:finance_accounts,id',
             'datetime' => 'required|date',
             'type' => 'required|in:' . implode(',', array_keys(CustomerWalletTransaction::Types)),
             'amount' => 'required|numeric|min:0.01',
@@ -129,6 +138,7 @@ class CustomerWalletTransactionController extends Controller
 
             $validated['notes'] ?? '';
 
+            // TODO: pindahkan ke service
             if ($request->hasFile('image')) {
                 $newlyUploadedImagePath = ImageUploaderHelper::uploadAndResize(
                     $request->file('image'),
@@ -138,6 +148,8 @@ class CustomerWalletTransactionController extends Controller
                 unset($validated['image']);
             }
 
+            // TODO: pindahkan ke service
+
             $item = new CustomerWalletTransaction();
             $item->fill($validated);
             $item->save();
@@ -146,19 +158,14 @@ class CustomerWalletTransactionController extends Controller
             $customer->balance += $amount;
             $customer->save();
 
-            // hanya digunakan ketika mempengaruhi kas koperasi
-            if (in_array($validated['type'], [
-                CustomerWalletTransaction::Type_Deposit,
-                CustomerWalletTransaction::Type_Withdrawal,
-            ])) {
-                $account = FinanceAccount::findOrFail($validated['finance_account_id']);
-                // jika deposit, maka kas koperasi juga ikut bertambah\
-                // jika withdraw, kas koperasi juga akan berkurang
-                $account->balance += $amount;
-                $account->save();
-
-                // Tambah entri transaksi keuangan
-                FinanceTransaction::create([
+            // hanya digunakan ketika mempengaruhi akun kas
+            if (
+                in_array($validated['type'], [
+                    CustomerWalletTransaction::Type_Deposit,
+                    CustomerWalletTransaction::Type_Withdrawal,
+                ]) && $validated['finance_account_id']
+            ) {
+                $this->financeTransactionService->handleTransaction([
                     'datetime' => $validated['datetime'],
                     'account_id' => $validated['finance_account_id'],
                     'amount' => $amount,
@@ -173,7 +180,7 @@ class CustomerWalletTransactionController extends Controller
 
             return redirect(route('admin.customer-wallet-transaction.index'))
                 ->with('success', "Transaksi $item->formatted_id telah disimpan.");
-        } catch (Exception $ex) {
+        } catch (\Throwable $ex) {
             DB::rollBack();
             // Hapus gambar baru jika ada error
             if ($newlyUploadedImagePath) {
@@ -202,6 +209,8 @@ class CustomerWalletTransactionController extends Controller
 
         $customer = Customer::findOrFail($request->customer_id);
 
+        // TODO: pindahkan ke service
+
         $old_balance = $customer->balance;
         $customer->balance = $validated['new_balance'];
         $customer->save();
@@ -218,7 +227,7 @@ class CustomerWalletTransactionController extends Controller
         DB::commit();
 
         return redirect(route('admin.customer-wallet-transaction.index'))
-            ->with('success', "Penyesuaian saldo $item->id telah disimpan.");
+            ->with('success', "Penyesuaian saldo $item->formatted_id telah disimpan.");
     }
 
     public function delete($id)
@@ -233,31 +242,28 @@ class CustomerWalletTransactionController extends Controller
 
         try {
             DB::beginTransaction();
-            $item->customer->balance -= $item->amount;
-            $item->customer->save();
-            $item->delete();
+
+            // restore customer balance
+            $this->customerWalletTransactionService->addToBalance($item->customer, -$item->amount);
 
             // Jika transaksi menyentuh kas, kembalikan saldo kas
             if (in_array($item->type, [
                 CustomerWalletTransaction::Type_Deposit,
                 CustomerWalletTransaction::Type_Withdrawal
             ]) && $item->finance_account_id) {
-                $kas = $item->financeAccount;
-                $kas->balance -= $item->amount;
-                $kas->save();
-                FinanceTransaction::where([
-                    'ref_type' => FinanceTransaction::RefType_CustomerWalletTransaction,
-                    'ref_id' => $item->id,
-                ])->delete();
+                $this->financeTransactionService->reverseTransaction($item->id, FinanceTransaction::RefType_CustomerWalletTransaction);
             }
+
             ImageUploaderHelper::deleteImage($item->image_path);
 
+            $item->delete();
             DB::commit();
+
             return JsonResponseHelper::success(
                 $item,
                 "Transaksi #$item->formatted_id telah dihapus."
             );
-        } catch (Exception $ex) {
+        } catch (\Throwable $ex) {
             DB::rollBack();
             return JsonResponseHelper::error('Terdapat kesalahan saat menghapus rekaman.', 500, $ex);
         }

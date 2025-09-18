@@ -27,6 +27,8 @@ use App\Models\Product;
 use App\Models\SalesOrderDetail;
 use App\Models\SalesOrderPayment;
 use App\Models\StockMovement;
+use App\Models\User;
+use App\Services\FinanceTransactionService;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -35,6 +37,13 @@ use Illuminate\Support\Facades\DB;
 
 class SalesOrderController extends Controller
 {
+    protected $financeTransactionService;
+
+    public function __construct(FinanceTransactionService $financeTransactionService)
+    {
+        $this->financeTransactionService = $financeTransactionService;
+    }
+
     public function index()
     {
         return inertia('sales-order/Index');
@@ -195,73 +204,67 @@ class SalesOrderController extends Controller
 
     public function delete($id)
     {
-        // allowed_roles([User::Role_Admin]);
+        allowed_roles([User::Role_Admin]);
 
         $order = SalesOrder::with([
             'details',
             'payments',
             'details.product',
             'payments.account'
-        ])
-            ->findOrFail($id);
+        ])->findOrFail($id);
 
-        DB::beginTransaction();
-        if ($order->status == SalesOrder::Status_Closed) {
-            // refund stok
-            foreach ($order->details as $detail) {
-                $product = $detail->product;
-                $product->stock += abs($detail->quantity);
-                $product->save();
+        try {
+            DB::beginTransaction();
+            if ($order->status == SalesOrder::Status_Closed) {
+                // refund stok
+                foreach ($order->details as $detail) {
+                    $product = $detail->product;
+                    $product->stock += abs($detail->quantity);
+                    $product->save();
 
-                DB::delete(
-                    'DELETE FROM stock_movements WHERE ref_type = ? AND ref_id = ?',
-                    [StockMovement::RefType_SalesOrderDetail, $detail->id]
-                );
-            }
-
-            foreach ($order->payments as $payment) {
-                $amount = abs($payment->amount);
-
-                // refund customer wallet
-                if ($payment->type == SalesOrderPayment::Type_Wallet) {
-                    $customer = $payment->customer;
-                    $customer->balance += $amount;
-                    $customer->save();
-
-                    $walletTx = CustomerWalletTransaction::where('ref_type', '=', CustomerWalletTransaction::RefType_SalesOrderPayment)
-                        ->where('ref_id', '=', $payment->id)
-                        ->get()->first();
-                    if ($walletTx) {
-                        $walletTx->delete();
-                    }
-                }
-                // restore saldo akun
-                else if (
-                    $payment->type == SalesOrderPayment::Type_Transfer
-                    || $payment->type == SalesOrderPayment::Type_Cash
-                ) {
-                    $account = $payment->account;
-                    $account->balance -= $amount;
-                    $account->save();
-
-                    $financeTx = FinanceTransaction::where('ref_type', '=', FinanceTransaction::RefType_SalesOrderPayment)
-                        ->where('ref_id', '=', $payment->id)
-                        ->get()->first();
-                    if ($financeTx) {
-                        $financeTx->delete();
-                    }
+                    DB::delete(
+                        'DELETE FROM stock_movements WHERE ref_type = ? AND ref_id = ?',
+                        [StockMovement::RefType_SalesOrderDetail, $detail->id]
+                    );
                 }
 
-                $payment->delete();
+                foreach ($order->payments as $payment) {
+                    $amount = abs($payment->amount);
+
+                    // refund customer wallet
+                    if ($payment->type == SalesOrderPayment::Type_Wallet) {
+                        $customer = $payment->customer;
+                        $customer->balance += $amount;
+                        $customer->save();
+
+                        $walletTx = CustomerWalletTransaction::where('ref_type', '=', CustomerWalletTransaction::RefType_SalesOrderPayment)
+                            ->where('ref_id', '=', $payment->id)
+                            ->get()->first();
+                        if ($walletTx) {
+                            $walletTx->delete();
+                        }
+                    }
+                    // restore saldo akun
+                    else if (
+                        $payment->type == SalesOrderPayment::Type_Transfer
+                        || $payment->type == SalesOrderPayment::Type_Cash
+                    ) {
+                        $this->financeTransactionService->reverseTransaction($payment->id, FinanceTransaction::RefType_SalesOrderPayment);
+                    }
+
+                    $payment->delete();
+                }
             }
+
+            $order->delete();
+
+            DB::commit();
+
+            return JsonResponseHelper::success($order, "Transaksi #$order->formatted_id telah dihapus.");
+        } catch (\Throwable $ex) {
+            DB::rollBack();
+            return JsonResponseHelper::error("Gagal menghapus transaksi #$order->formatted_id.", 500, $ex);
         }
-
-        $order->delete();
-        DB::commit();
-
-        return response()->json([
-            'message' => "Transaksi #$order->formatted_id telah dihapus.",
-        ]);
     }
 
     public function detail($id)

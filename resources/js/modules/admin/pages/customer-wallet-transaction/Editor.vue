@@ -19,8 +19,10 @@ const { filteredCustomers, filterCustomersFn } = useCustomerFilter(
 const types = [
   { label: "Deposit (+)", value: "deposit" },
   { label: "Penarikan (-)", value: "withdrawal" },
-  { label: "Pembelian (-)", value: "purchase" },
-  { label: "Refund (+)", value: "refund" },
+
+  // ini gak boleh ada di transaksi manual, hanay digunakan oleh transaksi penjualan
+  // { label: "Pembelian (-)", value: "sales_order_payment" },
+  // { label: "Refund (+)", value: "refund" },
 ];
 
 const finance_accounts = page.props.finance_accounts.map((account) => ({
@@ -117,7 +119,6 @@ const submit = () => {
               >
               </q-select>
               <q-select
-                v-if="form.type == 'deposit' || form.type == 'withdrawal'"
                 v-model="form.finance_account_id"
                 :label="form.type == 'deposit' ? 'Kas Tujuan' : 'Kas Asal'"
                 :options="finance_accounts"
