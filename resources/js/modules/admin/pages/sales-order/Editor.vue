@@ -305,6 +305,9 @@ const handleCustomerSelected = (data) => {
   customer.value = data;
   form.customer_id = data?.id;
   updateOrder();
+  nextTick(() => {
+    userInputRef.value?.focus(); // INI GAK NGARUH
+  });
 };
 
 const updateOrder = () => {
@@ -458,6 +461,7 @@ const invoicePreview = () => {
                 @customer-selected="handleCustomerSelected"
                 :min-length="1"
                 outlined
+                autofocus
               />
               <div class="text-grey q-mt-xs q-ml-sm">
                 Saldo:
@@ -480,7 +484,6 @@ const invoicePreview = () => {
               class="col col-12 q-pa-sm bg-white"
               outlined
               clearable
-              autofocus
             >
               <template #prepend>
                 <q-icon

@@ -105,7 +105,7 @@ class OperationalCostController extends Controller
         return inertia('operational-cost/Editor', [
             'data' => $item,
             'categories' => $this->_categories(),
-            '_financeAccounts' => $this->_financeAccounts(),
+            'finance_accounts' => $this->_financeAccounts(),
         ]);
     }
 
@@ -116,7 +116,7 @@ class OperationalCostController extends Controller
         return inertia('operational-cost/Editor', [
             'data' => $item,
             'categories' => $this->_categories(),
-            '_financeAccounts' => $this->_financeAccounts(),
+            'finance_accounts' => $this->_financeAccounts(),
         ]);
     }
 
@@ -124,7 +124,7 @@ class OperationalCostController extends Controller
     {
         // 1. Validasi input
         $validated = $request->validate([
-            'finance_account_id' => 'nullable|exists:_financeAccounts,id',
+            'finance_account_id' => 'nullable|exists:finance_accounts,id',
             'date'               => 'required|date',
             'category_id'        => 'nullable',
             'description'        => 'required|max:255',
