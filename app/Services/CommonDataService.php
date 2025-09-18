@@ -19,7 +19,6 @@ namespace App\Services;
 use App\Models\Customer;
 use App\Models\FinanceAccount;
 use App\Models\OperationalCostCategory;
-use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\Supplier;
 

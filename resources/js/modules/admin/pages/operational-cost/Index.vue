@@ -10,6 +10,7 @@ import { useCostCategoryFilter } from "@/composables/useCostCategoryOptions";
 import useTableHeight from "@/composables/useTableHeight";
 import LongTextView from "@/components/LongTextView.vue";
 import ImageViewer from "@/components/ImageViewer.vue";
+import { useFinanceAccount } from "@/composables/useFinanceAccount";
 
 const title = "Biaya Operasional";
 const page = usePage();
@@ -37,9 +38,15 @@ const months = [{ value: null, label: "Semua Bulan" }, ...createMonthOptions()];
 const { costCategoryOptions } = useCostCategoryFilter(page.props.categories);
 const categories = [
   { value: "all", label: "Semua" },
-  { value: "null", label: "Tanpa Kategori" },
-
+  { value: null, label: "Tanpa Kategori" },
   ...costCategoryOptions,
+];
+
+const { accountOptions } = useFinanceAccount(page.props.finance_accounts);
+const accounts = [
+  { value: "all", label: "Semua" },
+  { value: null, label: "Tidak Diset" },
+  ...accountOptions,
 ];
 
 const filter = reactive({
@@ -68,6 +75,13 @@ const columns = [
     name: "date",
     label: "Tanggal",
     field: "date",
+    align: "left",
+    sortable: true,
+  },
+  {
+    name: "account_id",
+    label: "Akun",
+    field: "account_id",
     align: "left",
     sortable: true,
   },
@@ -211,6 +225,17 @@ const showAttachment = (url) => {
             outlined
             @update:model-value="onFilterChange"
           />
+          <q-select
+            v-model="filter.finance_account_id"
+            :options="accounts"
+            label="Akun Kas"
+            dense
+            class="custom-select col-xs-12 col-sm-3"
+            map-options
+            emit-value
+            outlined
+            @update:model-value="onFilterChange"
+          />
           <q-input
             class="col"
             outlined
@@ -278,6 +303,10 @@ const showAttachment = (url) => {
                   <q-icon name="calendar_clock" class="inline-icon" />
                   {{ formatDate(props.row.date) }}
                 </div>
+                <div v-if="props.row.finance_account">
+                  <q-icon name="wallet" class="inline-icon" />
+                  {{ props.row.finance_account.name }}
+                </div>
                 <div v-if="props.row.category">
                   <q-icon name="category" class="inline-icon" />
                   {{ props.row.category.name }}
@@ -300,6 +329,11 @@ const showAttachment = (url) => {
             </q-td>
             <q-td key="date" :props="props" class="wrap-column">
               {{ formatDate(props.row.date) }}
+            </q-td>
+            <q-td key="account_id" :props="props" class="wrap-column">
+              {{
+                props.row.finance_account ? props.row.finance_account.name : ""
+              }}
             </q-td>
             <q-td key="category_id" :props="props">
               <div v-if="props.row.category">

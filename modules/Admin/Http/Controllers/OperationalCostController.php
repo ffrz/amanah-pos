@@ -25,6 +25,7 @@ use App\Models\OperationalCost;
 use App\Models\OperationalCostCategory;
 use App\Models\User;
 use App\Services\CommonDataService;
+use App\Services\FinanceTransactionService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -32,16 +33,21 @@ use Illuminate\Support\Facades\DB;
 class OperationalCostController extends Controller
 {
     protected $commonDataService;
+    protected $financeTransactionService;
 
-    public function __construct(CommonDataService $commonDataService) // Inject CommonDataService
-    {
+    public function __construct(
+        CommonDataService $commonDataService,
+        FinanceTransactionService $financeTransactionService
+    ) {
         $this->commonDataService = $commonDataService;
+        $this->financeTransactionService = $financeTransactionService;
     }
 
     public function index()
     {
         return inertia('operational-cost/Index', [
             'categories' => $this->commonDataService->getOperationalCategories(),
+            'finance_accounts' => $this->commonDataService->getFinanceAccounts(),
         ]);
     }
 
@@ -61,7 +67,7 @@ class OperationalCostController extends Controller
         $orderType = $request->get('order_type', 'desc');
         $filter = $request->get('filter', []);
 
-        $q = OperationalCost::with('category');
+        $q = OperationalCost::with(['category', 'financeAccount']);
 
         if (!empty($filter['search'])) {
             $q->where(function ($q) use ($filter) {
@@ -70,12 +76,16 @@ class OperationalCostController extends Controller
             });
         }
 
-        if (!empty($filter['category_id'])) {
-            if ($filter['category_id'] === 'null') {
+        if (!empty($filter['category_id']) && $filter['category_id'] !== 'all') {
+            if ($filter['category_id'] === null) {
                 $q->whereNull('category_id');
             } else if ($filter['category_id'] !== 'all') {
                 $q->where('category_id', '=', $filter['category_id']);
             }
+        }
+
+        if (!empty($filter['finance_account_id']) && $filter['finance_account_id'] !== 'all') {
+            $q->where('finance_account_id', '=', $filter['finance_account_id']);
         }
 
         // Tambahan filter tahun
@@ -178,22 +188,23 @@ class OperationalCostController extends Controller
 
             // 5. PENANGANAN TRANSAKSI KEUANGAN
             // Logika pengembalian saldo hanya perlu dilakukan jika ada perubahan akun
-            if ($oldItem && $oldItem->finance_account_id !== $item->finance_account_id) {
-                if ($oldItem->finance_account_id) {
-                    $oldAccount = FinanceAccount::findOrFail($oldItem->finance_account_id);
-                    $oldAccount->balance += abs($oldItem->amount);
-                    $oldAccount->save();
-                }
-
-                // tambahan, jika hapus akun id, maka transaksinya juga harus dihapus
-                if ($oldItem->finance_account_id && !$item->finance_account_id) {
-                    FinanceTransaction::where('ref_id', $item->id)
-                        ->where('ref_type', FinanceTransaction::RefType_OperationalCost)
-                        ->delete();
-                }
-            }
-
-            $this->updateOrCreateFinanceTransaction($item);
+            $this->financeTransactionService->handleTransaction(
+                [
+                    'ref_id'     => $item->id,
+                    'ref_type'   => FinanceTransaction::RefType_OperationalCost,
+                    'datetime'   => new Carbon($item->date),
+                    'account_id' => $item->finance_account_id,
+                    'amount'     => -abs($item->amount),
+                    'type'       => FinanceTransaction::Type_Expense,
+                    'notes'      => "Biaya operasional #$item->id",
+                ],
+                $oldItem ? [
+                    'ref_id'     => $oldItem->id,
+                    'ref_type'   => FinanceTransaction::RefType_OperationalCost,
+                    'account_id' => $oldItem->finance_account_id,
+                    'amount'     => -abs($oldItem->amount)
+                ] : []
+            );
 
             DB::commit();
 
@@ -220,26 +231,15 @@ class OperationalCostController extends Controller
 
         try {
             DB::beginTransaction();
+
             $item->delete();
 
-            // Cari transaksi yang sudah ada
-            $transaction = FinanceTransaction::where('ref_id', $item->id)
-                ->where('ref_type', FinanceTransaction::RefType_OperationalCost)
-                ->first();
+            $this->financeTransactionService->reverseTransaction($item->id, FinanceTransaction::RefType_OperationalCost);
 
-            if ($transaction) {
-                $account = $transaction->account;
-                $account->balance += abs($transaction->amount);
-
-                $account->save();
-                $transaction->delete();
-            }
-
-            if ($item->image_path) {
-                ImageUploaderHelper::deleteImage($item->image_path);
-            }
+            ImageUploaderHelper::deleteImage($item->image_path);
 
             DB::commit();
+
             return JsonResponseHelper::success(
                 $item,
                 "Biaya operasional $item->description telah dihapus."
@@ -248,42 +248,5 @@ class OperationalCostController extends Controller
             DB::rollBack();
             return JsonResponseHelper::error("Gagal menghapus rekaman.", 500, $ex);
         }
-    }
-
-    private function updateOrCreateFinanceTransaction(OperationalCost $item)
-    {
-        // Jika tidak ada akun keuangan yang dipilih, kembalikan null
-        if (!$item->finance_account_id) {
-            return;
-        }
-
-        // Kurangi saldo akun keuangan
-        $account = FinanceAccount::findOrFail($item->finance_account_id);
-        $account->balance -= abs($item->amount);
-        $account->save();
-
-        // Cari transaksi yang sudah ada
-        $transaction = FinanceTransaction::where('ref_id', $item->id)
-            ->where('ref_type', FinanceTransaction::RefType_OperationalCost)
-            ->first();
-
-        // Jika transaksi sudah ada, perbarui
-        if ($transaction) {
-            $transaction->account_id = $item->finance_account_id;
-            $transaction->amount = -abs($item->amount);
-            $transaction->save();
-            return;
-        }
-
-        // Jika belum ada, buat yang baru
-        $transaction = FinanceTransaction::create([
-            'account_id' => $account->id,
-            'datetime' => new Carbon($item->date),
-            'amount' => -abs($item->amount),
-            'type' => FinanceTransaction::Type_Expense,
-            'ref_type' => FinanceTransaction::RefType_OperationalCost,
-            'ref_id' => $item->id,
-            'notes' => "Biaya operasional #$item->id",
-        ]);
     }
 }
