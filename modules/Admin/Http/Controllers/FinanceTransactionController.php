@@ -3,13 +3,13 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
+ *
  * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
+ *
  * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
+ *
  * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
@@ -22,6 +22,7 @@ use App\Http\Controllers\Controller;
 use App\Models\FinanceAccount;
 use App\Models\FinanceTransaction;
 use App\Models\User;
+use App\Services\CommonDataService;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -29,15 +30,17 @@ use Illuminate\Support\Facades\DB;
 
 class FinanceTransactionController extends Controller
 {
-    private function _activeAccounts()
+    protected $commonDataService;
+
+    public function __construct(CommonDataService $commonDataService) // Inject CommonDataService
     {
-        return FinanceAccount::where('active', '=', true)->orderBy('name', 'asc')->get();
+        $this->commonDataService = $commonDataService;
     }
 
     public function index()
     {
         return inertia('finance-transaction/Index', [
-            'accounts' => $this->_activeAccounts()
+            'accounts' => $this->commonDataService->getFinanceAccounts()
         ]);
     }
 
@@ -94,7 +97,7 @@ class FinanceTransactionController extends Controller
         $item = $id ? FinanceTransaction::findOrFail($id) : new FinanceTransaction(['datetime' => Carbon::now()]);
         return inertia('finance-transaction/Editor', [
             'data' => $item,
-            'accounts' => $this->_activeAccounts()
+            'accounts' => $this->commonDataService->getFinanceAccounts()
         ]);
     }
 

@@ -3,13 +3,13 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
+ *
  * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
+ *
  * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
+ *
  * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
@@ -17,34 +17,31 @@
 namespace Modules\Admin\Http\Controllers;
 
 use App\Helpers\ImageUploaderHelper;
+use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\FinanceAccount;
 use App\Models\FinanceTransaction;
 use App\Models\OperationalCost;
 use App\Models\OperationalCostCategory;
 use App\Models\User;
+use App\Services\CommonDataService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class OperationalCostController extends Controller
 {
-    protected function _categories()
-    {
-        return OperationalCostCategory::all();
-    }
+    protected $commonDataService;
 
-    protected function _financeAccounts()
+    public function __construct(CommonDataService $commonDataService) // Inject CommonDataService
     {
-        // FIXME: Disini mungkin user hanya boleh catat pengeluaran dari akun yang diperbolehkan saja
-        return FinanceAccount::where('active', '=', true)
-            ->orderBy('name')->get();
+        $this->commonDataService = $commonDataService;
     }
 
     public function index()
     {
         return inertia('operational-cost/Index', [
-            'categories' => $this->_categories(),
+            'categories' => $this->commonDataService->getOperationalCategories(),
         ]);
     }
 
@@ -102,21 +99,22 @@ class OperationalCostController extends Controller
         allowed_roles([User::Role_Admin]);
         $item = OperationalCost::findOrFail($id);
         $item->id = null;
-        return inertia('operational-cost/Editor', [
-            'data' => $item,
-            'categories' => $this->_categories(),
-            'finance_accounts' => $this->_financeAccounts(),
-        ]);
+        return $this->renderEditor($item);
     }
 
     public function editor($id = 0)
     {
         allowed_roles([User::Role_Admin]);
         $item = $id ? OperationalCost::findOrFail($id) : new OperationalCost(['date' => date('Y-m-d')]);
+        return $this->renderEditor($item);
+    }
+
+    private function renderEditor($item)
+    {
         return inertia('operational-cost/Editor', [
             'data' => $item,
-            'categories' => $this->_categories(),
-            'finance_accounts' => $this->_financeAccounts(),
+            'categories' => $this->commonDataService->getOperationalCategories(),
+            'finance_accounts' => $this->commonDataService->getFinanceAccounts(),
         ]);
     }
 
@@ -220,31 +218,36 @@ class OperationalCostController extends Controller
 
         $item = OperationalCost::findOrFail($id);
 
-        DB::beginTransaction();
-        $item->delete();
+        try {
+            DB::beginTransaction();
+            $item->delete();
 
-        // Cari transaksi yang sudah ada
-        $transaction = FinanceTransaction::where('ref_id', $item->id)
-            ->where('ref_type', FinanceTransaction::RefType_OperationalCost)
-            ->first();
+            // Cari transaksi yang sudah ada
+            $transaction = FinanceTransaction::where('ref_id', $item->id)
+                ->where('ref_type', FinanceTransaction::RefType_OperationalCost)
+                ->first();
 
-        if ($transaction) {
-            $account = $transaction->account;
-            $account->balance += abs($transaction->amount);
+            if ($transaction) {
+                $account = $transaction->account;
+                $account->balance += abs($transaction->amount);
 
-            $account->save();
-            $transaction->delete();
+                $account->save();
+                $transaction->delete();
+            }
+
+            if ($item->image_path) {
+                ImageUploaderHelper::deleteImage($item->image_path);
+            }
+
+            DB::commit();
+            return JsonResponseHelper::success(
+                $item,
+                "Biaya operasional $item->description telah dihapus."
+            );
+        } catch (\Throwable $ex) {
+            DB::rollBack();
+            return JsonResponseHelper::error("Gagal menghapus rekaman.", 500, $ex);
         }
-
-        if ($item->image_path) {
-            ImageUploaderHelper::deleteImage($item->image_path);
-        }
-
-        DB::commit();
-
-        return response()->json([
-            'message' => "Biaya operasional $item->description telah dihapus."
-        ]);
     }
 
     private function updateOrCreateFinanceTransaction(OperationalCost $item)

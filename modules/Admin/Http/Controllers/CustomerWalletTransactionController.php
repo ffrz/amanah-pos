@@ -3,13 +3,13 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
+ *
  * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
+ *
  * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
+ *
  * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
@@ -24,6 +24,7 @@ use App\Models\CustomerWalletTransaction;
 use App\Models\FinanceAccount;
 use App\Models\FinanceTransaction;
 use App\Models\User;
+use App\Services\CommonDataService;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -31,6 +32,13 @@ use Illuminate\Support\Facades\DB;
 
 class CustomerWalletTransactionController extends Controller
 {
+
+    protected $commonDataService;
+
+    public function __construct(CommonDataService $commonDataService) // Inject CommonDataService
+    {
+        $this->commonDataService = $commonDataService;
+    }
 
     public function index()
     {
@@ -85,8 +93,8 @@ class CustomerWalletTransactionController extends Controller
         $item = $id ? CustomerWalletTransaction::findOrFail($id) : new CustomerWalletTransaction(['datetime' => date('Y-m-d H:i:s')]);
         return inertia('customer-wallet-transaction/Editor', [
             'data' => $item,
-            'customers' => Customer::where('active', '=', true)->orderBy('username', 'asc')->get(),
-            'finance_accounts' => FinanceAccount::where('active', '=', true)->orderBy('name', 'asc')->get(),
+            'customers' => $this->commonDataService->getCustomers(),
+            'finance_accounts' => $this->commonDataService->getFinanceAccounts(),
         ]);
     }
 
@@ -180,7 +188,7 @@ class CustomerWalletTransactionController extends Controller
         if ($request->getMethod() === 'GET') {
             return inertia('customer-wallet-transaction/Adjustment', [
                 'data' => [],
-                'customers' => Customer::where('active', '=', true)->orderBy('username', 'asc')->get(),
+                'customers' => $this->commonDataService->getCustomers()
             ]);
         }
 

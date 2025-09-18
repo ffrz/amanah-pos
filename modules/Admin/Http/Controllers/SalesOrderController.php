@@ -3,13 +3,13 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
+ *
  * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
+ *
  * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
+ *
  * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
@@ -17,7 +17,6 @@
 namespace Modules\Admin\Http\Controllers;
 
 use App\Helpers\JsonResponseHelper;
-use App\Helpers\NumberHelper;
 use App\Http\Controllers\Controller;
 use App\Models\SalesOrder;
 use App\Models\Customer;
@@ -28,7 +27,6 @@ use App\Models\Product;
 use App\Models\SalesOrderDetail;
 use App\Models\SalesOrderPayment;
 use App\Models\StockMovement;
-use App\Models\User;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -541,7 +539,6 @@ class SalesOrderController extends Controller
             } else {
                 $order->payment_status = SalesOrder::PaymentStatus_Unpaid;
             }
-
 
             // FIXME: status langsung diambil tanpa harus seting di order
             $order->delivery_status = SalesOrder::DeliveryStatus_PickedUp;
