@@ -34,7 +34,7 @@ class OperationalCostController extends Controller
         return OperationalCostCategory::all();
     }
 
-    protected function finance_accounts()
+    protected function _financeAccounts()
     {
         // FIXME: Disini mungkin user hanya boleh catat pengeluaran dari akun yang diperbolehkan saja
         return FinanceAccount::where('active', '=', true)
@@ -105,7 +105,7 @@ class OperationalCostController extends Controller
         return inertia('operational-cost/Editor', [
             'data' => $item,
             'categories' => $this->_categories(),
-            'finance_accounts' => $this->finance_accounts(),
+            '_financeAccounts' => $this->_financeAccounts(),
         ]);
     }
 
@@ -116,7 +116,7 @@ class OperationalCostController extends Controller
         return inertia('operational-cost/Editor', [
             'data' => $item,
             'categories' => $this->_categories(),
-            'finance_accounts' => $this->finance_accounts(),
+            '_financeAccounts' => $this->_financeAccounts(),
         ]);
     }
 
@@ -124,7 +124,7 @@ class OperationalCostController extends Controller
     {
         // 1. Validasi input
         $validated = $request->validate([
-            'finance_account_id' => 'nullable|exists:finance_accounts,id',
+            'finance_account_id' => 'nullable|exists:_financeAccounts,id',
             'date'               => 'required|date',
             'category_id'        => 'nullable',
             'description'        => 'required|max:255',
