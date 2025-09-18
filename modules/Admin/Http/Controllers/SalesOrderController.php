@@ -66,7 +66,16 @@ class SalesOrderController extends Controller
         }
 
         if (!empty($filter['status']) && $filter['status'] != 'all') {
-            $q->where('status', '=', $filter['status']);
+            if (!is_array($filter['status'])) {
+                $filter['status'] = [$filter['status']];
+            }
+
+            $statuses = $filter['status'];
+            $q->where(function ($q) use ($statuses) {
+                foreach ($statuses as $status) {
+                    $q->orWhere('status', '=', $status);
+                }
+            });
         }
 
         if (!empty($filter['payment_status']) && $filter['payment_status'] != 'all') {

@@ -391,7 +391,9 @@ defineExpose({
               class="subnav"
               clickable
               v-ripple
-              :active="$page.url == '/admin/customer-wallet-transactions'"
+              :active="
+                $page.url.startsWith('/admin/customer-wallet-transactions')
+              "
               @click="
                 router.get(route('admin.customer-wallet-transaction.index'))
               "

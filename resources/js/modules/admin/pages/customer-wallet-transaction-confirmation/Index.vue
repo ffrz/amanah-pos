@@ -4,11 +4,7 @@ import { getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
 import { router } from "@inertiajs/vue3";
 
-import {
-  formatDateTime,
-  formatDateTimeFromNow,
-  formatNumber,
-} from "@/helpers/formatter";
+import { formatDateTime, formatNumber } from "@/helpers/formatter";
 import { getCurrentMonth, getCurrentYear } from "@/helpers/datetime";
 import {
   createMonthOptions,
@@ -291,9 +287,7 @@ const showAttachment = (url) => {
               </div>
               <div>
                 <q-icon name="calendar_clock" class="inline-icon" />
-                {{ formatDateTime(props.row.datetime) }} ({{
-                  formatDateTimeFromNow(props.row.datetime)
-                }})
+                {{ formatDateTime(props.row.datetime) }}
               </div>
               <template v-if="!$q.screen.gt.sm">
                 <LongTextView
@@ -330,7 +324,7 @@ const showAttachment = (url) => {
             </q-td>
 
             <q-td key="amount" :props="props" style="text-align: right">
-              Rp. {{ formatNumber(props.row.amount) }}
+              {{ formatNumber(props.row.amount) }}
             </q-td>
 
             <q-td key="status" :props="props" class="text-center">
@@ -338,31 +332,26 @@ const showAttachment = (url) => {
                 :status="props.row.status"
               />
             </q-td>
-            <q-td key="notes" :props="props">
-              {{ props.row.notes }}
+            <q-td key="notes" :props="props" class="word-wrap">
+              <LongTextView icon="notes" :text="props.row.notes" />
             </q-td>
             <q-td key="action" :props="props" class="text-center">
-              <div class="flex justify-end">
+              <div class="flex justify-end no-wrap">
                 <q-btn
                   icon="image"
                   color="primary"
                   dense
                   flat
-                  :disable="props.row.image_path == null"
+                  :disable="
+                    props.row.image_path === null || props.row.image_path === ''
+                  "
                   @click.stop="showAttachment(props.row.image_path)"
                 >
                   <q-tooltip v-if="props.row.image_path != null">
                     Lihat Bukti
                   </q-tooltip>
                 </q-btn>
-                <q-btn
-                  icon="more_vert"
-                  dense
-                  flat
-                  rounded
-                  @click.stop
-                  :disable="props.row.status !== 'pending'"
-                >
+                <q-btn icon="more_vert" dense flat rounded @click.stop>
                   <q-menu
                     anchor="bottom right"
                     self="top right"

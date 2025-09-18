@@ -5,7 +5,8 @@ import { useCustomerFilter } from "@/composables/useCustomerFilter";
 import { scrollToFirstErrorField } from "@/helpers/utils";
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
 import DateTimePicker from "@/components/DateTimePicker.vue";
-import dayjs from "dayjs";
+import ImageUpload from "@/components/ImageUpload.vue";
+
 const page = usePage();
 const title =
   (!!page.props.data.id ? "Edit" : "Catat") + " Transaksi Dompet Pelanggan";
@@ -35,6 +36,8 @@ const form = useForm({
   datetime: new Date(page.props.data.datetime),
   notes: page.props.data.notes,
   amount: parseFloat(page.props.data.amount),
+  image_path: page.props.data?.image_path ?? "",
+  image: null,
 });
 
 const submit = () => {
@@ -151,6 +154,13 @@ const submit = () => {
                   (val) => (val && val.length > 0) || 'Catatan harus diisi.',
                 ]"
                 hide-bottom-space
+              />
+              <ImageUpload
+                v-model="form.image"
+                :initial-image-path="form.image_path"
+                :disabled="form.processing"
+                :error="!!form.errors.image || !!form.errors.image_path"
+                :error-message="form.errors.image || form.errors.image_path"
               />
             </q-card-section>
             <q-card-section class="q-gutter-sm">

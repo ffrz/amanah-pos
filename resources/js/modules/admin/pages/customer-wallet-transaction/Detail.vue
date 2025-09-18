@@ -22,7 +22,7 @@ const title = "Rincian Transaksi";
           color="grey-7"
           flat
           rounded
-          @click="$inertia.get(route('customer.wallet-transaction.index'))"
+          @click="$goBack()"
         />
       </div>
     </template>
@@ -121,6 +121,23 @@ const title = "Rincian Transaksi";
                       {{ page.props.data.updater.name }}
                     </td>
                   </tr>
+                  <template v-if="page.props.data.image_path">
+                    <tr>
+                      <td>Lampiran</td>
+                      <td>:</td>
+                      <td></td>
+                    </tr>
+                    <tr>
+                      <td colspan="3" class="bg-white">
+                        <q-img
+                          :src="`/${page.props.data.image_path}`"
+                          class="q-mt-none"
+                          style="max-width: 500px"
+                          :style="{ border: '1px solid #ddd' }"
+                        />
+                      </td>
+                    </tr>
+                  </template>
                 </tbody>
               </table>
             </q-card-section>

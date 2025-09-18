@@ -16,6 +16,8 @@
 
 namespace Modules\Admin\Http\Controllers;
 
+use App\Helpers\ImageUploaderHelper;
+use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Models\CustomerWalletTransaction;
@@ -23,6 +25,7 @@ use App\Models\FinanceAccount;
 use App\Models\FinanceTransaction;
 use App\Models\User;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -96,57 +99,80 @@ class CustomerWalletTransactionController extends Controller
             'type' => 'required|in:' . implode(',', array_keys(CustomerWalletTransaction::Types)),
             'amount' => 'required|numeric|min:0.01',
             'notes' => 'nullable|string|max:255',
+            'image_path' => 'nullable|string',
+            'image' => 'nullable|image|max:15120',
         ]);
 
-        if (
-            in_array($validated['type'], [
-                CustomerWalletTransaction::Type_SalesOrderPayment,
+        $newlyUploadedImagePath = null;
+
+        try {
+            DB::beginTransaction();
+
+            if (
+                in_array($validated['type'], [
+                    CustomerWalletTransaction::Type_SalesOrderPayment,
+                    CustomerWalletTransaction::Type_Withdrawal,
+                ])
+            ) {
+                $validated['amount'] *= -1;
+            }
+
+            $amount = $validated['amount'];
+
+            $validated['notes'] ?? '';
+
+            if ($request->hasFile('image')) {
+                $newlyUploadedImagePath = ImageUploaderHelper::uploadAndResize(
+                    $request->file('image'),
+                    'customer-wallet-transactions'
+                );
+                $validated['image_path'] = $newlyUploadedImagePath;
+                unset($validated['image']);
+            }
+
+            $item = new CustomerWalletTransaction();
+            $item->fill($validated);
+            $item->save();
+
+            $customer = $item->customer;
+            $customer->balance += $amount;
+            $customer->save();
+
+            // hanya digunakan ketika mempengaruhi kas koperasi
+            if (in_array($validated['type'], [
+                CustomerWalletTransaction::Type_Deposit,
                 CustomerWalletTransaction::Type_Withdrawal,
-            ])
-        ) {
-            $validated['amount'] *= -1;
+            ])) {
+                $account = FinanceAccount::findOrFail($validated['finance_account_id']);
+                // jika deposit, maka kas koperasi juga ikut bertambah\
+                // jika withdraw, kas koperasi juga akan berkurang
+                $account->balance += $amount;
+                $account->save();
+
+                // Tambah entri transaksi keuangan
+                FinanceTransaction::create([
+                    'datetime' => $validated['datetime'],
+                    'account_id' => $validated['finance_account_id'],
+                    'amount' => $amount,
+                    'type' => $amount >= 0 ? FinanceTransaction::Type_Income : FinanceTransaction::Type_Expense,
+                    'notes' => 'Transaksi wallet customer ' . $customer->username . ' Ref: ' . $item->formatted_id,
+                    'ref_type' => FinanceTransaction::RefType_CustomerWalletTransaction,
+                    'ref_id' => $item->id,
+                ]);
+            }
+
+            DB::commit();
+
+            return redirect(route('admin.customer-wallet-transaction.index'))
+                ->with('success', "Transaksi $item->formatted_id telah disimpan.");
+        } catch (Exception $ex) {
+            DB::rollBack();
+            // Hapus gambar baru jika ada error
+            if ($newlyUploadedImagePath) {
+                ImageUploaderHelper::deleteImage($newlyUploadedImagePath);
+            }
+            throw $ex;
         }
-
-        $amount = $validated['amount'];
-
-        $validated['notes'] ?? '';
-
-        DB::beginTransaction();
-        $item = new CustomerWalletTransaction();
-        $item->fill($validated);
-        $item->save();
-
-        $customer = $item->customer;
-        $customer->balance += $amount;
-        $customer->save();
-
-        // hanya digunakan ketika mempengaruhi kas koperasi
-        if (in_array($validated['type'], [
-            CustomerWalletTransaction::Type_Deposit,
-            CustomerWalletTransaction::Type_Withdrawal,
-        ])) {
-            $account = FinanceAccount::findOrFail($validated['finance_account_id']);
-            // jika deposit, maka kas koperasi juga ikut bertambah\
-            // jika withdraw, kas koperasi juga akan berkurang
-            $account->balance += $amount;
-            $account->save();
-
-            // Tambah entri transaksi keuangan
-            FinanceTransaction::create([
-                'datetime' => $validated['datetime'],
-                'account_id' => $validated['finance_account_id'],
-                'amount' => $amount,
-                'type' => $amount >= 0 ? FinanceTransaction::Type_Income : FinanceTransaction::Type_Expense,
-                'notes' => 'Transaksi wallet customer ' . $customer->username . ' Ref: ' . $item->formatted_id,
-                'ref_type' => FinanceTransaction::RefType_CustomerWalletTransaction,
-                'ref_id' => $item->id,
-            ]);
-        }
-
-        DB::commit();
-
-        return redirect(route('admin.customer-wallet-transaction.index'))
-            ->with('success', "Transaksi $item->formatted_id telah disimpan.");
     }
 
     public function adjustment(Request $request)
@@ -190,31 +216,42 @@ class CustomerWalletTransactionController extends Controller
     public function delete($id)
     {
         allowed_roles([User::Role_Admin]);
-
-        DB::beginTransaction();
         $item = CustomerWalletTransaction::findOrFail($id);
-        $item->customer->balance -= $item->amount;
-        $item->customer->save();
-        $item->delete();
 
-        // Jika transaksi menyentuh kas, kembalikan saldo kas
-        if (in_array($item->type, [
-            CustomerWalletTransaction::Type_Deposit,
-            CustomerWalletTransaction::Type_Withdrawal
-        ]) && $item->finance_account_id) {
-            $kas = $item->financeAccount;
-            $kas->balance -= $item->amount;
-            $kas->save();
-            FinanceTransaction::where([
-                'ref_type' => FinanceTransaction::RefType_CustomerWalletTransaction,
-                'ref_id' => $item->id,
-            ])->delete();
+        // Jangan perbolehkan penghapusan transaksi yang dibuat dari modul lain
+        if ($item->ref_type) {
+            return JsonResponseHelper::error('Rekaman tidak dapat dihapus karena berrelasi dengan transaksi lain.', 403);
         }
 
-        DB::commit();
+        try {
+            DB::beginTransaction();
+            $item->customer->balance -= $item->amount;
+            $item->customer->save();
+            $item->delete();
 
-        return response()->json([
-            'message' => "Transaksi #$item->id telah dihapus."
-        ]);
+            // Jika transaksi menyentuh kas, kembalikan saldo kas
+            if (in_array($item->type, [
+                CustomerWalletTransaction::Type_Deposit,
+                CustomerWalletTransaction::Type_Withdrawal
+            ]) && $item->finance_account_id) {
+                $kas = $item->financeAccount;
+                $kas->balance -= $item->amount;
+                $kas->save();
+                FinanceTransaction::where([
+                    'ref_type' => FinanceTransaction::RefType_CustomerWalletTransaction,
+                    'ref_id' => $item->id,
+                ])->delete();
+            }
+            ImageUploaderHelper::deleteImage($item->image_path);
+
+            DB::commit();
+            return JsonResponseHelper::success(
+                $item,
+                "Transaksi #$item->formatted_id telah dihapus."
+            );
+        } catch (Exception $ex) {
+            DB::rollBack();
+            return JsonResponseHelper::error('Terdapat kesalahan saat menghapus rekaman.', 500, $ex);
+        }
     }
 }

@@ -7,13 +7,13 @@ import { useQuasar } from "quasar";
 import { createMonthOptions, createYearOptions } from "@/helpers/options";
 import {
   formatDateTime,
-  formatDateTimeFromNow,
   formatNumber,
   formatNumberWithSymbol,
   plusMinusSymbol,
 } from "@/helpers/formatter";
 import useTableHeight from "@/composables/useTableHeight";
 import LongTextView from "@/components/LongTextView.vue";
+import ImageViewer from "@/components/ImageViewer.vue";
 
 const title = "Transaksi Dompet Pelanggan";
 const $q = useQuasar();
@@ -127,6 +127,14 @@ watch(
     }
   }
 );
+
+const activeImagePath = ref(null);
+const showImageViewer = ref(false);
+
+const showAttachment = (url) => {
+  activeImagePath.value = url;
+  showImageViewer.value = true;
+};
 </script>
 
 <template>
@@ -242,13 +250,11 @@ watch(
                 {{ props.row.formatted_id }}
               </div>
               <div>
-                <q-icon name="calendar_today" class="inline-icon" />
-                {{ formatDateTime(props.row.datetime) }} ({{
-                  formatDateTimeFromNow(props.row.datetime)
-                }})
+                <q-icon name="calendar_clock" class="inline-icon" />
+                {{ formatDateTime(props.row.datetime) }}
               </div>
               <div v-if="props.row.finance_account">
-                <q-icon name="account_balance" class="inline-icon" />
+                <q-icon name="wallet" class="inline-icon" />
                 {{
                   props.row.finance_account
                     ? props.row.finance_account.name
@@ -274,7 +280,11 @@ watch(
                   {{ plusMinusSymbol(props.row.amount) }}Rp.
                   {{ formatNumber(Math.abs(props.row.amount)) }}
                 </div>
-                <LongTextView :text="props.row.notes" icon="notes" />
+                <LongTextView
+                  :text="props.row.notes"
+                  icon="notes"
+                  class="text-grey-8"
+                />
                 <div>
                   <q-badge>
                     {{ props.row.type_label }}
@@ -296,7 +306,21 @@ watch(
               {{ formatNumberWithSymbol(props.row.amount) }}
             </q-td>
             <q-td key="action" :props="props">
-              <div class="flex justify-end">
+              <div class="flex justify-end no-wrap">
+                <q-btn
+                  icon="image"
+                  color="primary"
+                  dense
+                  flat
+                  :disable="
+                    props.row.image_path === null || props.row.image_path === ''
+                  "
+                  @click.stop="showAttachment(props.row.image_path)"
+                >
+                  <q-tooltip v-if="props.row.image_path != null">
+                    Lihat Bukti
+                  </q-tooltip>
+                </q-btn>
                 <q-btn
                   :disabled="!check_role($CONSTANTS.USER_ROLE_ADMIN)"
                   icon="more_vert"
@@ -332,5 +356,6 @@ watch(
         </template>
       </q-table>
     </div>
+    <ImageViewer v-model="showImageViewer" :imageUrl="`/${activeImagePath}`" />
   </authenticated-layout>
 </template>

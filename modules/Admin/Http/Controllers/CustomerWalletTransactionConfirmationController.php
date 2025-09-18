@@ -16,6 +16,7 @@
 
 namespace Modules\Admin\Http\Controllers;
 
+use App\Helpers\ImageUploaderHelper;
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\CustomerWalletTransaction;
@@ -24,6 +25,7 @@ use App\Models\FinanceAccount;
 use App\Models\FinanceTransaction;
 use App\Models\User;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -91,7 +93,7 @@ class CustomerWalletTransactionConfirmationController extends Controller
         $item = CustomerWalletTransactionConfirmation::findOrFail($request->id);
 
         if ($item->status != CustomerWalletTransactionConfirmation::Status_Pending) {
-            abort(400, 'Aksi tidak dapat dilakukan, status sudah tidak pending!');
+            abort(400, 'Transaksi sudah selesai tidak dapat diubah.');
         }
 
         if ($request->action == 'reject') {
@@ -114,6 +116,8 @@ class CustomerWalletTransactionConfirmationController extends Controller
             'finance_account_id' => $item->finance_account_id,
             'datetime' => Carbon::now(),
             'type' => CustomerWalletTransaction::Type_Deposit,
+            'ref_type' => CustomerWalletTransaction::RefType_CustomerWalletTransactionConfirmation,
+            'ref_id' => $item->id,
             'amount' => $item->amount,
             'notes' => 'Konfirmasi topup wallet otomatis #' . $item->formatted_id,
         ]);
@@ -139,18 +143,65 @@ class CustomerWalletTransactionConfirmationController extends Controller
 
         DB::commit();
 
-        return JsonResponseHelper::success($item, "Konfirmasi topup #$item->id telah diterima.");
+        return JsonResponseHelper::success($item, "Konfirmasi topup #$item->formatted_id telah diterima.");
     }
 
     public function delete($id)
     {
         allowed_roles([User::Role_Admin]);
+        $item = CustomerWalletTransactionConfirmation::findOrFail($id);
+
+        // Get related wallet transaction and cash transaction, if they exist
+        $walletTransaction = CustomerWalletTransaction::where('ref_id', $item->id)
+            ->where('ref_type', CustomerWalletTransaction::RefType_CustomerWalletTransactionConfirmation)
+            ->first();
+
+        // Check if the confirmation was approved and has a related finance transaction
+        $financeTransaction = null;
+        if ($walletTransaction && $item->status === CustomerWalletTransactionConfirmation::Status_Approved) {
+            $financeTransaction = FinanceTransaction::where('ref_id', $item->id)
+                ->where('ref_type', FinanceTransaction::RefType_CustomerWalletTransaction)
+                ->first();
+        }
 
         DB::beginTransaction();
-        $item = CustomerWalletTransactionConfirmation::findOrFail($id);
-        $item->delete();
-        DB::commit();
+        try {
+            // Step 1: kembalikan saldo wallet dan hapus transaksi wallet jika sudah dicatat
+            if ($walletTransaction) {
+                $customer = $walletTransaction->customer;
+                // HATI-HATI DENGAN SIMBOL NEGATIF SAAT MENGEMBALIKAN SALDO, JANGAN SAMPAI TERTUKAR!!!
+                $customer->balance -= abs($walletTransaction->amount);
+                $customer->save();
+                $walletTransaction->delete();
+            }
 
-        return JsonResponseHelper::success($item, "Konfirmasi topup #$item->id telah dihapus.");
+            // Step 2: kembalikan saldo akun jika sudah dicatat dan hapus transaksinya
+            if ($financeTransaction) {
+                $financeAccount = $financeTransaction->account;
+                // HATI-HATI DENGAN SIMBOL NEGATIF SAAT MENGEMBALIKAN SALDO, JANGAN SAMPAI TERTUKAR!!!
+                $financeAccount->balance -= abs($financeTransaction->amount);
+                $financeAccount->save();
+                $financeTransaction->delete();
+            }
+
+            // Step 3: Delete the confirmation record
+            $item->delete();
+
+            // Step 4: Delete the image
+            if ($item->image_path) {
+                ImageUploaderHelper::deleteImage($item->image_path);
+            }
+
+            DB::commit();
+
+            return JsonResponseHelper::success($item, "Konfirmasi topup #$item->formatted_id telah dihapus.");
+        } catch (\Throwable $ex) {
+            DB::rollBack();
+
+            // Log the exception for debugging purposes
+            // logger()->error("Error deleting top-up confirmation: " . $ex->getMessage());
+
+            return JsonResponseHelper::error("Terdapat kesalahan saat menghapus rekaman.", 500, $ex);
+        }
     }
 }

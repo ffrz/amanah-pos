@@ -25,6 +25,10 @@ export function formatNumberWithSymbol(num) {
   return plusMinusSymbol(num) + formatNumber(Math.abs(num));
 }
 
+export function formatMoneyWithSymbol(num) {
+  return plusMinusSymbol(num) + "Rp. " + formatNumber(Math.abs(num));
+}
+
 export function formatDateTime(
   val,
   fmt = "DD/MM/YYYY HH:mm:ss",

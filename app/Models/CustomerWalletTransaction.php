@@ -58,14 +58,16 @@ class CustomerWalletTransaction extends BaseModel
     ];
 
     const RefType_SalesOrderPayment = 'sales_order_payment';
+    const RefType_CustomerWalletTransactionConfirmation = 'customer_wallet_transaction_confirmation';
 
     const RefTypes = [
         self::RefType_SalesOrderPayment => 'Pembayaran Transaksi Penjualan',
+        self::RefType_CustomerWalletTransactionConfirmation => 'Konfirmasi Transaksi Wallet Pelanggan',
     ];
 
-    const RefTypeModels = [
-        self::RefType_SalesOrderPayment => \App\Models\SalesOrderPayment::class,
-    ];
+    // const RefTypeModels = [
+    //     self::RefType_SalesOrderPayment => \App\Models\SalesOrderPayment::class,
+    // ];
 
     protected function casts(): array
     {

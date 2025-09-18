@@ -48,6 +48,7 @@ class CustomerController extends Controller
         if (!empty($filter['search'])) {
             $q->where(function ($q) use ($filter) {
                 $q->where('name', 'like', '%' . $filter['search'] . '%');
+                $q->orWhere('username', 'like', '%' . $filter['search'] . '%');
                 $q->orWhere('phone', 'like', '%' . $filter['search'] . '%');
                 $q->orWhere('address', 'like', '%' . $filter['search'] . '%');
             });

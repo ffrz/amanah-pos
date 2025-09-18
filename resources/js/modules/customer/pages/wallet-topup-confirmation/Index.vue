@@ -313,10 +313,6 @@ const onRowClicked = (row) => {
                   <q-icon name="money" class="inline-icon" />
                   Rp. {{ formatNumber(props.row.amount) }}
                 </div>
-                <div v-if="props.row.description">
-                  <q-icon name="notes" class="inline-icon" />
-                  {{ props.row.description }}
-                </div>
                 <LongTextView
                   icon="notes"
                   :text="props.row.notes"

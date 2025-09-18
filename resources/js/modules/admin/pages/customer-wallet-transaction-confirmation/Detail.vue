@@ -18,7 +18,9 @@ const title = "Rincian Konfirmasi Top Up";
           flat
           rounded
           @click="
-            $inertia.get(route('customer.wallet-topup-confirmation.index'))
+            $inertia.get(
+              route('admin.customer-wallet-transaction-confirmation.index')
+            )
           "
         />
       </div>
