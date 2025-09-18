@@ -4,6 +4,7 @@ import { handleSubmit, transformPayload } from "@/helpers/client-req-handler";
 import { scrollToFirstErrorField } from "@/helpers/utils";
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
 import DateTimePicker from "@/components/DateTimePicker.vue";
+import ImageUpload from "@/components/ImageUpload.vue";
 const page = usePage();
 const title = (!!page.props.data.id ? "Edit" : "Catat") + " Transaksi Keuangan";
 
@@ -26,6 +27,8 @@ const form = useForm({
   datetime: new Date(page.props.data.datetime),
   notes: page.props.data.notes,
   amount: parseFloat(page.props.data.amount),
+  image_path: page.props.data?.image_path ?? "",
+  image: null,
 });
 
 const submit = () => {
@@ -92,8 +95,7 @@ const submit = () => {
                 :error="!!form.errors.account_id"
                 :disable="form.processing"
                 hide-bottom-space
-              >
-              </q-select>
+              />
               <q-select
                 v-if="form.type == 'transfer'"
                 class="custom-select"
@@ -106,8 +108,7 @@ const submit = () => {
                 :error="!!form.errors.to_account_id"
                 :disable="form.processing"
                 hide-bottom-space
-              >
-              </q-select>
+              />
               <LocaleNumberInput
                 v-model:modelValue="form.amount"
                 label="Jumlah"
@@ -133,6 +134,13 @@ const submit = () => {
                   (val) => (val && val.length > 0) || 'Catatan harus diisi.',
                 ]"
                 hide-bottom-space
+              />
+              <ImageUpload
+                v-model="form.image"
+                :initial-image-path="form.image_path"
+                :disabled="form.processing"
+                :error="!!form.errors.image || !!form.errors.image_path"
+                :error-message="form.errors.image || form.errors.image_path"
               />
             </q-card-section>
             <q-card-section class="q-gutter-sm">

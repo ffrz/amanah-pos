@@ -6,14 +6,21 @@ import { check_role, getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
 import {
   formatDateTime,
-  formatDateTimeFromNow,
   formatNumber,
+  formatNumberWithSymbol,
   plusMinusSymbol,
 } from "@/helpers/formatter";
 import { getCurrentMonth, getCurrentYear } from "@/helpers/datetime";
-import { createMonthOptions, createYearOptions } from "@/helpers/options";
+import {
+  createMonthOptions,
+  createOptions,
+  createYearOptions,
+} from "@/helpers/options";
 import useTableHeight from "@/composables/useTableHeight";
+import LongTextView from "@/components/LongTextView.vue";
+import ImageViewer from "@/components/ImageViewer.vue";
 
+const page = usePage();
 const title = "Transaksi Kas";
 const $q = useQuasar();
 const showFilter = ref(false);
@@ -24,6 +31,17 @@ const filterToolbarRef = ref(null);
 const tableHeight = useTableHeight(filterToolbarRef);
 const currentYear = getCurrentYear();
 const currentMonth = getCurrentMonth();
+
+const accounts = [
+  {
+    label: "Semua",
+    value: "all",
+  },
+  ...page.props.accounts.map((account) => ({
+    label: account.name,
+    value: account.id,
+  })),
+];
 
 const years = [
   { label: "Semua Tahun", value: "all" },
@@ -36,13 +54,20 @@ const months = [
   ...createMonthOptions(),
 ];
 
+const types = [
+  { value: "all", label: "Semua" },
+  ...createOptions(window.CONSTANTS.FINANCE_TRANSACTION_TYPES),
+];
+
 const filter = reactive({
   search: "",
-  category_id: "all",
+  type: "all",
+  account_id: "all",
   year: currentYear,
   month: currentMonth,
   ...getQueryParams(),
 });
+
 const pagination = ref({
   page: 1,
   rowsPerPage: 10,
@@ -50,7 +75,15 @@ const pagination = ref({
   sortBy: "id",
   descending: true,
 });
+
 const columns = [
+  {
+    name: "id",
+    label: $q.screen.lt.md ? "Item" : "Kode Trx",
+    field: "id",
+    align: "left",
+    sortable: true,
+  },
   {
     name: "datetime",
     label: "Waktu",
@@ -65,16 +98,23 @@ const columns = [
     align: "left",
   },
   {
-    name: "notes",
-    label: "Catatan",
-    field: "notes",
+    name: "type",
+    label: "Jenis",
+    field: "type",
     align: "left",
+    sortable: true,
   },
   {
     name: "amount",
     label: "Jumlah (Rp.)",
     field: "amount",
     align: "right",
+  },
+  {
+    name: "notes",
+    label: "Catatan",
+    field: "notes",
+    align: "left",
   },
   {
     name: "action",
@@ -112,9 +152,7 @@ const onFilterChange = () => {
 
 const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return columns;
-  return columns.filter(
-    (col) => col.name === "datetime" || col.name === "action"
-  );
+  return columns.filter((col) => col.name === "id" || col.name === "action");
 });
 
 watch(
@@ -125,6 +163,14 @@ watch(
     }
   }
 );
+
+const activeImagePath = ref(null);
+const showImageViewer = ref(false);
+
+const showAttachment = (url) => {
+  activeImagePath.value = url;
+  showImageViewer.value = true;
+};
 </script>
 
 <template>
@@ -158,7 +204,7 @@ watch(
             label="Tahun"
             dense
             outlined
-            class="col-xs-6 col-sm-2"
+            class="custom-select col-xs-6 col-sm-2"
             emit-value
             map-options
             @update:model-value="onFilterChange"
@@ -170,15 +216,34 @@ watch(
             label="Bulan"
             dense
             outlined
-            class="col-xs-6 col-sm-2"
+            class="custom-select col-xs-6 col-sm-2"
             emit-value
             map-options
             :disable="filter.year === null"
             @update:model-value="onFilterChange"
           />
-          <!-- <q-select v-model="filter.category_id" :options="categories" label="Kategori" dense
-            class="custom-select col-xs-12 col-sm-3" map-options emit-value outlined
-            @update:model-value="onFilterChange" /> -->
+          <q-select
+            v-model="filter.type"
+            :options="types"
+            label="Jenis"
+            dense
+            class="custom-select col-xs-6 col-sm-2"
+            map-options
+            emit-value
+            outlined
+            @update:model-value="onFilterChange"
+          />
+          <q-select
+            v-model="filter.account_id"
+            label="Akun"
+            :options="accounts"
+            map-options
+            emit-value
+            class="custom-select col-xs-6 col-sm-2"
+            outlined
+            dense
+            @update:model-value="onFilterChange"
+          />
           <q-input
             class="col"
             outlined
@@ -227,53 +292,86 @@ watch(
           </div>
         </template>
         <template v-slot:body="props">
-          <q-tr :props="props">
-            <q-td key="datetime" :props="props" class="wrap-column">
+          <q-tr
+            :props="props"
+            class="cursor-pointer"
+            @click.stop="
+              router.get(
+                route('admin.finance-transaction.detail', {
+                  id: props.row.id,
+                })
+              )
+            "
+          >
+            <q-td key="id" :props="props">
               <div>
-                #{{ props.row.id }} - <q-icon name="calendar_today" />
-                {{ formatDateTime(props.row.datetime) }}
-                <span class="text-grey-8"
-                  >({{ formatDateTimeFromNow(props.row.datetime) }})</span
+                <template v-if="$q.screen.lt.md">
+                  <q-icon class="inline-icon" name="tag" />
+                </template>
+                {{ props.row.formatted_id }}
+              </div>
+              <template v-if="$q.screen.lt.md">
+                <div class="text-grey-8">
+                  <q-icon class="inline-icon" name="calendar_clock" />
+                  {{ formatDateTime(props.row.datetime) }}
+                </div>
+                <div class="text-bold text-grey-8">
+                  <q-icon name="wallet" class="inline-icon" />
+                  {{ props.row.account.name }}
+                </div>
+                <div
+                  class="text-bold"
+                  :class="props.row.amount < 0 ? 'text-red' : 'text-green'"
                 >
-              </div>
-              <q-badge
-                ><q-icon name="category" /> {{ props.row.type_label }}</q-badge
-              >
-              <div v-if="props.row.ref_type">
-                <q-icon name="link" /> {{ props.row.ref_type_label }} #{{
-                  props.row.ref_id
-                }}
-              </div>
-              <template v-if="!$q.screen.gt.sm">
-                <div v-if="props.row.notes">
-                  <q-icon name="notes" /> {{ props.row.notes }}
-                </div>
-                <div v-if="props.row.category">
-                  <q-icon name="category" /> {{ props.row.category.name }}
-                </div>
-                <div>
-                  <q-icon name="money" /> Rp.
+                  <q-icon name="money" class="inline-icon" />
                   {{
                     plusMinusSymbol(props.row.amount) +
-                    formatNumber(props.row.amount)
+                    "Rp." +
+                    formatNumber(Math.abs(props.row.amount))
                   }}
                 </div>
+                <LongTextView
+                  v-if="props.row.notes"
+                  icon="notes"
+                  :text="props.row.notes"
+                  class="text-grey-8"
+                />
+                <q-badge :color="props.row.amount > 0 ? 'green' : 'red'">
+                  {{ props.row.type_label }}
+                </q-badge>
               </template>
+            </q-td>
+            <q-td key="datetime" :props="props" class="wrap-column">
+              {{ formatDateTime(props.row.datetime) }}
             </q-td>
             <q-td key="account" :props="props">
               {{ props.row.account?.name }}
             </q-td>
-            <q-td key="notes" :props="props">
-              {{ props.row.notes }}
+            <q-td key="type" :props="props">
+              {{ $CONSTANTS.FINANCE_TRANSACTION_TYPES[props.row.type] }}
             </q-td>
             <q-td key="amount" :props="props" style="text-align: right">
-              {{
-                plusMinusSymbol(props.row.amount) +
-                formatNumber(props.row.amount)
-              }}
+              {{ formatNumberWithSymbol(props.row.amount) }}
+            </q-td>
+            <q-td key="notes" :props="props" class="wrap-column">
+              {{ props.row.notes }}
             </q-td>
             <q-td key="action" :props="props">
-              <div class="flex justify-end">
+              <div class="flex justify-end no-wrap">
+                <q-btn
+                  icon="image"
+                  color="primary"
+                  dense
+                  flat
+                  :disable="
+                    props.row.image_path === null || props.row.image_path === ''
+                  "
+                  @click.stop="showAttachment(props.row.image_path)"
+                >
+                  <q-tooltip v-if="props.row.image_path != null">
+                    Lihat Bukti
+                  </q-tooltip>
+                </q-btn>
                 <q-btn
                   :disabled="!check_role($CONSTANTS.USER_ROLE_ADMIN)"
                   icon="more_vert"
@@ -309,5 +407,6 @@ watch(
         </template>
       </q-table>
     </div>
+    <ImageViewer v-model="showImageViewer" :imageUrl="`/${activeImagePath}`" />
   </authenticated-layout>
 </template>

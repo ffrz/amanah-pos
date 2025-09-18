@@ -27,10 +27,26 @@ use Illuminate\Support\Facades\DB;
 
 class FinanceTransactionController extends Controller
 {
+    private function _activeAccounts()
+    {
+        return FinanceAccount::where('active', '=', true)->orderBy('name', 'asc')->get();
+    }
 
     public function index()
     {
-        return inertia('finance-transaction/Index', []);
+        return inertia('finance-transaction/Index', [
+            'accounts' => $this->_activeAccounts()
+        ]);
+    }
+
+    public function detail($id)
+    {
+        $item = FinanceTransaction::with(['account', 'creator', 'updater'])
+            ->findOrFail($id);
+
+        return inertia('finance-transaction/Detail', [
+            'data' => $item
+        ]);
     }
 
     public function data(Request $request)
@@ -55,6 +71,14 @@ class FinanceTransactionController extends Controller
             }
         }
 
+        if (!empty($filter['type']) && $filter['type'] !== 'all') {
+            $q->where('type', $filter['type']);
+        }
+
+        if (!empty($filter['account_id']) && $filter['account_id'] !== 'all') {
+            $q->where('account_id', $filter['account_id']);
+        }
+
         $q->orderBy($orderBy, $orderType);
 
         $items = $q->paginate($request->get('per_page', 10))->withQueryString();
@@ -68,7 +92,7 @@ class FinanceTransactionController extends Controller
         $item = $id ? FinanceTransaction::findOrFail($id) : new FinanceTransaction(['datetime' => Carbon::now()]);
         return inertia('finance-transaction/Editor', [
             'data' => $item,
-            'accounts' => FinanceAccount::where('active', '=', true)->orderBy('name', 'asc')->get()
+            'accounts' => $this->_activeAccounts()
         ]);
     }
 
@@ -82,6 +106,8 @@ class FinanceTransactionController extends Controller
             'type'          => 'required|in:' . implode(',', array_keys(FinanceTransaction::Types)),
             'amount'        => 'required|numeric|min:0.01',
             'notes'         => 'nullable|string|max:255',
+            'image_path'    => 'nullable|string',
+            'image'         => 'nullable|image|max:15120',
         ]);
 
         $validated['notes'] ?? '';
@@ -183,8 +209,6 @@ class FinanceTransactionController extends Controller
                 // Hapus pasangan
                 $pair->delete();
             }
-
-            dd('NOO');
         }
 
         $item->delete();
