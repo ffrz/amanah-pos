@@ -353,7 +353,9 @@ const onRowClicked = (row) => {
                 color="primary"
                 dense
                 flat
-                :disable="props.row.image_path == null"
+                :disable="
+                  props.row.image_path === null || props.row.image_path === ''
+                "
                 @click.stop="showAttachment(props.row.image_path)"
               >
                 <q-tooltip v-if="props.row.image_path != null">

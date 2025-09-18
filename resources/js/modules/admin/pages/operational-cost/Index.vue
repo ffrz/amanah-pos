@@ -323,7 +323,7 @@ const showAttachment = (url) => {
                   dense
                   flat
                   :disable="
-                    props.row.image_path == null || props.row.image_path == ''
+                    props.row.image_path === null || props.row.image_path === ''
                   "
                   @click.stop="showAttachment(props.row.image_path)"
                 >
