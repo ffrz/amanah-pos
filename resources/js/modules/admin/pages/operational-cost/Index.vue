@@ -316,13 +316,15 @@ const showAttachment = (url) => {
               <LongTextView :text="props.row.notes" :max-length="50" />
             </q-td>
             <q-td key="action" :props="props">
-              <div class="flex justify-end">
+              <div class="flex justify-end no-wrap">
                 <q-btn
                   icon="image"
                   color="primary"
                   dense
                   flat
-                  :disable="props.row.image_path == null"
+                  :disable="
+                    props.row.image_path == null || props.row.image_path == ''
+                  "
                   @click.stop="showAttachment(props.row.image_path)"
                 >
                   <q-tooltip v-if="props.row.image_path != null">
