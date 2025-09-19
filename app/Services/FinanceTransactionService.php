@@ -29,7 +29,7 @@ class FinanceTransactionService
         $lockedAccount->save();
     }
 
-    public function handleTransaction(array $newData, array $oldData = []): void
+    public function handleTransaction(array $newData, array $oldData = [])
     {
         // Cek apakah ada data lama dan akun keuangan berubah
         if (isset($oldData['account_id'])) {
@@ -53,7 +53,7 @@ class FinanceTransactionService
         $this->addToBalance($account, $newData['amount']);
 
         // Buat transaksi baru atau perbarui transaksi
-        FinanceTransaction::updateOrCreate(
+        return FinanceTransaction::updateOrCreate(
             [
                 'ref_id' => $newData['ref_id'],
                 'ref_type' => $newData['ref_type'],
@@ -64,11 +64,12 @@ class FinanceTransactionService
                 'amount' => $newData['amount'],
                 'type' => $newData['type'],
                 'notes' => $newData['notes'],
+                'image_path' => $newData['image_path'] ?? null,
             ]
         );
     }
 
-    public function reverseTransaction($ref_id, $ref_type): void
+    public function reverseTransaction($ref_id, $ref_type)
     {
         $trx = FinanceTransaction::where('ref_id', $ref_id)
             ->where('ref_type', $ref_type)
@@ -79,5 +80,7 @@ class FinanceTransactionService
             $this->addToBalance($account, -1 * $trx->amount);
             $trx->delete();
         }
+
+        return $trx;
     }
 }

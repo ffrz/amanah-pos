@@ -31,6 +31,7 @@ use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Throwable;
 
 class CustomerWalletTransactionController extends Controller
 {
@@ -138,7 +139,6 @@ class CustomerWalletTransactionController extends Controller
 
             $validated['notes'] ?? '';
 
-            // TODO: pindahkan ke service
             if ($request->hasFile('image')) {
                 $newlyUploadedImagePath = ImageUploaderHelper::uploadAndResize(
                     $request->file('image'),
@@ -150,13 +150,7 @@ class CustomerWalletTransactionController extends Controller
 
             // TODO: pindahkan ke service
 
-            $item = new CustomerWalletTransaction();
-            $item->fill($validated);
-            $item->save();
-
-            $customer = $item->customer;
-            $customer->balance += $amount;
-            $customer->save();
+            $item = $this->customerWalletTransactionService->handleTransaction($validated);
 
             // hanya digunakan ketika mempengaruhi akun kas
             if (
@@ -170,7 +164,7 @@ class CustomerWalletTransactionController extends Controller
                     'account_id' => $validated['finance_account_id'],
                     'amount' => $amount,
                     'type' => $amount >= 0 ? FinanceTransaction::Type_Income : FinanceTransaction::Type_Expense,
-                    'notes' => 'Transaksi wallet customer ' . $customer->username . ' Ref: ' . $item->formatted_id,
+                    'notes' => 'Transaksi wallet customer ' . $item->customer->username . ' Ref: ' . $item->formatted_id,
                     'ref_type' => FinanceTransaction::RefType_CustomerWalletTransaction,
                     'ref_id' => $item->id,
                 ]);
@@ -205,29 +199,29 @@ class CustomerWalletTransactionController extends Controller
             'notes' => 'nullable|string|max:255',
         ]);
 
-        DB::beginTransaction();
+        try {
 
-        $customer = Customer::findOrFail($request->customer_id);
 
-        // TODO: pindahkan ke service
+            DB::beginTransaction();
 
-        $old_balance = $customer->balance;
-        $customer->balance = $validated['new_balance'];
-        $customer->save();
+            $customer = Customer::findOrFail($request->customer_id);
 
-        $item  = new CustomerWalletTransaction([
-            'customer_id' => $customer->id,
-            'datetime' => Carbon::now(),
-            'type' => CustomerWalletTransaction::Type_Adjustment,
-            'amount' => $validated['new_balance'] - $old_balance,
-            'notes' => $validated['notes'],
-        ]);
-        $item->save();
+            $this->customerWalletTransactionService->handleTransaction([
+                'customer_id' => $customer->id,
+                'datetime' => Carbon::now(),
+                'type' => CustomerWalletTransaction::Type_Adjustment,
+                'amount' => $validated['new_balance'] - $customer->balance,
+                'notes' => $validated['notes'],
+            ]);
 
-        DB::commit();
+            DB::commit();
 
-        return redirect(route('admin.customer-wallet-transaction.index'))
-            ->with('success', "Penyesuaian saldo $item->formatted_id telah disimpan.");
+            return redirect(route('admin.customer-wallet-transaction.index'))
+                ->with('success', "Penyesuaian saldo $customer->name telah disimpan.");
+        } catch (Throwable $ex) {
+            DB::rollBack();
+            throw $ex;
+        }
     }
 
     public function delete($id)

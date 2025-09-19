@@ -22,53 +22,37 @@ use App\Models\CustomerWalletTransaction;
 class CustomerWalletTransactionService
 {
 
-    public function addToBalance(Customer $account, $amount): void
+    public function addToBalance(Customer $customer, $amount): void
     {
-        $account->balance += $amount;
-        $account->save();
+        $lockedCustomer = Customer::where('id', $customer->id)->lockForUpdate()->firstOrFail();
+        $lockedCustomer->balance += $amount;
+        $lockedCustomer->save();
     }
 
-    public function handleTransaction(array $newData, array $oldData = []): void
+    // WARNING: Tidak mendukung pengeditan transaksi!!
+    public function handleTransaction(array $newData)
     {
-        // Cek apakah ada data lama dan akun keuangan berubah
-        if (isset($oldData['customer_id'])) {
-            // Kembalikan saldo akun lama
-            $oldAccount = Customer::findOrFail($oldData['customer_id']);
-            $this->addToBalance($oldAccount, -$oldData['amount']);
-        }
-
-        // Jika tidak ada akun finansial baru, hapus transaksi lama dan berhenti
-        if (empty($newData['customer_id'])) {
-            if (isset($oldData['ref_id'])) {
-                CustomerWalletTransaction::where('ref_id', $oldData['ref_id'])
-                    ->where('ref_type', $oldData['ref_type'])
-                    ->delete();
-            }
-            return;
-        }
-
         // Perbarui saldo akun baru
         $account = Customer::findOrFail($newData['customer_id']);
         $this->addToBalance($account, $newData['amount']);
 
-        // Buat transaksi baru atau perbarui transaksi
-        CustomerWalletTransaction::updateOrCreate(
+        // Buat transaksi baru
+        return CustomerWalletTransaction::create(
             [
-                'ref_id' => $newData['ref_id'],
-                'ref_type' => $newData['ref_type'],
-            ],
-            [
+                'ref_id' => $newData['ref_id'] ?? null,
+                'ref_type' => $newData['ref_type'] ?? null,
                 'customer_id' => $newData['customer_id'],
-                'finance_account_id' => $newData['finance_account_id'],
+                'finance_account_id' => $newData['finance_account_id'] ?? null,
                 'datetime' => $newData['datetime'],
                 'amount' => $newData['amount'],
                 'type' => $newData['type'],
                 'notes' => $newData['notes'],
+                'image_path' => $newData['image_path'] ?? null,
             ]
         );
     }
 
-    public function reverseTransaction($ref_id, $ref_type): void
+    public function reverseTransaction($ref_id, $ref_type)
     {
         $trx = CustomerWalletTransaction::where('ref_id', $ref_id)
             ->where('ref_type', $ref_type)
@@ -78,5 +62,7 @@ class CustomerWalletTransactionService
             $this->addToBalance($trx->customer, -$trx->amount);
             $trx->delete();
         }
+
+        return  $trx;
     }
 }
