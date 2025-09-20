@@ -364,6 +364,7 @@ const showAttachment = (url) => {
                         clickable
                         v-ripple
                         v-close-popup
+                        :disable="props.row.status !== 'pending'"
                       >
                         <q-item-section avatar>
                           <q-icon name="check" />
@@ -375,6 +376,7 @@ const showAttachment = (url) => {
                         clickable
                         v-ripple
                         v-close-popup
+                        :disable="props.row.status !== 'pending'"
                       >
                         <q-item-section avatar>
                           <q-icon name="cancel" />

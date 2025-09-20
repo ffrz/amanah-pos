@@ -24,6 +24,7 @@ use App\Models\CustomerWalletTransactionConfirmation;
 use App\Models\FinanceAccount;
 use App\Models\FinanceTransaction;
 use App\Models\User;
+use App\Services\CustomerWalletTransactionService;
 use App\Services\FinanceTransactionService;
 use Carbon\Carbon;
 use Exception;
@@ -32,13 +33,15 @@ use Illuminate\Support\Facades\DB;
 
 class CustomerWalletTransactionConfirmationController extends Controller
 {
-
     protected $financeTransactionService;
+    protected $customerWalletTransactionService;
 
     public function __construct(
-        FinanceTransactionService $financeTransactionService
+        FinanceTransactionService $financeTransactionService,
+        CustomerWalletTransactionService $customerWalletTransactionService
     ) {
         $this->financeTransactionService = $financeTransactionService;
+        $this->customerWalletTransactionService = $customerWalletTransactionService;
     }
 
     public function index()
@@ -102,7 +105,7 @@ class CustomerWalletTransactionConfirmationController extends Controller
         $item = CustomerWalletTransactionConfirmation::findOrFail($request->id);
 
         if ($item->status != CustomerWalletTransactionConfirmation::Status_Pending) {
-            abort(400, 'Transaksi sudah selesai tidak dapat diubah.');
+            abort(400, 'Transaksi yang telah selesai tidak dapat diubah.');
         }
 
         if ($request->action == 'reject') {
@@ -123,7 +126,7 @@ class CustomerWalletTransactionConfirmationController extends Controller
 
         // TODO: pindahkan ke service
 
-        $walletTransaction  = new CustomerWalletTransaction([
+        $walletTransaction = $this->customerWalletTransactionService->handleTransaction([
             'customer_id' => $item->customer_id,
             'finance_account_id' => $item->finance_account_id,
             'datetime' => Carbon::now(),
@@ -133,23 +136,16 @@ class CustomerWalletTransactionConfirmationController extends Controller
             'amount' => $item->amount,
             'notes' => 'Konfirmasi topup wallet otomatis #' . $item->formatted_id,
         ]);
-        $walletTransaction->save();
-
-        $customer = $item->customer;
-        $customer->balance += $item->amount;
-        $customer->save();
 
         $this->financeTransactionService->handleTransaction([
             'datetime' => Carbon::now(),
             'account_id' => $item->finance_account_id,
             'amount' => $item->amount,
             'type' => FinanceTransaction::Type_Income,
-            'notes' => 'Transaksi topup wallet customer ' . $customer->username . ' Ref: #' . $walletTransaction->formatted_id,
+            'notes' => 'Transaksi topup wallet customer ' . $item->customer->username . ' Ref: #' . $walletTransaction->formatted_id,
             'ref_type' => FinanceTransaction::RefType_CustomerWalletTransaction,
             'ref_id' => $item->id,
         ]);
-
-        FinanceTransaction::create();
 
         DB::commit();
 
@@ -161,24 +157,13 @@ class CustomerWalletTransactionConfirmationController extends Controller
         allowed_roles([User::Role_Admin]);
         $item = CustomerWalletTransactionConfirmation::findOrFail($id);
 
-        // TODO: pindahkan ke service
-        // Get related wallet transaction and cash transaction, if they exist
-        $walletTransaction = CustomerWalletTransaction::where('ref_id', $item->id)
-            ->where('ref_type', CustomerWalletTransaction::RefType_CustomerWalletTransactionConfirmation)
-            ->first();
-
         DB::beginTransaction();
         try {
             // Step 1: kembalikan saldo wallet dan hapus transaksi wallet jika sudah dicatat
-
-            // TODO: pindahkan ke service
-            if ($walletTransaction) {
-                $customer = $walletTransaction->customer;
-                // HATI-HATI DENGAN SIMBOL NEGATIF SAAT MENGEMBALIKAN SALDO, JANGAN SAMPAI TERTUKAR!!!
-                $customer->balance -= abs($walletTransaction->amount);
-                $customer->save();
-                $walletTransaction->delete();
-            }
+            $this->customerWalletTransactionService->reverseTransaction(
+                $item->id,
+                CustomerWalletTransaction::RefType_CustomerWalletTransactionConfirmation
+            );
 
             // Step 2: kembalikan saldo akun jika sudah dicatat dan hapus transaksinya
             if ($item->status === CustomerWalletTransactionConfirmation::Status_Approved) {
