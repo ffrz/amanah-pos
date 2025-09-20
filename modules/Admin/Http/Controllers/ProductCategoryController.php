@@ -18,87 +18,132 @@ namespace Modules\Admin\Http\Controllers;
 
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ProductCategory\GetProductCategoriesRequest;
+use App\Http\Requests\ProductCategory\SaveProductCategoryRequest;
 use App\Models\ProductCategory;
-use Exception;
+use App\Services\ProductCategoryService;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
+use Inertia\Inertia;
+use Inertia\Response;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 
 class ProductCategoryController extends Controller
 {
-    public function index()
+    /**
+     * Service yang berisi logika bisnis.
+     *
+     * @var ProductCategoryService
+     */
+    protected ProductCategoryService $service;
+
+    /**
+     * Buat instance kontroler baru.
+     *
+     * @param ProductCategoryService $service
+     * @return void
+     */
+    public function __construct(ProductCategoryService $service)
     {
-        return inertia('product-category/Index');
+        $this->service = $service;
     }
 
-    public function data(Request $request)
+    /**
+     * Menampilkan halaman indeks kategori biaya operasional.
+     *
+     * @return Response
+     */
+    public function index(): Response
     {
-        $orderBy = $request->get('order_by', 'date');
-        $orderType = $request->get('order_type', 'desc');
-        $filter = $request->get('filter', []);
+        $this->authorize('viewAny', ProductCategory::class);
 
-        $q = ProductCategory::query();
-
-        if (!empty($filter['search'])) {
-            $q->where(function ($q) use ($filter) {
-                $q->where('name', 'like', '%' . $filter['search'] . '%')
-                    ->orWhere('description', 'like', '%' . $filter['search'] . '%');
-            });
-        }
-
-        $q->orderBy($orderBy, $orderType);
-
-        $items = $q->paginate($request->get('per_page', 10))->withQueryString();
-
-        return response()->json($items);
+        return Inertia::render('product-category/Index');
     }
 
-    public function duplicate($id)
+    /**
+     * Mengambil data kategori biaya operasional dengan paginasi dan filter.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function data(GetProductCategoriesRequest $request): JsonResponse
     {
-        $item = ProductCategory::findOrFail($id);
+        $this->authorize('viewAny', ProductCategory::class);
+        $items = $this->service->getData($request->validated());
+        return JsonResponseHelper::success($items);
+    }
+
+    /**
+     * Menampilkan formulir untuk menduplikasi kategori.
+     *
+     * @param int $id
+     * @return Response
+     */
+    public function duplicate(int $id): Response
+    {
+        $this->authorize('create', ProductCategory::class);
+
+        $item = $this->service->find($id);
         $item->id = null;
-        return inertia('product-category/Editor', [
+
+        return Inertia::render('product-category/Editor', [
             'data' => $item
         ]);
     }
 
-    public function editor($id = 0)
+    /**
+     * Menampilkan formulir editor untuk membuat atau mengedit kategori.
+     *
+     * @param int $id
+     * @return Response
+     */
+    public function editor(int $id = 0): Response
     {
-        $item = $id ? ProductCategory::findOrFail($id) : new ProductCategory();
-        return inertia('product-category/Editor', [
+        if (!$id) {
+            $this->authorize('create', ProductCategory::class);
+            $item = new ProductCategory();
+        } else {
+            $item = $this->service->find($id);
+            $this->authorize('update', $item);
+        }
+        return Inertia::render('product-category/Editor', [
             'data' => $item,
         ]);
     }
 
-    public function save(Request $request)
+    /**
+     * Menyimpan kategori biaya operasional baru atau yang sudah ada.
+     *
+     * @param SaveProductCategoryRequest $request
+     * @return RedirectResponse
+     */
+    public function save(SaveProductCategoryRequest $request): RedirectResponse
     {
-        $item = $request->id ? ProductCategory::findOrFail($request->id) : new ProductCategory();
+        $item = $this->service->find($request->id);
 
-        $validated = $request->validate([
-            'name' => [
-                'required',
-                'max:255',
-                Rule::unique('product_categories', 'name')->ignore($item->id),
-            ],
-            'description' => 'nullable|max:1000',
-        ]);
+        $this->service->save($item, $request->validated());
 
-        $validated['description'] = $validated['description'] ?? '';
-
-        $item->fill($validated);
-        $item->save();
-
-        return JsonResponseHelper::success($item, "Kategori $item->name telah disimpan.");
+        return redirect(route('admin.product-category.index'))
+            ->with('success', "Kategori $item->name telah disimpan.");
     }
 
-    public function delete($id)
+    /**
+     * Menghapus kategori biaya operasional.
+     *
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function delete(int $id): JsonResponse
     {
-        $item = ProductCategory::findOrFail($id);
-        try {
-            $item->delete();
-        } catch (Exception $ex) {
-            return JsonResponseHelper::error('Gagal menghapus kategori', 500, $ex);
-        }
+        $item = $this->service->find($id);
 
-        return JsonResponseHelper::success($item, "Kategori $item->name telah dihapus.");
+        $this->authorize('delete', $item);
+
+        try {
+            $this->service->delete($item);
+            return JsonResponseHelper::success($item, "Kategori $item?->name telah dihapus");
+        } catch (\Throwable $ex) {
+            return JsonResponseHelper::error("Gagal saat menghapus kategori.", 500, $ex);
+        }
     }
 }

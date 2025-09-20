@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\OperationalCostCategory;
+namespace App\Http\Requests\ProductCategory;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -10,7 +10,7 @@ use Illuminate\Validation\Rule;
  * Ia memastikan bahwa data yang masuk memenuhi aturan yang diperlukan
  * sebelum diteruskan ke layanan atau model.
  */
-class SaveOperationalCostCategoryRequest extends FormRequest
+class SaveProductCategoryRequest extends FormRequest
 {
     /**
      * Tentukan apakah pengguna diizinkan untuk membuat permintaan ini.
@@ -39,7 +39,7 @@ class SaveOperationalCostCategoryRequest extends FormRequest
             'name' => [
                 'required',
                 'max:255',
-                Rule::unique('operational_cost_categories', 'name')->ignore($itemId),
+                Rule::unique('product_categories', 'name')->ignore($itemId),
             ],
             'description' => 'nullable|max:200',
         ];

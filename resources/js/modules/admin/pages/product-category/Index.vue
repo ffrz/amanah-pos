@@ -147,15 +147,7 @@ const computedColumns = computed(() => {
           </div>
         </template>
         <template v-slot:body="props">
-          <q-tr
-            :props="props"
-            class="cursor-pointer"
-            @click.stop="
-              router.get(
-                route('admin.product-category.edit', { id: props.row.id })
-              )
-            "
-          >
+          <q-tr :props="props">
             <q-td key="name" :props="props" class="wrap-column">
               {{ props.row.name }}
               <template v-if="!$q.screen.gt.sm">

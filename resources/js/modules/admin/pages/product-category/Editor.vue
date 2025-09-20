@@ -1,15 +1,14 @@
 <script setup>
-import { router, usePage } from "@inertiajs/vue3";
+import { router, useForm, usePage } from "@inertiajs/vue3";
 import { handleSubmit } from "@/helpers/client-req-handler";
 import { scrollToFirstErrorField } from "@/helpers/utils";
-import { useApiForm } from "@/composables/useApiForm";
 import { useQuasar } from "quasar";
 
 const $q = useQuasar();
 const page = usePage();
 const title = (!!page.props.data.id ? "Edit" : "Tambah") + " Kategori Produk";
 
-const form = useApiForm({
+const form = useForm({
   id: page.props.data.id,
   name: page.props.data.name,
   description: page.props.data.description,
@@ -19,12 +18,6 @@ const submit = () =>
   handleSubmit({
     form,
     url: route("admin.product-category.save"),
-    onSuccess: () => {
-      // untuk rekaman baru alihkan ke daftar kategori supaya cepat
-      if (!page.props.data.id) {
-        router.get(route("admin.product-category.index"));
-      }
-    },
   });
 </script>
 

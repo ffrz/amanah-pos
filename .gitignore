@@ -26,3 +26,9 @@ vendor.zip
 /public/uploads
 /public/uploads/wallet-topup-confirmations
 /public/uploads/wallet-topup-confirmations
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
