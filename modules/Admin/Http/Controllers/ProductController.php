@@ -17,16 +17,12 @@
 namespace Modules\Admin\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\Product\GetProductsRequest;
-use App\Http\Requests\Api\Product\SaveProductRequest; // Import SaveProductRequest
+use App\Http\Requests\Product\GetProductsRequest;
+use App\Http\Requests\Product\SaveProductRequest;
 use App\Models\Product;
-use App\Models\ProductCategory;
-use App\Models\Supplier;
 use App\Services\CommonDataService;
 use App\Services\ProductService;
-use Illuminate\Http\Request; // Masih diperlukan untuk method 'data' jika GetProductsRequest tidak digunakan
 use Inertia\Inertia;
-// use Illuminate\Validation\Rule; // Tidak lagi diperlukan karena validasi dipindahkan ke SaveProductRequest
 
 class ProductController extends Controller
 {

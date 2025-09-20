@@ -14,7 +14,7 @@
  * Email: fahmifauzirahman@gmail.com
  */
 
-namespace App\Http\Requests\Api\Product;
+namespace App\Http\Requests\Product;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule; // Import Rule

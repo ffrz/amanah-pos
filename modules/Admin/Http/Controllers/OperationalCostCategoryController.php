@@ -1,104 +1,135 @@
 <?php
 
-/**
- * Proprietary Software / Perangkat Lunak Proprietary
- * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
- * EN: Unauthorized use, copying, modification, or distribution is prohibited.
- * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
- * See the LICENSE file in the project root for full license information.
- * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
- * GitHub: https://github.com/ffrz
- * Email: fahmifauzirahman@gmail.com
- */
-
 namespace Modules\Admin\Http\Controllers;
 
+use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\OperationalCostCategory\GetOperationalCostCategoriesRequest;
+use App\Http\Requests\OperationalCostCategory\SaveOperationalCostCategoryRequest;
 use App\Models\OperationalCostCategory;
-use App\Models\User;
+use App\Services\OperationalCostCategoryService;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
+use Inertia\Inertia;
+use Inertia\Response;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 
 class OperationalCostCategoryController extends Controller
 {
-    public function index()
+    /**
+     * Service yang berisi logika bisnis.
+     *
+     * @var OperationalCostCategoryService
+     */
+    protected OperationalCostCategoryService $service;
+
+    /**
+     * Buat instance kontroler baru.
+     *
+     * @param OperationalCostCategoryService $service
+     * @return void
+     */
+    public function __construct(OperationalCostCategoryService $service)
     {
-        return inertia('operational-cost-category/Index');
+        $this->service = $service;
     }
 
-    public function data(Request $request)
+    /**
+     * Menampilkan halaman indeks kategori biaya operasional.
+     *
+     * @return Response
+     */
+    public function index(): Response
     {
-        $orderBy = $request->get('order_by', 'date');
-        $orderType = $request->get('order_type', 'desc');
-        $filter = $request->get('filter', []);
+        $this->authorize('viewAny', OperationalCostCategory::class);
 
-        $q = OperationalCostCategory::query();
-
-        if (!empty($filter['search'])) {
-            $q->where(function ($q) use ($filter) {
-                $q->where('name', 'like', '%' . $filter['search'] . '%')
-                    ->orWhere('description', 'like', '%' . $filter['search'] . '%');
-            });
-        }
-
-        $q->orderBy($orderBy, $orderType);
-
-        $items = $q->paginate($request->get('per_page', 10))->withQueryString();
-
-        return response()->json($items);
+        return Inertia::render('operational-cost-category/Index');
     }
 
-    public function duplicate($id)
+    /**
+     * Mengambil data kategori biaya operasional dengan paginasi dan filter.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function data(GetOperationalCostCategoriesRequest $request): JsonResponse
     {
-        allowed_roles([User::Role_Admin]);
-        $item = OperationalCostCategory::findOrFail($id);
+        $this->authorize('viewAny', OperationalCostCategory::class);
+        $items = $this->service->getData($request->validated());
+        return JsonResponseHelper::success($items);
+    }
+
+    /**
+     * Menampilkan formulir untuk menduplikasi kategori.
+     *
+     * @param int $id
+     * @return Response
+     */
+    public function duplicate(int $id): Response
+    {
+        $this->authorize('create', OperationalCostCategory::class);
+
+        $item = $this->service->find($id);
         $item->id = null;
-        return inertia('operational-cost-category/Editor', [
+
+        return Inertia::render('operational-cost-category/Editor', [
             'data' => $item
         ]);
     }
 
-    public function editor($id = 0)
+    /**
+     * Menampilkan formulir editor untuk membuat atau mengedit kategori.
+     *
+     * @param int $id
+     * @return Response
+     */
+    public function editor(int $id = 0): Response
     {
-        allowed_roles([User::Role_Admin]);
-        $item = $id ? OperationalCostCategory::findOrFail($id) : new OperationalCostCategory();
-        return inertia('operational-cost-category/Editor', [
+        if (!$id) {
+            $this->authorize('create', OperationalCostCategory::class);
+            $item = new OperationalCostCategory();
+        } else {
+            $item = $this->service->find($id);
+            $this->authorize('update', $item);
+        }
+        return Inertia::render('operational-cost-category/Editor', [
             'data' => $item,
         ]);
     }
 
-    public function save(Request $request)
+    /**
+     * Menyimpan kategori biaya operasional baru atau yang sudah ada.
+     *
+     * @param SaveOperationalCostCategoryRequest $request
+     * @return RedirectResponse
+     */
+    public function save(SaveOperationalCostCategoryRequest $request): RedirectResponse
     {
-        $item = $request->id ? OperationalCostCategory::findOrFail($request->id) : new OperationalCostCategory();
+        $item = $this->service->find($request->id);
 
-        $validated = $request->validate([
-            'name' => [
-                'required',
-                'max:255',
-                Rule::unique('operational_cost_categories', 'name')->ignore($item->id),
-            ],
-            'description' => 'nullable|max:1000',
-        ]);
-
-        $item->fill($validated);
-        $item->save();
+        $this->service->save($item, $request->validated());
 
         return redirect(route('admin.operational-cost-category.index'))
             ->with('success', "Kategori $item->name telah disimpan.");
     }
 
-    public function delete($id)
+    /**
+     * Menghapus kategori biaya operasional.
+     *
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function delete(int $id): JsonResponse
     {
-        allowed_roles([User::Role_Admin]);
+        $item = $this->service->find($id);
 
-        $item = OperationalCostCategory::findOrFail($id);
-        $item->delete();
+        $this->authorize('delete', $item);
 
-        return response()->json([
-            'message' => "Kategori $item->name telah dihapus"
-        ]);
+        try {
+            $this->service->delete($item);
+            return JsonResponseHelper::success($item, "Kategori $item?->name telah dihapus");
+        } catch (\Throwable $ex) {
+            return JsonResponseHelper::error("Gagal saat menghapus kategori.", 500, $ex);
+        }
     }
 }

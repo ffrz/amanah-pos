@@ -19,8 +19,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Services\ProductService;
-use App\Http\Requests\Api\Product\GetProductsRequest;
-use App\Http\Requests\Api\Product\SaveProductRequest; // Import SaveProductRequest
+use App\Http\Requests\Product\GetProductsRequest;
+use App\Http\Requests\Product\SaveProductRequest; // Import SaveProductRequest
 use Illuminate\Http\JsonResponse;
 use App\Http\Resources\ProductResource;
 
