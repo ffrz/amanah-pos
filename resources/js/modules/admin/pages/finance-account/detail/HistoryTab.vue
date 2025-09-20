@@ -80,7 +80,7 @@ const fetchItems = (props = null) =>
     props,
     rows,
     url: route("admin.finance-transaction.data", {
-      account_id: page.props.data.id,
+      filter: { account_id: page.props.data.id },
     }),
     loading,
     tableRef,
