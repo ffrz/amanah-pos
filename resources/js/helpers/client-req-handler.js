@@ -178,10 +178,16 @@ export function handleFetchItems(options) {
   axios
     .get(url, { params: params })
     .then((response) => {
-      rows.value = response.data.data;
-      pagination.value.page = response.data.current_page;
-      pagination.value.rowsPerPage = response.data.per_page;
-      pagination.value.rowsNumber = response.data.total;
+      // FIXME: Karena server belum konsisten menggunakan helper, pengecekan ini masih dibutuhkan
+      const apiResponse = response.data.status ? response.data : response;
+      const data = apiResponse.data.data;
+      const paginationData = apiResponse.data;
+
+      rows.value = data;
+      pagination.value.page = paginationData.current_page;
+      pagination.value.rowsPerPage = paginationData.per_page;
+      pagination.value.rowsNumber = paginationData.total;
+
       if (props) {
         pagination.value.sortBy = props.pagination.sortBy;
         pagination.value.descending = props.pagination.descending;
