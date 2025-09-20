@@ -41,6 +41,7 @@ onMounted(() => {
           dense
           aria-label="Menu"
           @click="toggleLeftDrawer"
+          data-test="left-drawer-button"
         >
           <q-icon class="material-symbols-outlined">dock_to_right</q-icon>
         </q-btn>
@@ -61,6 +62,7 @@ onMounted(() => {
       bordered
       class="bg-grey-2"
       style="color: #444"
+      data-test="left-drawer-button"
     >
       <div
         class="absolute-top"
@@ -147,6 +149,7 @@ onMounted(() => {
                 v-ripple
                 style="color: inherit"
                 :href="route('admin.auth.logout')"
+                data-test="logout"
               >
                 <q-item-section>
                   <q-item-label

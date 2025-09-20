@@ -43,6 +43,7 @@ const showPassword = ref(false);
                     (val) => (val && val.length > 0) || 'Masukkan Username',
                   ]"
                   hide-bottom-space
+                  data-test="username"
                 >
                   <template v-slot:append>
                     <q-icon name="person" />
@@ -61,6 +62,7 @@ const showPassword = ref(false);
                     (val) => (val && val.length > 0) || 'Masukkan kata sandi',
                   ]"
                   hide-bottom-space
+                  data-test="password"
                 >
                   <template v-slot:append>
                     <q-btn
@@ -88,6 +90,7 @@ const showPassword = ref(false);
                   class="full-width"
                   label="Login"
                   :disable="form.processing"
+                  data-test="submit"
                 />
               </q-card-actions>
             </q-card>
