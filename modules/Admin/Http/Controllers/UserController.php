@@ -16,8 +16,8 @@
 
 namespace Modules\Admin\Http\Controllers;
 
+use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
-use App\Models\FinanceAccount;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -40,7 +40,7 @@ class UserController extends Controller
     public function detail($id = 0)
     {
         return inertia('user/Detail', [
-            'data' => User::with(['cashierAccount'])->findOrFail($id),
+            'data' => User::findOrFail($id),
         ]);
     }
 
@@ -50,7 +50,7 @@ class UserController extends Controller
         $orderType = $request->get('order_type', 'asc');
         $filter = $request->get('filter', []);
 
-        $q = User::with(['cashierAccount']);
+        $q = User::query();
 
         $q->orderBy($orderBy, $orderType);
 
@@ -95,10 +95,7 @@ class UserController extends Controller
         }
 
         return inertia('user/Editor', [
-            'data' => $user,
-            'finance_accounts' => FinanceAccount::where('type', '=', FinanceAccount::Type_CashierCash)
-                ->orderBy('name', 'asc')
-                ->get(),
+            'data' => $user
         ]);
     }
 
@@ -116,26 +113,16 @@ class UserController extends Controller
                 'max:255',
                 Rule::unique('users', 'username')->ignore($request->id),
             ],
+            'active'   => 'required|boolean'
         ];
-
-        $create_cash_account = $request->post('cashier_account_id') === 'new';
-
-        if (!$create_cash_account) {
-            $rules['cashier_account_id'] = ['nullable', Rule::exists('finance_accounts', 'id')];
-        }
 
         if ($isNew || !empty($password)) {
             $rules['password'] = 'required|min:5|max:40';
         }
 
         $validated = $request->validate($rules);
-
-        $validated['cashier_account_id'] = $validated['cashier_account_id'] ?? null;
-
         $user = $isNew ? new User() : User::findOrFail($request->id);
-
-        $fields = ['name', 'username', 'role', 'active', 'cashier_account_id'];
-        $user->fill($request->only($fields));
+        $user->fill($validated);
 
         if (!empty($password)) {
             $user->password = Hash::make($password);
@@ -143,30 +130,7 @@ class UserController extends Controller
 
         try {
             DB::beginTransaction();
-
-            if ($create_cash_account) {
-                $baseName = 'Kas ' . $user->username;
-                $accountName = $baseName;
-                $suffix = 2;
-
-                // Loop untuk memastikan nama akun unik
-                while (FinanceAccount::where('name', $accountName)->exists()) {
-                    $accountName = $baseName . ' ' . $suffix++;
-                }
-
-                $cashAccount = FinanceAccount::create([
-                    'name'    => $accountName,
-                    'balance' => 0,
-                    'type'    => FinanceAccount::Type_CashierCash,
-                    'active'  => true,
-                    'notes'   => 'Kas kasir dibuat otomatis saat pengguna dibuat.',
-                ]);
-
-                $user->cashier_account_id = $cashAccount->id;
-            }
-
             $user->save();
-
             DB::commit();
 
 
@@ -190,15 +154,11 @@ class UserController extends Controller
         $user = User::findOrFail($id);
 
         if ($user->id == Auth::user()->id) {
-            return response()->json([
-                'message' => 'Tidak dapat menghapus akun sendiri!'
-            ], 409);
+            return JsonResponseHelper::error('Tidak dapat menghapus akun sendiri!', 409);
         }
 
         $user->delete();
 
-        return response()->json([
-            'message' => "Pengguna {$user->username} telah dihapus!"
-        ]);
+        return JsonResponseHelper::success($user, "Pengguna {$user->username} telah dihapus!");
     }
 }

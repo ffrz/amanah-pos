@@ -14,33 +14,33 @@
  * Email: fahmifauzirahman@gmail.com
  */
 
+// database/migrations/xxxx_xx_xx_xxxxxx_create_cashier_session_transactions_table.php
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->unsignedBigInteger('cashier_account_id')
-                ->nullable()
-                ->unique()
-                ->after('id');
+        Schema::create('cashier_session_transactions', function (Blueprint $table) {
+            $table->foreignId('cashier_session_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('finance_transaction_id')->constrained()->cascadeOnDelete();
 
-            $table->foreign('cashier_account_id')
-                ->references('id')
-                ->on('finance_accounts')
-                ->onDelete('set null');
+            // Menentukan kunci primer komposit
+            $table->primary(['cashier_session_id', 'finance_transaction_id']);
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropForeign(['cashier_account_id']);
-            $table->dropUnique(['cashier_account_id']);
-            $table->dropColumn('cashier_account_id');
-        });
+        Schema::dropIfExists('cashier_session_transactions');
     }
 };

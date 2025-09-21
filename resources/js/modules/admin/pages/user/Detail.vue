@@ -62,7 +62,7 @@ const title = "Rincian Pengguna";
                     <td>{{ $CONSTANTS.USER_ROLES[page.props.data.role] }}</td>
                   </tr>
                   <tr>
-                    <td>Akun Kas</td>
+                    <td>Akun Kas Kasir</td>
                     <td>:</td>
                     <td>
                       {{

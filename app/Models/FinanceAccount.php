@@ -89,4 +89,9 @@ class FinanceAccount extends BaseModel
             'select sum(balance) as sum from finance_accounts where active=1'
         )[0]->sum;
     }
+
+    public function cashier()
+    {
+        return $this->hasOne(User::class, 'cashier_account_id');
+    }
 }

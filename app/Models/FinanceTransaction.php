@@ -18,6 +18,7 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class FinanceTransaction extends BaseModel
 {
@@ -139,5 +140,10 @@ class FinanceTransaction extends BaseModel
             default:
                 return 'Lainnya';
         }
+    }
+
+    public function cashierSessions(): BelongsToMany
+    {
+        return $this->belongsToMany(CashierSession::class, 'cashier_session_transactions');
     }
 }
