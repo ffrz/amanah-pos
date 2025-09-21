@@ -40,13 +40,6 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->createdUpdatedTimestamps();
         });
-
-        Schema::table('users', function (Blueprint $table) {
-            $table->foreignId('cashier_account_id')
-                ->nullable()
-                ->constrained('finance_accounts')
-                ->nullOnDelete();
-        });
     }
 
     /**

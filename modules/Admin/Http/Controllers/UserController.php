@@ -21,6 +21,7 @@ use App\Models\FinanceAccount;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
@@ -109,7 +110,6 @@ class UserController extends Controller
         $rules = [
             'name'     => 'required|max:255',
             'role'     => 'required',
-            'cashier_account_id' => ['nullable', Rule::exists('finance_accounts', 'id')],
             'username' => [
                 'required',
                 'alpha_num',
@@ -118,11 +118,19 @@ class UserController extends Controller
             ],
         ];
 
+        $create_cash_account = $request->post('cashier_account_id') === 'new';
+
+        if (!$create_cash_account) {
+            $rules['cashier_account_id'] = ['nullable', Rule::exists('finance_accounts', 'id')];
+        }
+
         if ($isNew || !empty($password)) {
             $rules['password'] = 'required|min:5|max:40';
         }
 
-        $request->validate($rules);
+        $validated = $request->validate($rules);
+
+        $validated['cashier_account_id'] = $validated['cashier_account_id'] ?? null;
 
         $user = $isNew ? new User() : User::findOrFail($request->id);
 
@@ -133,12 +141,47 @@ class UserController extends Controller
             $user->password = Hash::make($password);
         }
 
-        $user->save();
+        try {
+            DB::beginTransaction();
 
-        $action = $isNew ? 'ditambahkan' : 'diperbarui';
-        $message = "Pengguna {$user->username} telah {$action}.";
+            if ($create_cash_account) {
+                $baseName = 'Kas ' . $user->username;
+                $accountName = $baseName;
+                $suffix = 2;
 
-        return redirect(route('admin.user.index'))->with('success', $message);
+                // Loop untuk memastikan nama akun unik
+                while (FinanceAccount::where('name', $accountName)->exists()) {
+                    $accountName = $baseName . ' ' . $suffix++;
+                }
+
+                $cashAccount = FinanceAccount::create([
+                    'name'    => $accountName,
+                    'balance' => 0,
+                    'type'    => FinanceAccount::Type_CashierCash,
+                    'active'  => true,
+                    'notes'   => 'Kas kasir dibuat otomatis saat pengguna dibuat.',
+                ]);
+
+                $user->cashier_account_id = $cashAccount->id;
+            }
+
+            $user->save();
+
+            DB::commit();
+
+
+            $action = $isNew ? 'ditambahkan' : 'diperbarui';
+            $message = "Pengguna {$user->username} telah {$action}.";
+
+            return redirect(route('admin.user.index'))->with('success', $message);
+        } catch (\Throwable $ex) {
+            DB::rollBack();
+            // Log error secara lengkap untuk debugging
+            // \Log::error("Gagal menyimpan pengguna. Detail: " . $ex->getMessage());
+
+            // Tampilkan pesan yang lebih umum ke pengguna
+            return redirect(route('admin.user.index'))->with('error', 'Terjadi kesalahan. Gagal menyimpan pengguna. Silakan coba lagi.');
+        }
     }
 
 

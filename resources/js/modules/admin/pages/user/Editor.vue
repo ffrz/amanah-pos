@@ -8,16 +8,26 @@ import { router, useForm, usePage } from "@inertiajs/vue3";
 const roles = createOptions(window.CONSTANTS.USER_ROLES);
 const page = usePage();
 const title = !!page.props.data.id ? "Edit Pengguna" : "Tambah Pengguna";
-const accounts = page.props.finance_accounts.map((account) => ({
-  label: account.name,
-  value: account.id,
-}));
+const accounts = [
+  {
+    label: "Tidak Ditentukan",
+    value: null,
+  },
+  {
+    label: "Buat Akun Kas Baru",
+    value: "new",
+  },
+  ...page.props.finance_accounts.map((account) => ({
+    label: account.name,
+    value: account.id,
+  })),
+];
 
 const form = useForm({
   id: page.props.data.id,
   name: page.props.data.name,
   username: page.props.data.username,
-  cashier_account_id: page.props.data.cashier_account_id,
+  cashier_account_id: page.props.data.cashier_account_id ?? null,
   password: "",
   role: !!page.props.data.role ? page.props.data.role : roles[0].value,
   active: !!page.props.data.active,
@@ -104,7 +114,7 @@ const submit = () => handleSubmit({ form, url: route("admin.user.save") });
               <q-select
                 class="custom-select"
                 v-model="form.cashier_account_id"
-                :label="'Akun Kas'"
+                :label="'Akun Kas Kasir'"
                 :options="accounts"
                 map-options
                 emit-value
