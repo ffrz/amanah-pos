@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class CashRegister extends BaseModel
 {
@@ -47,5 +48,10 @@ class CashRegister extends BaseModel
     public function financeAccount(): BelongsTo
     {
         return $this->belongsTo(FinanceAccount::class, 'finance_account_id');
+    }
+
+    public function activeSession(): HasOne
+    {
+        return $this->hasOne(CashierSession::class)->where('is_closed', false);
     }
 }

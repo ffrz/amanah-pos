@@ -4,11 +4,11 @@ import { router } from "@inertiajs/vue3";
 import { handleDelete, handleFetchItems } from "@/helpers/client-req-handler";
 import { check_role, getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
-import { formatMoneyWithSymbol } from "@/helpers/formatter";
+import { formatDateTime, formatNumber } from "@/helpers/formatter";
 import LongTextView from "@/components/LongTextView.vue";
 import useTableHeight from "@/composables/useTableHeight";
 
-const title = "Cash Register";
+const title = "Sesi Kasir";
 const $q = useQuasar();
 const showFilter = ref(false);
 const rows = ref([]);
@@ -26,24 +26,59 @@ const pagination = ref({
   page: 1,
   rowsPerPage: 10,
   rowsNumber: 10,
-  sortBy: "name",
-  descending: false,
+  sortBy: "id",
+  descending: true,
 });
 
 const columns = [
   {
-    name: "name",
-    label: $q.screen.lt.md ? "Item" : "Nama",
-    field: "name",
+    name: "id",
+    label: $q.screen.lt.md ? "Item" : "Session ID",
+    field: "id",
     align: "left",
     sortable: true,
   },
   {
-    name: "finance_account_id",
-    label: "Akun Kas",
-    field: "finance_account_id",
+    name: "cash_register_id",
+    label: "Terminal",
+    field: "cash_register_id",
     sortable: false,
     align: "left",
+  },
+  {
+    name: "user_id",
+    label: "Kasir",
+    field: "user_id",
+    sortable: false,
+    align: "left",
+  },
+  {
+    name: "started_at",
+    label: "Waktu Mulai",
+    field: "started_at",
+    sortable: false,
+    align: "left",
+  },
+  {
+    name: "ended_at",
+    label: "Waktu Selesai",
+    field: "ended_at",
+    sortable: false,
+    align: "left",
+  },
+  {
+    name: "opening_balance",
+    label: "Saldo Awal (Rp)",
+    field: "opening_balance",
+    sortable: false,
+    align: "right",
+  },
+  {
+    name: "closing_balance",
+    label: "Saldo Akhir (Rp)",
+    field: "closing_balance",
+    sortable: false,
+    align: "right",
   },
   {
     name: "notes",
@@ -60,7 +95,7 @@ const columns = [
 const statuses = [
   { value: "all", label: "Semua" },
   { value: "active", label: "Aktif" },
-  { value: "inactive", label: "Tidak Aktif" },
+  { value: "closed", label: "Selesai" },
 ];
 
 onMounted(() => {
@@ -69,8 +104,8 @@ onMounted(() => {
 
 const deleteItem = (row) =>
   handleDelete({
-    message: `Hapus Cash Register ${row.name}?`,
-    url: route("admin.cash-register.delete", row.id),
+    message: `Hapus Sesi: ${row.cash_register.name} - ${row.user.username}?`,
+    url: route("admin.cashier-session.delete", row.id),
     fetchItemsCallback: fetchItems,
     loading,
   });
@@ -81,7 +116,7 @@ const fetchItems = (props = null) => {
     filter,
     props,
     rows,
-    url: route("admin.cash-register.data"),
+    url: route("admin.cashier-session.data"),
     loading,
     tableRef,
   });
@@ -90,16 +125,11 @@ const fetchItems = (props = null) => {
 const onFilterChange = () => fetchItems();
 
 const onRowClicked = (row) =>
-  router.get(route("admin.cash-register.detail", { id: row.id }));
+  router.get(route("admin.cashier-session.detail", { id: row.id }));
 
 const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return columns;
-  return columns.filter(
-    (col) =>
-      col.name === "name" ||
-      col.name === "finance_account_id" ||
-      col.name === "action"
-  );
+  return columns.filter((col) => col.name === "id" || col.name === "action");
 });
 </script>
 
@@ -122,7 +152,7 @@ const computedColumns = computed(() => {
         rounded
         class="q-ml-sm"
         color="primary"
-        @click="router.get(route('admin.cash-register.add'))"
+        @click="router.get(route('admin.cashier-session.start'))"
       />
     </template>
     <template #header v-if="showFilter">
@@ -192,32 +222,46 @@ const computedColumns = computed(() => {
         <template v-slot:body="props">
           <q-tr
             :props="props"
-            :class="!props.row.active ? 'bg-red-1' : ''"
             class="cursor-pointer"
+            :class="props.row.is_closed ? '' : 'bg-yellow-3'"
             @click="onRowClicked(props.row)"
           >
-            <q-td key="name" :props="props" class="wrap-column">
+            <q-td key="id" :props="props" class="wrap-column">
               <div>
-                <q-icon name="wallet" />
-                {{ props.row.name }}
+                {{ props.row.id }}
               </div>
-              <div>
-                <q-icon name="home_pin" />
-                {{ props.row.location }}
-              </div>
+
               <template v-if="$q.screen.lt.md">
                 <LongTextView :text="props.row.notes" icon="notes" />
               </template>
             </q-td>
-            <q-td key="finance_account_id" :props="props">
-              <div>
-                <q-icon name="wallet" />
-                {{ props.row.finance_account.name }}
-              </div>
-              <div>
-                <q-icon name="money" />
-                {{ formatMoneyWithSymbol(props.row.finance_account.balance) }}
-              </div>
+            <q-td key="cash_register_id" :props="props">
+              {{ props.row.cash_register.name }}
+            </q-td>
+            <q-td key="user_id" :props="props">
+              {{ props.row.user.username }} - {{ props.row.user.name }}
+            </q-td>
+            <q-td key="started_at" :props="props">
+              {{
+                props.row.started_at
+                  ? formatDateTime(props.row.started_at)
+                  : "-"
+              }}
+            </q-td>
+            <q-td key="ended_at" :props="props">
+              {{
+                props.row.ended_at ? formatDateTime(props.row.ended_at) : "-"
+              }}
+            </q-td>
+            <q-td key="opening_balance" :props="props">
+              {{ formatNumber(props.row.opening_balance) }}
+            </q-td>
+            <q-td key="closing_balance" :props="props">
+              {{
+                props.row.ended_at
+                  ? formatNumber(props.row.closing_balance)
+                  : "-"
+              }}
             </q-td>
             <q-td key="notes" :props="props">
               <LongTextView :text="props.row.notes" />
@@ -245,14 +289,16 @@ const computedColumns = computed(() => {
                         v-close-popup
                         @click.stop="
                           router.get(
-                            route('admin.cash-register.edit', props.row.id)
+                            route('admin.cashier-session.stop', props.row.id)
                           )
                         "
                       >
                         <q-item-section avatar>
-                          <q-icon name="edit" />
+                          <q-icon name="logout" />
                         </q-item-section>
-                        <q-item-section icon="edit">Edit</q-item-section>
+                        <q-item-section icon="logout"
+                          >Tutup Sesi Kasir</q-item-section
+                        >
                       </q-item>
                       <q-item
                         @click.stop="deleteItem(props.row)"
