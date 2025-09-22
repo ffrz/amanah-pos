@@ -23,10 +23,8 @@ class CashRegister extends BaseModel
         'location',
         'notes',
         'finance_account_id',
-        'created_by' => 'integer',
-        'updated_by' => 'integer',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
+        'active',
+
     ];
 
     /**
@@ -36,6 +34,7 @@ class CashRegister extends BaseModel
      */
     protected $casts = [
         'finance_account_id' => 'integer',
+        'active'     => 'boolean',
         'created_by' => 'integer',
         'updated_by' => 'integer',
         'created_at' => 'datetime',

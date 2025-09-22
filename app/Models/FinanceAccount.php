@@ -90,8 +90,8 @@ class FinanceAccount extends BaseModel
         )[0]->sum;
     }
 
-    public function cashier()
+    public function cashRegister()
     {
-        return $this->hasOne(User::class, 'cashier_account_id');
+        return $this->hasOne(CashRegister::class, 'finance_account_id');
     }
 }

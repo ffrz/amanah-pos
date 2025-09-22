@@ -122,6 +122,26 @@ class User extends BaseModel implements
 
     public function getActiveSessionCashierAccount()
     {
-        // TODO: implementasikan ini!!
+        // 1. Cari sesi kasir yang sedang aktif untuk pengguna ini
+        // Sesi aktif adalah yang is_closed = false
+        $activeSession = CashierSession::where('user_id', $this->id)
+            ->where('is_closed', false)
+            ->first();
+
+        // 2. Jika tidak ada sesi aktif, kembalikan null
+        if (!$activeSession) {
+            return null;
+        }
+
+        // 3. Muat relasi cashRegister dan financeAccount
+        // Gunakan with() untuk eager loading agar lebih efisien
+        $activeSession->load('cashRegister.financeAccount');
+
+        // 4. Periksa apakah relasi berhasil dimuat dan kembalikan akun kas
+        if ($activeSession->cashRegister && $activeSession->cashRegister->financeAccount) {
+            return $activeSession->cashRegister->financeAccount;
+        }
+
+        return null;
     }
 }

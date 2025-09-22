@@ -31,6 +31,7 @@ return new class extends Migration
             $table->string('name', 40)->unique();
             $table->string('location', 100)->nullable();
             $table->string('notes', 200)->nullable();
+            $table->boolean('active')->default(false);
             $table->createdUpdatedTimestamps();
 
             $table->foreign('finance_account_id')

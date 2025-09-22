@@ -353,7 +353,44 @@ defineExpose({
           </q-expansion-item>
 
           <q-separator />
-
+          <q-expansion-item
+            v-if="$page.props.auth.user.role == $CONSTANTS.USER_ROLE_ADMIN"
+            icon="point_of_sale"
+            label="Kasir"
+            :default-opened="
+              $page.url.startsWith('/admin/cash-registers') ||
+              $page.url.startsWith('/admin/cashier-session')
+            "
+          >
+            <q-item
+              class="subnav"
+              clickable
+              v-ripple
+              :active="$page.url.startsWith('/admin/cashier-sessions')"
+              @click="router.get(route('admin.cashier-session.index'))"
+            >
+              <q-item-section avatar>
+                <q-icon name="tv_signin" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Sesi Kasir</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item
+              class="subnav"
+              clickable
+              v-ripple
+              :active="$page.url.startsWith('/admin/cash-registers')"
+              @click="router.get(route('admin.cash-register.index'))"
+            >
+              <q-item-section avatar>
+                <q-icon name="point_of_sale" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Cash Register</q-item-label>
+              </q-item-section>
+            </q-item>
+          </q-expansion-item>
           <q-expansion-item
             v-if="$page.props.auth.user.role == $CONSTANTS.USER_ROLE_ADMIN"
             icon="wallet"

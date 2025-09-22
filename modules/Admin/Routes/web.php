@@ -19,6 +19,7 @@ use App\Http\Middleware\CheckAdminRoutePermission;
 use App\Http\Middleware\NonAuthenticated;
 use Illuminate\Support\Facades\Route;
 use Modules\Admin\Http\Controllers\AuthController;
+use Modules\Admin\Http\Controllers\CashRegisterController;
 use Modules\Admin\Http\Controllers\CompanyProfileController;
 use Modules\Admin\Http\Controllers\CustomerController;
 use Modules\Admin\Http\Controllers\CustomerWalletTransactionConfirmationController;
@@ -119,6 +120,18 @@ Route::middleware([Auth::class])
                 Route::get('detail/{id}', [FinanceTransactionController::class, 'detail'])->name('admin.finance-transaction.detail');
                 Route::post('save', [FinanceTransactionController::class, 'save'])->name('admin.finance-transaction.save');
                 Route::post('delete/{id}', [FinanceTransactionController::class, 'delete'])->name('admin.finance-transaction.delete');
+            });
+
+            Route::prefix('cash-registers')->group(function () {
+                Route::get('', [CashRegisterController::class, 'index'])->name('admin.cash-register.index');
+                Route::get('data', [CashRegisterController::class, 'data'])->name('admin.cash-register.data');
+                Route::get('add', [CashRegisterController::class, 'editor'])->name('admin.cash-register.add');
+                Route::get('duplicate/{id}', [CashRegisterController::class, 'duplicate'])->name('admin.cash-register.duplicate');
+                Route::get('edit/{id}', [CashRegisterController::class, 'editor'])->name('admin.cash-register.edit');
+                Route::get('detail/{id}', [CashRegisterController::class, 'detail'])->name('admin.cash-register.detail');
+                Route::post('save', [CashRegisterController::class, 'save'])->name('admin.cash-register.save');
+                Route::post('delete/{id}', [CashRegisterController::class, 'delete'])->name('admin.cash-register.delete');
+                Route::get('balance', [CashRegisterController::class, 'getBalance'])->name('admin.cash-register.balance');
             });
 
             Route::prefix('customers')->group(function () {
