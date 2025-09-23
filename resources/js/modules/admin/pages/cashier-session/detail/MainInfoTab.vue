@@ -15,7 +15,7 @@ const page = usePage();
       <tr>
         <td colspan="3">
           <div class="text-bold text-grey-8">
-            Info Sesi Kasir
+            Info Sesi
 
             <!-- <q-btn
               icon="edit"
@@ -54,25 +54,50 @@ const page = usePage();
         </td>
       </tr>
       <tr>
-        <td>Saldo Awal</td>
-        <td>:</td>
-        <td>
-          {{ formatMoney(page.props.data.opening_balance) }}
-        </td>
-      </tr>
-
-      <tr>
-        <td>Catatan</td>
-        <td>:</td>
-        <td>{{ page.props.data.notes }}</td>
-      </tr>
-      <tr>
         <td>Status</td>
         <td>:</td>
         <td>
           {{ !page.props.data.is_closed ? "Aktif" : "Ditutup" }}
         </td>
       </tr>
+      <tr>
+        <td colspan="100%">
+          <div class="q-mt-sm text-grey-8">Info Buka Sesi</div>
+        </td>
+      </tr>
+      <tr>
+        <td>Saldo</td>
+        <td>:</td>
+        <td>
+          {{ formatMoney(page.props.data.opening_balance) }}
+        </td>
+      </tr>
+      <tr v-if="page.props.data.opening_notes">
+        <td>Catatan</td>
+        <td>:</td>
+        <td>{{ page.props.data.opening_notes }}</td>
+      </tr>
+
+      <template v-if="page.props.data.is_closed">
+        <tr>
+          <td colspan="100%">
+            <div class="q-mt-sm text-grey-8">Info Tutup Sesi</div>
+          </td>
+        </tr>
+        <tr>
+          <td>Saldo</td>
+          <td>:</td>
+          <td>
+            {{ formatMoney(page.props.data.closing_balance) }}
+          </td>
+        </tr>
+        <tr v-if="page.props.data.closing_notes">
+          <td>Catatan</td>
+          <td>:</td>
+          <td>{{ page.props.data.closing_notes }}</td>
+        </tr>
+      </template>
+
       <tr>
         <td colspan="3">
           <div class="text-bold text-grey-8 q-mt-md">Info Rekaman</div>

@@ -3,8 +3,7 @@ import { usePage } from "@inertiajs/vue3";
 import {
   formatDateTime,
   formatDateTimeFromNow,
-  formatMoneyWithSymbol,
-  formatNumber,
+  formatMoney,
 } from "@/helpers/formatter";
 
 const page = usePage();
@@ -54,7 +53,7 @@ const page = usePage();
         <td>Saldo</td>
         <td>:</td>
         <td>
-          {{ formatMoneyWithSymbol(page.props.data.finance_account.balance) }}
+          {{ formatMoney(page.props.data.finance_account.balance) }}
         </td>
       </tr>
       <tr>

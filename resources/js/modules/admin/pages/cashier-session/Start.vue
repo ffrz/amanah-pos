@@ -10,6 +10,7 @@ const title = "Mulai Sesi Kasir";
 const form = useForm({
   cash_register_id: page.props.data.cash_register_id,
   opening_balance: parseFloat(page.props.data.opening_balance),
+  opening_notes: page.props.data.opening_notes,
 });
 
 const cash_registers = [
@@ -72,7 +73,7 @@ watch(
               <q-select
                 class="custom-select"
                 v-model="form.cash_register_id"
-                label="Cash Register"
+                label="POS Terminal"
                 :options="cash_registers"
                 map-options
                 emit-value
@@ -95,6 +96,20 @@ watch(
               <div class="q-my-sm text-red">
                 Pastikan saldo awal sesuai dengan jumlah uang di laci!
               </div>
+              <q-input
+                v-model.trim="form.opening_notes"
+                type="textarea"
+                maxlength="200"
+                label="Catatan"
+                :disable="form.processing"
+                :error="!!form.errors.opening_notes"
+                :error-message="form.errors.opening_notes"
+                :rules="[]"
+                autogrow
+                counter
+                lazy-rules
+                hide-bottom-space
+              />
             </q-card-section>
             <q-card-section class="q-gutter-sm">
               <q-btn

@@ -33,7 +33,7 @@ const pagination = ref({
 const columns = [
   {
     name: "id",
-    label: $q.screen.lt.md ? "Item" : "Session ID",
+    label: $q.screen.lt.md ? "Item" : "ID",
     field: "id",
     align: "left",
     sortable: true,

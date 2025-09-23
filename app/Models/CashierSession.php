@@ -28,7 +28,8 @@ class CashierSession extends BaseModel
         'is_closed',
         'started_at',
         'ended_at',
-        'notes',
+        'opening_notes',
+        'closing_notes',
     ];
 
     /**

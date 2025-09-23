@@ -25,7 +25,6 @@ class CashRegister extends BaseModel
         'notes',
         'finance_account_id',
         'active',
-
     ];
 
     /**

@@ -4,7 +4,7 @@ import { router } from "@inertiajs/vue3";
 import { handleDelete, handleFetchItems } from "@/helpers/client-req-handler";
 import { check_role, getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
-import { formatMoneyWithSymbol } from "@/helpers/formatter";
+import { formatMoney } from "@/helpers/formatter";
 import LongTextView from "@/components/LongTextView.vue";
 import useTableHeight from "@/composables/useTableHeight";
 
@@ -216,7 +216,7 @@ const computedColumns = computed(() => {
               </div>
               <div>
                 <q-icon name="money" />
-                {{ formatMoneyWithSymbol(props.row.finance_account.balance) }}
+                {{ formatMoney(props.row.finance_account.balance) }}
               </div>
             </q-td>
             <q-td key="notes" :props="props">

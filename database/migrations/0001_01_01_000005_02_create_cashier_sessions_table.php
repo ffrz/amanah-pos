@@ -37,7 +37,8 @@ return new class extends Migration
             $table->datetime('started_at')->nullable();
             $table->datetime('ended_at')->nullable();
 
-            $table->text('notes')->nullable();
+            $table->text('opening_notes')->nullable();
+            $table->text('closing_notes')->nullable();
             $table->createdUpdatedTimestamps();
 
             // Foreign key constraints

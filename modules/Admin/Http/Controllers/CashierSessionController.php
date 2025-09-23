@@ -88,7 +88,7 @@ class CashierSessionController extends Controller
                         return $query->where('is_closed', false);
                     }),
                 ],
-                // 'opening_balance' => 'required|numeric|min:0',
+                'opening_notes' => 'nullable|string|max:200',
             ]);
 
             $cashRegister = CashRegister::with(['financeAccount'])
@@ -98,6 +98,7 @@ class CashierSessionController extends Controller
             $item->cash_register_id = $validated['cash_register_id'];
             $item->user_id = Auth::user()->id;
             $item->opening_balance = $cashRegister->financeAccount->balance;
+            $item->opening_notes = $validated['opening_notes'] ?? '';
             $item->is_closed = false;
             $item->started_at = now();
             $item->save();
@@ -121,16 +122,17 @@ class CashierSessionController extends Controller
 
     public function stop(Request $request, $id)
     {
-        $item = CashierSession::findOrFail($id);
+        $item = CashierSession::with(['user', 'cashRegister', 'cashRegister.financeAccount'])->findOrFail($id);
+        $item->closing_balance = $item->cashRegister->financeAccount->balance;
 
-        if ($$request->method() == Request::METHOD_POST) {
-            // TODO: perbaiki validasi ini
+        if ($request->method() == Request::METHOD_POST) {
             $validated = $request->validate([
-                'closing_balance' => 'required|numeric|min:0',
+                'closing_notes' => 'nullable|string|max:200',
             ]);
 
-            $item->closing_balance = (float)$item->post('closing_balance');
+            $item->closing_notes = $validated['opening_notes'] ?? '';
             $item->is_closed = true;
+            $item->closed_at = now();
             $item->save();
 
             return redirect(route('admin.cashier-session.detail', $item->id))
@@ -139,9 +141,6 @@ class CashierSessionController extends Controller
 
         return inertia('cashier-session/Stop', [
             'data' => $item,
-            'cash_registers' => CashRegister::where('active', '=', true)
-                ->orderBy('name')
-                ->get(),
         ]);
     }
 

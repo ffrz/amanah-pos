@@ -18,6 +18,7 @@ namespace Modules\Admin\Http\Controllers;
 
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
+use App\Models\CashierSession;
 use App\Models\SalesOrder;
 use App\Models\Customer;
 use App\Models\CustomerWalletTransaction;
@@ -482,12 +483,22 @@ class SalesOrderController extends Controller
 
                 if ($inputPayment['id'] === 'cash') {
                     $type = SalesOrderPayment::Type_Cash;
-                    // Ambil account ID kasir dari user yang login
-                    $accountId = Auth::user()->cashier_account_id;
-                    if (!$accountId) {
+
+                    // ambil akun dimana sesi aktif berjalan untuk user ini
+                    $session = CashierSession::with(['cashRegister', 'cashRegister.financeAccount'])
+                        ->where('user_id', Auth::user()->id)
+                        ->where('is_closed', false)
+                        ->first();
+
+                    if (!$session) {
+                        // Todo: mungkin bisa handle auto select / default cash account atau
+                        // bisa pilih secara spesifik di payment untuk tangani penjualan
+                        // tanpa harus memulai sesi kasir
                         DB::rollBack();
                         throw new Exception("Akun kas belum diset!");
                     }
+
+                    $accountId = $session->cashRegister->financeAccount->id;
                 } else if ($inputPayment['id'] === 'wallet') {
                     $type = SalesOrderPayment::Type_Wallet;
                 } else if (intval($inputPayment['id'])) {
