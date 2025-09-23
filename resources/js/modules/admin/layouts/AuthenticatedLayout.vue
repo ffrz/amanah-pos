@@ -354,7 +354,6 @@ defineExpose({
 
           <q-separator />
           <q-expansion-item
-            v-if="$page.props.auth.user.role == $CONSTANTS.USER_ROLE_ADMIN"
             icon="point_of_sale"
             label="Kasir"
             :default-opened="
@@ -392,7 +391,6 @@ defineExpose({
             </q-item>
           </q-expansion-item>
           <q-expansion-item
-            v-if="$page.props.auth.user.role == $CONSTANTS.USER_ROLE_ADMIN"
             icon="wallet"
             label="Wallet"
             :default-opened="
@@ -447,7 +445,6 @@ defineExpose({
           <q-separator />
 
           <q-expansion-item
-            v-if="$page.props.auth.user.role == $CONSTANTS.USER_ROLE_ADMIN"
             icon="finance"
             label="Keuangan"
             :default-opened="
@@ -486,7 +483,6 @@ defineExpose({
           </q-expansion-item>
 
           <q-expansion-item
-            v-if="$page.props.auth.user.role == $CONSTANTS.USER_ROLE_ADMIN"
             icon="paid"
             label="Operasional"
             :default-opened="

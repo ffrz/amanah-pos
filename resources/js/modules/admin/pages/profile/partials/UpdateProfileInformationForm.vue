@@ -8,7 +8,6 @@ const user = page.props.auth.user;
 const form = useForm({
   name: user.name,
   username: user.username,
-  cashier_account: page.props.cashier_account,
   role: window.CONSTANTS.USER_ROLES[user.role],
 });
 
@@ -45,14 +44,6 @@ const submit = () => handleSubmit({ form, url: route("admin.profile.update") });
         <q-input
           v-model="form.role"
           label="Hak Akses"
-          :disable="form.processing"
-          readonly
-          hide-bottom-space
-        />
-        <q-input
-          v-if="form.cashier_account"
-          v-model="form.cashier_account.name"
-          label="Akun Kas"
           :disable="form.processing"
           readonly
           hide-bottom-space

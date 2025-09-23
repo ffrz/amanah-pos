@@ -33,7 +33,7 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
-        $user = User::with(['cashierAccount'])->find(Auth::user()->id);
+        $user = User::find(Auth::user()->id);
         return Inertia::render('profile/Edit', [
             'cashier_account' => $user->cashierAccount
         ]);
