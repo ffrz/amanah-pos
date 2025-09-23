@@ -5,14 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-class CashRegister extends BaseModel
+class CashierTerminal extends BaseModel
 {
     /**
      * The table associated with the model.
      *
      * @var string
      */
-    protected $table = 'cash_registers';
+    protected $table = 'cashier_terminals';
 
     /**
      * The attributes that are mass assignable.

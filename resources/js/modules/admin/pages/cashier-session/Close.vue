@@ -2,9 +2,7 @@
 import { router, useForm, usePage } from "@inertiajs/vue3";
 import { handleSubmit } from "@/helpers/client-req-handler";
 import { scrollToFirstErrorField } from "@/helpers/utils";
-import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
-import { watch } from "vue";
-import { formatDateTime, formatMoney } from "@/helpers/formatter";
+import { formatMoney } from "@/helpers/formatter";
 
 const page = usePage();
 const title = "Tutup Sesi Kasir";
@@ -14,7 +12,10 @@ const form = useForm({
 });
 
 const submit = () =>
-  handleSubmit({ form, url: route("admin.cashier-session.stop") });
+  handleSubmit({
+    form,
+    url: route("admin.cashier-session.close", { id: page.props.data.id }),
+  });
 </script>
 
 <template>
@@ -53,7 +54,7 @@ const submit = () =>
                   <tr>
                     <td>Terminal</td>
                     <td>:</td>
-                    <td>{{ page.props.data.cash_register.name }}</td>
+                    <td>{{ page.props.data.cashier_terminal.name }}</td>
                   </tr>
                   <tr>
                     <td>Kasir</td>

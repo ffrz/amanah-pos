@@ -44,7 +44,7 @@ const page = usePage();
       <tr>
         <td>Terminal</td>
         <td>:</td>
-        <td>{{ page.props.data.cash_register.name }}</td>
+        <td>{{ page.props.data.cashier_terminal.name }}</td>
       </tr>
       <tr>
         <td>Kasir</td>

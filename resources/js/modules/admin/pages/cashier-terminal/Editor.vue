@@ -29,7 +29,7 @@ const accounts = [
 ];
 
 const submit = () =>
-  handleSubmit({ form, url: route("admin.cash-register.save") });
+  handleSubmit({ form, url: route("admin.cashier-terminal.save") });
 </script>
 
 <template>
@@ -44,7 +44,7 @@ const submit = () =>
           color="grey-7"
           flat
           rounded
-          @click="$inertia.get(route('admin.cash-register.index'))"
+          @click="$inertia.get(route('admin.cashier-terminal.index'))"
         />
       </div>
     </template>
@@ -134,7 +134,7 @@ const submit = () =>
                 label="Batal"
                 icon="cancel"
                 :disable="form.processing"
-                @click="router.get(route('admin.cash-register.index'))"
+                @click="router.get(route('admin.cashier-terminal.index'))"
               />
             </q-card-section>
           </q-card>

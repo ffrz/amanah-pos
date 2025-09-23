@@ -20,7 +20,7 @@ use App\Models\FinanceAccount;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
-class CashRegisterSeeder extends Seeder
+class CashierTerminalSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -39,7 +39,7 @@ class CashRegisterSeeder extends Seeder
             'active' => true,
         ]);
 
-        DB::table('cash_registers')->insert([
+        DB::table('cashier_terminals')->insert([
             [
                 'name' => 'Kasir Toko 1',
                 'location' => 'Toko',

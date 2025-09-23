@@ -37,7 +37,7 @@ class DatabaseSeeder extends Seeder
                 ProductSeeder::class,
                 OperationalCostCategorySeeder::class,
                 OperationalCostSeeder::class,
-                CashRegisterSeeder::class,
+                CashierTerminalSeeder::class,
             ]);
         });
     }

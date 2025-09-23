@@ -485,7 +485,7 @@ class SalesOrderController extends Controller
                     $type = SalesOrderPayment::Type_Cash;
 
                     // ambil akun dimana sesi aktif berjalan untuk user ini
-                    $session = CashierSession::with(['cashRegister', 'cashRegister.financeAccount'])
+                    $session = CashierSession::with(['cashierTerminal', 'cashierTerminal.financeAccount'])
                         ->where('user_id', Auth::user()->id)
                         ->where('is_closed', false)
                         ->first();
@@ -498,7 +498,7 @@ class SalesOrderController extends Controller
                         throw new Exception("Akun kas belum diset!");
                     }
 
-                    $accountId = $session->cashRegister->financeAccount->id;
+                    $accountId = $session->cashierTerminal->financeAccount->id;
                 } else if ($inputPayment['id'] === 'wallet') {
                     $type = SalesOrderPayment::Type_Wallet;
                 } else if (intval($inputPayment['id'])) {

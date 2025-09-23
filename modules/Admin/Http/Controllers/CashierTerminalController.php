@@ -18,21 +18,21 @@ namespace Modules\Admin\Http\Controllers;
 
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
-use App\Models\CashRegister;
+use App\Models\CashierTerminal;
 use App\Models\FinanceAccount;
 use Illuminate\Http\Request;
 
-class CashRegisterController extends Controller
+class CashierTerminalController extends Controller
 {
     public function index()
     {
-        return inertia('cash-register/Index');
+        return inertia('cashier-terminal/Index');
     }
 
     public function detail($id = 0)
     {
-        return inertia('cash-register/Detail', [
-            'data' => CashRegister::with(
+        return inertia('cashier-terminal/Detail', [
+            'data' => CashierTerminal::with(
                 ['financeAccount', 'creator', 'updater']
             )->findOrFail($id),
         ]);
@@ -44,7 +44,7 @@ class CashRegisterController extends Controller
         $orderType = $request->get('order_type', 'asc');
         $filter = $request->get('filter', []);
 
-        $q = CashRegister::with(['financeAccount']);
+        $q = CashierTerminal::with(['financeAccount']);
 
         if (!empty($filter['search'])) {
             $q->where(function ($q) use ($filter) {
@@ -67,32 +67,32 @@ class CashRegisterController extends Controller
 
     public function duplicate($id)
     {
-        $item = CashRegister::findOrFail($id);
+        $item = CashierTerminal::findOrFail($id);
         $item->id = null;
         $item->created_at = null;
-        return inertia('cash-register/Editor', [
+        return inertia('cashier-terminal/Editor', [
             'data' => $item,
         ]);
     }
 
     public function editor($id = 0)
     {
-        $item = $id ? CashRegister::findOrFail($id) : new CashRegister(['active' => true]);
+        $item = $id ? CashierTerminal::findOrFail($id) : new CashierTerminal(['active' => true]);
 
         $financeAccountsQuery = FinanceAccount::where('type', '=', FinanceAccount::Type_CashierCash);
 
         if ($id) {
             // Jika mengedit, sertakan akun kas yang sudah terhubung ke cash register ini
             $financeAccountsQuery->where(function ($query) use ($item) {
-                $query->whereDoesntHave('cashRegister')
+                $query->whereDoesntHave('cashierTerminal')
                     ->orWhere('id', '=', $item->finance_account_id);
             });
         } else {
             // Jika membuat baru, hanya sertakan akun kas yang belum terhubung
-            $financeAccountsQuery->whereDoesntHave('cashRegister');
+            $financeAccountsQuery->whereDoesntHave('cashierTerminal');
         }
 
-        return inertia('cash-register/Editor', [
+        return inertia('cashier-terminal/Editor', [
             'data' => $item,
             'finance_accounts' => $financeAccountsQuery->orderBy('name', 'asc')->get()
         ]);
@@ -101,7 +101,7 @@ class CashRegisterController extends Controller
     public function save(Request $request)
     {
         $rules = [
-            'name'     => 'required|string|max:40|unique:cash_registers,name' . ($request->id ? ',' . $request->id : ''),
+            'name'     => 'required|string|max:40|unique:cashier_terminals,name' . ($request->id ? ',' . $request->id : ''),
             'location' => 'nullable|max:255',
             'notes'    => 'nullable|max:255',
             'active'   => 'required|boolean',
@@ -135,17 +135,17 @@ class CashRegisterController extends Controller
             $validated['finance_account_id'] = $financeAccount->id;
         }
 
-        $item = !$request->id ? new CashRegister() : CashRegister::findOrFail($request->id);
+        $item = !$request->id ? new CashierTerminal() : CashierTerminal::findOrFail($request->id);
         $item->fill($validated);
         $item->save();
 
-        return redirect(route('admin.cash-register.index'))->with('success', "Cash Register $item->name telah disimpan.");
+        return redirect(route('admin.cashier-terminal.index'))->with('success', "Terminal Kasir $item->name telah disimpan.");
     }
 
     public function delete($id)
     {
-        $item = CashRegister::findOrFail($id);
+        $item = CashierTerminal::findOrFail($id);
         $item->delete();
-        return JsonResponseHelper::success($item, "Cash Register $item->name telah dihapus.");
+        return JsonResponseHelper::success($item, "Terminal Kasir $item->name telah dihapus.");
     }
 }

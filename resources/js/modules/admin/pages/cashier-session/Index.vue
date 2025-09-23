@@ -39,9 +39,9 @@ const columns = [
     sortable: true,
   },
   {
-    name: "cash_register_id",
+    name: "cashier_terminal_id",
     label: "Terminal",
-    field: "cash_register_id",
+    field: "cashier_terminal_id",
     sortable: false,
     align: "left",
   },
@@ -53,16 +53,16 @@ const columns = [
     align: "left",
   },
   {
-    name: "started_at",
+    name: "opened_at",
     label: "Waktu Mulai",
-    field: "started_at",
+    field: "opened_at",
     sortable: false,
     align: "left",
   },
   {
-    name: "ended_at",
+    name: "closed_at",
     label: "Waktu Selesai",
-    field: "ended_at",
+    field: "closed_at",
     sortable: false,
     align: "left",
   },
@@ -104,7 +104,7 @@ onMounted(() => {
 
 const deleteItem = (row) =>
   handleDelete({
-    message: `Hapus Sesi: ${row.cash_register.name} - ${row.user.username}?`,
+    message: `Hapus Sesi: ${row.cashier_terminal.name} - ${row.user.username}?`,
     url: route("admin.cashier-session.delete", row.id),
     fetchItemsCallback: fetchItems,
     loading,
@@ -152,7 +152,7 @@ const computedColumns = computed(() => {
         rounded
         class="q-ml-sm"
         color="primary"
-        @click="router.get(route('admin.cashier-session.start'))"
+        @click="router.get(route('admin.cashier-session.open'))"
       />
     </template>
     <template #header v-if="showFilter">
@@ -235,22 +235,20 @@ const computedColumns = computed(() => {
                 <LongTextView :text="props.row.notes" icon="notes" />
               </template>
             </q-td>
-            <q-td key="cash_register_id" :props="props">
-              {{ props.row.cash_register.name }}
+            <q-td key="cashier_terminal_id" :props="props">
+              {{ props.row.cashier_terminal.name }}
             </q-td>
             <q-td key="user_id" :props="props">
               {{ props.row.user.username }} - {{ props.row.user.name }}
             </q-td>
-            <q-td key="started_at" :props="props">
+            <q-td key="opened_at" :props="props">
               {{
-                props.row.started_at
-                  ? formatDateTime(props.row.started_at)
-                  : "-"
+                props.row.opened_at ? formatDateTime(props.row.opened_at) : "-"
               }}
             </q-td>
-            <q-td key="ended_at" :props="props">
+            <q-td key="closed_at" :props="props">
               {{
-                props.row.ended_at ? formatDateTime(props.row.ended_at) : "-"
+                props.row.closed_at ? formatDateTime(props.row.closed_at) : "-"
               }}
             </q-td>
             <q-td key="opening_balance" :props="props">
@@ -258,7 +256,7 @@ const computedColumns = computed(() => {
             </q-td>
             <q-td key="closing_balance" :props="props">
               {{
-                props.row.ended_at
+                props.row.closed_at
                   ? formatNumber(props.row.closing_balance)
                   : "-"
               }}
@@ -289,7 +287,7 @@ const computedColumns = computed(() => {
                         v-close-popup
                         @click.stop="
                           router.get(
-                            route('admin.cashier-session.stop', props.row.id)
+                            route('admin.cashier-session.close', props.row.id)
                           )
                         "
                       >

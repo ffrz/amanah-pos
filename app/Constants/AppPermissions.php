@@ -11,6 +11,8 @@ class AppPermissions
     public const PRODUCT_CREATE  = 'admin.product.create';
     public const PRODUCT_EDIT    = 'admin.product.edit';
     public const PRODUCT_DELETE  = 'admin.product.delete';
+    public const PRODUCT_VIEW_SUPPLIER = 'admin.product:view-supplier';
+    public const PRODUCT_VIEW_COST     = 'admin.product:view-cost';
 
     public const USER_LIST        = 'admin.user.list';
     public const USER_CREATE      = 'admin.user.create';
@@ -42,6 +44,8 @@ class AppPermissions
                 ['name' => self::PRODUCT_CREATE, 'label' => 'Tambah Produk Baru'],
                 ['name' => self::PRODUCT_EDIT, 'label' => 'Ubah Produk'],
                 ['name' => self::PRODUCT_DELETE, 'label' => 'Hapus Produk'],
+                ['name' => self::PRODUCT_VIEW_COST, 'label' => 'Lihat Modal'],
+                ['name' => self::PRODUCT_VIEW_SUPPLIER, 'label' => 'Lihat Pemasok'],
             ],
 
             'Manajemen Sesi Kasir' => [

@@ -1,11 +1,9 @@
 <script setup>
 import { router, usePage } from "@inertiajs/vue3";
-import { useQuasar } from "quasar";
 import { ref } from "vue";
 import MainInfoTab from "./detail/MainInfoTab.vue";
 import StockHistoryTab from "./detail/StockHistoryTab.vue";
 
-const $q = useQuasar();
 const page = usePage();
 const title = `Rincian Produk #${page.props.data.id}`;
 const tab = ref("main");

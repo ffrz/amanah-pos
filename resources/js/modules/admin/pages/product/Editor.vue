@@ -133,6 +133,7 @@ const margin = computed(() => {
                 </template>
               </q-select>
               <q-select
+                v-if="$can('admin.product:view-supplier')"
                 v-model="form.supplier_id"
                 label="Supplier"
                 use-input
@@ -212,6 +213,7 @@ const margin = computed(() => {
                 label="Harga bisa diubah saat penjualan"
               />
               <LocaleNumberInput
+                v-if="$can('admin.product:view-cost')"
                 v-model:modelValue="form.cost"
                 label="Modal / Harga Beli (Rp)"
                 lazyRules
@@ -248,6 +250,7 @@ const margin = computed(() => {
                 hide-bottom-space
               />
               <LocaleNumberInput
+                v-if="$can('admin.product:view-cost')"
                 v-model:modelValue="margin"
                 label="Margin (%)"
                 lazyRules

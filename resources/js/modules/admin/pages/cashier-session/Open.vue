@@ -6,15 +6,15 @@ import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
 import { watch } from "vue";
 
 const page = usePage();
-const title = "Mulai Sesi Kasir";
+const title = "Buka Sesi Kasir";
 const form = useForm({
-  cash_register_id: page.props.data.cash_register_id,
+  cashier_terminal_id: page.props.data.cashier_terminal_id,
   opening_balance: parseFloat(page.props.data.opening_balance),
   opening_notes: page.props.data.opening_notes,
 });
 
-const cash_registers = [
-  ...page.props.cash_registers.map((item) => {
+const cashier_terminals = [
+  ...page.props.cashier_terminals.map((item) => {
     return {
       value: item.id,
       label: item.name,
@@ -24,13 +24,13 @@ const cash_registers = [
 ];
 
 const submit = () =>
-  handleSubmit({ form, url: route("admin.cashier-session.start") });
+  handleSubmit({ form, url: route("admin.cashier-session.open") });
 
 watch(
-  () => form.cash_register_id,
+  () => form.cashier_terminal_id,
   (newId) => {
     if (newId) {
-      const selectedRegister = cash_registers.find(
+      const selectedRegister = cashier_terminals.find(
         (register) => register.value === newId
       );
 
@@ -72,19 +72,19 @@ watch(
             <q-card-section class="q-pt-none">
               <q-select
                 class="custom-select"
-                v-model="form.cash_register_id"
-                label="POS Terminal"
-                :options="cash_registers"
+                v-model="form.cashier_terminal_id"
+                label="Terminal Kasir"
+                :options="cashier_terminals"
                 map-options
                 emit-value
-                :errorMessage="form.errors.cash_register_id"
-                :error="!!form.errors.cash_register_id"
+                :errorMessage="form.errors.cashier_terminal_id"
+                :error="!!form.errors.cashier_terminal_id"
                 :disable="form.processing"
                 hide-bottom-space
               />
               <LocaleNumberInput
                 v-model:modelValue="form.opening_balance"
-                label="Saldo Awal"
+                label="Saldo Buka Sesi"
                 lazyRules
                 :disable="form.processing"
                 :error="!!form.errors.opening_balance"
@@ -114,7 +114,7 @@ watch(
             <q-card-section class="q-gutter-sm">
               <q-btn
                 type="submit"
-                label="Mulai"
+                label="Buka Sesi"
                 icon="login"
                 color="primary"
                 :disable="form.processing"

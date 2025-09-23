@@ -25,7 +25,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('cash_registers', function (Blueprint $table) {
+        Schema::create('cashier_terminals', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('finance_account_id')->unique();
             $table->string('name', 40)->unique();
@@ -46,6 +46,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('cash_registers');
+        Schema::dropIfExists('cashier_terminals');
     }
 };

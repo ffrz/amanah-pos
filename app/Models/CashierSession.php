@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CashierSession extends BaseModel
 {
@@ -22,12 +21,12 @@ class CashierSession extends BaseModel
      */
     protected $fillable = [
         'user_id',
-        'cash_register_id',
+        'cashier_terminal_id',
         'opening_balance',
         'closing_balance',
         'is_closed',
-        'started_at',
-        'ended_at',
+        'opened_at',
+        'closed_at',
         'opening_notes',
         'closing_notes',
     ];
@@ -41,8 +40,8 @@ class CashierSession extends BaseModel
         'opening_balance' => 'float',
         'closing_balance' => 'float',
         'is_closed' => 'boolean',
-        'started_at' => 'datetime',
-        'ended_at' => 'datetime',
+        'opened_at' => 'datetime',
+        'closed_at' => 'datetime',
         'created_by' => 'integer',
         'updated_by' => 'integer',
         'created_at' => 'datetime',
@@ -60,9 +59,9 @@ class CashierSession extends BaseModel
     /**
      * Get the cash register for the session.
      */
-    public function cashRegister(): BelongsTo
+    public function cashierTerminal(): BelongsTo
     {
-        return $this->belongsTo(CashRegister::class);
+        return $this->belongsTo(CashierTerminal::class);
     }
 
     /**

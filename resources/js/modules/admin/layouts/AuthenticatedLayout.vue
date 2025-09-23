@@ -195,11 +195,9 @@ defineExpose({
               <q-item-label>Dashboard</q-item-label>
             </q-item-section>
           </q-item>
-          <q-separator />
           <q-expansion-item
             v-if="
-              $page.props.auth.user.role == $CONSTANTS.USER_ROLE_ADMIN ||
-              $page.props.auth.user.role == $CONSTANTS.USER_ROLE_CASHIER
+              $can('admin.sales-order.index') || $can('admin.customer.index')
             "
             icon="storefront"
             label="Penjualan"
@@ -209,6 +207,7 @@ defineExpose({
             "
           >
             <q-item
+              v-if="$can('admin.sales-order.index')"
               class="subnav"
               clickable
               v-ripple
@@ -223,6 +222,7 @@ defineExpose({
               </q-item-section>
             </q-item>
             <q-item
+              v-if="$can('admin.customer.index')"
               class="subnav"
               clickable
               v-ripple
@@ -240,8 +240,7 @@ defineExpose({
 
           <q-expansion-item
             v-if="
-              $page.props.auth.user.role == $CONSTANTS.USER_ROLE_ADMIN ||
-              $page.props.auth.user.role == $CONSTANTS.USER_ROLE_CASHIER
+              $can('admin.purchase-order.index') || $can('admin.supplier.index')
             "
             icon="local_shipping"
             label="Pembelian"
@@ -251,6 +250,7 @@ defineExpose({
             "
           >
             <q-item
+              v-if="$can('admin.purchase-order.index')"
               class="subnav"
               clickable
               v-ripple
@@ -265,6 +265,7 @@ defineExpose({
               </q-item-section>
             </q-item>
             <q-item
+              v-if="$can('admin.supplier.index')"
               class="subnav"
               clickable
               v-ripple
@@ -282,8 +283,10 @@ defineExpose({
 
           <q-expansion-item
             v-if="
-              $page.props.auth.user.role == $CONSTANTS.USER_ROLE_ADMIN ||
-              $page.props.auth.user.role == $CONSTANTS.USER_ROLE_CASHIER
+              $can('admin.product.index') ||
+              $can('admin.product-category.index') ||
+              $can('admin.stock-adjustment.index') ||
+              $can('admin.stock-movement.index')
             "
             icon="inventory_2"
             label="Inventori"
@@ -295,6 +298,7 @@ defineExpose({
             "
           >
             <q-item
+              v-if="$can('admin.stock-adjustment.index')"
               class="subnav"
               clickable
               v-ripple
@@ -309,6 +313,7 @@ defineExpose({
               </q-item-section>
             </q-item>
             <q-item
+              v-if="$can('admin.stock-movement.index')"
               class="subnav"
               clickable
               v-ripple
@@ -323,6 +328,7 @@ defineExpose({
               </q-item-section>
             </q-item>
             <q-item
+              v-if="$can('admin.product.index')"
               class="subnav"
               clickable
               v-ripple
@@ -337,6 +343,7 @@ defineExpose({
               </q-item-section>
             </q-item>
             <q-item
+              v-if="$can('admin.product-category.index')"
               class="subnav"
               clickable
               v-ripple
@@ -352,16 +359,20 @@ defineExpose({
             </q-item>
           </q-expansion-item>
 
-          <q-separator />
           <q-expansion-item
+            v-if="
+              $can('admin.cashier-session.index') ||
+              $can('admin.cashier-terminal.index')
+            "
             icon="point_of_sale"
             label="Kasir"
             :default-opened="
-              $page.url.startsWith('/admin/cash-registers') ||
+              $page.url.startsWith('/admin/cashier-terminals') ||
               $page.url.startsWith('/admin/cashier-session')
             "
           >
             <q-item
+              v-if="$can('admin.cashier-session.index')"
               class="subnav"
               clickable
               v-ripple
@@ -376,21 +387,26 @@ defineExpose({
               </q-item-section>
             </q-item>
             <q-item
+              v-if="$can('admin.cashier-terminal.index')"
               class="subnav"
               clickable
               v-ripple
-              :active="$page.url.startsWith('/admin/cash-registers')"
-              @click="router.get(route('admin.cash-register.index'))"
+              :active="$page.url.startsWith('/admin/cashier-terminals')"
+              @click="router.get(route('admin.cashier-terminal.index'))"
             >
               <q-item-section avatar>
                 <q-icon name="point_of_sale" />
               </q-item-section>
               <q-item-section>
-                <q-item-label>Cash Register</q-item-label>
+                <q-item-label>Terminal Kasir</q-item-label>
               </q-item-section>
             </q-item>
           </q-expansion-item>
           <q-expansion-item
+            v-if="
+              $can('admin.customer-wallet-transaction-confirmation.index') ||
+              $can('admin.customer-wallet-transaction.index')
+            "
             icon="wallet"
             label="Wallet"
             :default-opened="
@@ -401,6 +417,9 @@ defineExpose({
             "
           >
             <q-item
+              v-if="
+                $can('admin.customer-wallet-transaction-confirmation.index')
+              "
               class="subnav"
               clickable
               v-ripple
@@ -423,6 +442,7 @@ defineExpose({
               </q-item-section>
             </q-item>
             <q-item
+              v-if="$can('admin.customer-wallet-transaction.index')"
               class="subnav"
               clickable
               v-ripple
@@ -442,9 +462,11 @@ defineExpose({
             </q-item>
           </q-expansion-item>
 
-          <q-separator />
-
           <q-expansion-item
+            v-if="
+              $can('admin.finance-transaction.index') ||
+              $can('admin.finance-account.index')
+            "
             icon="finance"
             label="Keuangan"
             :default-opened="
@@ -453,6 +475,7 @@ defineExpose({
             "
           >
             <q-item
+              v-if="$can('admin.finance-transaction.index')"
               class="subnav"
               clickable
               v-ripple
@@ -467,6 +490,7 @@ defineExpose({
               </q-item-section>
             </q-item>
             <q-item
+              v-if="$can('admin.finance-account.index')"
               class="subnav"
               clickable
               v-ripple
@@ -483,6 +507,10 @@ defineExpose({
           </q-expansion-item>
 
           <q-expansion-item
+            v-if="
+              $can('admin.operational-cost.index') ||
+              $can('admin.operational-cost-category.index')
+            "
             icon="paid"
             label="Operasional"
             :default-opened="
@@ -491,6 +519,7 @@ defineExpose({
             "
           >
             <q-item
+              v-if="$can('admin.operational-cost.index')"
               class="subnav"
               clickable
               v-ripple
@@ -505,6 +534,7 @@ defineExpose({
               </q-item-section>
             </q-item>
             <q-item
+              v-if="$can('admin.operational-cost-category.index')"
               class="subnav"
               clickable
               v-ripple
@@ -523,14 +553,14 @@ defineExpose({
               </q-item-section>
             </q-item>
           </q-expansion-item>
-          <q-separator />
+
           <q-expansion-item
             icon="settings"
             label="Pengaturan"
             :default-opened="$page.url.startsWith('/admin/settings')"
           >
             <q-item
-              v-if="$page.props.auth.user.role == $CONSTANTS.USER_ROLE_ADMIN"
+              v-if="$can('admin.user.index')"
               class="subnav"
               clickable
               v-ripple
@@ -538,10 +568,25 @@ defineExpose({
               @click="router.get(route('admin.user.index'))"
             >
               <q-item-section avatar>
-                <q-icon name="group" />
+                <q-icon name="person" />
               </q-item-section>
               <q-item-section>
                 <q-item-label>Pengguna</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item
+              v-if="$can('admin.user-role.index')"
+              class="subnav"
+              clickable
+              v-ripple
+              :active="$page.url.startsWith('/admin/settings/user-roles')"
+              @click="router.get(route('admin.user-role.index'))"
+            >
+              <q-item-section avatar>
+                <q-icon name="group" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Role</q-item-label>
               </q-item-section>
             </q-item>
             <q-item
@@ -559,7 +604,7 @@ defineExpose({
               </q-item-section>
             </q-item>
             <q-item
-              v-if="$page.props.auth.user.role == $CONSTANTS.USER_ROLE_ADMIN"
+              v-if="$can('admin.company-profile.edit')"
               class="subnav"
               clickable
               v-ripple
@@ -574,7 +619,7 @@ defineExpose({
               </q-item-section>
             </q-item>
           </q-expansion-item>
-          <q-separator />
+
           <q-item
             clickable
             v-close-popup

@@ -41,6 +41,11 @@ class CheckAdminRoutePermission
         }
 
         // --- BYPASS LOGIC START ---
+        // perbolehkan akses ke data
+        if (str_ends_with($routeName, '.data')) {
+            return $next($request);
+        }
+
         // Mendefinisikan rute yang akan di-bypass dari pemeriksaan izin
         $bypassRoutes = [
             'admin.dashboard',
@@ -48,10 +53,6 @@ class CheckAdminRoutePermission
             'admin.profile.edit',
             'admin.profile.update',
             'admin.profile.update-password',
-
-            'admin.cashier-session.index',
-            'admin.cashier-session.data',
-            'admin.cashier-session.start',
 
             'admin.auth.logout',
             // Tambahkan rute lain yang tidak memerlukan izin

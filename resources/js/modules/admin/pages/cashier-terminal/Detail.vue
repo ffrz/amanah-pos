@@ -3,7 +3,7 @@ import { ref } from "vue";
 import MainInfoTab from "./detail/MainInfoTab.vue";
 import SessionHistoryTab from "./detail/SessionHistoryTab.vue";
 
-const title = "Rincian Cash Register";
+const title = "Rincian Terminal Kasir";
 const tab = ref("main");
 </script>
 
@@ -20,7 +20,7 @@ const tab = ref("main");
           color="grey-7"
           flat
           rounded
-          @click="$inertia.get(route('admin.cash-register.index'))"
+          @click="$inertia.get(route('admin.cashier-terminal.index'))"
         />
       </div>
     </template>

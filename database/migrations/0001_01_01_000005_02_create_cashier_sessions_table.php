@@ -28,14 +28,14 @@ return new class extends Migration
         Schema::create('cashier_sessions', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
-            $table->unsignedBigInteger('cash_register_id');
+            $table->unsignedBigInteger('cashier_terminal_id');
 
             $table->decimal('opening_balance', 15, 2);
             $table->decimal('closing_balance', 15, 2)->nullable();
             $table->boolean('is_closed')->default(false);
 
-            $table->datetime('started_at')->nullable();
-            $table->datetime('ended_at')->nullable();
+            $table->datetime('opened_at')->nullable();
+            $table->datetime('closed_at')->nullable();
 
             $table->decimal('total_income', 12, 2)->nullable()->default(0.);
             $table->decimal('total_expense', 12, 2)->nullable()->default(0.);
@@ -51,9 +51,9 @@ return new class extends Migration
                 ->on('users')
                 ->cascadeOnDelete();
 
-            $table->foreign('cash_register_id')
+            $table->foreign('cashier_terminal_id')
                 ->references('id')
-                ->on('cash_registers')
+                ->on('cashier_terminals')
                 ->cascadeOnDelete();
         });
     }

@@ -15,7 +15,7 @@ const page = usePage();
       <tr>
         <td colspan="3">
           <div class="text-bold text-grey-8">
-            Info Cash Register
+            Info Terminal Kasir
 
             <q-btn
               icon="edit"
@@ -27,7 +27,9 @@ const page = usePage();
               color="grey"
               @click="
                 $inertia.get(
-                  route('admin.cash-register.edit', { id: page.props.data.id })
+                  route('admin.cashier-terminal.edit', {
+                    id: page.props.data.id,
+                  })
                 )
               "
             />

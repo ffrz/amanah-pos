@@ -133,13 +133,13 @@ class User extends BaseModel implements
             return null;
         }
 
-        // 3. Muat relasi cashRegister dan financeAccount
+        // 3. Muat relasi cashierTerminal dan financeAccount
         // Gunakan with() untuk eager loading agar lebih efisien
-        $activeSession->load('cashRegister.financeAccount');
+        $activeSession->load('cashierTerminal.financeAccount');
 
         // 4. Periksa apakah relasi berhasil dimuat dan kembalikan akun kas
-        if ($activeSession->cashRegister && $activeSession->cashRegister->financeAccount) {
-            return $activeSession->cashRegister->financeAccount;
+        if ($activeSession->cashierTerminal && $activeSession->cashierTerminal->financeAccount) {
+            return $activeSession->cashierTerminal->financeAccount;
         }
 
         return null;

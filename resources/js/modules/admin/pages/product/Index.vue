@@ -156,7 +156,7 @@ const goToDetail = (props) => {
     <template #title>{{ title }}</template>
     <template #right-button>
       <q-btn
-        v-if="$can('admin.product.add')"
+        v-if="$can('admin.product:view-cost')"
         class="q-mr-sm"
         :icon="!showCostColumn ? 'visibility_off' : 'visibility'"
         label=""
@@ -173,6 +173,7 @@ const goToDetail = (props) => {
         @click="showFilter = !showFilter"
       />
       <q-btn
+        v-if="$can('admin.product.add')"
         icon="add"
         dense
         rounded
@@ -234,6 +235,7 @@ const goToDetail = (props) => {
             @update:model-value="onFilterChange"
           />
           <q-select
+            v-if="$can('admin.product:view-supplier')"
             v-model="filter.supplier_id"
             label="Pemasok"
             class="custom-select col-xs-12 col-sm-2"
@@ -328,10 +330,12 @@ const goToDetail = (props) => {
                 <q-icon name="category" />
                 {{ props.row.category.name }}
               </div>
-              <div v-if="props.row.supplier_id" class="text-grey-8">
-                <q-icon name="local_shipping" />
-                {{ props.row.supplier.name }}
-              </div>
+              <template v-if="$can('admin.product:view-supplier')">
+                <div v-if="props.row.supplier_id" class="text-grey-8">
+                  <q-icon name="local_shipping" />
+                  {{ props.row.supplier.name }}
+                </div>
+              </template>
               <template v-if="!$q.screen.gt.sm">
                 <div v-if="props.row.type == 'stocked'">
                   <q-icon name="cycle" /> Stok:
@@ -377,7 +381,13 @@ const goToDetail = (props) => {
             <q-td key="action" :props="props">
               <div class="flex justify-end">
                 <q-btn
-                  :disabled="!check_role($CONSTANTS.USER_ROLE_ADMIN)"
+                  :disabled="
+                    !(
+                      $can('admin.product.add') ||
+                      $can('admin.product.edit') ||
+                      $can('admin.product.delete')
+                    )
+                  "
                   icon="more_vert"
                   dense
                   flat
@@ -392,6 +402,7 @@ const goToDetail = (props) => {
                   >
                     <q-list style="width: 200px">
                       <q-item
+                        v-if="$can('admin.product.add')"
                         clickable
                         v-ripple
                         v-close-popup
@@ -407,6 +418,7 @@ const goToDetail = (props) => {
                         <q-item-section icon="copy">Duplikat</q-item-section>
                       </q-item>
                       <q-item
+                        v-if="$can('admin.product.edit')"
                         clickable
                         v-ripple
                         v-close-popup
@@ -420,10 +432,7 @@ const goToDetail = (props) => {
                         <q-item-section icon="edit">Edit</q-item-section>
                       </q-item>
                       <q-item
-                        v-if="
-                          $page.props.auth.user.role ==
-                          $CONSTANTS.USER_ROLE_ADMIN
-                        "
+                        v-if="$can('admin.product.delete')"
                         @click.stop="deleteItem(props.row)"
                         clickable
                         v-ripple

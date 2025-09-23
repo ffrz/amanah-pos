@@ -28,5 +28,17 @@
   window.CONSTANTS.USER_ROLE_ADMIN = "{{ \App\Models\User::Role_Admin }}";
   window.CONSTANTS.USER_ROLE_CASHIER = "{{ \App\Models\User::Role_Cashier }}";
   window.CONSTANTS.USER_ROLE_OWNER = "{{ \App\Models\User::Role_Owner }}";
+
+  <?php
+  /** @var \App\Models\User $user */
+  $user = Illuminate\Support\Facades\Auth::user();
+  $permissions = [];
+
+  if ($user) {
+    // Mengambil semua permission pengguna
+    $permissions = $user->getAllPermissions()->pluck('name')->all();
+  }
+  ?>
+  window.CONSTANTS.PERMISSIONS = <?= json_encode($permissions) ?>;
 </script>
 @endsection

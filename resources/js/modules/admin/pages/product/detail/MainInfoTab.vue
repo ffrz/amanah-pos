@@ -1,7 +1,5 @@
 <script setup>
 import { formatNumber, formatDateTime } from "@/helpers/formatter";
-import LongTextView from "@/components/LongTextView.vue";
-import { computed } from "vue";
 import { useQuasar } from "quasar";
 
 const props = defineProps({
@@ -64,7 +62,7 @@ const marginInfo = (price) => {
             }}
           </td>
         </tr>
-        <tr>
+        <tr v-if="$can('admin.product:view-supplier')">
           <td>Supplier</td>
           <td>:</td>
           <td>
@@ -178,7 +176,7 @@ const marginInfo = (price) => {
             diubah saat penjualan.
           </td>
         </tr>
-        <tr v-if="$page.props.auth.user.role == $CONSTANTS.USER_ROLE_ADMIN">
+        <tr v-if="$can('admin.product:view-cost')">
           <td style="width: 120px">Harga Beli</td>
           <td style="width: 1px">:</td>
           <td>Rp. {{ formatNumber(product.cost) }}</td>
@@ -188,9 +186,7 @@ const marginInfo = (price) => {
           <td>:</td>
           <td>
             Rp. {{ formatNumber(product.price) }}
-            <span
-              v-if="$page.props.auth.user.role == $CONSTANTS.USER_ROLE_ADMIN"
-            >
+            <span v-if="$can('admin.product:view-cost')">
               ({{ marginInfo(product.price) }})
             </span>
           </td>
@@ -200,9 +196,7 @@ const marginInfo = (price) => {
           <td>:</td>
           <td>
             Rp. {{ formatNumber(product.price_2) }}
-            <span
-              v-if="$page.props.auth.user.role == $CONSTANTS.USER_ROLE_ADMIN"
-            >
+            <span v-if="$can('admin.product:view-cost')">
               ({{ marginInfo(product.price_2) }})
             </span>
           </td>
@@ -212,9 +206,7 @@ const marginInfo = (price) => {
           <td>:</td>
           <td>
             Rp. {{ formatNumber(product.price_3) }}
-            <span
-              v-if="$page.props.auth.user.role == $CONSTANTS.USER_ROLE_ADMIN"
-            >
+            <span v-if="$can('admin.product:view-cost')">
               ({{ marginInfo(product.price_3) }})
             </span>
           </td>

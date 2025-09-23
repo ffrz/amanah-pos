@@ -8,7 +8,7 @@ import { formatMoney } from "@/helpers/formatter";
 import LongTextView from "@/components/LongTextView.vue";
 import useTableHeight from "@/composables/useTableHeight";
 
-const title = "Cash Register";
+const title = "Terminal Kasir";
 const $q = useQuasar();
 const showFilter = ref(false);
 const rows = ref([]);
@@ -69,8 +69,8 @@ onMounted(() => {
 
 const deleteItem = (row) =>
   handleDelete({
-    message: `Hapus Cash Register ${row.name}?`,
-    url: route("admin.cash-register.delete", row.id),
+    message: `Hapus Terminal Kasir ${row.name}?`,
+    url: route("admin.cashier-terminal.delete", row.id),
     fetchItemsCallback: fetchItems,
     loading,
   });
@@ -81,7 +81,7 @@ const fetchItems = (props = null) => {
     filter,
     props,
     rows,
-    url: route("admin.cash-register.data"),
+    url: route("admin.cashier-terminal.data"),
     loading,
     tableRef,
   });
@@ -90,7 +90,7 @@ const fetchItems = (props = null) => {
 const onFilterChange = () => fetchItems();
 
 const onRowClicked = (row) =>
-  router.get(route("admin.cash-register.detail", { id: row.id }));
+  router.get(route("admin.cashier-terminal.detail", { id: row.id }));
 
 const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return columns;
@@ -122,7 +122,7 @@ const computedColumns = computed(() => {
         rounded
         class="q-ml-sm"
         color="primary"
-        @click="router.get(route('admin.cash-register.add'))"
+        @click="router.get(route('admin.cashier-terminal.add'))"
       />
     </template>
     <template #header v-if="showFilter">
@@ -245,7 +245,7 @@ const computedColumns = computed(() => {
                         v-close-popup
                         @click.stop="
                           router.get(
-                            route('admin.cash-register.edit', props.row.id)
+                            route('admin.cashier-terminal.edit', props.row.id)
                           )
                         "
                       >
