@@ -133,6 +133,28 @@ const computedColumns = computed(() => {
         color="primary"
         @click="router.get(route('admin.customer.add'))"
       />
+      <q-btn icon="more_vert" dense flat rounded @click.stop class="q-ml-sm">
+        <q-menu
+          anchor="bottom right"
+          self="top right"
+          transition-show="scale"
+          transition-hide="scale"
+        >
+          <q-list style="width: 200px">
+            <q-item
+              clickable
+              v-ripple
+              v-close-popup
+              @click.stop="router.get(route('admin.customer.import'))"
+            >
+              <q-item-section avatar>
+                <q-icon name="csv" />
+              </q-item-section>
+              <q-item-section>Import</q-item-section>
+            </q-item>
+          </q-list>
+        </q-menu>
+      </q-btn>
     </template>
     <template #header v-if="showFilter">
       <q-toolbar class="filter-bar" ref="filterToolbarRef">

@@ -37,10 +37,16 @@ class UserSeeder extends Seeder
         ]);
         User::factory()->create([
             'username' => 'kasir1',
-            'name' => 'Fahmi',
+            'name' => 'Kasir 1',
             'type' => User::Type_StandardUser,
             'active' => 1,
         ]);
-        User::factory(5)->create();
+        User::factory()->create([
+            'username' => 'kasir2',
+            'name' => 'Kasir 2',
+            'type' => User::Type_StandardUser,
+            'active' => 1,
+        ]);
+        // User::factory(5)->create();
     }
 }

@@ -31,12 +31,12 @@ class DatabaseSeeder extends Seeder
                 UserSeeder::class,
                 RolesAndPermissionsSeeder::class,
                 FinanceAccountSeeder::class,
-                CustomerSeeder::class,
-                SupplierSeeder::class,
-                ProductCategorySeeder::class,
-                ProductSeeder::class,
+                // CustomerSeeder::class,
+                // SupplierSeeder::class,
+                // ProductCategorySeeder::class,
+                // ProductSeeder::class,
                 OperationalCostCategorySeeder::class,
-                OperationalCostSeeder::class,
+                // OperationalCostSeeder::class,
                 CashierTerminalSeeder::class,
             ]);
         });

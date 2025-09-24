@@ -44,10 +44,6 @@ class OperationalCostCategorySeeder extends Seeder
                 'description' => 'Biaya Gaji Karyawan',
             ],
             [
-                'name' => 'Pajak',
-                'description' => 'Biaya Pajak',
-            ],
-            [
                 'name' => 'Biaya Lain-lain',
                 'description' => 'Biaya Lain-lain',
             ],

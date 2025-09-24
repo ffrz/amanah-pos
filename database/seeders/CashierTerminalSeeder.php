@@ -34,7 +34,7 @@ class CashierTerminalSeeder extends Seeder
         ]);
 
         $account2 = FinanceAccount::create([
-            'name' => 'Kas Kasir Gudang',
+            'name' => 'Kas Kasir 2',
             'type' => FinanceAccount::Type_CashierCash,
             'active' => true,
         ]);
@@ -48,7 +48,7 @@ class CashierTerminalSeeder extends Seeder
                 'active' => true,
             ],
             [
-                'name' => 'Gudang 1',
+                'name' => 'Kasir Toko 2',
                 'location' => 'Toko',
                 'notes' => 'Auto generated cashier terminal',
                 'finance_account_id' => $account2->id,

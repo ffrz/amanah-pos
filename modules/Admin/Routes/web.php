@@ -76,6 +76,7 @@ Route::middleware([Auth::class])
                 Route::post('save', [ProductController::class, 'save'])->name('admin.product.save');
                 Route::post('delete/{id}', [ProductController::class, 'delete'])->name('admin.product.delete');
                 Route::get('detail/{id}', [ProductController::class, 'detail'])->name('admin.product.detail');
+                Route::match(['get', 'post'], 'import', [ProductController::class, 'import'])->name('admin.product.import');
             });
 
             Route::prefix('stock-adjustments')->group(function () {
@@ -153,6 +154,7 @@ Route::middleware([Auth::class])
                 Route::post('save', [CustomerController::class, 'save'])->name('admin.customer.save');
                 Route::post('delete/{id}', [CustomerController::class, 'delete'])->name('admin.customer.delete');
                 Route::get('balance', [CustomerController::class, 'getBalance'])->name('admin.customer.balance');
+                Route::match(['get', 'post'], 'import', [CustomerController::class, 'import'])->name('admin.customer.import');
             });
 
             Route::prefix('customer-wallet-transactions')->group(function () {

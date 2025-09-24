@@ -156,6 +156,16 @@ const goToDetail = (props) => {
     <template #title>{{ title }}</template>
     <template #right-button>
       <q-btn
+        v-if="$can('admin.product.import')"
+        icon="move_to_inbox"
+        dense
+        rounded
+        flat
+        class="q-ml-sm"
+        color="orange"
+        @click="router.get(route('admin.product.import'))"
+      />
+      <q-btn
         v-if="$can('admin.product:view-cost')"
         class="q-mr-sm"
         :icon="!showCostColumn ? 'visibility_off' : 'visibility'"

@@ -18,8 +18,11 @@ namespace Modules\Admin\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
+use App\Models\CustomerWalletTransaction;
+use App\Services\CustomerWalletTransactionService;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class CustomerController extends Controller
@@ -125,5 +128,103 @@ class CustomerController extends Controller
     {
         $customer = Customer::findOrFail($request->id);
         return response()->json(['balance' => $customer->balance]);
+    }
+
+    public function import(Request $request)
+    {
+        if ($request->getMethod() === Request::METHOD_POST) {
+
+            $default_password = Hash::make('12345');
+
+            // Validasi file yang diunggah
+            $request->validate([
+                'csv_file' => 'required|mimes:csv,txt|max:10240',
+            ]);
+
+            $file = $request->file('csv_file');
+
+            // Buka file untuk dibaca
+            if (($handle = fopen($file->getRealPath(), 'r')) !== false) {
+
+                // Dapatkan header dari baris pertama untuk pemetaan kolom
+                $header = fgetcsv($handle, 1000, ';');
+
+                // Mulai transaksi database
+                DB::beginTransaction();
+
+                try {
+                    // Loop melalui setiap baris data
+                    // FIXME: kita butuh konsistensi separator
+                    // bisa autodetect atau diset saat import
+                    while (($data = fgetcsv($handle, 1000, ';')) !== false) {
+
+                        // Pastikan baris data tidak kosong
+                        if (empty(array_filter($data, 'strlen'))) {
+                            continue;
+                        }
+
+                        // Gabungkan header dan data untuk membuat array yang mudah diakses
+
+                        $row = array_combine($header, $data);
+                        // Ambil data yang dibutuhkan dan bersihkan (trim)
+                        $accountNumber  = trim($row['No. Rekening']);
+                        $name           = trim($row['Nama']);
+                        $address        = trim($row['Alamat']);
+                        $phone          = trim($row['No. HP']);
+
+                        // --- Perubahan di sini: bersihkan Saldo ---
+                        $cleanedBalance = str_replace('.', '', $row['Saldo']);
+                        $cleanedBalance = str_replace([',00', ','], '', $cleanedBalance);
+                        $initialBalance = (float) $cleanedBalance;
+
+                        // Buat username otomatis: 5 karakter awal nama + 5 karakter akhir no. rekening
+                        $name_sanitized = str_replace([' ', '.'], '', $name);
+                        $first_five_name = substr($name_sanitized, 0, 5);
+                        $last_five_account = substr($accountNumber, -5);
+
+                        $username = strtolower($first_five_name . $last_five_account);
+
+                        // Cari atau buat customer berdasarkan nomor rekening
+                        $customer = Customer::updateOrCreate(
+                            ['username' => $username,],
+                            [
+                                'type'     => Customer::Type_Student,
+                                'name'     => $name,
+                                'address'  => $address,
+                                'phone'    => $phone,
+                                'password' => $default_password,
+                            ]
+                        );
+
+                        if ($customer->wasRecentlyCreated) {
+                            if ($initialBalance > 0) {
+                                CustomerWalletTransactionService::handleTransaction([
+                                    'customer_id' => $customer->id,
+                                    'finance_account_id' => $newData['finance_account_id'] ?? null,
+                                    'datetime' => now(),
+                                    'amount' => $initialBalance,
+                                    'type' => CustomerWalletTransaction::Type_Adjustment,
+                                    'notes' => 'Saldo awal dari import',
+                                ]);
+                            }
+                        }
+                    }
+
+                    DB::commit();
+
+                    fclose($handle);
+                    return redirect()->back()->with('success', 'Data pelanggan berhasil diimpor!');
+                } catch (\Exception $e) {
+                    DB::rollBack();
+                    fclose($handle);
+
+                    return redirect()->back()->with('error', 'Gagal mengimpor data: ' . $e->getMessage());
+                }
+            }
+
+            return redirect()->back()->with('error', 'Gagal membuka file.');
+        }
+
+        return inertia('customer/Import');
     }
 }

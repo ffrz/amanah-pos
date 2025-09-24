@@ -20,8 +20,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Product\GetProductsRequest;
 use App\Http\Requests\Product\SaveProductRequest;
 use App\Models\Product;
+use App\Models\ProductCategory;
+use App\Models\Supplier;
 use App\Services\CommonDataService;
 use App\Services\ProductService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class ProductController extends Controller
@@ -159,5 +163,85 @@ class ProductController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Failed to delete product: ' . $e->getMessage());
         }
+    }
+
+    public function import(Request $request)
+    {
+        if ($request->getMethod() === Request::METHOD_POST) {
+            // 1. Validasi file yang diunggah
+            $request->validate([
+                'csv_file' => 'required|mimes:csv,txt|max:10240',
+            ]);
+
+            $file = $request->file('csv_file');
+
+            // 2. Buka file untuk dibaca
+            if (($handle = fopen($file->getRealPath(), 'r')) !== false) {
+
+                // Dapatkan header dari baris pertama untuk pemetaan kolom
+                $header = fgetcsv($handle, 1000, ',');
+
+                // Mulai transaksi database untuk memastikan data konsisten
+                DB::beginTransaction();
+
+                try {
+                    // Loop melalui setiap baris data
+                    while (($data = fgetcsv($handle, 1000, ',')) !== false) {
+
+                        // Pastikan baris data tidak kosong
+                        if (empty(array_filter($data, 'strlen'))) {
+                            continue;
+                        }
+
+                        // 3. Gabungkan header dan data untuk membuat array yang mudah diakses
+                        $row = array_combine($header, $data);
+
+                        // 4. Proses relasi: Kategori dan Supplier
+                        $category = ProductCategory::firstOrCreate([
+                            'name' => trim($row['category']),
+                        ]);
+
+                        $supplier = Supplier::firstOrCreate([
+                            'name' => trim($row['supplier']),
+                        ]);
+
+                        // 5. Siapkan data produk
+                        $productData = [
+
+                            'description' => trim($row['description']),
+                            'cost'        => $row['cost'],
+                            'price'       => $row['price'],
+                            'uom'         => $row['uom'],
+                            'stock'       => $row['stock'],
+                            'category_id' => $category->id,
+                            'supplier_id' => $supplier->id,
+                            'type'        => $row['type'] ?? Product::Type_Stocked,
+                        ];
+
+                        // 6. Simpan data produk
+                        Product::firstOrCreate([
+                            'barcode' => $row['barcode'],
+                            'name'    => trim($row['name']),
+                        ], $productData);
+                    }
+
+                    // Commit transaksi jika semua baris berhasil
+                    DB::commit();
+
+                    fclose($handle);
+                    return redirect()->back()->with('success', 'Data produk berhasil diimpor!');
+                } catch (\Exception $e) {
+                    // Rollback transaksi jika terjadi kesalahan
+                    DB::rollBack();
+                    fclose($handle);
+
+                    return redirect()->back()->with('error', 'Gagal mengimpor data: ' . $e->getMessage());
+                }
+
+                return redirect()->back()->with('error', 'Gagal membuka file.');
+            }
+        }
+
+        return inertia('product/Import');
     }
 }

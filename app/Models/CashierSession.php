@@ -125,11 +125,11 @@ class CashierSession extends BaseModel
      */
     public function getTotalSalesAttribute(): float
     {
-        // Data mungkin salah karena datetime di SalesOrder bisa di edit
-
-        return SalesOrder::where('cashier_id', $this->user_id)
+        $total = SalesOrder::where('cashier_id', $this->user_id)
             ->where('status', 'closed')
-            ->whereBetween('datetime', [$this->opened_at, $this->closed_at ?? Carbon::now()])
+            ->whereBetween('updated_at', [$this->opened_at, $this->closed_at ?? Carbon::now()])
             ->sum('grand_total');
+
+        return $total;
     }
 }
