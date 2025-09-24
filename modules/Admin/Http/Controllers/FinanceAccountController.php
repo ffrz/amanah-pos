@@ -77,7 +77,6 @@ class FinanceAccountController extends Controller
 
     public function duplicate($id)
     {
-        allowed_roles([User::Role_Admin]);
         $item = FinanceAccount::findOrFail($id);
         $item->id = null;
         $item->created_at = null;
@@ -88,7 +87,6 @@ class FinanceAccountController extends Controller
 
     public function editor($id = 0)
     {
-        allowed_roles([User::Role_Admin]);
         $item = $id ? FinanceAccount::findOrFail($id) : new FinanceAccount(['active' => true]);
         return inertia('finance-account/Editor', [
             'data' => $item,
@@ -154,8 +152,6 @@ class FinanceAccountController extends Controller
 
     public function delete($id)
     {
-        allowed_roles([User::Role_Admin]);
-
         $item = FinanceAccount::findOrFail($id);
         if ($item->isUsedInTransaction()) {
             return JsonResponseHelper::error('Akun tidak dapat dihapus karena sudah digunakan di transaksi!', 403);

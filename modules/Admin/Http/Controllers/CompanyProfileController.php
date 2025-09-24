@@ -31,14 +31,6 @@ use Illuminate\Support\Facades\Auth;
  */
 class CompanyProfileController extends Controller
 {
-    /**
-     * Konstruktor untuk CompanyProfileController.
-     * Menerapkan middleware untuk otorisasi peran.
-     */
-    public function __construct()
-    {
-        allowed_roles(User::Role_Admin);
-    }
 
     /**
      * Menampilkan form profil perusahaan.

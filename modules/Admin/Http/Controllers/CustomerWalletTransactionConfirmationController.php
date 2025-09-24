@@ -154,8 +154,7 @@ class CustomerWalletTransactionConfirmationController extends Controller
 
     public function delete($id)
     {
-        allowed_roles([User::Role_Admin]);
-        $item = CustomerWalletTransactionConfirmation::findOrFail($id);
+       $item = CustomerWalletTransactionConfirmation::findOrFail($id);
 
         DB::beginTransaction();
         try {

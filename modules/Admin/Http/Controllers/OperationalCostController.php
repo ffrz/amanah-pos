@@ -106,7 +106,6 @@ class OperationalCostController extends Controller
 
     public function duplicate($id)
     {
-        allowed_roles([User::Role_Admin]);
         $item = OperationalCost::findOrFail($id);
         $item->id = null;
         return $this->renderEditor($item);
@@ -114,7 +113,6 @@ class OperationalCostController extends Controller
 
     public function editor($id = 0)
     {
-        allowed_roles([User::Role_Admin]);
         $item = $id ? OperationalCost::findOrFail($id) : new OperationalCost(['date' => date('Y-m-d')]);
         return $this->renderEditor($item);
     }
@@ -225,8 +223,6 @@ class OperationalCostController extends Controller
 
     public function delete($id)
     {
-        allowed_roles([User::Role_Admin]);
-
         $item = OperationalCost::findOrFail($id);
 
         try {

@@ -70,7 +70,6 @@ class PurchaseOrderController extends Controller
 
     public function duplicate($id)
     {
-        allowed_roles([User::Role_Admin]);
         $item = PurchaseOrder::findOrFail($id);
         $item->id = null;
 
@@ -82,7 +81,6 @@ class PurchaseOrderController extends Controller
 
     public function editor($id = 0)
     {
-        allowed_roles([User::Role_Admin]);
         $item = $id ? PurchaseOrder::findOrFail($id) : new PurchaseOrder([
             'datetime' => Carbon::now(),
             'status' => PurchaseOrder::Status_Draft,
@@ -123,8 +121,6 @@ class PurchaseOrderController extends Controller
 
     public function delete($id)
     {
-        allowed_roles([User::Role_Admin]);
-
         $item = PurchaseOrder::findOrFail($id);
 
         // TODO: hapus PurchaseOrderDetail, hapus StockMovement, hapus payment

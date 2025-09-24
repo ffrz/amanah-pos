@@ -228,8 +228,6 @@ class StockAdjustmentController extends Controller
 
     public function delete($id)
     {
-        allowed_roles([User::Role_Admin]);
-
         $item = StockAdjustment::findOrFail($id);
 
         DB::beginTransaction();

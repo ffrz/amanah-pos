@@ -14,30 +14,11 @@ const page = usePage();
     <tbody>
       <tr>
         <td colspan="3">
-          <div class="text-bold text-grey-8">
-            Info Sesi
-
-            <!-- <q-btn
-              icon="edit"
-              size="sm"
-              dense
-              flat
-              rounded
-              class="q-ml-sm"
-              color="grey"
-              @click="
-                $inertia.get(
-                  route('admin.cashier-sessions.edit', {
-                    id: page.props.data.id,
-                  })
-                )
-              "
-            /> -->
-          </div>
+          <div class="text-bold text-grey-8">Info Sesi</div>
         </td>
       </tr>
       <tr>
-        <td style="width: 120px">Session ID</td>
+        <td style="width: 130px">Session ID</td>
         <td style="width: 1px">:</td>
         <td>{{ page.props.data.id }}</td>
       </tr>
@@ -60,13 +41,14 @@ const page = usePage();
           {{ !page.props.data.is_closed ? "Aktif" : "Ditutup" }}
         </td>
       </tr>
+
       <tr>
         <td colspan="100%">
           <div class="q-mt-sm text-grey-8">Info Buka Sesi</div>
         </td>
       </tr>
       <tr>
-        <td>Saldo</td>
+        <td>Saldo Awal</td>
         <td>:</td>
         <td>
           {{ formatMoney(page.props.data.opening_balance) }}
@@ -78,6 +60,41 @@ const page = usePage();
         <td>{{ page.props.data.opening_notes }}</td>
       </tr>
 
+      <tr>
+        <td colspan="100%">
+          <div class="q-mt-sm text-grey-8">Rincian Pendapatan & Kas</div>
+        </td>
+      </tr>
+      <tr>
+        <td>Total Penjualan</td>
+        <td>:</td>
+        <td>{{ formatMoney(page.props.data.total_sales) }}</td>
+      </tr>
+      <tr>
+        <td>Total Pemasukan</td>
+        <td>:</td>
+        <td>{{ formatMoney(page.props.data.total_income) }}</td>
+      </tr>
+      <tr>
+        <td>Total Pengeluaran</td>
+        <td>:</td>
+        <td>{{ formatMoney(page.props.data.total_expense) }}</td>
+      </tr>
+      <template v-if="!page.props.data.is_closed">
+        <tr>
+          <td>Saldo Aktual</td>
+          <td>:</td>
+          <td>
+            {{
+              formatMoney(
+                page.props.data.opening_balance -
+                  (page.props.data.total_income - page.props.data.total_expense)
+              )
+            }}
+          </td>
+        </tr>
+      </template>
+
       <template v-if="page.props.data.is_closed">
         <tr>
           <td colspan="100%">
@@ -85,7 +102,7 @@ const page = usePage();
           </td>
         </tr>
         <tr>
-          <td>Saldo</td>
+          <td>Saldo Akhir</td>
           <td>:</td>
           <td>
             {{ formatMoney(page.props.data.closing_balance) }}
@@ -95,6 +112,29 @@ const page = usePage();
           <td>Catatan</td>
           <td>:</td>
           <td>{{ page.props.data.closing_notes }}</td>
+        </tr>
+      </template>
+
+      <template v-if="$can('admin.cashier-session.close')">
+        <tr v-if="!page.props.data.is_closed">
+          <td colspan="100%">
+            <div class="q-my-md">
+              <q-btn
+                class="full-width"
+                color="accent"
+                icon="logout"
+                @click="
+                  $inertia.get(
+                    route('admin.cashier-session.close', {
+                      id: page.props.data.id,
+                    })
+                  )
+                "
+              >
+                Tutup Sesi Kasir
+              </q-btn>
+            </div>
+          </td>
         </tr>
       </template>
 

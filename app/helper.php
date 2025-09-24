@@ -18,28 +18,6 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
-function allowed_roles(...$roles)
-{
-    if (!Auth::check()) {
-        // Jika tidak ada user login, atau sesuai kebijakan Anda
-        abort(403, 'Unauthorized. Please login.');
-    }
-
-    // Dapatkan user yang sedang login
-    /** @var \App\Models\User $user */
-    $user = Auth::user();
-
-    if ($user->role == User::Role_Admin) {
-        return true;
-    }
-
-    // Menggunakan Spatie untuk memeriksa apakah user memiliki salah satu dari peran yang diizinkan
-    if (!$user->hasAnyRole($roles)) {
-        abort(403, 'Unauthorized. Insufficient privileges.');
-    }
-
-    // Jika user memiliki peran yang diizinkan, lanjutkan eksekusi
-}
 
 function encrypt_id($string)
 {

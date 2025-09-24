@@ -79,17 +79,17 @@ const submit = () =>
                   <tr>
                     <td>Total Penjualan</td>
                     <td>:</td>
-                    <td>Rp. 0</td>
+                    <td>{{ formatMoney(page.props.data.total_sales) }}</td>
                   </tr>
                   <tr>
                     <td>Total Pemasukan</td>
                     <td>:</td>
-                    <td>Rp. 0</td>
+                    <td>{{ formatMoney(page.props.data.total_income) }}</td>
                   </tr>
                   <tr>
                     <td>Total Pengeluaran</td>
                     <td>:</td>
-                    <td>Rp. 0</td>
+                    <td>{{ formatMoney(page.props.data.total_expense) }}</td>
                   </tr>
                   <tr>
                     <td>Saldo Akhir</td>

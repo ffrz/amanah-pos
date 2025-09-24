@@ -27,11 +27,6 @@ use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
-    public function __construct()
-    {
-        allowed_roles(User::Role_Admin);
-    }
-
     public function index()
     {
         return inertia('user/Index');

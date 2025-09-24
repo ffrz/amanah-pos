@@ -4,7 +4,7 @@ import { router } from "@inertiajs/vue3";
 import { handleDelete, handleFetchItems } from "@/helpers/client-req-handler";
 import { check_role, getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
-import { formatDateTime, formatNumber } from "@/helpers/formatter";
+import { formatDateTime, formatMoney, formatNumber } from "@/helpers/formatter";
 import LongTextView from "@/components/LongTextView.vue";
 import useTableHeight from "@/composables/useTableHeight";
 
@@ -18,7 +18,7 @@ const filterToolbarRef = ref(null);
 const tableHeight = useTableHeight(filterToolbarRef);
 const filter = reactive({
   search: "",
-  status: "active",
+  status: "all",
   ...getQueryParams(),
 });
 
@@ -33,57 +33,23 @@ const pagination = ref({
 const columns = [
   {
     name: "id",
-    label: $q.screen.lt.md ? "Item" : "ID",
+    label: "Sesi",
     field: "id",
     align: "left",
     sortable: true,
   },
   {
-    name: "cashier_terminal_id",
-    label: "Terminal",
-    field: "cashier_terminal_id",
+    name: "opening_info",
+    label: "Buka Sesi",
+    field: "opening_info",
     sortable: false,
     align: "left",
   },
   {
-    name: "user_id",
-    label: "Kasir",
-    field: "user_id",
+    name: "closing_info",
+    label: "Tutup Sesi",
+    field: "closing_info",
     sortable: false,
-    align: "left",
-  },
-  {
-    name: "opened_at",
-    label: "Waktu Mulai",
-    field: "opened_at",
-    sortable: false,
-    align: "left",
-  },
-  {
-    name: "closed_at",
-    label: "Waktu Selesai",
-    field: "closed_at",
-    sortable: false,
-    align: "left",
-  },
-  {
-    name: "opening_balance",
-    label: "Saldo Awal (Rp)",
-    field: "opening_balance",
-    sortable: false,
-    align: "right",
-  },
-  {
-    name: "closing_balance",
-    label: "Saldo Akhir (Rp)",
-    field: "closing_balance",
-    sortable: false,
-    align: "right",
-  },
-  {
-    name: "notes",
-    label: "Catatan",
-    field: "notes",
     align: "left",
   },
   {
@@ -228,41 +194,56 @@ const computedColumns = computed(() => {
           >
             <q-td key="id" :props="props" class="wrap-column">
               <div>
-                {{ props.row.id }}
+                <q-icon class="inline-icon" name="tag" />
+                SessionID: {{ props.row.id }}
               </div>
+              <div>
+                <q-icon class="inline-icon" name="point_of_sale" />
+                {{ props.row.cashier_terminal.name }}
+              </div>
+              <div>
+                <q-icon class="inline-icon" name="person" />
+                {{ props.row.user.username }} - {{ props.row.user.name }}
+              </div>
+            </q-td>
+            <q-td key="opening_info" :props="props">
+              <div>
+                <q-icon class="inline-icon" name="calendar_clock" />
+                {{
+                  props.row.opened_at
+                    ? formatDateTime(props.row.opened_at)
+                    : "-"
+                }}
+              </div>
+              <div>
+                <q-icon class="inline-icon" name="money" />
+                {{ formatMoney(props.row.opening_balance) }}
+              </div>
+              <LongTextView
+                v-if="props.row.opening_notes"
+                :text="props.row.opening_notes"
+                icon="notes"
+              />
+            </q-td>
 
-              <template v-if="$q.screen.lt.md">
-                <LongTextView :text="props.row.notes" icon="notes" />
-              </template>
-            </q-td>
-            <q-td key="cashier_terminal_id" :props="props">
-              {{ props.row.cashier_terminal.name }}
-            </q-td>
-            <q-td key="user_id" :props="props">
-              {{ props.row.user.username }} - {{ props.row.user.name }}
-            </q-td>
-            <q-td key="opened_at" :props="props">
-              {{
-                props.row.opened_at ? formatDateTime(props.row.opened_at) : "-"
-              }}
-            </q-td>
-            <q-td key="closed_at" :props="props">
-              {{
-                props.row.closed_at ? formatDateTime(props.row.closed_at) : "-"
-              }}
-            </q-td>
-            <q-td key="opening_balance" :props="props">
-              {{ formatNumber(props.row.opening_balance) }}
-            </q-td>
-            <q-td key="closing_balance" :props="props">
-              {{
-                props.row.closed_at
-                  ? formatNumber(props.row.closing_balance)
-                  : "-"
-              }}
-            </q-td>
-            <q-td key="notes" :props="props">
-              <LongTextView :text="props.row.notes" />
+            <q-td key="closing_info" :props="props">
+              <div>
+                <q-icon class="inline-icon" name="calendar_clock" />
+                {{
+                  props.row.closed_at
+                    ? formatDateTime(props.row.closed_at)
+                    : "-"
+                }}
+              </div>
+              <div>
+                <q-icon class="inline-icon" name="money" />
+                {{ formatMoney(props.row.closing_balance) }}
+              </div>
+              <LongTextView
+                v-if="props.row.closing_notes"
+                :text="props.row.closing_notes"
+                icon="notes"
+              />
             </q-td>
             <q-td key="action" :props="props">
               <div class="flex justify-end">
@@ -282,6 +263,8 @@ const computedColumns = computed(() => {
                   >
                     <q-list style="width: 200px">
                       <q-item
+                        v-if="$can('admin.cashier-session.close')"
+                        :disable="props.row.is_closed"
                         clickable
                         v-ripple
                         v-close-popup
@@ -299,6 +282,7 @@ const computedColumns = computed(() => {
                         >
                       </q-item>
                       <q-item
+                        v-if="$can('admin.cashier-session.delete')"
                         @click.stop="deleteItem(props.row)"
                         clickable
                         v-ripple

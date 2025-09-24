@@ -67,7 +67,6 @@ class CustomerController extends Controller
 
     public function duplicate($id)
     {
-        allowed_roles([User::Role_Admin, User::Role_Cashier]);
         $item = Customer::findOrFail($id);
         $item->id = null;
         $item->created_at = null;
@@ -78,8 +77,7 @@ class CustomerController extends Controller
 
     public function editor($id = 0)
     {
-        allowed_roles([User::Role_Admin, User::Role_Cashier]);
-        $item = $id ? Customer::findOrFail($id) : new Customer(['active' => true]);
+       $item = $id ? Customer::findOrFail($id) : new Customer(['active' => true]);
         return inertia('customer/Editor', [
             'data' => $item,
         ]);
@@ -115,9 +113,6 @@ class CustomerController extends Controller
     public function delete($id)
     {
         throw new Exception('Fitur sementara waktu dinonaktifkan, silahkan hubungi developer!');
-
-        // boleh dihapus???
-        allowed_roles([User::Role_Admin]);
 
         $item = Customer::findOrFail($id);
         $item->delete();

@@ -25,21 +25,10 @@ const tab = ref("main");
       </div>
     </template>
     <q-page class="row justify-center">
-      <div class="col col-lg-6 q-pa-xs">
+      <div class="col col-md-6 q-pa-xs">
         <div class="row">
-          <q-card square flat bordered class="col">
-            <q-tabs v-model="tab" align="left">
-              <q-tab name="main" label="Info Utama" />
-              <!-- <q-tab name="session-history" label="Riwayat Sesi Kasir" /> -->
-            </q-tabs>
-            <q-tab-panels v-model="tab">
-              <q-tab-panel name="main">
-                <MainInfoTab />
-              </q-tab-panel>
-              <!-- <q-tab-panel name="session-history" class="q-pa-xs">
-                <SessionHistoryTab />
-              </q-tab-panel> -->
-            </q-tab-panels>
+          <q-card square flat bordered class="col q-pa-sm q-pt-md">
+            <MainInfoTab />
           </q-card>
         </div>
       </div>

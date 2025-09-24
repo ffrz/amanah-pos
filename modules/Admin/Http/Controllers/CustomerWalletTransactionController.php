@@ -97,7 +97,6 @@ class CustomerWalletTransactionController extends Controller
 
     public function editor($id = 0)
     {
-        allowed_roles([User::Role_Admin, User::Role_Cashier]);
         $item = $id ? CustomerWalletTransaction::findOrFail($id) : new CustomerWalletTransaction(['datetime' => date('Y-m-d H:i:s')]);
         return inertia('customer-wallet-transaction/Editor', [
             'data' => $item,
@@ -224,7 +223,6 @@ class CustomerWalletTransactionController extends Controller
 
     public function delete($id)
     {
-        allowed_roles([User::Role_Admin]);
         $item = CustomerWalletTransaction::findOrFail($id);
 
         // Jangan perbolehkan penghapusan transaksi yang dibuat dari modul lain

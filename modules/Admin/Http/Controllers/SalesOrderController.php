@@ -29,6 +29,7 @@ use App\Models\SalesOrderDetail;
 use App\Models\SalesOrderPayment;
 use App\Models\StockMovement;
 use App\Models\User;
+use App\Services\CashierSessionService;
 use App\Services\FinanceTransactionService;
 use Carbon\Carbon;
 use Exception;
@@ -39,9 +40,9 @@ use Illuminate\Support\Facades\DB;
 class SalesOrderController extends Controller
 {
     protected $financeTransactionService;
-
-    public function __construct(FinanceTransactionService $financeTransactionService)
-    {
+    public function __construct(
+        FinanceTransactionService $financeTransactionService,
+    ) {
         $this->financeTransactionService = $financeTransactionService;
     }
 
@@ -112,8 +113,6 @@ class SalesOrderController extends Controller
 
     public function editor($id = 0)
     {
-        // allowed_roles([User::Role_Admin]);
-
         if (!$id) {
             $item = new SalesOrder([
                 'type' => SalesOrder::Type_Pickup,
@@ -205,9 +204,7 @@ class SalesOrderController extends Controller
 
     public function delete($id)
     {
-        allowed_roles([User::Role_Admin]);
-
-        $order = SalesOrder::with([
+       $order = SalesOrder::with([
             'details',
             'payments',
             'details.product',
@@ -217,6 +214,12 @@ class SalesOrderController extends Controller
         try {
             DB::beginTransaction();
             if ($order->status == SalesOrder::Status_Closed) {
+                // kurangi dari sesi aktif
+                $activeSession = CashierSessionService::getActiveSession();
+                if ($activeSession) {
+                    CashierSessionService::addToSales($activeSession->id, -$order->grand_total);
+                }
+
                 // refund stok
                 foreach ($order->details as $detail) {
                     $product = $detail->product;
@@ -485,10 +488,7 @@ class SalesOrderController extends Controller
                     $type = SalesOrderPayment::Type_Cash;
 
                     // ambil akun dimana sesi aktif berjalan untuk user ini
-                    $session = CashierSession::with(['cashierTerminal', 'cashierTerminal.financeAccount'])
-                        ->where('user_id', Auth::user()->id)
-                        ->where('is_closed', false)
-                        ->first();
+                    $session = CashierSessionService::getActiveSession();
 
                     if (!$session) {
                         // Todo: mungkin bisa handle auto select / default cash account atau
@@ -561,6 +561,12 @@ class SalesOrderController extends Controller
             $order->due_date = $request->post('due_date', null);
             $order->cashier_id = Auth::user()->id;
             $order->save();
+
+            // tambahkan di sesi kasir
+            $activeSession = CashierSessionService::getActiveSession();
+            if ($activeSession) {
+                CashierSessionService::addToSales($activeSession->id, $order->grand_total);
+            }
 
             // 5. Perbarui stok produk secara massal
             foreach ($order->details as $detail) {

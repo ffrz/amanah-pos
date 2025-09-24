@@ -125,6 +125,10 @@ class CashierSessionController extends Controller
         $item = CashierSession::with(['user', 'cashierTerminal', 'cashierTerminal.financeAccount'])->findOrFail($id);
         $item->closing_balance = $item->cashierTerminal->financeAccount->balance;
 
+        if ($item->is_closed) {
+            return redirect()->back()->with('warning', 'Sesi yang telah selesai tidak bisa ditutup!');
+        }
+
         if ($request->method() == Request::METHOD_POST) {
             $validated = $request->validate([
                 'closing_notes' => 'nullable|string|max:200',
