@@ -281,6 +281,7 @@ watch(
             @update:model-value="onFilterChange"
           />
           <q-select
+            v-if="false"
             v-model="filter.delivery_status"
             :options="deliveryStatusOptions"
             label="Status Pengiriman"
@@ -380,6 +381,7 @@ watch(
                   :status="props.row.payment_status"
                 />
                 <SalesOrderDeliveryStatusChip
+                  v-if="false"
                   :status="props.row.delivery_status"
                 />
               </div>

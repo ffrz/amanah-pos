@@ -227,6 +227,8 @@ const summaryItems = ref([
         :icon="!showFilter ? 'filter_alt' : 'filter_alt_off'"
         color="grey"
         dense
+        rounded
+        flat
         @click="showFilter = !showFilter"
       />
     </template>

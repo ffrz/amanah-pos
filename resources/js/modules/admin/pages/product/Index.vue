@@ -161,6 +161,8 @@ const goToDetail = (props) => {
         :icon="!showCostColumn ? 'visibility_off' : 'visibility'"
         label=""
         dense
+        rounded
+        flat
         color="grey"
         @click="showCostColumn = !showCostColumn"
       />

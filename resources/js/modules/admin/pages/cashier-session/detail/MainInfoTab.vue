@@ -87,7 +87,7 @@ const page = usePage();
           <td>
             {{
               formatMoney(
-                page.props.data.opening_balance -
+                page.props.data.opening_balance +
                   (page.props.data.total_income - page.props.data.total_expense)
               )
             }}
