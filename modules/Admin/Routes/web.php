@@ -39,6 +39,7 @@ use Modules\Admin\Http\Controllers\StockAdjustmentController;
 use Modules\Admin\Http\Controllers\StockMovementController;
 use Modules\Admin\Http\Controllers\SupplierController;
 use Modules\Admin\Http\Controllers\UserController;
+use Modules\Admin\Http\Controllers\UserRoleController;
 
 Route::middleware(NonAuthenticated::class)
     ->group(function () {
@@ -246,6 +247,16 @@ Route::middleware([Auth::class])
                     Route::post('save', [UserController::class, 'save'])->name('admin.user.save');
                     Route::post('delete/{id}', [UserController::class, 'delete'])->name('admin.user.delete');
                     Route::get('detail/{id}', [UserController::class, 'detail'])->name('admin.user.detail');
+                });
+
+                Route::prefix('user-roles')->group(function () {
+                    Route::get('', [UserRoleController::class, 'index'])->name('admin.user-role.index');
+                    Route::get('data', [UserRoleController::class, 'data'])->name('admin.user-role.data');
+                    Route::get('add', [UserRoleController::class, 'editor'])->name('admin.user-role.add');
+                    Route::get('detail/{id}', [UserRoleController::class, 'detail'])->name('admin.user-role.detail');
+                    Route::get('edit/{id}', [UserRoleController::class, 'editor'])->name('admin.user-role.edit');
+                    Route::post('save', [UserRoleController::class, 'save'])->name('admin.user-role.save');
+                    Route::post('delete/{id}', [UserRoleController::class, 'delete'])->name('admin.user-role.delete');
                 });
             });
         });

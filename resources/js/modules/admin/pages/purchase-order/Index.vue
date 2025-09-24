@@ -265,14 +265,7 @@ watch(
             </q-td>
             <q-td key="action" :props="props">
               <div class="flex justify-end">
-                <q-btn
-                  :disabled="!check_role($CONSTANTS.USER_ROLE_ADMIN)"
-                  icon="more_vert"
-                  dense
-                  flat
-                  rounded
-                  @click.stop
-                >
+                <q-btn icon="more_vert" dense flat rounded @click.stop>
                   <q-menu
                     anchor="bottom right"
                     self="top right"

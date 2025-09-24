@@ -59,7 +59,7 @@ const title = "Rincian Pengguna";
                   <tr>
                     <td>Hak Akses</td>
                     <td>:</td>
-                    <td>{{ $CONSTANTS.USER_ROLES[page.props.data.role] }}</td>
+                    <td>{{ $CONSTANTS.USER_TYPES[page.props.data.type] }}</td>
                   </tr>
                   <tr>
                     <td>Akun Kas Kasir</td>

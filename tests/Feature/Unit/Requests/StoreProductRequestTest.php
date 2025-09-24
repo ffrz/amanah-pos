@@ -63,7 +63,7 @@ class StoreProductRequestTest extends TestCase
         // Kita akan membuat user di sini, TAPI TIDAK AKAN memanggil actingAs()
         // Kita akan secara eksplisit meneruskan user ke createRequest() saat dibutuhkan.
         $this->user = User::factory()->create([
-            'role' => User::Role_Admin,
+            'role' => User::Type_SuperUser,
             'active' => true,
         ]);
 

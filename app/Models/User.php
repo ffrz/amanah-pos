@@ -39,15 +39,12 @@ class User extends BaseModel implements
         Notifiable,
         HasRoles;
 
-    public const Role_Admin = 'admin';
-    public const Role_Cashier = 'cashier';
-    public const Role_Owner = 'owner';
+    public const Type_SuperUser = 'super_user';
+    public const Type_StandardUser = 'standard_user';
 
-    // Display role di hardcode saja, tidak diambil dari translations
-    public const Roles = [
-        self::Role_Admin => 'Administrator',
-        self::Role_Cashier => 'Kasir',
-        self::Role_Owner => 'Owner',
+    public const Types = [
+        self::Type_SuperUser => 'Super User',
+        self::Type_StandardUser => 'Standar User',
     ];
 
     /**
@@ -60,7 +57,7 @@ class User extends BaseModel implements
         'username',
         'active',
         'password',
-        'role',  // TODO: remove jika sudah integrasi full pakai spatie laravel
+        'type',  // TODO: remove jika sudah integrasi full pakai spatie laravel
         'last_login_datetime',
         'last_activity_description',
         'last_activity_datetime',
@@ -88,7 +85,7 @@ class User extends BaseModel implements
             'name'                      => 'string',
             'username'                  => 'string',
             'active'                    => 'boolean',
-            'role'                      => 'string',
+            'type'                      => 'string',
             'last_login_datetime'       => 'datetime',
             'last_activity_description' => 'string',
             'last_activity_datetime'    => 'datetime',

@@ -1,6 +1,6 @@
-import dayjs from 'dayjs';
-import { can } from './auth';
-import { goBack } from './navigation';
+import dayjs from "dayjs";
+import { can } from "./auth";
+import { goBack } from "./navigation";
 
 export default {
   install(app) {
@@ -12,5 +12,5 @@ export default {
     app.config.globalProperties.$dayjs = dayjs;
     app.config.globalProperties.$config = window.CONFIG;
     app.config.globalProperties.$CONSTANTS = window.CONSTANTS;
-  }
+  },
 };

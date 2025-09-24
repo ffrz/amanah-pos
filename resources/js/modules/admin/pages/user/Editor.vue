@@ -3,9 +3,9 @@ import StandardCheckBox from "@/components/StandardCheckBox.vue";
 import { handleSubmit } from "@/helpers/client-req-handler";
 import { createOptions } from "@/helpers/options";
 import { validateUsername } from "@/helpers/validations";
-import { router, useForm, usePage } from "@inertiajs/vue3";
+import { useForm, usePage } from "@inertiajs/vue3";
 
-const roles = createOptions(window.CONSTANTS.USER_ROLES);
+const roles = createOptions(window.CONSTANTS.USER_TYPES);
 const page = usePage();
 const title = !!page.props.data.id ? "Edit Pengguna" : "Tambah Pengguna";
 
@@ -14,7 +14,7 @@ const form = useForm({
   name: page.props.data.name,
   username: page.props.data.username,
   password: "",
-  role: !!page.props.data.role ? page.props.data.role : roles[0].value,
+  type: !!page.props.data.type ? page.props.data.type : roles[0].value,
   active: !!page.props.data.active,
 });
 

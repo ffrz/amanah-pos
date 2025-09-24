@@ -32,13 +32,13 @@ class UserSeeder extends Seeder
         User::factory()->create([
             'username' => 'admin',
             'name' => 'Administrator',
-            'role' => User::Role_Admin,
+            'type' => User::Type_SuperUser,
             'active' => 1,
         ]);
         User::factory()->create([
             'username' => 'kasir1',
             'name' => 'Fahmi',
-            'role' => User::Role_Cashier,
+            'type' => User::Type_StandardUser,
             'active' => 1,
         ]);
         User::factory(5)->create();

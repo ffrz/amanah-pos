@@ -31,7 +31,7 @@ return new class extends Migration
             $table->string('username');
             $table->string('name');
             $table->string('password');
-            $table->string('role', 30);  // TODO: remove jika sudah integrasi full pakai spatie laravel
+            $table->string('type', 30);
             $table->boolean('active')->default(false);
             $table->datetime('last_login_datetime')->nullable();
             $table->string('last_activity_description')->default('');

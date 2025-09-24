@@ -374,7 +374,6 @@ const computedColumns = computed(() => {
                       <q-item
                         @click.stop="deleteItem(props.row)"
                         clickable
-                        :disabled="!check_role($CONSTANTS.USER_ROLE_ADMIN)"
                         v-ripple
                         v-close-popup
                       >

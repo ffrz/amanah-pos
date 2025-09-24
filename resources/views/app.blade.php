@@ -24,7 +24,7 @@
     };
     window.CONFIG.APP_VERSION_STR = "{{ config('app.version_str', '1.0.0') }}";
     window.CONSTANTS = <?= json_encode([
-                          'USER_ROLES' => \App\Models\User::Roles,
+                          'USER_TYPES' => \App\Models\User::Types,
                           'PRODUCT_TYPES' => \App\Models\Product::Types,
                           'STOCK_MOVEMENT_REF_TYPES' => \App\Models\StockMovement::RefTypes,
                           'STOCK_ADJUSTMENT_TYPES' => \App\Models\StockAdjustment::Types,
@@ -36,9 +36,8 @@
                           'PURCHASE_ORDER_PAYMENT_STATUSES' => \App\Models\PurchaseOrder::PaymentStatuses,
                           'PURCHASE_ORDER_DELIVERY_STATUSES' => \App\Models\PurchaseOrder::DeliveryStatuses,
                         ]) ?>;
-    window.CONSTANTS.USER_ROLE_ADMIN = "{{ \App\Models\User::Role_Admin }}";
-    window.CONSTANTS.USER_ROLE_CASHIER = "{{ \App\Models\User::Role_Cashier }}";
-    window.CONSTANTS.USER_ROLE_OWNER = "{{ \App\Models\User::Role_Owner }}";
+    window.CONSTANTS.USER_TYPE_SUPER_USER = "{{ \App\Models\User::Type_SuperUser }}";
+    window.CONSTANTS.USER_TYPE_STANDARD_USER = "{{ \App\Models\User::Type_StandardUser }}";
   </script>
   @routes
   @vite(['resources/js/app.js', 'resources/css/app.css'])

@@ -365,14 +365,7 @@ const showAttachment = (url) => {
                     Lihat Bukti
                   </q-tooltip>
                 </q-btn>
-                <q-btn
-                  :disabled="!check_role($CONSTANTS.USER_ROLE_ADMIN)"
-                  icon="more_vert"
-                  dense
-                  flat
-                  rounded
-                  @click.stop
-                >
+                <q-btn icon="more_vert" dense flat rounded @click.stop>
                   <q-menu
                     anchor="bottom right"
                     self="top right"

@@ -112,7 +112,8 @@ defineExpose({
                   <q-item-label>
                     <div class="text-bold">{{ page.props.auth.user.name }}</div>
                     <div class="text-grey-8 text-caption">
-                      {{ $CONSTANTS.USER_ROLES[page.props.auth.user.role] }} @
+                      {{ $CONSTANTS.USER_TYPES[page.props.auth.user.type] }}
+                      <br />
                       {{ page.props.company.name }}
                     </div>
                   </q-item-label>
@@ -586,7 +587,7 @@ defineExpose({
                 <q-icon name="group" />
               </q-item-section>
               <q-item-section>
-                <q-item-label>Role</q-item-label>
+                <q-item-label>Role Pengguna</q-item-label>
               </q-item-section>
             </q-item>
             <q-item

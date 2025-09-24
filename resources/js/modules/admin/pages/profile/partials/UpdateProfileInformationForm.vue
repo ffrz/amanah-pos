@@ -8,7 +8,7 @@ const user = page.props.auth.user;
 const form = useForm({
   name: user.name,
   username: user.username,
-  role: window.CONSTANTS.USER_ROLES[user.role],
+  type: window.CONSTANTS.USER_TYPES[user.type],
 });
 
 const submit = () => handleSubmit({ form, url: route("admin.profile.update") });
@@ -42,8 +42,8 @@ const submit = () => handleSubmit({ form, url: route("admin.profile.update") });
           hide-bottom-space
         />
         <q-input
-          v-model="form.role"
-          label="Hak Akses"
+          v-model="form.type"
+          label="Jenis Akun"
           :disable="form.processing"
           readonly
           hide-bottom-space

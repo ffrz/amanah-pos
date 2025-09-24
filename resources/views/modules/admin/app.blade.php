@@ -7,7 +7,7 @@
 @section('scripts')
 <script>
   window.CONSTANTS = <?= json_encode([
-                        'USER_ROLES' => \App\Models\User::Roles,
+                        'USER_TYPES' => \App\Models\User::Types,
                         'PRODUCT_TYPES' => \App\Models\Product::Types,
                         'CUSTOMER_TYPES' => \App\Models\Customer::Types,
                         'STOCK_MOVEMENT_REF_TYPES' => \App\Models\StockMovement::RefTypes,
@@ -25,9 +25,8 @@
                         'SALES_ORDER_PAYMENT_STATUSES' => \App\Models\SalesOrder::PaymentStatuses,
                         'SALES_ORDER_DELIVERY_STATUSES' => \App\Models\SalesOrder::DeliveryStatuses,
                       ]) ?>;
-  window.CONSTANTS.USER_ROLE_ADMIN = "{{ \App\Models\User::Role_Admin }}";
-  window.CONSTANTS.USER_ROLE_CASHIER = "{{ \App\Models\User::Role_Cashier }}";
-  window.CONSTANTS.USER_ROLE_OWNER = "{{ \App\Models\User::Role_Owner }}";
+  window.CONSTANTS.USER_TYPE_SUPER_USER = "{{ \App\Models\User::Type_SuperUser }}";
+  window.CONSTANTS.USER_TYPE_STANDARD_USER = "{{ \App\Models\User::Type_StandardUser }}";
 
   <?php
   /** @var \App\Models\User $user */

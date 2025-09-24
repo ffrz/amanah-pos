@@ -248,7 +248,6 @@ const computedColumns = computed(() => {
             <q-td key="action" :props="props">
               <div class="flex justify-end">
                 <q-btn
-                  :disabled="!check_role($CONSTANTS.USER_ROLE_ADMIN)"
                   icon="more_vert"
                   dense
                   flat

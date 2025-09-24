@@ -62,7 +62,7 @@ class RolesAndPermissionsSeeder extends Seeder
         }
 
         // Cari atau buat peran 'kasir'.
-        $role = Role::firstOrCreate(['name' => 'kasir']);
+        $role = Role::firstOrCreate(['name' => 'Kasir']);
 
         // Mass assign izin-izin dari array ke peran 'kasir'.
         // syncPermissions() akan menambahkan izin baru dan menghapus yang tidak ada di array.
@@ -74,7 +74,7 @@ class RolesAndPermissionsSeeder extends Seeder
             [
                 'name' => 'Kasir 1',
                 'password' => Hash::make('password'),
-                'role' => User::Role_Cashier, // masih butuh role karena belum integrasi penuh
+                'type' => User::Type_StandardUser, // masih butuh role karena belum integrasi penuh
                 'active' => true
             ]
         );
