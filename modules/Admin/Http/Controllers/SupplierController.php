@@ -19,7 +19,6 @@ namespace Modules\Admin\Http\Controllers;
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Supplier;
-use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
 

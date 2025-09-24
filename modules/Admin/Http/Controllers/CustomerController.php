@@ -18,7 +18,6 @@ namespace Modules\Admin\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
-use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -77,7 +76,7 @@ class CustomerController extends Controller
 
     public function editor($id = 0)
     {
-       $item = $id ? Customer::findOrFail($id) : new Customer(['active' => true]);
+        $item = $id ? Customer::findOrFail($id) : new Customer(['active' => true]);
         return inertia('customer/Editor', [
             'data' => $item,
         ]);

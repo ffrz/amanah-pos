@@ -19,7 +19,6 @@ namespace Modules\Admin\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\PurchaseOrder;
 use App\Models\Supplier;
-use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 

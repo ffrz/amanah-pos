@@ -18,7 +18,6 @@ namespace Modules\Admin\Http\Controllers;
 
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
-use App\Models\CashierSession;
 use App\Models\SalesOrder;
 use App\Models\Customer;
 use App\Models\CustomerWalletTransaction;
@@ -28,7 +27,6 @@ use App\Models\Product;
 use App\Models\SalesOrderDetail;
 use App\Models\SalesOrderPayment;
 use App\Models\StockMovement;
-use App\Models\User;
 use App\Services\CashierSessionService;
 use App\Services\FinanceTransactionService;
 use Carbon\Carbon;
@@ -204,7 +202,7 @@ class SalesOrderController extends Controller
 
     public function delete($id)
     {
-       $order = SalesOrder::with([
+        $order = SalesOrder::with([
             'details',
             'payments',
             'details.product',
@@ -214,12 +212,6 @@ class SalesOrderController extends Controller
         try {
             DB::beginTransaction();
             if ($order->status == SalesOrder::Status_Closed) {
-                // kurangi dari sesi aktif
-                $activeSession = CashierSessionService::getActiveSession();
-                if ($activeSession) {
-                    CashierSessionService::addToSales($activeSession->id, -$order->grand_total);
-                }
-
                 // refund stok
                 foreach ($order->details as $detail) {
                     $product = $detail->product;
@@ -561,12 +553,6 @@ class SalesOrderController extends Controller
             $order->due_date = $request->post('due_date', null);
             $order->cashier_id = Auth::user()->id;
             $order->save();
-
-            // tambahkan di sesi kasir
-            $activeSession = CashierSessionService::getActiveSession();
-            if ($activeSession) {
-                CashierSessionService::addToSales($activeSession->id, $order->grand_total);
-            }
 
             // 5. Perbarui stok produk secara massal
             foreach ($order->details as $detail) {

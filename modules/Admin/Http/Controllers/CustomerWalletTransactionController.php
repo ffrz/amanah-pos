@@ -22,7 +22,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Models\CustomerWalletTransaction;
 use App\Models\FinanceTransaction;
-use App\Models\User;
 use App\Services\CommonDataService;
 use App\Services\CustomerWalletTransactionService;
 use App\Services\FinanceTransactionService;

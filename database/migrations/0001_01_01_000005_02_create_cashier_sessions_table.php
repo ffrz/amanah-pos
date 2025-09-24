@@ -37,10 +37,6 @@ return new class extends Migration
             $table->datetime('opened_at')->nullable();
             $table->datetime('closed_at')->nullable();
 
-            $table->decimal('total_income', 12, 2)->nullable()->default(0.);
-            $table->decimal('total_expense', 12, 2)->nullable()->default(0.);
-            $table->decimal('total_sales', 12, 2)->nullable()->default(0.);
-
             $table->text('opening_notes')->nullable();
             $table->text('closing_notes')->nullable();
             $table->createdUpdatedTimestamps();

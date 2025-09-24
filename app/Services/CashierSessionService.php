@@ -29,25 +29,4 @@ class CashierSessionService
             ->where('is_closed', false)
             ->first();
     }
-
-    public static function addToIncome($id, $amount): void
-    {
-        $lockedSession = CashierSession::where('id', $id)->lockForUpdate()->first();
-        $lockedSession->total_income += abs($amount);
-        $lockedSession->save();
-    }
-
-    public static function addToExpense($id, $amount): void
-    {
-        $lockedSession = CashierSession::where('id', $id)->lockForUpdate()->first();
-        $lockedSession->total_expense += abs($amount);
-        $lockedSession->save();
-    }
-
-    public static function addToSales($id, $amount): void
-    {
-        $lockedSession = CashierSession::where('id', $id)->lockForUpdate()->first();
-        $lockedSession->total_sales += abs($amount);
-        $lockedSession->save();
-    }
 }

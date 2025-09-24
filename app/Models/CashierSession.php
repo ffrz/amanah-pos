@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
@@ -24,15 +25,14 @@ class CashierSession extends BaseModel
         'cashier_terminal_id',
         'opening_balance',
         'closing_balance',
-        'total_income',
-        'total_expense',
-        'total_sales',
         'is_closed',
         'opened_at',
         'closed_at',
         'opening_notes',
         'closing_notes',
     ];
+
+    protected $appends = ['total_income', 'total_expense', 'total_sales'];
 
     /**
      * The attributes that should be cast to native types.
@@ -76,5 +76,60 @@ class CashierSession extends BaseModel
     public function financeTransactions(): BelongsToMany
     {
         return $this->belongsToMany(FinanceTransaction::class, 'cashier_session_transactions');
+    }
+
+    /**
+     * Dapatkan total pemasukan untuk sesi kasir.
+     *
+     * @return float
+     */
+    public function getTotalIncomeAttribute(): float
+    {
+        $accountId = $this->cashierTerminal->financeAccount->id ?? null;
+
+        if (!$accountId) {
+            return 0;
+        }
+
+        return FinanceTransaction::where('account_id', $accountId)
+            ->whereBetween('datetime', [$this->opened_at, $this->closed_at ?? Carbon::now()])
+            ->where('amount', '>', 0)
+            ->sum('amount');
+    }
+
+    /**
+     * Dapatkan total pengeluaran untuk sesi kasir.
+     *
+     * @return float
+     */
+    public function getTotalExpenseAttribute(): float
+    {
+        $accountId = $this->cashierTerminal->financeAccount->id ?? null;
+
+        if (!$accountId) {
+            return 0;
+        }
+
+        $totalExpense = FinanceTransaction::where('account_id', $accountId)
+            ->whereBetween('datetime', [$this->opened_at, $this->closed_at ?? Carbon::now()])
+            ->where('amount', '<', 0)
+            ->sum('amount');
+
+        return abs($totalExpense);
+    }
+
+    /**
+     * Dapatkan total penjualan untuk sesi kasir.
+     *
+     * @return float
+     */
+    public function getTotalSalesAttribute(): float
+    {
+        // Data mungkin salah karena datetime di SalesOrder bisa di edit
+
+        return SalesOrder::where('cashier_id', $this->user_id)
+            ->where('status', 'closed')
+            ->whereBetween('datetime', [$this->opened_at, $this->closed_at ?? Carbon::now()])
+            ->sum('grand_total');
     }
 }

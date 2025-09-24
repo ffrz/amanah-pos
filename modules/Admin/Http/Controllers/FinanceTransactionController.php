@@ -19,10 +19,9 @@ namespace Modules\Admin\Http\Controllers;
 use App\Helpers\ImageUploaderHelper;
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
-use App\Models\FinanceAccount;
 use App\Models\FinanceTransaction;
-use App\Models\User;
 use App\Services\CommonDataService;
+use App\Services\FinanceTransactionService;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -31,12 +30,15 @@ use Illuminate\Support\Facades\DB;
 class FinanceTransactionController extends Controller
 {
     protected $commonDataService;
+    protected $financeTransactionService;
 
-    public function __construct(CommonDataService $commonDataService) // Inject CommonDataService
-    {
+    public function __construct(
+        CommonDataService $commonDataService,
+        FinanceTransactionService $financeTransactionService
+    ) {
         $this->commonDataService = $commonDataService;
+        $this->financeTransactionService = $financeTransactionService;
     }
-
     public function index()
     {
         return inertia('finance-transaction/Index', [
@@ -93,7 +95,6 @@ class FinanceTransactionController extends Controller
 
     public function editor($id = 0)
     {
-        allowed_roles([User::Role_Admin]);
         $item = $id ? FinanceTransaction::findOrFail($id) : new FinanceTransaction(['datetime' => Carbon::now()]);
         return inertia('finance-transaction/Editor', [
             'data' => $item,
@@ -144,9 +145,7 @@ class FinanceTransactionController extends Controller
                 $fromTransaction->save();
 
                 // Update saldo akun asal
-                $fromAccount = $fromTransaction->account;
-                $fromAccount->balance += $fromTransaction->amount;
-                $fromAccount->save();
+                $this->financeTransactionService->addToBalance($fromTransaction->account, $fromTransaction->amount);
 
                 // Transaksi masuk ke akun tujuan
                 $toTransaction = new FinanceTransaction();
@@ -161,9 +160,7 @@ class FinanceTransactionController extends Controller
                 $toTransaction->save();
 
                 // Update saldo akun tujuan
-                $toAccount = $toTransaction->account;
-                $toAccount->balance += $toTransaction->amount;
-                $toAccount->save();
+                $this->financeTransactionService->addToBalance($toTransaction->account, $toTransaction->amount);
 
                 // Link untuk keperluan delete
                 $fromTransaction->ref_type = FinanceTransaction::RefType_FinanceTransaction;
@@ -196,9 +193,8 @@ class FinanceTransactionController extends Controller
                 ]);
                 $transaction->save();
 
-                $account = $transaction->account;
-                $account->balance += $amount;
-                $account->save();
+                // update saldo
+                $this->financeTransactionService->addToBalance($transaction->account, $transaction->amount);
 
                 DB::commit();
 
@@ -219,7 +215,6 @@ class FinanceTransactionController extends Controller
 
     public function delete($id)
     {
-        allowed_roles([User::Role_Admin]);
 
         try {
             $item = FinanceTransaction::findOrFail($id);
@@ -230,15 +225,14 @@ class FinanceTransactionController extends Controller
             }
 
             DB::beginTransaction();
-            $item->account->balance -= $item->amount;
-            $item->account->save();
+
+            $this->financeTransactionService->addToBalance($item->account, -$item->amount);
 
             if ($item->type === FinanceTransaction::Type_Transfer && $item->ref_type === FinanceTransaction::RefType_FinanceTransaction && $item->ref_id) {
                 $pair = FinanceTransaction::find($item->ref_id);
                 if ($pair) {
                     // Kembalikan saldo akun tujuan
-                    $pair->account->balance -= $pair->amount;
-                    $pair->account->save();
+                    $this->financeTransactionService->addToBalance($pair->account, -$pair->amount);
 
                     // Hapus pasangan
                     $pair->delete();

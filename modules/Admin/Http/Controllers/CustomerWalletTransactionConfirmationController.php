@@ -21,13 +21,10 @@ use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\CustomerWalletTransaction;
 use App\Models\CustomerWalletTransactionConfirmation;
-use App\Models\FinanceAccount;
 use App\Models\FinanceTransaction;
-use App\Models\User;
 use App\Services\CustomerWalletTransactionService;
 use App\Services\FinanceTransactionService;
 use Carbon\Carbon;
-use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -154,7 +151,7 @@ class CustomerWalletTransactionConfirmationController extends Controller
 
     public function delete($id)
     {
-       $item = CustomerWalletTransactionConfirmation::findOrFail($id);
+        $item = CustomerWalletTransactionConfirmation::findOrFail($id);
 
         DB::beginTransaction();
         try {
