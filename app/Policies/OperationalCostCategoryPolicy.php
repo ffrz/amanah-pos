@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\OperationalCostCategory;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class OperationalCostCategoryPolicy
 {
@@ -13,7 +12,7 @@ class OperationalCostCategoryPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasRole(User::Role_Admin);
+        return true;
     }
 
     /**
@@ -21,7 +20,7 @@ class OperationalCostCategoryPolicy
      */
     public function view(User $user, OperationalCostCategory $operationalCostCategory): bool
     {
-        return $user->hasRole(User::Role_Admin);
+        return true;
     }
 
     /**
@@ -29,7 +28,7 @@ class OperationalCostCategoryPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasRole(User::Role_Admin);
+        return true;
     }
 
     /**
@@ -37,7 +36,7 @@ class OperationalCostCategoryPolicy
      */
     public function update(User $user, OperationalCostCategory $operationalCostCategory): bool
     {
-        return $user->hasRole(User::Role_Admin);
+        return true;
     }
 
     /**
@@ -45,22 +44,6 @@ class OperationalCostCategoryPolicy
      */
     public function delete(User $user, OperationalCostCategory $operationalCostCategory): bool
     {
-        return $user->hasRole(User::Role_Admin);
-    }
-
-    /**
-     * Determine whether the user can restore the model.
-     */
-    public function restore(User $user, OperationalCostCategory $operationalCostCategory): bool
-    {
-        return $user->hasRole(User::Role_Admin);
-    }
-
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
-    public function forceDelete(User $user, OperationalCostCategory $operationalCostCategory): bool
-    {
-        return $user->hasRole(User::Role_Admin);
+        return true;
     }
 }
