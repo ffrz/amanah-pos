@@ -151,7 +151,11 @@ class CashierSessionController extends Controller
     public function delete($id)
     {
         $item = CashierSession::findOrFail($id);
-        $item->delete();
-        return JsonResponseHelper::success($item, "Sesi kasir $item->name telah dihapus.");
+        try {
+            $item->delete();
+            return JsonResponseHelper::success($item, "Sesi kasir #$item->id telah dihapus.");
+        } catch (\Throwable $ex) {
+            return JsonResponseHelper::error("Sesi kasir #$item->id tidak dapat dihapus.", 500, $ex);
+        }
     }
 }
