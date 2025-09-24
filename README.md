@@ -1,44 +1,43 @@
 # AmanahPOS
 
-**AmanahPOS** adalah sistem aplikasi koperasi digital berbasis web yang dirancang khusus untuk lingkungan pondok pesantren. Fokus utama sistem ini adalah pencatatan saldo santri yang transparan dan terintegrasi dengan sistem penjualan internal koperasi (POS). Aplikasi ini memudahkan operator, wali santri, dan manajemen koperasi untuk mengelola keuangan santri secara amanah, efisien, dan real-time.
+**AmanahPOS** adalah sistem aplikasi Point of Sales (POS) digital berbasis web yang dirancang untuk mendukung operasional bisnis retail. Sistem ini menawarkan pencatatan transaksi yang transparan dan terintegrasi penuh dengan manajemen keuangan, stok, dan pelanggan. Aplikasi ini memungkinkan pemilik bisnis, manajer, dan kasir untuk mengelola operasional secara efisien, akurat, dan real-time.
 
 ---
 
 ## 🎯 Tujuan Utama
-
--   Memberikan solusi digital untuk koperasi pondok pesantren.
--   Mencatat saldo santri secara akurat setiap kali ada topup, pembelanjaan, atau penarikan.
--   Memberikan akses kepada wali santri untuk memantau saldo dan riwayat transaksi anaknya.
--   Mengintegrasikan sistem saldo dengan aplikasi kasir internal koperasi (POS).
--   Membangun ekosistem keuangan pondok yang efisien dan transparan.
+- Menyediakan solusi POS all-in-one untuk berbagai jenis bisnis retail.
+- Mencatat setiap transaksi penjualan dan pengeluaran secara akurat, terintegrasi langsung dengan sistem keuangan.
+- Menyediakan akses bagi pemilik bisnis untuk memantau laporan penjualan, stok, dan kinerja kasir.
+- Mengintegrasikan sistem POS dengan manajemen stok dan pembayaran digital.
+- Membangun ekosistem bisnis yang efisien, transparan, dan terotomatisasi.
 
 ---
 
 ## 🚀 Fitur Utama (MVP)
 
-### 👤 Operator/Admin
+###🛒 Penjualan (POS)
+- Antarmuka kasir yang intuitif dan responsif.
+- Dukungan untuk berbagai metode pembayaran (tunai, kartu debit/kredit, e-wallet, dll).
+- Integrasi otomatis dengan sistem stok.
+- Manajemen pesanan dan diskon.
 
--   Input top-up saldo santri
--   Catat pembelian/penarikan saldo
--   Persetujuan konfirmasi topup
--   Lihat dan kelola riwayat transaksi
--   Dashboard saldo dan laporan
+###💰 Keuangan & Biaya Operasional
+- Pencatatan pemasukan dan pengeluaran operasional.
+- Manajemen saldo akun keuangan secara real-time.
+- Laporan keuangan terperinci (neraca, laba rugi, arus kas).
+- Pencatatan utang dan piutang.
 
-### 🧑‍🎓 Santri / Wali Santri
+###📦 Manajemen Stok
+- Pelacakan stok secara real-time.
+- Manajemen produk dengan kategori dan variasi.
+- Otomatisasi pembaruan stok setelah penjualan.
+- Laporan inventaris.
 
--   Akses link login untuk melihat:
-    -   Saldo terakhir
-    -   Riwayat transaksi
-    -   Informasi topup terbaru
-    -   Konfirmasi topup
-    -   Withdrawal (in review)
-
-### 💵 Penjualan (POS - Tahap Lanjutan)
-
--   Transaksi pembelian di koperasi
--   Potong saldo otomatis
--   Integrasi dengan sistem stok
-
+###📊 Laporan & Analisis
+- Dashboard visual untuk memantau performa bisnis.
+- Laporan penjualan berdasarkan periode waktu, produk, dan kasir.
+- Analisis tren penjualan dan biaya operasional.
+  
 ---
 
 ## 📦 Teknologi yang Digunakan
