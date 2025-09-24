@@ -389,7 +389,7 @@ const showAttachment = (url) => {
                         <q-item-section avatar>
                           <q-icon name="file_copy" />
                         </q-item-section>
-                        <q-item-section icon="copy"> Duplikat </q-item-section>
+                        <q-item-section> Duplikat </q-item-section>
                       </q-item>
                       <q-item
                         clickable
@@ -404,7 +404,7 @@ const showAttachment = (url) => {
                         <q-item-section avatar>
                           <q-icon name="edit" />
                         </q-item-section>
-                        <q-item-section icon="edit">Edit</q-item-section>
+                        <q-item-section>Edit</q-item-section>
                       </q-item>
                       <q-item
                         @click.stop="deleteItem(props.row)"

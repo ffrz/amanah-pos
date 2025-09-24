@@ -2,13 +2,14 @@
 import { computed, onMounted, reactive, ref } from "vue";
 import { router, usePage } from "@inertiajs/vue3";
 import { handleDelete, handleFetchItems } from "@/helpers/client-req-handler";
-import { check_role, getQueryParams } from "@/helpers/utils";
+import { getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
 import { useProductCategoryFilter } from "@/composables/useProductCategoryFilter";
 import { useSupplierFilter } from "@/composables/useSupplierFilter";
 import { formatNumber } from "@/helpers/formatter";
 import { createOptions } from "@/helpers/options";
 import useTableHeight from "@/composables/useTableHeight";
+import LongTextView from "@/components/LongTextView.vue";
 
 const page = usePage();
 const tableRef = ref(null);
@@ -156,27 +157,6 @@ const goToDetail = (props) => {
     <template #title>{{ title }}</template>
     <template #right-button>
       <q-btn
-        v-if="$can('admin.product.import')"
-        icon="move_to_inbox"
-        dense
-        rounded
-        flat
-        class="q-ml-sm"
-        color="orange"
-        @click="router.get(route('admin.product.import'))"
-      />
-      <q-btn
-        v-if="$can('admin.product:view-cost')"
-        class="q-mr-sm"
-        :icon="!showCostColumn ? 'visibility_off' : 'visibility'"
-        label=""
-        dense
-        rounded
-        flat
-        color="grey"
-        @click="showCostColumn = !showCostColumn"
-      />
-      <q-btn
         :icon="!showFilter ? 'filter_alt' : 'filter_alt_off'"
         color="grey"
         dense
@@ -193,6 +173,56 @@ const goToDetail = (props) => {
         color="primary"
         @click="router.get(route('admin.product.add'))"
       />
+      <q-btn
+        icon="more_vert"
+        dense
+        flat
+        rounded
+        @click.stop
+        class="q-ml-sm"
+        v-if="$can('admin.product.import') || $can('admin.product:view-cost')"
+      >
+        <q-menu
+          anchor="bottom right"
+          self="top right"
+          transition-show="scale"
+          transition-hide="scale"
+        >
+          <q-list style="width: 200px">
+            <q-item
+              v-if="$can('admin.product.import')"
+              clickable
+              v-ripple
+              v-close-popup
+              @click="showCostColumn = !showCostColumn"
+            >
+              <q-item-section avatar>
+                <q-icon
+                  :name="!showCostColumn ? 'visibility_off' : 'visibility'"
+                />
+              </q-item-section>
+              <q-item-section
+                >{{
+                  showCostColumn ? "Sembunyikan" : "Tampilkan"
+                }}
+                Modal</q-item-section
+              >
+            </q-item>
+            <q-item
+              v-if="$can('admin.product.import')"
+              clickable
+              v-ripple
+              v-close-popup
+              @click.stop="router.get(route('admin.product.import'))"
+            >
+              <q-item-section avatar>
+                <q-icon name="csv" />
+              </q-item-section>
+              <q-item-section>Import</q-item-section>
+            </q-item>
+          </q-list>
+        </q-menu>
+      </q-btn>
     </template>
     <template #header v-if="showFilter">
       <q-toolbar class="filter-bar" ref="filterToolbarRef">
@@ -321,8 +351,8 @@ const goToDetail = (props) => {
           <q-tr :props="props" :class="{ inactive: !props.row.active }">
             <q-td auto-width>
               <q-btn
-                size="xs"
-                color="grey"
+                size="sm"
+                flat
                 round
                 dense
                 @click.prevent="props.expand = !props.expand"
@@ -338,16 +368,7 @@ const goToDetail = (props) => {
               @click="goToDetail(props)"
             >
               {{ props.row.name }}
-              <div v-if="props.row.category_id" class="text-grey-8">
-                <q-icon name="category" />
-                {{ props.row.category.name }}
-              </div>
-              <template v-if="$can('admin.product:view-supplier')">
-                <div v-if="props.row.supplier_id" class="text-grey-8">
-                  <q-icon name="local_shipping" />
-                  {{ props.row.supplier.name }}
-                </div>
-              </template>
+
               <template v-if="!$q.screen.gt.sm">
                 <div v-if="props.row.type == 'stocked'">
                   <q-icon name="cycle" /> Stok:
@@ -401,9 +422,9 @@ const goToDetail = (props) => {
                     )
                   "
                   icon="more_vert"
+                  rounded
                   dense
                   flat
-                  style="height: 40px; width: 30px"
                   @click.stop
                 >
                   <q-menu
@@ -412,7 +433,7 @@ const goToDetail = (props) => {
                     transition-show="scale"
                     transition-hide="scale"
                   >
-                    <q-list style="width: 200px">
+                    <q-list style="width: 175px">
                       <q-item
                         v-if="$can('admin.product.add')"
                         clickable
@@ -427,7 +448,7 @@ const goToDetail = (props) => {
                         <q-item-section avatar>
                           <q-icon name="file_copy" />
                         </q-item-section>
-                        <q-item-section icon="copy">Duplikat</q-item-section>
+                        <q-item-section>Duplikat</q-item-section>
                       </q-item>
                       <q-item
                         v-if="$can('admin.product.edit')"
@@ -441,7 +462,7 @@ const goToDetail = (props) => {
                         <q-item-section avatar>
                           <q-icon name="edit" />
                         </q-item-section>
-                        <q-item-section icon="edit">Edit</q-item-section>
+                        <q-item-section>Edit</q-item-section>
                       </q-item>
                       <q-item
                         v-if="$can('admin.product.delete')"
@@ -463,7 +484,32 @@ const goToDetail = (props) => {
           </q-tr>
           <q-tr v-show="props.expand" :props="props">
             <q-td colspan="100%">
-              <q-icon name="notes" /> {{ props.row.description }}
+              <div v-if="props.row.barcode">
+                <q-icon class="inline-icon" name="barcode" />
+                Barcode: {{ props.row.barcode }}
+              </div>
+              <div v-if="props.row.category_id">
+                <q-icon name="category" class="inline-icon" />
+                Kategori: {{ props.row.category.name }}
+              </div>
+              <template v-if="$can('admin.product:view-supplier')">
+                <div v-if="props.row.supplier_id">
+                  <q-icon name="local_shipping" class="inline-icon" />
+                  Supplier: {{ props.row.supplier.name }}
+                </div>
+              </template>
+              <LongTextView
+                v-if="props.row.description"
+                :text="props.row.description"
+                icon="notes"
+                :max-length="200"
+              />
+              <LongTextView
+                v-if="props.row.notes"
+                :text="props.row.notes"
+                icon="notes"
+                :max-length="200"
+              />
             </q-td>
           </q-tr>
         </template>

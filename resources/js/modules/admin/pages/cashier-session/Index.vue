@@ -247,13 +247,7 @@ const computedColumns = computed(() => {
             </q-td>
             <q-td key="action" :props="props">
               <div class="flex justify-end">
-                <q-btn
-                  icon="more_vert"
-                  dense
-                  flat
-                  rounded
-                  @click.stop
-                >
+                <q-btn icon="more_vert" dense flat rounded @click.stop>
                   <q-menu
                     anchor="bottom right"
                     self="top right"
@@ -276,9 +270,7 @@ const computedColumns = computed(() => {
                         <q-item-section avatar>
                           <q-icon name="logout" />
                         </q-item-section>
-                        <q-item-section icon="logout"
-                          >Tutup Sesi Kasir</q-item-section
-                        >
+                        <q-item-section>Tutup Sesi Kasir</q-item-section>
                       </q-item>
                       <q-item
                         v-if="$can('admin.cashier-session.delete')"

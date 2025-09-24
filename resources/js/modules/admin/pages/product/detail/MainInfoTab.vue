@@ -28,7 +28,7 @@ const marginInfo = (price) => {
         <tr>
           <td style="width: 120px">ID</td>
           <td style="width: 1px">:</td>
-          <td># {{ product.id }}</td>
+          <td>{{ product.formatted_id }}</td>
         </tr>
         <tr>
           <td>Nama Produk</td>
@@ -74,7 +74,7 @@ const marginInfo = (price) => {
                   })
                 "
               >
-                {{ "#" + product.supplier.id + " - " + product.supplier.name }}
+                {{ product.supplier.name }}
               </i-link>
             </template>
             <template v-else>

@@ -126,6 +126,7 @@ const computedColumns = computed(() => {
         @click="showFilter = !showFilter"
       />
       <q-btn
+        v-if="$can('admin.customer.add')"
         icon="add"
         dense
         rounded
@@ -133,7 +134,15 @@ const computedColumns = computed(() => {
         color="primary"
         @click="router.get(route('admin.customer.add'))"
       />
-      <q-btn icon="more_vert" dense flat rounded @click.stop class="q-ml-sm">
+      <q-btn
+        icon="more_vert"
+        dense
+        flat
+        rounded
+        @click.stop
+        class="q-ml-sm"
+        v-if="$can('admin.customer.import')"
+      >
         <q-menu
           anchor="bottom right"
           self="top right"
@@ -142,6 +151,7 @@ const computedColumns = computed(() => {
         >
           <q-list style="width: 200px">
             <q-item
+              v-if="$can('admin.customer.import')"
               clickable
               v-ripple
               v-close-popup
@@ -278,7 +288,7 @@ const computedColumns = computed(() => {
                         <q-item-section avatar>
                           <q-icon name="edit" />
                         </q-item-section>
-                        <q-item-section icon="edit">Edit</q-item-section>
+                        <q-item-section>Edit</q-item-section>
                       </q-item>
                       <q-item
                         @click.stop="deleteItem(props.row)"

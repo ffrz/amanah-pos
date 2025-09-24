@@ -301,3 +301,14 @@ table.detail tr:nth-child(even) td {
   max-width: 350px !important;
   white-space: normal !important;
 }
+
+.q-menu .q-item__section--avatar {
+    min-width: inherit !important;
+}
+.q-menu .q-item__section--side > .q-icon {
+    font-size: 18px !important;
+    color: #333;
+}
+.q-menu .q-item {
+  min-height: 40px !important;
+}
