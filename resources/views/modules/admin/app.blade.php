@@ -24,6 +24,7 @@
                         'SALES_ORDER_STATUSES' => \App\Models\SalesOrder::Statuses,
                         'SALES_ORDER_PAYMENT_STATUSES' => \App\Models\SalesOrder::PaymentStatuses,
                         'SALES_ORDER_DELIVERY_STATUSES' => \App\Models\SalesOrder::DeliveryStatuses,
+                        'SALES_ORDER_PAYMENT_TYPES' => \App\Models\SalesOrderPayment::Types,
                       ]) ?>;
   window.CONSTANTS.USER_TYPE_SUPER_USER = "{{ \App\Models\User::Type_SuperUser }}";
   window.CONSTANTS.USER_TYPE_STANDARD_USER = "{{ \App\Models\User::Type_StandardUser }}";

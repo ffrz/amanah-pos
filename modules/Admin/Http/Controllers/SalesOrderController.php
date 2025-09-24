@@ -101,6 +101,10 @@ class SalesOrderController extends Controller
             }
         }
 
+        if (!empty($filter['customer_id']) && $filter['customer_id'] !== 'all') {
+            $q->where('customer_id', $filter['customer_id']);
+        }
+
         // $q->select(['id', 'total_price', 'datetime', 'status', 'payment_status', 'delivery_status'])
         $q->orderBy($orderBy, $orderType);
 
@@ -165,14 +169,14 @@ class SalesOrderController extends Controller
             return JsonResponseHelper::error('Order tidak dapat diubah.', 403);
         }
 
-        $customer = Customer::findOrFail($request->post('customer_id'));
+        $customer = Customer::find($request->post('customer_id'));
 
         // Nilai awal customer info dari saat diganti customer
-        $item->customer_id = $customer->id;
-        $item->customer_username = $customer->username;
-        $item->customer_name = $customer->name;
-        $item->customer_phone = $customer->phone;
-        $item->customer_address = $customer->address;
+        $item->customer_id = $customer ? $customer->id : null;
+        $item->customer_username = $customer?->username;
+        $item->customer_name = $customer?->name;
+        $item->customer_phone = $customer?->phone;
+        $item->customer_address = $customer?->address;
 
         $item->notes = $request->post('notes', '');
         $item->datetime = $request->post('datetime', Carbon::now());
@@ -183,6 +187,7 @@ class SalesOrderController extends Controller
         // $item->delivery_status = $request->post('delivery_status', SalesOrder::DeliveryStatus_ReadyForPickUp);
 
         $item->save();
+
         return JsonResponseHelper::success($item, 'Order telah diperbarui');
     }
 
@@ -275,7 +280,15 @@ class SalesOrderController extends Controller
     public function detail($id)
     {
         return inertia('sales-order/Detail', [
-            'data' => SalesOrder::with(['customer', 'details'])
+            'data' => SalesOrder::with([
+                'cashier',
+                'customer',
+                'details',
+                'payments',
+                'payments.account',
+                'cashierSession',
+                'cashierSession.cashierTerminal'
+            ])
                 ->findOrFail($id),
         ]);
     }
@@ -403,6 +416,8 @@ class SalesOrderController extends Controller
         // update total dan subtotal baru
         $order->total_cost  += $detail->subtotal_cost;
         $order->total_price += $detail->subtotal_price;
+        // FIX ME: ganti perhitungan jika sudah ada pajak dan diskon
+        $order->grand_total = $order->total_price;
         $order->save();
 
         DB::commit();

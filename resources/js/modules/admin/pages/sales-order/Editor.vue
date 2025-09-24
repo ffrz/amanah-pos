@@ -33,7 +33,7 @@ const showHelpDialog = ref(false);
 const authLayoutRef = ref(null);
 const targetDiv = ref(null);
 const { isFullscreen, toggleFullscreen } = useFullscreen(targetDiv);
-const title = page.props.company.name;
+const title = page.props.data.formatted_id;
 const customer = ref(page.props.data.customer);
 const payment = ref(null);
 const userInput = ref("");
@@ -134,7 +134,6 @@ const addItem = async () => {
   }
 
   if (inputBarcode.length === 0) {
-    alert("di kedua");
     showProductBrowserDialog.value = true;
     return;
   }
@@ -409,13 +408,12 @@ const invoicePreview = () => {
 
 <template>
   <i-head :title="title" />
-  <authenticated-layout ref="authLayoutRef" :show-drawer-button="false">
+  <authenticated-layout ref="authLayoutRef" :show-drawer-button="true">
     <template #title>{{ title }}</template>
 
     <template #left-button>
       <div class="q-gutter-sm">
         <q-btn
-          v-if="$q.screen.gt.sm"
           icon="arrow_back"
           dense
           color="grey-7"
@@ -437,6 +435,7 @@ const invoicePreview = () => {
           </div>
         </template>
         <q-btn
+          v-if="false"
           class="q-ml-sm"
           :icon="isFullscreen ? 'fullscreen_exit' : 'fullscreen'"
           dense

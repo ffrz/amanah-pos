@@ -148,7 +148,7 @@ const cancelItem = (row) => {
           return;
         }
 
-        rows.value[itemIndex].status = "dibatalkan";
+        rows.value[itemIndex].status = "canceled";
 
         $q.notify({
           message: response.data.message,

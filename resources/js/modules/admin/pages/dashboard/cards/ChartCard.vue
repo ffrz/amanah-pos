@@ -1,164 +1,156 @@
+<script setup>
+import { defineProps, computed } from "vue";
+import { formatNumber } from "@/helpers/formatter";
+import VChart from "vue-echarts";
+import { use } from "echarts/core";
+import { CanvasRenderer } from "echarts/renderers";
+import { BarChart, PieChart } from "echarts/charts";
+import {
+  TitleComponent,
+  TooltipComponent,
+  LegendComponent,
+  GridComponent,
+} from "echarts/components";
+
+use([
+  CanvasRenderer,
+  BarChart,
+  PieChart,
+  TitleComponent,
+  TooltipComponent,
+  LegendComponent,
+  GridComponent,
+]);
+
+const props = defineProps({
+  dashboardData: {
+    type: Object,
+    required: true,
+  },
+});
+
+const colors = ["#82B1FF", "#4DB6AC", "#FFB74D", "#9575CD"];
+
+const barChartOptions = computed(() => ({
+  title: {
+    text: "Penjualan Bulanan",
+    left: "center",
+  },
+  tooltip: {
+    trigger: "axis",
+    formatter: function (params) {
+      let result = params[0].name + "<br/>";
+      params.forEach(function (item) {
+        result +=
+          item.marker +
+          " " +
+          item.seriesName +
+          ": " +
+          formatNumber(item.value) +
+          "<br/>";
+      });
+      return result;
+    },
+  },
+  xAxis: {
+    type: "category",
+    data: props.dashboardData.monthly_sales.labels,
+    axisLabel: {
+      color: "#616161",
+    },
+  },
+  yAxis: {
+    type: "value",
+    axisLabel: {
+      formatter: (value) => formatNumber(value),
+      color: "#616161",
+    },
+  },
+  series: [
+    {
+      name: "Penjualan",
+      type: "bar",
+      data: props.dashboardData.monthly_sales.data,
+      itemStyle: {
+        borderRadius: [5, 5, 0, 0],
+        color: colors[0],
+      },
+    },
+  ],
+}));
+
+const pieChartOptions = computed(() => ({
+  title: {
+    text: "Distribusi Jenis Transaksi",
+    left: "center",
+  },
+  tooltip: {
+    trigger: "item",
+    formatter: function (params) {
+      return (
+        params.name +
+        "<br/>" +
+        params.seriesName +
+        ": " +
+        formatNumber(params.value) +
+        " (" +
+        params.percent +
+        "%)"
+      );
+    },
+  },
+  legend: {
+    orient: "vertical",
+    left: "left",
+    textStyle: {
+      color: "#616161",
+    },
+  },
+  series: [
+    {
+      name: "Jumlah Transaksi",
+      type: "pie",
+      radius: ["40%", "70%"],
+      data: props.dashboardData.transaction_type_distribution,
+      itemStyle: {
+        borderRadius: 5,
+        borderColor: "#fff",
+        borderWidth: 2,
+        color: (params) => {
+          return colors[params.dataIndex % colors.length];
+        },
+      },
+      emphasis: {
+        itemStyle: {
+          shadowBlur: 10,
+          shadowOffsetX: 0,
+          shadowColor: "rgba(0, 0, 0, 0.5)",
+        },
+      },
+    },
+  ],
+}));
+</script>
+
 <template>
-  <div class="row q-col-gutter-sm">
-    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-      <q-card square class="no-shadow" bordered style="background-color: #fff">
-        <q-card-section class="q-pa-none">
-          <ECharts
-            :option="monthly_orders_chart"
-            class="q-mt-md"
-            :resizable="true"
-            autoresize
-            style="height: 250px"
-          />
-        </q-card-section>
+  <div class="row q-col-gutter-sm q-pb-sm">
+    <div class="col-md-6 col-12">
+      <q-card square bordered flat class="full-width q-pa-md">
+        <div class="text-h6 q-pb-sm">Penjualan Bulanan</div>
+        <VChart class="chart" :option="barChartOptions" autoresize />
       </q-card>
     </div>
-    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-      <q-card class="no-shadow" square bordered style="background-color: #fff">
-        <q-card-section class="q-pa-none">
-          <ECharts
-            :option="monthly_closed_orders_chart"
-            class="q-mt-md"
-            :resizable="true"
-            autoresize
-            style="height: 250px"
-          />
-        </q-card-section>
+    <div class="col-md-6 col-12">
+      <q-card square bordered flat class="full-width q-pa-md">
+        <div class="text-h6 q-pb-sm">Distribusi Transaksi</div>
+        <VChart class="chart" :option="pieChartOptions" autoresize />
       </q-card>
     </div>
   </div>
 </template>
 
-<script setup>
-import * as echarts from "echarts";
-import ECharts from "vue-echarts";
-import { usePage } from "@inertiajs/vue3";
-
-const page = usePage();
-const monthly_orders_chart = {
-  tooltip: { show: true },
-  title: {
-    text: "Servis Diterima vs Sukses vs Gagal",
-    textStyle: { color: "#444" },
-    left: "center",
-  },
-  legend: {
-    top: "10%",
-    data: [
-      page.props.data.chart1_data.data[0].label,
-      page.props.data.chart1_data.data[1].label,
-      page.props.data.chart1_data.data[2].label,
-    ],
-  },
-  grid: { containLabel: true, left: "5px", bottom: "5px", right: "5px" },
-  xAxis: {
-    show: true,
-    type: "category",
-    data: page.props.data.chart1_data.x_axis_label_data,
-    axisLine: { lineStyle: { color: "#555", type: "dashed" } },
-    axisTick: {
-      show: true,
-      alignWithLabel: true,
-      lineStyle: { show: true, color: "#ccc", type: "dashed" },
-    },
-    axisLabel: { show: true },
-    boundaryGap: true,
-  },
-  yAxis: {
-    show: true,
-    type: "value",
-    axisLine: { lineStyle: { color: "#555", type: "dashed" } },
-    axisLabel: { show: true },
-    splitLine: {
-      lineStyle: { type: "dashed", color: "#ccc" },
-    },
-    axisTick: {
-      show: true,
-      lineStyle: { show: true, color: "#fff", type: "dashed" },
-    },
-  },
-  series: [
-    {
-      name: page.props.data.chart1_data.data[0].label,
-      type: "line",
-      lineStyle: { color: "#007bff" },
-      itemStyle: { color: "#007bff" },
-      smooth: true,
-      data: page.props.data.chart1_data.data[0].data,
-    },
-    {
-      name: page.props.data.chart1_data.data[1].label,
-      type: "line",
-      lineStyle: { color: "#28a745" },
-      itemStyle: { color: "#28a745" },
-      smooth: true,
-      data: page.props.data.chart1_data.data[1].data,
-    },
-    {
-      name: page.props.data.chart1_data.data[2].label,
-      type: "line",
-      lineStyle: { color: "#dc3545" },
-      itemStyle: { color: "#dc3545" },
-      smooth: true,
-      data: page.props.data.chart1_data.data[2].data,
-    },
-  ],
-  color: ["white"],
-};
-
-const monthly_closed_orders_chart = {
-  tooltip: { show: true },
-  title: {
-    text: "Pendapatan Servis",
-    textStyle: { color: "#444" },
-    left: "center",
-  },
-  legend: {
-    top: "10%",
-    data: [page.props.data.chart2_data.data[0].label],
-  },
-  grid: { containLabel: true, left: "5px", bottom: "5px", right: "5px" },
-  xAxis: {
-    show: true,
-    type: "category",
-    data: page.props.data.chart1_data.x_axis_label_data,
-    axisLine: { lineStyle: { color: "#555", type: "dashed" } },
-    axisTick: {
-      show: true,
-      alignWithLabel: true,
-      lineStyle: { show: true, color: "#ccc", type: "dashed" },
-    },
-    axisLabel: { show: true },
-    boundaryGap: true,
-  },
-  yAxis: {
-    show: true,
-    type: "value",
-    axisLine: { lineStyle: { color: "#555", type: "dashed" } },
-    axisLabel: { show: true },
-    splitLine: {
-      lineStyle: { type: "dashed", color: "#ccc" },
-    },
-    axisTick: {
-      show: true,
-      lineStyle: { show: true, color: "#fff", type: "dashed" },
-    },
-  },
-  series: [
-    {
-      name: page.props.data.chart2_data.data[0].label,
-      type: "bar",
-      itemStyle: { color: "#007bff" },
-      smooth: true,
-      data: page.props.data.chart2_data.data[0].data,
-    },
-  ],
-  color: ["white"],
-};
-</script>
-
 <style scoped>
-.q-card {
-  width: 100%;
+.chart {
+  height: 350px;
 }
 </style>

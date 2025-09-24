@@ -16,7 +16,7 @@ const print = () => {
 
 <template>
   <i-head :title="title" />
-  <authenticated-layout :show-drawer-button="false">
+  <authenticated-layout :show-drawer-button="true">
     <template #title>
       <div class="row items-center q-gutter-x-sm">
         <span>{{ title }}</span>
@@ -55,14 +55,19 @@ const print = () => {
           class="full-width"
           style="max-width: 1024px"
         >
-          <q-card-section class="q-pa-xs">
-            <div class="text-subtitle1 text-bold text-grey-8">
-              INVOICE #{{ data.formatted_id }}
-            </div>
-            <div class="text-caption text-grey-6">
-              {{
-                date.formatDate(data.transaction_date, "DD MMMM YYYY, HH:mm")
-              }}
+          <q-card-section class="q-pa-none">
+            <div class="bg-blue-4 q-pa-xs">
+              <div class="text-subtitle1 text-bold text-grey-10">
+                INVOICE #{{ data.formatted_id }}
+              </div>
+              <div class="text-caption text-grey-8">
+                Kasir: {{ data.cashier.username }} - {{ data.cashier.name }} |
+                {{ formatDateTime(data.datetime) }}
+                <template v-if="data.cashier_session">
+                  | Session ID: {{ data.cashier_session.id }} | Terminal:
+                  {{ data.cashier_session.cashier_terminal.name }}
+                </template>
+              </div>
             </div>
           </q-card-section>
 
@@ -119,7 +124,7 @@ const print = () => {
                       }}
                     </td>
                   </tr>
-                  <tr>
+                  <tr v-if="false">
                     <td class="text-grey-7">Status Pengiriman</td>
                     <td>:</td>
                     <td>
@@ -146,7 +151,7 @@ const print = () => {
 
           <q-card-section class="q-pa-sm">
             <table class="full-width" style="border-collapse: collapse">
-              <thead>
+              <thead class="text-grey-8">
                 <tr>
                   <th
                     class="text-left q-pa-sm"
@@ -226,29 +231,96 @@ const print = () => {
                     {{ formatNumber(data.grand_total) }}
                   </div>
                 </div>
-                <div class="col-12 row justify-between">
-                  <div class="text-subtitle2 text-green-7">
-                    Total Dibayar (Rp)
-                  </div>
-                  <div class="text-subtitle2 text-bold text-green-7">
-                    {{ formatNumber(data.total_paid) }}
-                  </div>
-                </div>
-                <div
-                  class="col-12 row justify-between"
-                  :class="remainingPayment > 0 ? 'text-red' : 'text-positive'"
-                >
-                  <div class="text-subtitle1 text-bold">Sisa Pembayaran</div>
-                  <div class="text-subtitle1 text-bold">
-                    {{
-                      remainingPayment > 0
-                        ? formatNumber(remainingPayment)
-                        : "LUNAS"
-                    }}
-                  </div>
-                </div>
               </div>
             </div>
+          </q-card-section>
+        </q-card>
+
+        <q-card
+          square
+          flat
+          bordered
+          class="full-width q-mt-sm"
+          style="max-width: 1024px"
+        >
+          <q-card-section class="q-pa-none">
+            <div class="bg-yellow-4 q-pa-xs">
+              <div class="text-subtitle1 text-bold text-grey-8">PEMBAYARAN</div>
+            </div>
+          </q-card-section>
+          <q-separator />
+          <q-card-section class="q-pa-sm">
+            <table class="full-width" style="border-collapse: collapse">
+              <thead class="text-grey-8">
+                <tr>
+                  <th
+                    class="text-left q-pa-sm"
+                    style="border-bottom: 2px solid #ddd"
+                  >
+                    ID
+                  </th>
+                  <th
+                    class="text-left q-pa-sm"
+                    style="border-bottom: 2px solid #ddd"
+                  >
+                    Waktu
+                  </th>
+                  <th
+                    class="text-left q-pa-sm"
+                    style="border-bottom: 2px solid #ddd"
+                  >
+                    Jenis
+                  </th>
+                  <th
+                    class="text-right q-pa-sm"
+                    style="border-bottom: 2px solid #ddd"
+                  >
+                    Jumlah (Rp)
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="item in data.payments" :key="item.id">
+                  <td class="q-pa-sm" style="border-bottom: 1px solid #eee">
+                    {{ item.id }}
+                  </td>
+                  <td class="q-pa-sm" style="border-bottom: 1px solid #eee">
+                    {{ formatDateTime(item.created_at) }}
+                  </td>
+                  <td
+                    class="text-left q-pa-sm"
+                    style="border-bottom: 1px solid #eee"
+                  >
+                    {{ $CONSTANTS.SALES_ORDER_PAYMENT_TYPES[item.type] }}
+                  </td>
+                  <td
+                    class="text-right q-pa-sm"
+                    style="border-bottom: 1px solid #eee"
+                  >
+                    {{ formatNumber(item.amount) }}
+                  </td>
+                </tr>
+                <tr v-if="data.payments.length == 0">
+                  <td colspan="100%" class="text-center text-grey">
+                    Belum ada item
+                  </td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th class="text-right q-pa-sm" colspan="3">Total Dibayar</th>
+                  <th class="text-right q-pa-sm">
+                    {{ formatNumber(data.total_paid) }}
+                  </th>
+                </tr>
+                <tr>
+                  <th class="text-right q-pa-sm" colspan="3">Sisa Tagihan</th>
+                  <th class="text-right q-pa-sm">
+                    {{ formatNumber(remainingPayment) }}
+                  </th>
+                </tr>
+              </tfoot>
+            </table>
           </q-card-section>
         </q-card>
       </div>
