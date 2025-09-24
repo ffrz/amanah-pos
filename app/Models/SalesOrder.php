@@ -17,12 +17,12 @@
 namespace App\Models;
 
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class SalesOrder extends BaseModel
 {
     protected $fillable = [
         'cashier_id',
+        'cashier_session_id',
 
         'customer_id',
         'customer_username',
@@ -202,5 +202,10 @@ class SalesOrder extends BaseModel
     public function cashier()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function cashierSession()
+    {
+        return $this->belongsTo(CashierSession::class, 'cashier_session_id');
     }
 }

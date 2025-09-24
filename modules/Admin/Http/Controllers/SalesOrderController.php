@@ -203,11 +203,20 @@ class SalesOrderController extends Controller
     public function delete($id)
     {
         $order = SalesOrder::with([
+            'cashierSession',
             'details',
             'payments',
             'details.product',
             'payments.account'
         ])->findOrFail($id);
+
+        $cashierSession = $order->cashierSession;
+        if ($cashierSession && $cashierSession->is_closed) {
+            return JsonResponseHelper::error(
+                "Transaksi tidak dapat dihapus! Sesi kasir untuk Order #$order->formatted_id sudah ditutup!",
+                403
+            );
+        }
 
         try {
             DB::beginTransaction();
@@ -546,12 +555,14 @@ class SalesOrderController extends Controller
                 $order->payment_status = SalesOrder::PaymentStatus_Unpaid;
             }
 
+            $cashierSession = CashierSessionService::getActiveSession();
+
             // FIXME: status langsung diambil tanpa harus seting di order
             $order->delivery_status = SalesOrder::DeliveryStatus_PickedUp;
-
             $order->status = SalesOrder::Status_Closed;
             $order->due_date = $request->post('due_date', null);
             $order->cashier_id = Auth::user()->id;
+            $order->cashier_session_id = $cashierSession ? $cashierSession->id : null;
             $order->save();
 
             // 5. Perbarui stok produk secara massal

@@ -128,7 +128,7 @@ onMounted(() => {
 
 const deleteItem = (row) =>
   handleDelete({
-    message: `Hapus transaksi #-${row.id}?`,
+    message: `Penghapusan transaksi keuangan bisa mengakibatkan data yang saling berkaitan di modul lain tidak konsisten. Anda setuju untuk menghapus transaksi ${row.formatted_id}?`,
     url: route("admin.finance-transaction.delete", row.id),
     fetchItemsCallback: fetchItems,
     loading,

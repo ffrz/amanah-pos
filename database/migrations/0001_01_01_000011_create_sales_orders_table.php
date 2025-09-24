@@ -30,6 +30,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('customer_id')->nullable()->constrained('customers')->onDelete('restrict');
             $table->foreignId('cashier_id')->nullable()->constrained('users')->onDelete('restrict');
+            $table->foreignId('cashier_session_id')->nullable()->constrained('cashier_sessions')->onDelete('restrict');
 
             $table->string('type', 40)->nullable()->deafult('');
 
@@ -59,6 +60,7 @@ return new class extends Migration
             $table->createdUpdatedTimestamps();
             $table->index(['customer_id']);
             $table->index(['cashier_id']);
+            $table->index(['cashier_session_id']);
             $table->index(['status']);
             $table->index(['payment_status']);
         });
