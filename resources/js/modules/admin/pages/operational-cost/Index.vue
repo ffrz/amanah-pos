@@ -180,6 +180,7 @@ const showAttachment = (url) => {
         @click="showFilter = !showFilter"
       />
       <q-btn
+        v-if="$can('admin.operational-cost.add')"
         icon="add"
         dense
         rounded
@@ -365,7 +366,18 @@ const showAttachment = (url) => {
                     Lihat Bukti
                   </q-tooltip>
                 </q-btn>
-                <q-btn icon="more_vert" dense flat rounded @click.stop>
+                <q-btn
+                  v-if="
+                    $can('admin.operational-cost.add') ||
+                    $can('admin.operational-cost.edit') ||
+                    $can('admin.operational-cost.delete')
+                  "
+                  icon="more_vert"
+                  dense
+                  flat
+                  rounded
+                  @click.stop
+                >
                   <q-menu
                     anchor="bottom right"
                     self="top right"
@@ -374,6 +386,7 @@ const showAttachment = (url) => {
                   >
                     <q-list style="width: 200px">
                       <q-item
+                        v-if="$can('admin.operational-cost.add')"
                         clickable
                         v-ripple
                         v-close-popup
@@ -392,6 +405,7 @@ const showAttachment = (url) => {
                         <q-item-section> Duplikat </q-item-section>
                       </q-item>
                       <q-item
+                        v-if="$can('admin.operational-cost.edit')"
                         clickable
                         v-ripple
                         v-close-popup
@@ -407,6 +421,7 @@ const showAttachment = (url) => {
                         <q-item-section>Edit</q-item-section>
                       </q-item>
                       <q-item
+                        v-if="$can('admin.operational-cost.delete')"
                         @click.stop="deleteItem(props.row)"
                         clickable
                         v-ripple

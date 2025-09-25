@@ -35,7 +35,7 @@ class CustomerController extends Controller
     public function detail($id = 0)
     {
         return inertia('customer/Detail', [
-            'data' => Customer::findOrFail($id),
+            'data' => Customer::with(['creator', 'updater'])->findOrFail($id),
         ]);
     }
 
@@ -77,8 +77,12 @@ class CustomerController extends Controller
         ]);
     }
 
-    public function editor($id = 0)
+    public function editor(Request $request, $id = 0)
     {
+        if ($request->getMethod() === Request::METHOD_POST) {
+            return $this->save($request);
+        }
+
         $item = $id ? Customer::findOrFail($id) : new Customer(['active' => true]);
         return inertia('customer/Editor', [
             'data' => $item,

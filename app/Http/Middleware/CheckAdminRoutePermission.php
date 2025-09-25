@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Constants\AppPermissions;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -45,6 +46,21 @@ class CheckAdminRoutePermission
             return $next($request);
         }
 
+        // untuk saat ini permision duplikat itu selalu sama dengan add
+        if (str_ends_with($routeName, '.duplicate')) {
+            $routeName = str_replace('.duplicate', '.add', $routeName);
+        }
+
+        // save gak ada di daftar permission tapi ada di route list
+        if (str_ends_with($routeName, '.save')) {
+            $routeName = str_replace('.save', '.add', $routeName);
+        }
+        // aliases
+        $aliases = AppPermissions::aliases();
+        if (isset($aliases[$routeName])) {
+            $routeName = $aliases[$routeName];
+        }
+
         // Mendefinisikan rute yang akan di-bypass dari pemeriksaan izin
         $bypassRoutes = [
             'admin.dashboard',
@@ -54,6 +70,12 @@ class CheckAdminRoutePermission
             'admin.profile.update-password',
 
             'admin.auth.logout',
+
+            // route berikut ini harus pakai authorization
+            'admin.sales-order.add-item',
+            'admin.sales-order.remove-item',
+            'admin.sales-order.update',
+            'admin.sales-order.update-item',
             // Tambahkan rute lain yang tidak memerlukan izin
         ];
 

@@ -414,12 +414,10 @@ const goToDetail = (props) => {
             <q-td key="action" :props="props">
               <div class="flex justify-end">
                 <q-btn
-                  :disabled="
-                    !(
-                      $can('admin.product.add') ||
-                      $can('admin.product.edit') ||
-                      $can('admin.product.delete')
-                    )
+                  v-if="
+                    $can('admin.product.add') ||
+                    $can('admin.product.edit') ||
+                    $can('admin.product.delete')
                   "
                   icon="more_vert"
                   rounded

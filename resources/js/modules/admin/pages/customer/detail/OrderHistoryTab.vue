@@ -4,11 +4,7 @@ import { getQueryParams } from "@/helpers/utils";
 import { router, usePage } from "@inertiajs/vue3";
 import { useQuasar } from "quasar";
 import { computed, onMounted, reactive, ref } from "vue";
-import {
-  formatDateTime,
-  formatMoneyWithSymbol,
-  formatNumber,
-} from "@/helpers/formatter";
+import { formatDateTime, formatNumber } from "@/helpers/formatter";
 import LongTextView from "@/components/LongTextView.vue";
 
 const page = usePage();

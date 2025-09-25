@@ -24,6 +24,7 @@ const title = "Rincian Pemasok";
     <template #right-button>
       <div class="q-gutter-sm">
         <q-btn
+          v-if="$can('admin.supplier.edit')"
           icon="edit"
           dense
           color="grey"

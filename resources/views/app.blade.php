@@ -35,6 +35,7 @@
                           'PURCHASE_ORDER_STATUSES' => \App\Models\PurchaseOrder::Statuses,
                           'PURCHASE_ORDER_PAYMENT_STATUSES' => \App\Models\PurchaseOrder::PaymentStatuses,
                           'PURCHASE_ORDER_DELIVERY_STATUSES' => \App\Models\PurchaseOrder::DeliveryStatuses,
+                          'CUSTOMER_TYPES' => \App\Models\Customer::Types,
                         ]) ?>;
     window.CONSTANTS.USER_TYPE_SUPER_USER = "{{ \App\Models\User::Type_SuperUser }}";
     window.CONSTANTS.USER_TYPE_STANDARD_USER = "{{ \App\Models\User::Type_StandardUser }}";

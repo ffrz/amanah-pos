@@ -28,6 +28,7 @@ const tab = ref("main");
     <template #right-button>
       <div class="q-gutter-sm">
         <q-btn
+          v-if="$can('admin.product.edit')"
           icon="edit"
           size="sm"
           dense

@@ -67,7 +67,6 @@ const fetchItems = (props = null) => {
   });
 };
 
-const onFilterChange = () => fetchItems();
 const onRowClicked = (row) =>
   router.get(route("admin.user-role.detail", { id: row.id }));
 const computedColumns = computed(() => {
@@ -90,6 +89,7 @@ const computedColumns = computed(() => {
         @click="showFilter = !showFilter"
       />
       <q-btn
+        v-if="$can('admin.user-role.add')"
         icon="add"
         dense
         rounded

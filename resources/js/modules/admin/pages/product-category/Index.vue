@@ -89,6 +89,7 @@ const computedColumns = computed(() => {
         @click="showFilter = !showFilter"
       />
       <q-btn
+        v-if="$can('admin.product-category.add')"
         icon="add"
         dense
         rounded
@@ -161,7 +162,18 @@ const computedColumns = computed(() => {
             </q-td>
             <q-td key="action" :props="props">
               <div class="flex justify-end">
-                <q-btn icon="more_vert" dense flat rounded @click.stop>
+                <q-btn
+                  v-if="
+                    $can('admin.product-category.add') ||
+                    $can('admin.product-category.edit') ||
+                    $can('admin.product-category.delete')
+                  "
+                  icon="more_vert"
+                  dense
+                  flat
+                  rounded
+                  @click.stop
+                >
                   <q-menu
                     anchor="bottom right"
                     self="top right"
@@ -170,6 +182,7 @@ const computedColumns = computed(() => {
                   >
                     <q-list style="width: 200px">
                       <q-item
+                        v-if="$can('admin.product-category.add')"
                         clickable
                         v-ripple
                         v-close-popup
@@ -188,6 +201,7 @@ const computedColumns = computed(() => {
                         <q-item-section>Duplikat</q-item-section>
                       </q-item>
                       <q-item
+                        v-if="$can('admin.product-category.edit')"
                         clickable
                         v-ripple
                         v-close-popup
@@ -203,6 +217,7 @@ const computedColumns = computed(() => {
                         <q-item-section>Edit</q-item-section>
                       </q-item>
                       <q-item
+                        v-if="$can('admin.product-category.delete')"
                         @click.stop="deleteItem(props.row)"
                         clickable
                         v-ripple

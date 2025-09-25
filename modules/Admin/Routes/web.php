@@ -147,11 +147,11 @@ Route::middleware([Auth::class])
             Route::prefix('customers')->group(function () {
                 Route::get('', [CustomerController::class, 'index'])->name('admin.customer.index');
                 Route::get('data', [CustomerController::class, 'data'])->name('admin.customer.data');
-                Route::get('add', [CustomerController::class, 'editor'])->name('admin.customer.add');
-                Route::get('duplicate/{id}', [CustomerController::class, 'duplicate'])->name('admin.customer.duplicate');
-                Route::get('edit/{id}', [CustomerController::class, 'editor'])->name('admin.customer.edit');
+                Route::match(['get', 'post'], 'add', [CustomerController::class, 'editor'])->name('admin.customer.add');
+                Route::match(['get', 'post'], 'duplicate/{id}', [CustomerController::class, 'duplicate'])->name('admin.customer.duplicate');
+                Route::match(['get', 'post'], 'edit/{id}', [CustomerController::class, 'editor'])->name('admin.customer.edit');
                 Route::get('detail/{id}', [CustomerController::class, 'detail'])->name('admin.customer.detail');
-                Route::post('save', [CustomerController::class, 'save'])->name('admin.customer.save');
+                // Route::post('save', [CustomerController::class, 'save'])->name('admin.customer.save');
                 Route::post('delete/{id}', [CustomerController::class, 'delete'])->name('admin.customer.delete');
                 Route::get('balance', [CustomerController::class, 'getBalance'])->name('admin.customer.balance');
                 Route::match(['get', 'post'], 'import', [CustomerController::class, 'import'])->name('admin.customer.import');

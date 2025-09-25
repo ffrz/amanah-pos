@@ -3,6 +3,7 @@ import { router, useForm, usePage } from "@inertiajs/vue3";
 import { handleSubmit } from "@/helpers/client-req-handler";
 import { scrollToFirstErrorField } from "@/helpers/utils";
 import StandardCheckBox from "@/components/StandardCheckBox.vue";
+import { createOptions } from "@/helpers/options";
 
 const page = usePage();
 const title = (!!page.props.data.id ? "Edit" : "Tambah") + " Pelanggan";
@@ -14,9 +15,18 @@ const form = useForm({
   address: page.props.data.address,
   active: !!page.props.data.active,
   password: page.props.data.password,
+  type: page.props.data.type,
 });
 
-const submit = () => handleSubmit({ form, url: route("admin.customer.save") });
+const types = createOptions(window.CONSTANTS.CUSTOMER_TYPES);
+
+const submit = () =>
+  handleSubmit({
+    form,
+    url: route("admin.customer." + (!page.props.data.id ? "add" : "edit"), {
+      id: form.id,
+    }),
+  });
 </script>
 
 <template>
@@ -70,6 +80,20 @@ const submit = () => handleSubmit({ form, url: route("admin.customer.save") });
                 lazy-rules
                 hide-bottom-space
               />
+              <q-select
+                v-model="form.type"
+                label="Jenis Akun"
+                :options="types"
+                map-options
+                emit-value
+                lazy-rules
+                :disable="form.processing"
+                transition-show="jump-up"
+                transition-hide="jump-up"
+                :error="!!form.errors.type"
+                :error-message="form.errors.type"
+                hide-bottom-space
+              />
               <q-input
                 v-model.trim="form.phone"
                 type="text"
@@ -100,10 +124,12 @@ const submit = () => handleSubmit({ form, url: route("admin.customer.save") });
                 hide-bottom-space
               />
               <q-input
+                autocomplete=""
+                aria-autocomplete="none"
                 v-model="form.password"
                 type="password"
                 :label="
-                  form.id
+                  !form.id
                     ? 'Kata Sandi Baru (Wajib diisi)'
                     : 'Kata Sandi (Isi jika ingin mengganti)'
                 "

@@ -54,13 +54,13 @@ const groupedPermissions = computed(() => {
     <template #right-button>
       <q-btn
         icon="save"
-        type="submit"
         label="Simpan"
         color="primary"
         :disable="form.processing"
         size="sm"
         dense
         class="custom-dense"
+        @click.prevent="submit"
       />
     </template>
     <q-page class="row justify-center">

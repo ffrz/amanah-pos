@@ -151,6 +151,7 @@ const showAttachment = (url) => {
         @click="showFilter = !showFilter"
       />
       <q-btn
+        v-if="$can('admin.customer-wallet-transaction.add')"
         icon="add"
         dense
         rounded
@@ -321,7 +322,14 @@ const showAttachment = (url) => {
                     Lihat Bukti
                   </q-tooltip>
                 </q-btn>
-                <q-btn icon="more_vert" rounded dense flat @click.stop>
+                <q-btn
+                  v-if="$can('admin.customer-wallet-transaction.delete')"
+                  icon="more_vert"
+                  rounded
+                  dense
+                  flat
+                  @click.stop
+                >
                   <q-menu
                     anchor="bottom right"
                     self="top right"
@@ -330,6 +338,7 @@ const showAttachment = (url) => {
                   >
                     <q-list style="width: 200px">
                       <q-item
+                        v-if="$can('admin.customer-wallet-transaction.delete')"
                         @click.stop="deleteItem(props.row)"
                         clickable
                         v-ripple

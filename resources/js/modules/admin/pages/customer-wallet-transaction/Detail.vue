@@ -71,6 +71,16 @@ const title = "Rincian Transaksi";
                         <q-icon name="home_pin" class="inline-icon" />
                         {{ page.props.data.customer.address }}
                       </div>
+                      <div>
+                        <i-link
+                          :href="
+                            route('admin.customer.detail', {
+                              id: page.props.data.customer_id,
+                            })
+                          "
+                          >Lihat Rincian Pelanggan</i-link
+                        >
+                      </div>
                     </td>
                   </tr>
                   <tr>

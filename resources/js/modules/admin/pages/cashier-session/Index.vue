@@ -113,6 +113,7 @@ const computedColumns = computed(() => {
         @click="showFilter = !showFilter"
       />
       <q-btn
+        v-if="$can('admin.cashier-session.open')"
         icon="add"
         dense
         rounded
@@ -247,7 +248,17 @@ const computedColumns = computed(() => {
             </q-td>
             <q-td key="action" :props="props">
               <div class="flex justify-end">
-                <q-btn icon="more_vert" dense flat rounded @click.stop>
+                <q-btn
+                  v-if="
+                    $can('admin.cashier-session.close') ||
+                    $can('admin.cashier-session.delete')
+                  "
+                  icon="more_vert"
+                  dense
+                  flat
+                  rounded
+                  @click.stop
+                >
                   <q-menu
                     anchor="bottom right"
                     self="top right"

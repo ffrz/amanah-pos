@@ -25,6 +25,7 @@ const title = "Rincian Pengguna";
     <template #right-button>
       <div class="q-gutter-sm">
         <q-btn
+          v-if="$can('admin.user.edit')"
           icon="edit"
           dense
           rounded

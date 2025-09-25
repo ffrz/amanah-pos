@@ -223,6 +223,7 @@ watch(
         @click="showFilter = !showFilter"
       />
       <q-btn
+        v-if="$can('admin.sales-order.edit')"
         icon="add"
         dense
         rounded
@@ -404,7 +405,19 @@ watch(
             </q-td>
             <q-td key="action" :props="props" @click.stop>
               <div class="flex justify-end">
-                <q-btn icon="more_vert" dense flat rounded @click.stop>
+                <q-btn
+                  v-if="
+                    $can('admin.sales-order.detail') ||
+                    $can('admin.sales-order.edit') ||
+                    $can('admin.sales-order.cancel') ||
+                    $can('admin.sales-order.delete')
+                  "
+                  icon="more_vert"
+                  dense
+                  flat
+                  rounded
+                  @click.stop
+                >
                   <q-menu
                     anchor="bottom right"
                     self="top right"
@@ -413,7 +426,10 @@ watch(
                   >
                     <q-list style="width: 200px">
                       <q-item
-                        v-if="props.row.status != 'draft'"
+                        v-if="
+                          props.row.status != 'draft' &&
+                          $can('admin.sales-order.detail')
+                        "
                         @click.stop="viewItem(props.row)"
                         clickable
                         v-ripple
@@ -425,6 +441,10 @@ watch(
                         <q-item-section> Lihat </q-item-section>
                       </q-item>
                       <q-item
+                        v-if="
+                          props.row.status == 'draft' &&
+                          $can('admin.sales-order.edit')
+                        "
                         @click.stop="editItem(props.row)"
                         clickable
                         v-ripple
@@ -433,12 +453,13 @@ watch(
                         <q-item-section avatar>
                           <q-icon name="edit" />
                         </q-item-section>
-                        <q-item-section>
-                          {{ props.row.status == "draft" ? "Edit" : "Reopen" }}
-                        </q-item-section>
+                        <q-item-section> Edit </q-item-section>
                       </q-item>
                       <q-item
-                        v-if="props.row.status == 'draft'"
+                        v-if="
+                          props.row.status == 'draft' &&
+                          $can('admin.sales-order.cancel')
+                        "
                         @click.stop="cancelItem(props.row)"
                         clickable
                         v-ripple
@@ -451,6 +472,7 @@ watch(
                       </q-item>
                       <q-separator />
                       <q-item
+                        v-if="$can('admin.sales-order.delete')"
                         @click.stop="deleteItem(props.row)"
                         clickable
                         v-ripple

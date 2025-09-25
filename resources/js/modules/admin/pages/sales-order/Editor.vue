@@ -1,7 +1,7 @@
 <script setup>
 import { router, usePage } from "@inertiajs/vue3";
 import { ref, computed, nextTick, onMounted, onUnmounted, reactive } from "vue";
-import { debounce, Dialog, useQuasar } from "quasar";
+import { Dialog, useQuasar } from "quasar";
 import axios from "axios";
 
 import ItemListTable from "./editor/ItemsListTable.vue";

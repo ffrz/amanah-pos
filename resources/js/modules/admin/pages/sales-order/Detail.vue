@@ -1,7 +1,6 @@
 <script setup>
 import { formatDate, formatDateTime, formatNumber } from "@/helpers/formatter";
 import { router, usePage } from "@inertiajs/vue3";
-import { date } from "quasar";
 
 const page = usePage();
 const data = page.props.data;

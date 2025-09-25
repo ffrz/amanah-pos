@@ -18,6 +18,7 @@ const page = usePage();
             Info Pelanggan
 
             <q-btn
+              v-if="$can('admin.customer.edit')"
               icon="edit"
               size="sm"
               dense
@@ -54,12 +55,12 @@ const page = usePage();
       <tr>
         <td>No. Telepon</td>
         <td>:</td>
-        <td>{{ page.props.data.phone }}</td>
+        <td>{{ page.props.data.phone ? page.props.data.phone : "-" }}</td>
       </tr>
       <tr>
         <td>Alamat</td>
         <td>:</td>
-        <td>{{ page.props.data.address }}</td>
+        <td>{{ page.props.data.address ? page.props.data.address : "-" }}</td>
       </tr>
       <tr>
         <td>Saldo Wallet</td>
@@ -82,20 +83,19 @@ const page = usePage();
         <td>Dibuat</td>
         <td>:</td>
         <td>
-          {{ formatDateTime(page.props.data.created_at) }}
-          <span class="text-grey-8"
-            >({{ formatDateTimeFromNow(page.props.data.created_at) }})</span
-          >
+          {{ formatDateTimeFromNow(page.props.data.created_at) }} oleh
+          {{ page.props.data.creator.name }}
+          ({{ formatDateTime(page.props.data.created_at) }})
         </td>
       </tr>
       <tr v-if="page.props.data.updated_at">
         <td>Diperbarui</td>
         <td>:</td>
         <td>
-          {{ formatDateTime(page.props.data.updated_at) }}
-          <span class="text-grey-8"
-            >({{ formatDateTimeFromNow(page.props.data.updated_at) }})</span
-          >
+          {{ formatDateTimeFromNow(page.props.data.updated_at) }}
+          oleh
+          {{ page.props.data.updater.name }}
+          ({{ formatDateTime(page.props.data.updated_at) }})
         </td>
       </tr>
       <tr>

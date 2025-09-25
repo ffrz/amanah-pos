@@ -351,7 +351,24 @@ const showAttachment = (url) => {
                     Lihat Bukti
                   </q-tooltip>
                 </q-btn>
-                <q-btn icon="more_vert" dense flat rounded @click.stop>
+                <q-btn
+                  v-if="
+                    $can(
+                      'admin.customer-wallet-transaction-confirmation:accept'
+                    ) ||
+                    $can(
+                      'admin.customer-wallet-transaction-confirmation:deny'
+                    ) ||
+                    $can(
+                      'admin.customer-wallet-transaction-confirmation.delete'
+                    )
+                  "
+                  icon="more_vert"
+                  dense
+                  flat
+                  rounded
+                  @click.stop
+                >
                   <q-menu
                     anchor="bottom right"
                     self="top right"
@@ -360,6 +377,11 @@ const showAttachment = (url) => {
                   >
                     <q-list style="width: 200px">
                       <q-item
+                        v-if="
+                          $can(
+                            'admin.customer-wallet-transaction-confirmation:accept'
+                          )
+                        "
                         @click.stop="acceptItem(props.row)"
                         clickable
                         v-ripple
@@ -372,6 +394,11 @@ const showAttachment = (url) => {
                         <q-item-section>Setujui</q-item-section>
                       </q-item>
                       <q-item
+                        v-if="
+                          $can(
+                            'admin.customer-wallet-transaction-confirmation:deny'
+                          )
+                        "
                         @click.stop="rejectItem(props.row)"
                         clickable
                         v-ripple
@@ -385,6 +412,11 @@ const showAttachment = (url) => {
                       </q-item>
                       <q-separator />
                       <q-item
+                        v-if="
+                          $can(
+                            'admin.customer-wallet-transaction-confirmation.delete'
+                          )
+                        "
                         @click.stop="deleteItem(props.row)"
                         clickable
                         v-ripple

@@ -4,6 +4,14 @@ namespace App\Constants;
 
 class AppPermissions
 {
+    public static function aliases(): array
+    {
+        return [
+            'admin.sales-order.add'    => 'admin.sales-order.edit',
+            'admin.sales-order.save'   => 'admin.sales-order.edit',
+            'admin.sales-order.close'  => 'admin.sales-order.edit',
+        ];
+    }
     /**
      * Get all defined permissions grouped by category.
      *

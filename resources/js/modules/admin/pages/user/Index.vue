@@ -119,6 +119,7 @@ const tableHeight = useTableHeight(filterToolbarRef);
         @click="showFilter = !showFilter"
       />
       <q-btn
+        v-if="$can('admin.user.add')"
         icon="add"
         dense
         rounded
@@ -241,6 +242,11 @@ const tableHeight = useTableHeight(filterToolbarRef);
             <q-td key="action" :props="props">
               <div class="flex justify-end">
                 <q-btn
+                  v-if="
+                    $can('admin.user.add') ||
+                    $can('admin.user.edit') ||
+                    $can('admin.user.delete')
+                  "
                   :disable="
                     props.row.id == currentUser.id ||
                     props.row.username == 'admin'
@@ -259,6 +265,7 @@ const tableHeight = useTableHeight(filterToolbarRef);
                   >
                     <q-list style="width: 200px">
                       <q-item
+                        v-if="$can('admin.user.add')"
                         clickable
                         v-ripple
                         v-close-popup
@@ -274,6 +281,7 @@ const tableHeight = useTableHeight(filterToolbarRef);
                         <q-item-section> Duplikat </q-item-section>
                       </q-item>
                       <q-item
+                        v-if="$can('admin.user.edit')"
                         clickable
                         v-ripple
                         v-close-popup
@@ -287,6 +295,7 @@ const tableHeight = useTableHeight(filterToolbarRef);
                         <q-item-section>Edit</q-item-section>
                       </q-item>
                       <q-item
+                        v-if="$can('admin.user.delete')"
                         @click.stop="deleteItem(props.row)"
                         clickable
                         v-ripple
