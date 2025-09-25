@@ -47,7 +47,15 @@ const tab = ref("main");
       <div class="col q-pa-xs">
         <div class="row">
           <q-card square flat bordered class="col">
-            <q-tabs v-model="tab" align="left">
+            <q-tabs
+              v-model="tab"
+              dense
+              class="text-grey-7"
+              active-color="primary"
+              indicator-color="primary"
+              align="justify"
+              narrow-indicator
+            >
               <q-tab name="main" label="Info Akun" />
               <q-tab name="history" label="Riwayat Transaksi" />
             </q-tabs>

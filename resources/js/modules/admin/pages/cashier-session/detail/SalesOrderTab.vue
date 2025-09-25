@@ -1,0 +1,167 @@
+<script setup>
+import { handleFetchItems } from "@/helpers/client-req-handler";
+import { getQueryParams } from "@/helpers/utils";
+import { router, usePage } from "@inertiajs/vue3";
+import { useQuasar } from "quasar";
+import { computed, onMounted, reactive, ref } from "vue";
+import { formatDateTime, formatNumber } from "@/helpers/formatter";
+import LongTextView from "@/components/LongTextView.vue";
+
+const props = defineProps({
+  data: Object,
+});
+
+const rows = ref([]);
+const loading = ref(true);
+const filter = reactive({
+  ...getQueryParams(),
+  cashier_session_id: props.data.id,
+  status: ["closed", "canceled"],
+});
+const pagination = ref({
+  page: 1,
+  rowsPerPage: 10,
+  rowsNumber: 10,
+  sortBy: "id",
+  descending: true,
+});
+
+const columns = [
+  { name: "id", label: "ID", field: "id", align: "left", sortable: true },
+  { name: "customer", label: "Pelanggan", field: "customer", align: "left" },
+  {
+    name: "grand_total",
+    label: "Total (Rp)",
+    field: "grand_total",
+    align: "right",
+    sortable: true,
+  },
+  { name: "notes", label: "Catatan", field: "notes", align: "left" },
+];
+
+onMounted(() => {
+  fetchItems();
+});
+
+const fetchItems = (props = null) =>
+  handleFetchItems({
+    pagination,
+    filter,
+    props,
+    rows,
+    url: route("admin.sales-order.data"),
+    loading,
+  });
+
+const $q = useQuasar();
+const computedColumns = computed(() => {
+  if ($q.screen.gt.sm) return columns;
+  return columns.filter((col) => col.name === "id");
+});
+</script>
+
+<template>
+  <q-table
+    flat
+    bordered
+    square
+    color="primary"
+    class="full-height-table full-height-table2"
+    row-key="id"
+    virtual-scroll
+    v-model:pagination="pagination"
+    :filter="filter.search"
+    :loading="loading"
+    :columns="computedColumns"
+    :rows="rows"
+    :rows-per-page-options="[10, 25, 50]"
+    @request="fetchItems"
+    binary-state-sort
+  >
+    <template v-slot:loading>
+      <q-inner-loading showing color="red" />
+    </template>
+
+    <template v-slot:no-data="{ icon, message, filter }">
+      <div class="full-width row flex-center text-grey-8 q-gutter-sm">
+        <span>
+          {{ message }}
+          {{ filter ? " with term " + filter : "" }}
+        </span>
+      </div>
+    </template>
+
+    <template v-slot:body="props">
+      <q-tr
+        :props="props"
+        class="cursor-pointer"
+        @click.stop="
+          router.get(
+            route('admin.sales-order.detail', {
+              id: props.row.id,
+            })
+          )
+        "
+      >
+        <q-td key="id" :props="props">
+          <div class="text-bold">
+            <q-icon class="inline-icon" name="tag" />
+            {{ props.row.formatted_id }}
+          </div>
+          <div>
+            <q-icon class="inline-icon" name="calendar_today" />
+            {{ formatDateTime(props.row.datetime) }}
+          </div>
+          <template v-if="$q.screen.lt.md">
+            <div v-if="props.row.customer">
+              <q-icon class="inline-icon" name="person" />
+              {{ props.row.customer_username }}
+              {{ props.row.customer.name }}
+            </div>
+            <div class="text-bold">
+              <q-icon name="money" class="inline-icon" />
+              Rp. {{ formatNumber(props.row.grand_total) }}
+            </div>
+            <div v-if="props.row.notes">
+              <LongTextView
+                :text="props.row.notes"
+                class="text-grey-8"
+                icon="notes"
+              />
+            </div>
+          </template>
+          <div>
+            <q-badge :color="props.row.status === 'closed' ? 'green' : 'red'">
+              {{ $CONSTANTS.SALES_ORDER_STATUSES[props.row.status] }}
+            </q-badge>
+          </div>
+        </q-td>
+        <q-td key="customer" :props="props">
+          <div v-if="props.row.customer">
+            <div>
+              <q-icon name="person" class="inline-icon" />
+              {{ props.row.customer_username }} -
+              {{ props.row.customer_name }}
+            </div>
+            <div v-if="props.row.customer_phone">
+              <q-icon name="phone" class="inline-icon" />
+              {{ props.row.customer_phone }}
+            </div>
+            <div v-if="props.row.customer_address">
+              <q-icon name="home_pin" class="inline-icon" />
+              {{ props.row.customer_address }}
+            </div>
+          </div>
+        </q-td>
+        <q-td key="grand_total" :props="props">
+          <div>
+            {{ formatNumber(props.row.grand_total) }}
+          </div>
+        </q-td>
+        <q-td key="notes" :props="props" class="wrap-column">
+          <LongTextView :text="props.row.notes" />
+        </q-td>
+      </q-tr>
+    </template>
+  </q-table>
+</template>

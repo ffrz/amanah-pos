@@ -86,6 +86,17 @@ class FinanceTransactionController extends Controller
             $q->where('account_id', $filter['account_id']);
         }
 
+        if (!empty($filter['user_id']) && $filter['user_id'] !== 'all') {
+            $q->where('created_by', $filter['user_id']);
+        }
+
+        if (!empty($filter['from_datetime'])) {
+            $start = Carbon::parse($filter['from_datetime']);
+            $end = empty($filter['to_datetime']) ? Carbon::now() : Carbon::parse($filter['to_datetime']);
+            $q->whereBetween('created_at', [$start, $end]);
+        }
+
+
         $q->orderBy($orderBy, $orderType);
 
         $items = $q->paginate($request->get('per_page', 10))->withQueryString();

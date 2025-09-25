@@ -46,7 +46,15 @@ const tab = ref("main");
       <div class="col col-lg-6 q-pa-xs">
         <div class="row">
           <q-card square flat bordered class="q-card col">
-            <q-tabs v-model="tab" align="left">
+            <q-tabs
+              v-model="tab"
+              dense
+              class="text-grey-7"
+              active-color="primary"
+              indicator-color="primary"
+              align="justify"
+              narrow-indicator
+            >
               <q-tab name="main" label="Info Utama" />
               <q-tab name="history" label="Riwayat Stok" />
             </q-tabs>

@@ -17,6 +17,7 @@ import SalesOrderPaymentStatusChip from "@/components/SalesOrderPaymentStatusChi
 import SalesOrderDeliveryStatusChip from "@/components/SalesOrderDeliveryStatusChip.vue";
 import MyLink from "@/components/MyLink.vue";
 import axios from "axios";
+import LongTextView from "@/components/LongTextView.vue";
 
 const title = "Penjualan";
 const $q = useQuasar();
@@ -97,6 +98,12 @@ const columns = [
     label: "Total",
     field: "total",
     align: "right",
+  },
+  {
+    name: "notes",
+    label: "Catatan",
+    field: "notes",
+    align: "left",
   },
   {
     name: "action",
@@ -430,6 +437,9 @@ watch(
             </q-td>
             <q-td key="total" :props="props">
               {{ formatNumber(props.row.grand_total) }}
+            </q-td>
+            <q-td key="notes" :props="props">
+              <LongTextView :text="props.row.notes" icon="notes" />
             </q-td>
             <q-td key="action" :props="props" @click.stop>
               <div class="flex justify-end">

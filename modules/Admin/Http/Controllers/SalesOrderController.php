@@ -105,6 +105,10 @@ class SalesOrderController extends Controller
             $q->where('customer_id', $filter['customer_id']);
         }
 
+        if (!empty($filter['cashier_session_id']) && $filter['cashier_session_id'] !== 'all') {
+            $q->where('cashier_session_id', $filter['cashier_session_id']);
+        }
+
         // $q->select(['id', 'total_price', 'datetime', 'status', 'payment_status', 'delivery_status'])
         $q->orderBy($orderBy, $orderType);
 
