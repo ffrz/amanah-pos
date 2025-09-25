@@ -13,6 +13,7 @@ const isPreview = ref(urlParams.get("preview") || false);
 const getInitialTab = () => {
   return urlParams.get("tab") || "invoice";
 };
+
 const currentTab = ref(getInitialTab());
 
 const print = () => {
