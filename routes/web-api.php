@@ -16,6 +16,7 @@
 
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\CustomerController;
+use App\Http\Controllers\Api\SupplierController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth:web', 'web'])->prefix('web-api')->group(function () {
@@ -28,6 +29,11 @@ Route::middleware(['auth:web', 'web'])->prefix('web-api')->group(function () {
 
     Route::prefix('/customers')->group(function () {
         Route::get('/', [CustomerController::class, 'index'])
+            ->name('web-api.customers.index');
+    });
+
+    Route::prefix('/suppliers')->group(function () {
+        Route::get('/', [SupplierController::class, 'index'])
             ->name('web-api.customers.index');
     });
 });

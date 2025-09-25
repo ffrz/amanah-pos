@@ -2,14 +2,24 @@
 import { computed, onMounted, reactive, ref, watch } from "vue";
 import { router } from "@inertiajs/vue3";
 import { handleDelete, handleFetchItems } from "@/helpers/client-req-handler";
-import { check_role, getQueryParams } from "@/helpers/utils";
-import { formatNumber, plusMinusSymbol } from "@/helpers/formatter";
-import { useQuasar } from "quasar";
+import { getQueryParams } from "@/helpers/utils";
+import { formatDateTime, formatNumber } from "@/helpers/formatter";
+import { Dialog, useQuasar } from "quasar";
 import { getCurrentMonth, getCurrentYear } from "@/helpers/datetime";
-import { createMonthOptions, createYearOptions } from "@/helpers/options";
+import {
+  createMonthOptions,
+  createOptions,
+  createYearOptions,
+} from "@/helpers/options";
 import useTableHeight from "@/composables/useTableHeight";
+import PurchaseOrderStatusChip from "@/components/PurchaseOrderStatusChip.vue";
+import PurchaseOrderPaymentStatusChip from "@/components/PurchaseOrderPaymentStatusChip.vue";
+import PurchaseOrderDeliveryStatusChip from "@/components/PurchaseOrderDeliveryStatusChip.vue";
+import MyLink from "@/components/MyLink.vue";
+import axios from "axios";
+import LongTextView from "@/components/LongTextView.vue";
 
-const title = "Order Pembelian";
+const title = "Pembelian";
 const $q = useQuasar();
 const showFilter = ref(false);
 const rows = ref([]);
@@ -31,13 +41,31 @@ const months = [
   ...createMonthOptions(),
 ];
 
+const statusOptions = [
+  { value: "all", label: "Semua Status" },
+  ...createOptions(window.CONSTANTS.PURCHASE_ORDER_STATUSES),
+];
+
+const paymentStatusOptions = [
+  { value: "all", label: "Semua Status" },
+  ...createOptions(window.CONSTANTS.PURCHASE_ORDER_PAYMENT_STATUSES),
+];
+
+const deliveryStatusOptions = [
+  { value: "all", label: "Semua Status" },
+  ...createOptions(window.CONSTANTS.PURCHASE_ORDER_DELIVERY_STATUSES),
+];
+
 const filter = reactive({
   search: "",
-  category_id: "all",
   year: currentYear,
   month: currentMonth,
+  status: "all",
+  payment_status: "all",
+  delivery_status: "all",
   ...getQueryParams(),
 });
+
 const pagination = ref({
   page: 1,
   rowsPerPage: 10,
@@ -47,29 +75,29 @@ const pagination = ref({
 });
 const columns = [
   {
-    name: "datetime",
-    label: "Waktu",
-    field: "datetime",
+    name: "id",
+    label: "Info Order",
+    field: "id",
     align: "left",
     sortable: true,
   },
   {
-    name: "account",
-    label: "Akun",
-    field: "account",
+    name: "supplier_id",
+    label: "Pelanggan",
+    field: "supplier_id",
     align: "left",
+  },
+  {
+    name: "total",
+    label: "Total",
+    field: "total",
+    align: "right",
   },
   {
     name: "notes",
     label: "Catatan",
     field: "notes",
     align: "left",
-  },
-  {
-    name: "amount",
-    label: "Jumlah (Rp.)",
-    field: "amount",
-    align: "right",
   },
   {
     name: "action",
@@ -81,9 +109,77 @@ onMounted(() => {
   fetchItems();
 });
 
+const onRowClicked = (row) => {
+  if (row.status == "draft") {
+    editItem(row);
+    return;
+  }
+
+  viewItem(row);
+};
+
+const editItem = (row) => {
+  router.get(route("admin.purchase-order.edit", row.id));
+};
+
+const viewItem = (row) => {
+  router.get(route("admin.purchase-order.detail", row.id));
+};
+
+const cancelItem = (row) => {
+  Dialog.create({
+    title: "Konfirmasi Pembatalan",
+    icon: "question",
+    message: `Batalkan transaksi #${row.formatted_id}?`,
+    focus: "cancel",
+    cancel: true,
+    persistent: true,
+  }).onOk(() => {
+    axios
+      .post(
+        route("admin.purchase-order.cancel", {
+          id: row.id,
+        }),
+        {
+          id: row.id,
+        }
+      )
+      .then((response) => {
+        const updatedItem = response.data.data;
+        const itemIndex = rows.value.findIndex(
+          (item) => item.id === updatedItem.id
+        );
+
+        if (itemIndex === -1) {
+          console.warn("Item tidak ditemukan di tabel.");
+          return;
+        }
+
+        rows.value[itemIndex].status = "canceled";
+
+        $q.notify({
+          message: response.data.message,
+          position: "bottom",
+        });
+      })
+      .catch((error) => {
+        const errorMessage =
+          error.response?.data?.message ||
+          "Terjadi kesalahan saat membatalkan transaksi.";
+        $q.notify({
+          message: errorMessage,
+          color: "warning",
+          position: "bottom",
+        });
+        console.error(error);
+      });
+  });
+};
+
 const deleteItem = (row) =>
   handleDelete({
-    message: `Hapus transaksi #-${row.id}?`,
+    title: "Konfirmasi Penghapusan",
+    message: `Hapus transaksi #${row.formatted_id}?`,
     url: route("admin.purchase-order.delete", row.id),
     fetchItemsCallback: fetchItems,
     loading,
@@ -107,9 +203,7 @@ const onFilterChange = () => {
 
 const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return columns;
-  return columns.filter(
-    (col) => col.name === "datetime" || col.name === "action"
-  );
+  return columns.filter((col) => col.name === "id" || col.name === "action");
 });
 
 watch(
@@ -136,6 +230,7 @@ watch(
         @click="showFilter = !showFilter"
       />
       <q-btn
+        v-if="$can('admin.purchase-order.edit')"
         icon="add"
         dense
         rounded
@@ -159,6 +254,7 @@ watch(
             @update:model-value="onFilterChange"
           />
           <q-select
+            v-if="filter.year != 'all'"
             v-model="filter.month"
             :options="months"
             label="Bulan"
@@ -170,9 +266,40 @@ watch(
             :disable="filter.year === null"
             @update:model-value="onFilterChange"
           />
-          <!-- <q-select v-model="filter.category_id" :options="categories" label="Kategori" dense
-            class="custom-select col-xs-12 col-sm-3" map-options emit-value outlined
-            @update:model-value="onFilterChange" /> -->
+          <q-select
+            v-model="filter.status"
+            :options="statusOptions"
+            label="Status"
+            dense
+            outlined
+            class="col-xs-6 col-sm-2"
+            emit-value
+            map-options
+            @update:model-value="onFilterChange"
+          />
+          <q-select
+            v-model="filter.payment_status"
+            :options="paymentStatusOptions"
+            label="Status Pembayaran"
+            dense
+            outlined
+            class="col-xs-6 col-sm-2"
+            emit-value
+            map-options
+            @update:model-value="onFilterChange"
+          />
+          <q-select
+            v-if="false"
+            v-model="filter.delivery_status"
+            :options="deliveryStatusOptions"
+            label="Status Pengiriman"
+            dense
+            outlined
+            class="col-xs-6 col-sm-2"
+            emit-value
+            map-options
+            @update:model-value="onFilterChange"
+          />
           <q-input
             class="col"
             outlined
@@ -221,51 +348,89 @@ watch(
           </div>
         </template>
         <template v-slot:body="props">
-          <q-tr :props="props">
-            <q-td key="datetime" :props="props" class="wrap-column">
+          <q-tr
+            :props="props"
+            class="cursor-pointer"
+            @click.prevent="onRowClicked(props.row)"
+          >
+            <q-td key="id" :props="props" class="wrap-column">
               <div>
-                #{{ props.row.id }} - <q-icon name="calendar_today" />
-                {{ props.row.datetime }}
+                <q-icon name="tag" />
+                {{ props.row.formatted_id }}
               </div>
-              <q-badge
-                ><q-icon name="category" /> {{ props.row.type_label }}</q-badge
-              >
-              <div v-if="props.row.ref_type">
-                <q-icon name="link" /> {{ props.row.ref_type_label }} #{{
-                  props.row.ref_id
+              <div>
+                <q-icon class="inline-icon" name="calendar_today" />{{
+                  formatDateTime(props.row.datetime)
                 }}
               </div>
               <template v-if="!$q.screen.gt.sm">
+                <div v-if="props.row.supplier">
+                  <q-icon name="person" class="inline-icon" />
+                  <my-link
+                    :href="
+                      route('admin.supplier.detail', {
+                        id: props.row.supplier.id,
+                      })
+                    "
+                    @click.stop
+                    >&nbsp;
+                    {{ props.row.supplier.name }}
+                  </my-link>
+                </div>
+                <div>Rp. {{ formatNumber(props.row.grand_total) }}</div>
                 <div v-if="props.row.notes">
                   <q-icon name="notes" /> {{ props.row.notes }}
                 </div>
-                <div v-if="props.row.category">
-                  <q-icon name="category" /> {{ props.row.category.name }}
-                </div>
-                <div>
-                  <q-icon name="money" /> Rp.
-                  {{
-                    plusMinusSymbol(props.row.amount) +
-                    formatNumber(props.row.amount)
-                  }}
-                </div>
               </template>
+              <div>
+                <PurchaseOrderStatusChip :status="props.row.status" />
+                <PurchaseOrderPaymentStatusChip
+                  :status="props.row.payment_status"
+                />
+                <PurchaseOrderDeliveryStatusChip
+                  v-if="false"
+                  :status="props.row.delivery_status"
+                />
+              </div>
             </q-td>
-            <q-td key="account" :props="props">
-              {{ props.row.account?.name }}
+
+            <q-td key="supplier_id" :props="props">
+              <div v-if="props.row.supplier">
+                <div>
+                  <q-icon name="person" class="inline-icon" />
+                  {{ props.row.supplier_name }}
+                </div>
+                <div v-if="props.row.supplier_phone">
+                  <q-icon name="phone" class="inline-icon" />
+                  {{ props.row.supplier_phone }}
+                </div>
+                <div v-if="props.row.supplier_address">
+                  <q-icon name="home_pin" class="inline-icon" />
+                  {{ props.row.supplier_address }}
+                </div>
+              </div>
+            </q-td>
+            <q-td key="total" :props="props">
+              {{ formatNumber(props.row.grand_total) }}
             </q-td>
             <q-td key="notes" :props="props">
-              {{ props.row.notes }}
+              <LongTextView :text="props.row.notes" icon="notes" />
             </q-td>
-            <q-td key="amount" :props="props" style="text-align: right">
-              {{
-                plusMinusSymbol(props.row.amount) +
-                formatNumber(props.row.amount)
-              }}
-            </q-td>
-            <q-td key="action" :props="props">
+            <q-td key="action" :props="props" @click.stop>
               <div class="flex justify-end">
-                <q-btn icon="more_vert" dense flat rounded @click.stop>
+                <q-btn
+                  v-if="
+                    $can('admin.purchase-order.detail') ||
+                    $can('admin.purchase-order.edit') ||
+                    $can('admin.purchase-order.cancel') ||
+                    $can('admin.purchase-order.delete')
+                  "
+                  icon="more_vert"
+                  dense
+                  flat
+                  rounded
+                  @click.stop
+                >
                   <q-menu
                     anchor="bottom right"
                     self="top right"
@@ -274,6 +439,53 @@ watch(
                   >
                     <q-list style="width: 200px">
                       <q-item
+                        v-if="
+                          props.row.status != 'draft' &&
+                          $can('admin.purchase-order.detail')
+                        "
+                        @click.stop="viewItem(props.row)"
+                        clickable
+                        v-ripple
+                        v-close-popup
+                      >
+                        <q-item-section avatar>
+                          <q-icon name="visibility" />
+                        </q-item-section>
+                        <q-item-section> Lihat </q-item-section>
+                      </q-item>
+                      <q-item
+                        v-if="
+                          props.row.status == 'draft' &&
+                          $can('admin.purchase-order.edit')
+                        "
+                        @click.stop="editItem(props.row)"
+                        clickable
+                        v-ripple
+                        v-close-popup
+                      >
+                        <q-item-section avatar>
+                          <q-icon name="edit" />
+                        </q-item-section>
+                        <q-item-section> Edit </q-item-section>
+                      </q-item>
+                      <q-item
+                        v-if="
+                          props.row.status == 'draft' &&
+                          $can('admin.purchase-order.cancel')
+                        "
+                        @click.stop="cancelItem(props.row)"
+                        clickable
+                        v-ripple
+                        v-close-popup
+                      >
+                        <q-item-section avatar>
+                          <q-icon name="cancel" />
+                        </q-item-section>
+                        <q-item-section> Batalkan </q-item-section>
+                      </q-item>
+                      <q-separator />
+                      <q-item
+                        v-if="$can('admin.purchase-order.delete')"
                         @click.stop="deleteItem(props.row)"
                         clickable
                         v-ripple
@@ -282,7 +494,7 @@ watch(
                         <q-item-section avatar>
                           <q-icon name="delete_forever" />
                         </q-item-section>
-                        <q-item-section>Hapus</q-item-section>
+                        <q-item-section> Hapus </q-item-section>
                       </q-item>
                     </q-list>
                   </q-menu>

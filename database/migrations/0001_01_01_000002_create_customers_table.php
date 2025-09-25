@@ -32,7 +32,9 @@ return new class extends Migration
             $table->string('name', 255);
             $table->string('phone', 100)->nullable()->default('');
             $table->string('address', 200)->nullable()->default('');
-            $table->decimal('balance', 15, 0)->default(0.); // ganti jadi saldo utang piutang
+
+            $table->decimal('balance', 15, 0)->default(0.); // wallet balance
+            $table->decimal('outstanding_balance', 15, 0)->default(0); // utang - piutang
             $table->boolean('active')->default(true);
 
             $table->string('password');

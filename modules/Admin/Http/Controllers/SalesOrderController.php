@@ -720,7 +720,6 @@ class SalesOrderController extends Controller
             }
 
             $order->total_paid += $totalPaidAmount;
-            $order->change = max(0, $order->total_paid - $order->grand_total);
             $order->remaining_debt = max(0, $order->grand_total - $order->total_paid);
 
             if ($order->total_paid >= $order->grand_total) {

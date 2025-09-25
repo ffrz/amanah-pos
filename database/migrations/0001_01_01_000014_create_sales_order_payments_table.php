@@ -25,19 +25,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('purchase_order_details', function (Blueprint $table) {
+        Schema::create('sales_order_payments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('parent_id')->nullable()->constrained('purchase_orders')->onDelete('cascade');
-            $table->foreignId('product_id')->nullable()->constrained('products')->onDelete('restrict');
-            $table->string('product_name', 100);
-            $table->string('product_uom', 40)->default('');
-            $table->decimal('quantity', 18, 3)->default(0.);
-            $table->decimal('cost', 18, 2)->default(0.);
-            $table->decimal('subtotal_cost', 18, 2)->default(0.);
-            $table->string('notes', 100)->nullable();
-            $table->index(['parent_id']);
-            $table->index(['product_id']);
-            $table->createdUpdatedTimestamps();
+            $table->foreignId('order_id')->nullable()->constrained('sales_orders')->onDelete('cascade');
+            $table->foreignId('customer_id')->nullable()->constrained('customers')->onDelete('restrict');
+            $table->foreignId('finance_account_id')->nullable()->constrained('finance_accounts')->onDelete('restrict');
+            $table->string('type', 20)->nullable();
+            $table->decimal('amount', 18, 2)->nullable();
+            $table->createdTimestamps();
         });
     }
 
@@ -46,6 +41,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('purchase_order_details');
+        Schema::dropIfExists('sales_order_payments');
     }
 };

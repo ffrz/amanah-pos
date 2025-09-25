@@ -33,6 +33,7 @@ return new class extends Migration
             $table->string('address', 200)->default('');
             $table->string('return_address', 200)->default('');
             $table->boolean('active')->default(true);
+            $table->decimal('balance', 15, 0)->default(0.);
             $table->createdUpdatedTimestamps();
         });
     }

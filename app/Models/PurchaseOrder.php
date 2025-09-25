@@ -16,51 +16,59 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Carbon\Carbon;
 
 class PurchaseOrder extends BaseModel
 {
-    use HasFactory;
-
     protected $fillable = [
         'supplier_id',
+        'supplier_name',
+        'supplier_phone',
+        'supplier_address',
+
+        'type',
+
         'datetime',
         'due_date',
         'status',
         'payment_status',
         'delivery_status',
+
         'total',
         'total_paid',
+        'total_discount',
+        'total_tax',
+        'grand_total',
+
+        'remaining_debt',
         'notes',
     ];
 
-    // === Status Order ===
+    protected $appends = [
+        'status_label',
+        'payment_status_label',
+        'delivery_status_label',
+        'formatted_id',
+    ];
+
+    public const Type_Pickup   = 'pickup';
+    public const Type_Delivery = 'delivery';
+
+    public const Types = [
+        self::Type_Pickup   => 'Diambil',
+        self::Type_Delivery => 'Dikirim',
+    ];
+
     public const Status_Draft     = 'draft';
-    public const Status_Approved  = 'approved';
     public const Status_Closed    = 'closed';
-    public const Status_Cancelled = 'cancelled';
+    public const Status_Canceled = 'canceled';
 
     public const Statuses = [
-        self::Status_Draft     => 'Draft',
-        self::Status_Approved  => 'Disetujui',
-        self::Status_Closed    => 'Selesai',
-        self::Status_Cancelled => 'Dibatalkan',
+        self::Status_Draft    => 'Draft',
+        self::Status_Closed   => 'Selesai',
+        self::Status_Canceled => 'Dibatalkan',
     ];
 
-    // === Status Pengiriman ===
-    public const DeliveryStatus_NotSent  = 'not_sent';
-    public const DeliveryStatus_Sent     = 'sent';
-    public const DeliveryStatus_Received = 'received';
-    public const DeliveryStatus_Failed   = 'failed';
-
-    public const DeliveryStatuses = [
-        self::DeliveryStatus_NotSent  => 'Belum Dikirim',
-        self::DeliveryStatus_Sent     => 'Terkirim',
-        self::DeliveryStatus_Received => 'Diterima',
-        self::DeliveryStatus_Failed   => 'Gagal',
-    ];
-
-    // === Status Pembayaran ===
     public const PaymentStatus_Unpaid        = 'unpaid';
     public const PaymentStatus_PartiallyPaid = 'partially_paid';
     public const PaymentStatus_FullyPaid     = 'fully_paid';
@@ -73,10 +81,35 @@ class PurchaseOrder extends BaseModel
         self::PaymentStatus_Refunded       => 'Dikembalikan',
     ];
 
+    // === Status Pengiriman ===
+    public const DeliveryStatus_NotSent  = 'not_sent';
+    public const DeliveryStatus_Sent     = 'sent';
+    public const DeliveryStatus_Received = 'received';
+    public const DeliveryStatus_Failed   = 'failed';
+
+    public const DeliveryStatus_ReadyForPickUp = 'ready_for_pickup';
+    public const DeliveryStatus_PickedUp = 'picked_up';
+
+    public const DeliveryStatuses = [
+        self::DeliveryStatus_NotSent  => 'Belum Dikirim',
+        self::DeliveryStatus_Sent     => 'Sedang Dikirim',
+        self::DeliveryStatus_Received => 'Terkirim',
+        self::DeliveryStatus_Failed   => 'Gagal',
+
+        self::DeliveryStatus_ReadyForPickUp => 'Siap Diambil',
+        self::DeliveryStatus_PickedUp       => 'Sudah Diambil',
+    ];
+
     protected function casts(): array
     {
         return [
-            'supplier_id'     => 'integer',
+            'type' => 'string',
+
+            'supplier_id'       => 'integer',
+            'supplier_name'     => 'string',
+            'supplier_phone'    => 'string',
+            'supplier_address'  => 'string',
+
             'datetime'        => 'datetime',
             'due_date'        => 'date',
             'status'          => 'string',
@@ -84,6 +117,13 @@ class PurchaseOrder extends BaseModel
             'delivery_status' => 'string',
             'total'           => 'decimal:2',
             'total_paid'      => 'decimal:2',
+
+            'total_discount'  => 'decimal:2',
+            'total_tax'       => 'decimal:2',
+
+            'grand_total'     => 'decimal:2',
+            'remaining_debt'  => 'decimal:2',
+
             'notes'           => 'string',
             'created_by' => 'integer',
             'updated_by' => 'integer',
@@ -92,8 +132,56 @@ class PurchaseOrder extends BaseModel
         ];
     }
 
+    protected function getTotalAttribute(string $value): float
+    {
+        return (float) $value;
+    }
+
+    protected function getTotalPaidAttribute(string $value): float
+    {
+        return (float) $value;
+    }
+
+    public function getFormattedIdAttribute()
+    {
+        return Setting::value('purchase_order_code_prefix', 'PO-')
+            . Carbon::parse($this->created_at)->format('Ymd')
+            . '-'
+            . $this->id;
+    }
+
+    public function getTypeLabelAttribute()
+    {
+        return self::Types[$this->type] ?? '-';
+    }
+
+    public function getStatusLabelAttribute()
+    {
+        return self::Statuses[$this->status] ?? '-';
+    }
+
+    public function getPaymentStatusLabelAttribute()
+    {
+        return self::PaymentStatuses[$this->payment_status] ?? '-';
+    }
+
+    public function getDeliveryStatusLabelAttribute()
+    {
+        return self::DeliveryStatuses[$this->delivery_status] ?? '-';
+    }
+
     public function details()
     {
         return $this->hasMany(PurchaseOrderDetail::class, 'parent_id');
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(PurchaseOrderPayment::class, 'order_id');
+    }
+
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class);
     }
 }

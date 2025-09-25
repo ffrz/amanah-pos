@@ -22,17 +22,12 @@ class PurchaseOrderDetail extends BaseModel
         'parent_id',
         'product_id',
         'product_name',
+        'product_uom',
         'quantity',
-        'uom',
         'cost',
         'subtotal_cost',
         'notes',
     ];
-
-    public function parent()
-    {
-        return $this->belongsTo(PurchaseOrder::class, 'parent_id');
-    }
 
     protected function casts(): array
     {
@@ -41,10 +36,35 @@ class PurchaseOrderDetail extends BaseModel
             'product_id'    => 'integer',
             'product_name'  => 'string',
             'quantity'      => 'decimal:3',
-            'uom'           => 'string',
+            'product_uom'   => 'string',
             'cost'          => 'decimal:2',
             'subtotal_cost' => 'decimal:2',
             'notes'         => 'string',
         ];
+    }
+
+    protected function getQuantityAttribute(string $value): float
+    {
+        return (float) $value;
+    }
+
+    protected function getCostAttribute(string $value): float
+    {
+        return (float) $value;
+    }
+
+    protected function getSubtotalCostAttribute(string $value): float
+    {
+        return (float) $value;
+    }
+
+    public function parent()
+    {
+        return $this->belongsTo(PurchaseOrder::class, 'parent_id');
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class, 'product_id');
     }
 }

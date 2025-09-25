@@ -11,6 +11,11 @@ const props = defineProps({
     type: Boolean,
     required: true,
   },
+  showCost: {
+    type: Boolean,
+    require: false,
+    default: false,
+  },
 });
 
 // Emit event
@@ -40,11 +45,15 @@ const pagination = ref({
 const columns = [
   { name: "name", label: "Nama", field: "name", align: "left", sortable: true },
   { name: "stock", label: "Stok", field: "stock", align: "right" },
-  { name: "price", label: "Harga", field: "price", align: "right" },
+  { name: "cost", label: "Modal (Rp)", field: "cost", align: "right" },
+  { name: "price", label: "Harga (Rp)", field: "price", align: "right" },
 ];
 
 const computedColumns = computed(() => {
-  return columns;
+  if (props.showCost) {
+    return columns;
+  }
+  return columns.filter((col) => col.name !== "cost");
 });
 
 onMounted(() => {
@@ -217,8 +226,16 @@ watch(
                     : "-"
                 }}
               </q-td>
+              <q-td
+                v-if="showCost"
+                key="cost"
+                :props="props"
+                class="wrap-column text-right"
+              >
+                {{ formatNumber(props.row.cost) }}
+              </q-td>
               <q-td key="price" :props="props" class="wrap-column text-right">
-                Rp. {{ formatNumber(props.row.price) }}
+                {{ formatNumber(props.row.price) }}
               </q-td>
             </q-tr>
           </template>

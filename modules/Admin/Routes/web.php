@@ -215,7 +215,16 @@ Route::middleware([Auth::class])
                 Route::get('edit/{id}', [PurchaseOrderController::class, 'editor'])->name('admin.purchase-order.edit');
                 Route::get('detail/{id}', [PurchaseOrderController::class, 'detail'])->name('admin.purchase-order.detail');
                 Route::post('save', [PurchaseOrderController::class, 'save'])->name('admin.purchase-order.save');
+                Route::post('cancel/{id}', [PurchaseOrderController::class, 'cancel'])->name('admin.purchase-order.cancel');
                 Route::post('delete/{id}', [PurchaseOrderController::class, 'delete'])->name('admin.purchase-order.delete');
+                Route::post('update', [PurchaseOrderController::class, 'update'])->name('admin.purchase-order.update');
+                Route::post('close', [PurchaseOrderController::class, 'close'])->name('admin.purchase-order.close');
+                Route::post('add-payment', [PurchaseOrderController::class, 'addPayment'])->name('admin.purchase-order.add-payment');
+                Route::post('delete-payment', [PurchaseOrderController::class, 'deletePayment'])->name('admin.purchase-order.delete-payment');
+                // items
+                Route::post('add-item', [PurchaseOrderController::class, 'addItem'])->name('admin.purchase-order.add-item');
+                Route::post('remove-item', [PurchaseOrderController::class, 'removeItem'])->name('admin.purchase-order.remove-item');
+                Route::post('update-item', [PurchaseOrderController::class, 'updateItem'])->name('admin.purchase-order.update-item');
             });
 
             Route::prefix('sales-orders')->group(function () {
