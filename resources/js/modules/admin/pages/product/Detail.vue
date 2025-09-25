@@ -45,7 +45,7 @@ const tab = ref("main");
     <div class="row justify-center">
       <div class="col col-lg-6 q-pa-xs">
         <div class="row">
-          <q-card square flat bordered class="q-card col">
+          <q-card square flat bordered class="col">
             <q-tabs
               v-model="tab"
               dense

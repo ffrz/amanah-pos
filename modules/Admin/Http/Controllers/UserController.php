@@ -125,8 +125,8 @@ class UserController extends Controller
         if (!$id) {
             $user->active = true;
             $user->admin = true;
-        } else if ($user == Auth::user()) {
-            // Logika ini dapat diimplementasikan di middleware
+        } else if ($user->id == Auth::user()->id) {
+            return abort(403, 'Tidak dapat mengubah akun sendiri!');
         }
 
         $roles = Role::orderBy('name', 'asc')->get();
@@ -145,6 +145,10 @@ class UserController extends Controller
      */
     public function save(Request $request)
     {
+        if ($request->id == Auth::user()->id) {
+            return abort(403, 'Tidak dapat mengubah akun sendiri!');
+        }
+
         $isNew = empty($request->id);
         $password = $request->get('password');
 

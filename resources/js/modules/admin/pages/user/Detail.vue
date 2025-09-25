@@ -25,7 +25,10 @@ const title = "Rincian Pengguna";
     <template #right-button>
       <div class="q-gutter-sm">
         <q-btn
-          v-if="$can('admin.user.edit')"
+          v-if="
+            $can('admin.user.edit') &&
+            page.props.data.id != page.props.auth.user.id
+          "
           icon="edit"
           dense
           rounded
@@ -63,7 +66,7 @@ const title = "Rincian Pengguna";
                     <td>:</td>
                     <td>{{ $CONSTANTS.USER_TYPES[page.props.data.type] }}</td>
                   </tr>
-                  <tr>
+                  <tr v-if="page.props.data.roles.length > 0">
                     <td>Peran</td>
                     <td>:</td>
                     <td>

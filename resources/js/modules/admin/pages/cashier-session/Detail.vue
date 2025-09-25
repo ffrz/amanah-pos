@@ -42,7 +42,7 @@ watch(
     <q-page class="row justify-center">
       <div class="col col-lg-6 q-pa-xs">
         <div class="row">
-          <q-card square flat bordered class="col q-pa-none q-pt-md">
+          <q-card square flat bordered class="col q-pa-none">
             <q-tabs
               v-model="tab"
               dense
