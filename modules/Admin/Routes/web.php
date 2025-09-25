@@ -32,7 +32,7 @@ use Modules\Admin\Http\Controllers\OperationalCostController;
 use Modules\Admin\Http\Controllers\OperationalCostCategoryController;
 use Modules\Admin\Http\Controllers\ProductCategoryController;
 use Modules\Admin\Http\Controllers\ProductController;
-use Modules\Admin\Http\Controllers\ProfileController;
+use Modules\Admin\Http\Controllers\UserProfileController;
 use Modules\Admin\Http\Controllers\PurchaseOrderController;
 use Modules\Admin\Http\Controllers\SalesOrderController;
 use Modules\Admin\Http\Controllers\StockAdjustmentController;
@@ -61,9 +61,9 @@ Route::middleware([Auth::class])
         })->name('admin.about');
 
         Route::prefix('settings')->group(function () {
-            Route::get('profile/edit', [ProfileController::class, 'edit'])->name('admin.profile.edit');
-            Route::post('profile/update', [ProfileController::class, 'update'])->name('admin.profile.update');
-            Route::post('profile/update-password', [ProfileController::class, 'updatePassword'])->name('admin.profile.update-password');
+            Route::get('profile/edit', [UserProfileController::class, 'edit'])->name('admin.user-profile.edit');
+            Route::post('profile/update', [UserProfileController::class, 'update'])->name('admin.user-profile.update');
+            Route::post('profile/update-password', [UserProfileController::class, 'updatePassword'])->name('admin.user-profile.update-password');
         });
 
         Route::middleware([CheckAdminRoutePermission::class])->group(function () {

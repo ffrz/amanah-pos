@@ -17,31 +17,25 @@
 namespace Modules\Admin\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class ProfileController extends Controller
+class UserProfileController extends Controller
 {
     /**
      * Display the user's profile form.
      */
     public function edit(Request $request): Response
     {
-        $user = User::find(Auth::user()->id);
-        return Inertia::render('profile/Edit', [
-            'cashier_account' => $user->cashierAccount
-        ]);
+        return Inertia::render('user-profile/Edit');
     }
 
     /**
      * Update the user's profile information.
      */
-    public function update(Request $request): RedirectResponse
+    public function update(Request $request)
     {
         $validated = $request->validate([
             'name' => 'required|min:2|max:100',
@@ -51,13 +45,13 @@ class ProfileController extends Controller
             'name' => $validated['name'],
         ]);
 
-        return back()->with('success', 'Profil berhasil diperbarui.');
+        return back()->with('success', 'Profil berhasil diperbarui');
     }
 
     /**
      * Update the user's password.
      */
-    public function updatePassword(Request $request): RedirectResponse
+    public function updatePassword(Request $request)
     {
         $request->validate([
             'current_password' => ['required'],
@@ -74,6 +68,6 @@ class ProfileController extends Controller
             'password' => Hash::make($request->input('password')),
         ]);
 
-        return back()->with('success', 'Password berhasil diperbarui.');
+        return back()->with('success', 'Password berhasil diperbarui');
     }
 }

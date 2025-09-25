@@ -11,7 +11,11 @@ const form = useForm({
   type: window.CONSTANTS.USER_TYPES[user.type],
 });
 
-const submit = () => handleSubmit({ form, url: route("admin.profile.update") });
+const submit = () =>
+  handleSubmit({
+    form,
+    url: route("admin.user-profile.update"),
+  });
 </script>
 
 <template>
@@ -56,6 +60,7 @@ const submit = () => handleSubmit({ form, url: route("admin.profile.update") });
           icon="save"
           color="primary"
           :disable="form.processing"
+          :loading="form.processing"
         />
       </q-card-section>
     </q-card>

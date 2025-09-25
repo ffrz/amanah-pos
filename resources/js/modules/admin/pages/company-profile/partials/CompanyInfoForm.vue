@@ -78,6 +78,7 @@ const submit = () =>
           color="primary"
           label="Simpan"
           :disable="form.processing"
+          :loading="form.processing"
         />
       </q-card-section>
     </q-card>

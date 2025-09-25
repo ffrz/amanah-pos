@@ -595,7 +595,7 @@ defineExpose({
               clickable
               v-ripple
               :active="$page.url.startsWith('/admin/settings/profile')"
-              @click="router.get(route('admin.profile.edit'))"
+              @click="router.get(route('admin.user-profile.edit'))"
             >
               <q-item-section avatar>
                 <q-icon name="manage_accounts" />

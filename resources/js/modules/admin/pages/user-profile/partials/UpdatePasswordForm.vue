@@ -1,3 +1,4 @@
+@ -1,119 +0,0 @@
 <script setup>
 import { scrollToFirstErrorField } from "@/helpers/utils";
 import { useForm } from "@inertiajs/vue3";
@@ -14,7 +15,7 @@ const form = useForm({
 
 const updatePassword = () => {
   form.clearErrors();
-  form.post(route("admin.profile.update-password"), {
+  form.post(route("admin.user-profile.update-password"), {
     preserveScroll: true,
     onSuccess: () => form.reset(),
     onError: () => {
