@@ -208,12 +208,27 @@ const tableHeight = useTableHeight(filterToolbarRef);
             class="cursor-pointer"
           >
             <q-td key="username" :props="props">
-              <div>{{ props.row.username }}</div>
+              <div>
+                <template v-if="!$q.screen.gt.sm">
+                  <q-icon name="person" class="inline-icon" />
+                  Username:
+                </template>
+                {{ props.row.username }}
+              </div>
               <template v-if="!$q.screen.gt.sm">
-                <div><q-icon name="person" /> {{ props.row.name }}</div>
+                <div>
+                  <q-icon name="person" class="inline-icon" />
+                  Nama: {{ props.row.name }}
+                </div>
                 <div class="elipsis" style="max-width: 200px">
-                  <q-icon name="group" />
+                  <q-icon name="group" class="inline-icon" />
+                  Jenis Akun:
                   <span>{{ $CONSTANTS.USER_TYPES[props.row.type] }}</span>
+                </div>
+                <div>
+                  <q-icon name="group" class="inline-icon" />
+                  Peran:
+                  {{ props.row.roles.map((role) => role.name).join(",") }}
                 </div>
               </template>
             </q-td>

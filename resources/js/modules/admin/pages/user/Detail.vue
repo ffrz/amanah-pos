@@ -1,4 +1,5 @@
 <script setup>
+import { formatDateTime } from "@/helpers/formatter";
 import { usePage } from "@inertiajs/vue3";
 
 const page = usePage();
@@ -57,18 +58,16 @@ const title = "Rincian Pengguna";
                     <td>{{ page.props.data.name }}</td>
                   </tr>
                   <tr>
-                    <td>Hak Akses</td>
+                    <td>Jenis Akun</td>
                     <td>:</td>
                     <td>{{ $CONSTANTS.USER_TYPES[page.props.data.type] }}</td>
                   </tr>
                   <tr>
-                    <td>Akun Kas Kasir</td>
+                    <td>Peran</td>
                     <td>:</td>
                     <td>
                       {{
-                        page.props.data.cashier_account_id
-                          ? page.props.data.cashier_account.name
-                          : "-"
+                        page.props.data.roles.map((role) => role.name).join(",")
                       }}
                     </td>
                   </tr>
@@ -76,22 +75,14 @@ const title = "Rincian Pengguna";
                     <td>Dibuat</td>
                     <td>:</td>
                     <td>
-                      {{
-                        $dayjs(page.props.data.created_at).format(
-                          "DD MMMM YY HH:mm:ss"
-                        )
-                      }}
+                      {{ formatDateTime(page.props.data.created_at) }}
                     </td>
                   </tr>
-                  <tr>
+                  <tr v-if="page.props.data.updated_at">
                     <td>Diperbarui</td>
                     <td>:</td>
                     <td>
-                      {{
-                        $dayjs(page.props.data.updated_at).format(
-                          "DD MMMM YY HH:mm:ss"
-                        )
-                      }}
+                      {{ formatDateTime(page.props.data.updated_at) }}
                     </td>
                   </tr>
                   <tr>

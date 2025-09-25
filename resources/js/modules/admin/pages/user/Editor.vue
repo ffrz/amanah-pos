@@ -5,8 +5,9 @@ import { createOptions } from "@/helpers/options";
 import { validateUsername } from "@/helpers/validations";
 import { useForm, usePage } from "@inertiajs/vue3";
 
-const roles = createOptions(window.CONSTANTS.USER_TYPES);
+const types = createOptions(window.CONSTANTS.USER_TYPES);
 const page = usePage();
+const roles = page.props.roles;
 const title = !!page.props.data.id ? "Edit Pengguna" : "Tambah Pengguna";
 
 const form = useForm({
@@ -14,8 +15,9 @@ const form = useForm({
   name: page.props.data.name,
   username: page.props.data.username,
   password: "",
-  type: !!page.props.data.type ? page.props.data.type : roles[0].value,
+  type: !!page.props.data.type ? page.props.data.type : types[0].value,
   active: !!page.props.data.active,
+  roles: page.props.data.roles ?? [],
 });
 
 const submit = () => handleSubmit({ form, url: route("admin.user.save") });
@@ -82,20 +84,37 @@ const submit = () => handleSubmit({ form, url: route("admin.user.save") });
                 hide-bottom-space
               />
               <q-select
-                v-model="form.role"
+                v-model="form.type"
                 label="Jenis Akun"
-                :options="roles"
+                :options="types"
                 map-options
                 emit-value
                 lazy-rules
                 :disable="form.processing"
                 transition-show="jump-up"
                 transition-hide="jump-up"
-                :error="!!form.errors.role"
-                :error-message="form.errors.role"
+                :error="!!form.errors.type"
+                :error-message="form.errors.type"
                 hide-bottom-space
-              >
-              </q-select>
+              />
+              <q-select
+                v-model="form.roles"
+                label="Peran"
+                :options="roles"
+                option-value="id"
+                option-label="name"
+                map-options
+                emit-value
+                multiple
+                lazy-rules
+                use-chips
+                :disable="form.processing"
+                transition-show="jump-up"
+                transition-hide="jump-up"
+                :error="!!form.errors.roles"
+                :error-message="form.errors.roles"
+                hide-bottom-space
+              />
               <StandardCheckBox
                 v-model="form.active"
                 :disable="form.processing"

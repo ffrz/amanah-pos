@@ -63,7 +63,7 @@ class UserController extends Controller
         $orderType = $request->get('order_type', 'asc');
         $filter = $request->get('filter', []);
 
-        $q = User::query();
+        $q = User::with(['roles']);
 
         // Filter berdasarkan peran dari Spatie
         if (!empty($filter['role']) && $filter['role'] != 'all') {
@@ -157,9 +157,9 @@ class UserController extends Controller
                 Rule::unique('users', 'username')->ignore($request->id),
             ],
             // Peran sekarang adalah array, bukan lagi string
-            'role'      => 'required|string',
+            'type'      => 'required|string',
             'roles'     => 'nullable|array',
-            'roles.*'   => 'exists:roles,id',
+            'roles.*'   => 'exists:acl_roles,id',
             'active'    => 'required|boolean'
         ];
 
