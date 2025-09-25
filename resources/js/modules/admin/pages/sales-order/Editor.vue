@@ -348,7 +348,6 @@ const handlePayment = (data) => {
     ...data,
   };
 
-  console.log(data);
   isProcessing.value = true;
   axios
     .post(route("admin.sales-order.close"), payload)
@@ -400,9 +399,10 @@ const cancelOrder = () => {
 };
 
 const invoicePreview = () => {
-  router.visit(route("admin.sales-order.detail", { id: form.id }), {
-    target: "_blank",
-  });
+  window.open(
+    route("admin.sales-order.detail", { id: form.id }) + "?preview=1",
+    "_blank"
+  );
 };
 </script>
 
@@ -568,6 +568,7 @@ const invoicePreview = () => {
               icon="payment"
               @click="showPaymentDialog = true"
               :disable="
+                !$can('admin.sales-order.close') ||
                 isProcessing ||
                 form.items.length === 0 ||
                 form.status !== 'draft'

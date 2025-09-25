@@ -9,7 +9,6 @@ class AppPermissions
         return [
             'admin.sales-order.add'    => 'admin.sales-order.edit',
             'admin.sales-order.save'   => 'admin.sales-order.edit',
-            'admin.sales-order.close'  => 'admin.sales-order.edit',
         ];
     }
     /**
@@ -160,6 +159,9 @@ class AppPermissions
                 // 'admin.sales-order.update-item' => 'Perbarui Item Pesanan Penjualan',
                 'admin.sales-order.cancel' => 'Batalkan Pesanan Penjualan',
                 'admin.sales-order.close' => 'Tutup Pesanan Penjualan',
+
+                'admin.sales-order.add-payment' => 'Tambah Pembayaran',
+                'admin.sales-order.delete-payment' => 'Hapus Pembayaran',
             ],
             'Manajemen Pemasok' => [
                 'admin.supplier.index' => 'Lihat Daftar Pemasok',

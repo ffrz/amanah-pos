@@ -229,6 +229,9 @@ Route::middleware([Auth::class])
                 Route::post('delete/{id}', [SalesOrderController::class, 'delete'])->name('admin.sales-order.delete');
                 Route::post('update', [SalesOrderController::class, 'update'])->name('admin.sales-order.update');
                 Route::post('close', [SalesOrderController::class, 'close'])->name('admin.sales-order.close');
+                Route::post('add-payment', [SalesOrderController::class, 'addPayment'])->name('admin.sales-order.add-payment');
+                Route::post('delete-payment', [SalesOrderController::class, 'deletePayment'])->name('admin.sales-order.delete-payment');
+
 
                 // items
                 Route::post('add-item', [SalesOrderController::class, 'addItem'])->name('admin.sales-order.add-item');

@@ -16,6 +16,8 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
+
 class SalesOrderPayment extends BaseModel
 {
     protected $fillable = [
@@ -24,6 +26,11 @@ class SalesOrderPayment extends BaseModel
         'customer_id',
         'type',
         'amount',
+    ];
+
+    protected $appends = [
+        'formatted_id',
+        'type_label',
     ];
 
     /**
@@ -51,11 +58,19 @@ class SalesOrderPayment extends BaseModel
         ];
     }
 
+    public function getFormattedIdAttribute()
+    {
+        return Setting::value('sales_order_payment_code_prefix', 'SOPY-')
+            . Carbon::parse($this->created_at)->format('Ymd')
+            . '-'
+            . $this->id;
+    }
+
+
     public function getTypeLabelAttribute()
     {
         return self::Types[$this->type] ?? '-';
     }
-
 
     public function order()
     {

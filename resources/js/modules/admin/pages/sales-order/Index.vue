@@ -2,7 +2,7 @@
 import { computed, onMounted, reactive, ref, watch } from "vue";
 import { router } from "@inertiajs/vue3";
 import { handleDelete, handleFetchItems } from "@/helpers/client-req-handler";
-import { check_role, getQueryParams } from "@/helpers/utils";
+import { getQueryParams } from "@/helpers/utils";
 import { formatDateTime, formatNumber } from "@/helpers/formatter";
 import { Dialog, useQuasar } from "quasar";
 import { getCurrentMonth, getCurrentYear } from "@/helpers/datetime";
@@ -79,6 +79,12 @@ const columns = [
     field: "id",
     align: "left",
     sortable: true,
+  },
+  {
+    name: "cashier_id",
+    label: "Kasir",
+    field: "cashier_id",
+    align: "left",
   },
   {
     name: "customer_id",
@@ -357,8 +363,17 @@ watch(
                 }}
               </div>
               <template v-if="!$q.screen.gt.sm">
+                <div v-if="props.row.cashier">
+                  <q-icon name="person" class="inline-icon" />
+                  Kasir: {{ props.row.cashier?.username }}
+                </div>
+                <div v-if="props.row.cashier_session">
+                  <q-icon name="point_of_sale" class="inline-icon" />
+                  Terminal:
+                  {{ props.row.cashier_session?.cashier_terminal?.name }}
+                </div>
                 <div v-if="props.row.customer">
-                  <q-icon name="person" />
+                  <q-icon name="person" class="inline-icon" />
                   <my-link
                     :href="
                       route('admin.customer.detail', {
@@ -366,8 +381,7 @@ watch(
                       })
                     "
                     @click.stop
-                  >
-                    {{ props.row.customer.username }} -
+                    >&nbsp; {{ props.row.customer.username }} -
                     {{ props.row.customer.name }}
                   </my-link>
                 </div>
@@ -387,17 +401,31 @@ watch(
                 />
               </div>
             </q-td>
+            <q-td key="cashier_id" :props="props">
+              <div v-if="props.row.cashier">
+                <q-icon name="person" class="inline-icon" />
+                {{ props.row.cashier?.username }}
+              </div>
+              <div v-if="props.row.cashier_session">
+                <q-icon name="point_of_sale" class="inline-icon" />
+                {{ props.row.cashier_session?.cashier_terminal?.name }}
+              </div>
+            </q-td>
             <q-td key="customer_id" :props="props">
               <div v-if="props.row.customer">
-                <q-icon name="person" class="inline-icon" />
-                {{ props.row.customer_username }} -
-                {{ props.row.customer_name }}
-                <br />
-                <q-icon name="phone" class="inline-icon" />
-                {{ props.row.customer_phone }}
-                <br />
-                <q-icon name="home_pin" class="inline-icon" />
-                {{ props.row.customer_address }}
+                <div>
+                  <q-icon name="person" class="inline-icon" />
+                  {{ props.row.customer_username }} -
+                  {{ props.row.customer_name }}
+                </div>
+                <div v-if="props.row.customer_phone">
+                  <q-icon name="phone" class="inline-icon" />
+                  {{ props.row.customer_phone }}
+                </div>
+                <div v-if="props.row.customer_address">
+                  <q-icon name="home_pin" class="inline-icon" />
+                  {{ props.row.customer_address }}
+                </div>
               </div>
             </q-td>
             <q-td key="total" :props="props">

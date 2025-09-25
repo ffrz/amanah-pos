@@ -55,7 +55,7 @@ class SalesOrderController extends Controller
         $orderType = $request->get('order_type', 'desc');
         $filter = $request->get('filter', []);
 
-        $q = SalesOrder::with(['customer', 'details', 'details.product']);
+        $q = SalesOrder::with(['customer', 'details', 'details.product', 'cashier', 'cashierSession.cashierTerminal']);
 
         if (!empty($filter['search'])) {
             $q->where(function ($q) use ($filter) {
@@ -123,11 +123,13 @@ class SalesOrderController extends Controller
                 'payment_status' => SalesOrder::PaymentStatus_Unpaid,
                 'delivery_status' => SalesOrder::DeliveryStatus_ReadyForPickUp,
             ]);
+            $item->cashier_id = Auth::user()->id;
             $item->save();
             return redirect(route('admin.sales-order.edit', $item->id));
         }
 
         $item = SalesOrder::with(['details', 'customer'])->findOrFail($id);
+
 
         // FIX ME: Jika mau aktifkan reopen order, tangani bagian ini
         if ($item->status !== SalesOrder::Status_Draft) {
@@ -149,15 +151,7 @@ class SalesOrderController extends Controller
 
         return inertia('sales-order/Editor', [
             'data' => $item,
-            'accounts' => FinanceAccount::where('active', '=', true)
-                ->where(function ($query) {
-                    $query->where('type', '=', FinanceAccount::Type_Cash)
-                        ->orWhere('type', '=', FinanceAccount::Type_Bank)
-                        ->orWhere('type', '=', FinanceAccount::Type_PettyCash);
-                })
-                ->where('show_in_pos_payment', '=', true)
-                ->orderBy('name')
-                ->get()
+            'accounts' => $this->getFinanceAccounts(),
         ]);
     }
 
@@ -290,6 +284,7 @@ class SalesOrderController extends Controller
                 'cashierSession.cashierTerminal'
             ])
                 ->findOrFail($id),
+            'accounts' => $this->getFinanceAccounts()
         ]);
     }
 
@@ -614,5 +609,214 @@ class SalesOrderController extends Controller
         }
 
         return JsonResponseHelper::success($order, "Order telah selesai.");
+    }
+
+    protected function getFinanceAccounts()
+    {
+        return FinanceAccount::where('active', '=', true)
+            ->where(function ($query) {
+                $query->where('type', '=', FinanceAccount::Type_Cash)
+                    ->orWhere('type', '=', FinanceAccount::Type_Bank)
+                    ->orWhere('type', '=', FinanceAccount::Type_PettyCash);
+            })
+            ->where('show_in_pos_payment', '=', true)
+            ->orderBy('name')
+            ->get();
+    }
+
+    public function addPayment(Request $request)
+    {
+        $order = SalesOrder::with(['customer', 'details'])->find($request->post('order_id'));
+
+        if (!$order) {
+            return JsonResponseHelper::error('Pesanan penjualan tidak ditemukan.');
+        }
+
+        if ($order->remaining_debt <= 0) {
+            return JsonResponseHelper::error('Pesanan ini sudah lunas.');
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $payments = $request->post('payments', []);
+            $totalPaidAmount = 0;
+
+            foreach ($payments as $inputPayment) {
+                if (!isset($inputPayment['id'])) {
+                    throw new Exception('Invalid input payment format!');
+                }
+
+                $amount = intval($inputPayment['amount']);
+
+                // Pastikan jumlah pembayaran tidak melebihi sisa tagihan
+                if ($order->remaining_debt - $totalPaidAmount < $amount) {
+                    throw new Exception('Jumlah pembayaran melebihi sisa tagihan.');
+                }
+
+                $totalPaidAmount += $amount;
+
+                $accountId = null;
+                $type = null;
+
+                if ($inputPayment['id'] === 'cash') {
+                    $type = SalesOrderPayment::Type_Cash;
+                    $session = CashierSessionService::getActiveSession();
+
+                    if (!$session) {
+                        throw new Exception("Akun kas belum diset!");
+                    }
+
+                    $accountId = $session->cashierTerminal->financeAccount->id;
+                } else if ($inputPayment['id'] === 'wallet') {
+                    $type = SalesOrderPayment::Type_Wallet;
+                    if ($order->customer) {
+                        // Backend validation for wallet balance
+                        if ($order->customer->balance < $amount) {
+                            throw new Exception("Saldo wallet pelanggan tidak mencukupi.");
+                        }
+                    }
+                } else if (intval($inputPayment['id'])) {
+                    $type = SalesOrderPayment::Type_Transfer;
+                    $accountId = (int)$inputPayment['id'];
+                }
+
+                $payment = new SalesOrderPayment([
+                    'order_id' => $order->id,
+                    'finance_account_id' => $accountId,
+                    'customer_id' => $order->customer?->id,
+                    'type' => $type,
+                    'amount' => $amount,
+                ]);
+                $payment->save();
+
+                if ($type === SalesOrderPayment::Type_Transfer || $type === SalesOrderPayment::Type_Cash) {
+                    FinanceTransaction::create([
+                        'account_id' => $accountId,
+                        'datetime' => now(),
+                        'type' => FinanceTransaction::Type_Income,
+                        'amount' => $amount,
+                        'ref_id' => $payment->id,
+                        'ref_type' => FinanceTransaction::RefType_SalesOrderPayment,
+                        'notes' => "Pembayaran transaksi #$order->formatted_id",
+                    ]);
+                    FinanceAccount::where('id', $accountId)->increment('balance', $amount);
+                } else if ($type === SalesOrderPayment::Type_Wallet) {
+                    CustomerWalletTransaction::create([
+                        'customer_id' => $order->customer->id,
+                        'datetime' => now(),
+                        'type' => CustomerWalletTransaction::Type_SalesOrderPayment,
+                        'amount' => -$amount,
+                        'ref_type' => CustomerWalletTransaction::RefType_SalesOrderPayment,
+                        'ref_id' => $payment->id,
+                        'notes' => "Pembayaran transaksi #$order->formatted_id",
+                    ]);
+                    Customer::where('id', $order->customer->id)->decrement('balance', $amount);
+                }
+            }
+
+            $order->total_paid += $totalPaidAmount;
+            $order->change = max(0, $order->total_paid - $order->grand_total);
+            $order->remaining_debt = max(0, $order->grand_total - $order->total_paid);
+
+            if ($order->total_paid >= $order->grand_total) {
+                $order->payment_status = SalesOrder::PaymentStatus_FullyPaid;
+            } else if ($order->total_paid > 0) {
+                $order->payment_status = SalesOrder::PaymentStatus_PartiallyPaid;
+            } else {
+                $order->payment_status = SalesOrder::PaymentStatus_Unpaid;
+            }
+            $order->save();
+
+            DB::commit();
+
+            return JsonResponseHelper::success($order, "Pembayaran berhasil dicatat.");
+        } catch (\Throwable $ex) {
+            DB::rollBack();
+            return JsonResponseHelper::error($ex->getMessage(), 500, $ex);
+        }
+    }
+
+    /**
+     * Menangani penghapusan pembayaran untuk Sales Order.
+     *
+     * @param Request $request
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function deletePayment(Request $request, $id)
+    {
+        DB::beginTransaction();
+
+        try {
+            // 1. Cari pembayaran berdasarkan ID
+            $payment = SalesOrderPayment::with(['order', 'order.customer'])->find($id);
+
+            if (!$payment) {
+                DB::rollBack();
+                return JsonResponseHelper::error('Pembayaran tidak ditemukan.');
+            }
+
+            // 2. Pastikan order terkait dalam status 'closed'
+            $order = $payment->order;
+            if (!$order) {
+                DB::rollBack();
+                return JsonResponseHelper::error('Order terkait tidak ditemukan.');
+            }
+
+            if ($order->status !== SalesOrder::Status_Closed) {
+                DB::rollBack();
+                return JsonResponseHelper::error('Tidak dapat menghapus pembayaran dari order yang belum selesai.');
+            }
+
+            // 3. Batalkan transaksi keuangan terkait berdasarkan tipe pembayaran
+            if ($payment->type === SalesOrderPayment::Type_Transfer || $payment->type === SalesOrderPayment::Type_Cash) {
+                // Batalkan transaksi keuangan
+                FinanceTransaction::where('ref_id', $payment->id)
+                    ->where('ref_type', FinanceTransaction::RefType_SalesOrderPayment)
+                    ->delete();
+
+                // Kurangi saldo akun keuangan
+                if ($payment->finance_account_id) {
+                    FinanceAccount::where('id', $payment->finance_account_id)
+                        ->decrement('balance', $payment->amount);
+                }
+            } else if ($payment->type === SalesOrderPayment::Type_Wallet) {
+                // Batalkan transaksi dompet pelanggan
+                CustomerWalletTransaction::where('ref_id', $payment->id)
+                    ->where('ref_type', CustomerWalletTransaction::RefType_SalesOrderPayment)
+                    ->delete();
+
+                // Tambahkan kembali saldo ke dompet pelanggan
+                if ($order->customer) {
+                    Customer::where('id', $order->customer->id)
+                        ->increment('balance', $payment->amount);
+                }
+            }
+
+            // 4. Hapus entri pembayaran dari database
+            $payment->delete();
+
+            // 5. Perbarui status order
+            $order->total_paid -= $payment->amount;
+            $order->remaining_debt = max(0, $order->grand_total - $order->total_paid);
+
+            if ($order->total_paid >= $order->grand_total) {
+                $order->payment_status = SalesOrder::PaymentStatus_FullyPaid;
+            } else if ($order->total_paid > 0) {
+                $order->payment_status = SalesOrder::PaymentStatus_PartiallyPaid;
+            } else {
+                $order->payment_status = SalesOrder::PaymentStatus_Unpaid;
+            }
+
+            $order->save();
+
+            DB::commit();
+
+            return JsonResponseHelper::success($order, "Pembayaran berhasil dihapus.");
+        } catch (\Throwable $ex) {
+            DB::rollBack();
+            return JsonResponseHelper::error($ex->getMessage(), 500, $ex);
+        }
     }
 }
