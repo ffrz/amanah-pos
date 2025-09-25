@@ -18,9 +18,11 @@ namespace Modules\Admin\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Models\ProductCategory;
 use App\Models\StockAdjustment;
 use App\Models\StockAdjustmentDetail;
 use App\Models\StockMovement;
+use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -115,11 +117,16 @@ class StockAdjustmentController extends Controller
         }
 
         return inertia('stock-adjustment/Create', [
+            'categories' => ProductCategory::all(),
+            'suppliers' => Supplier::where('active', true)
+                ->orderBy('name')->get(),
             'products' => Product::with(['category'])
-                ->where('type', Product::Type_Stocked)
+                ->where(function ($q) {
+                    $q->where('type', Product::Type_Stocked);
+                })
                 ->where('active', 1)
                 ->orderBy('name', 'asc')
-                ->get(['id', 'name', 'type', 'stock', 'uom', 'cost', 'price']),
+                ->get(['id', 'name', 'description', 'barcode', 'category_id', 'supplier_id', 'type', 'stock', 'uom', 'cost', 'price']),
         ]);
     }
 

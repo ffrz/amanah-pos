@@ -7,10 +7,28 @@ import { createOptions } from "@/helpers/options";
 import DateTimePicker from "@/components/DateTimePicker.vue";
 import { useQuasar } from "quasar";
 import { computed, ref } from "vue";
+import { useProductCategoryFilter } from "@/composables/useProductCategoryFilter";
+import { useSupplierFilter } from "@/composables/useSupplierFilter";
 
 const page = usePage();
 const title = "Buat Penyesuaian Stok";
-const products = page.props.products;
+
+// Data produk dan opsi filter dari props
+const allProducts = page.props.products;
+
+const { filteredCategories, filterCategories } = useProductCategoryFilter(
+  page.props.categories
+);
+const { filteredSuppliers, filterSupplierFn } = useSupplierFilter(
+  page.props.suppliers
+);
+// Model filter
+const filter = ref({
+  search: null,
+  category_id: null,
+  supplier_id: null,
+});
+
 const selectedProducts = ref([]);
 const form = useForm({
   type: "stock_opname",
@@ -35,15 +53,57 @@ const columns = [
     sortable: false,
     format: (val, row) => formatNumber(val) + " " + row.uom,
   },
+  {
+    name: "category",
+    label: "Kategori",
+    field: "category.name",
+    align: "left",
+  },
+  {
+    name: "supplier",
+    label: "Supplier",
+    field: "supplier.name",
+    align: "left",
+  },
+  { name: "type", label: "Jenis", field: "product_type", align: "left" },
 ];
 
 const types = createOptions(window.CONSTANTS.STOCK_ADJUSTMENT_TYPES);
+
+// Logika filtering produk
+const filteredProducts = computed(() => {
+  return allProducts.filter((p) => {
+    let matches = true;
+
+    // Filter berdasarkan pencarian
+    if (filter.value.search) {
+      const searchTerm = filter.value.search.toLowerCase();
+      matches =
+        p.name.toLowerCase().includes(searchTerm) ||
+        p.description.toLowerCase().includes(searchTerm) ||
+        (p.barcode && p.barcode.toLowerCase().includes(searchTerm));
+    }
+
+    // Filter berdasarkan kategori
+    if (matches && filter.value.category_id) {
+      matches = p.category_id === filter.value.category_id;
+    }
+
+    // Filter berdasarkan supplier
+    if (matches && filter.value.supplier_id) {
+      matches = p.supplier_id === filter.value.supplier_id;
+    }
+
+    return matches;
+  });
+});
 
 const submit = () => {
   form.product_ids = selectedProducts.value.map((p) => p.id);
   transformPayload(form, { datetime: "YYYY-MM-DD HH:mm:ss" });
   handleSubmit({ form, url: route("admin.stock-adjustment.create") });
 };
+
 const $q = useQuasar();
 const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return columns;
@@ -53,7 +113,7 @@ const computedColumns = computed(() => {
 
 <template>
   <i-head :title="title" />
-  <authenticated-layout :show-drawer-button="false">
+  <authenticated-layout :show-drawer-button="true">
     <template #title>{{ title }}</template>
 
     <template #left-button>
@@ -69,7 +129,7 @@ const computedColumns = computed(() => {
       </div>
     </template>
     <q-page class="row justify-center">
-      <div class="col col-md-6 q-pa-xs">
+      <div class="col col-lg-6 q-pa-xs">
         <q-form
           class="row"
           @submit.prevent="submit"
@@ -114,6 +174,48 @@ const computedColumns = computed(() => {
             </q-card-section>
             <q-card-section>
               <div class="text-subtitle2"><b>Pilih Produk</b></div>
+              <!-- Tambahkan baris filter di sini -->
+              <div class="row q-col-gutter-sm q-mb-md">
+                <q-input
+                  v-model="filter.search"
+                  label="Cari Produk"
+                  dense
+                  outlined
+                  class="col-12 col-sm-4"
+                  clearable
+                />
+                <q-select
+                  v-model="filter.category_id"
+                  label="Kategori"
+                  class="custom-select col-xs-12 col-md-4"
+                  outlined
+                  use-input
+                  input-debounce="300"
+                  clearable
+                  :options="filteredCategories"
+                  map-options
+                  dense
+                  emit-value
+                  @filter="filterCategories"
+                  style="min-width: 150px"
+                />
+                <q-select
+                  v-model="filter.supplier_id"
+                  label="Pemasok"
+                  class="custom-select col-xs-12 col-md-4"
+                  outlined
+                  use-input
+                  input-debounce="300"
+                  clearable
+                  :options="filteredSuppliers"
+                  map-options
+                  dense
+                  emit-value
+                  @filter="filterSupplierFn"
+                  style="min-width: 150px"
+                />
+              </div>
+
               <q-table
                 flat
                 bordered
@@ -123,7 +225,7 @@ const computedColumns = computed(() => {
                 row-key="id"
                 virtual-scroll
                 :columns="computedColumns"
-                :rows="products"
+                :rows="filteredProducts"
                 binary-state-sort
                 :hide-pagination="true"
                 dense
