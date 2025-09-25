@@ -16,6 +16,7 @@
 
 namespace Modules\Admin\Http\Controllers;
 
+use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use Illuminate\Http\Request;
@@ -30,23 +31,6 @@ use Illuminate\Support\Facades\Auth;
  */
 class CompanyProfileController extends Controller
 {
-
-    /**
-     * Menampilkan form profil perusahaan.
-     *
-     * @return \Inertia\Response
-     */
-    public function edit()
-    {
-        $data = [
-            'name' => Setting::value('company_name', env('APP_NAME', 'Koperasiku')),
-            'phone' => Setting::value('company_phone', ''),
-            'address' => Setting::value('company_address', ''),
-        ];
-
-        return inertia('company-profile/Edit', compact('data'));
-    }
-
     /**
      * Memperbarui informasi profil perusahaan.
      *
@@ -54,26 +38,41 @@ class CompanyProfileController extends Controller
      * @return \Illuminate\Http\RedirectResponse
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function update(Request $request): \Illuminate\Http\RedirectResponse
+    public function edit(Request $request)
     {
-        Auth::user()->setLastActivity('Memperbarui profil perusahaan');
+        if ($request->getMethod() === Request::METHOD_POST) {
+            $rules = [
+                'name' => 'required|string|min:2|max:100',
+                'phone' => 'nullable|string|regex:/^(\+?\d{1,4})?[\s.-]?\(?\d{1,4}\)?[\s.-]?\d{1,4}[\s.-]?\d{1,9}$/|max:40',
+                'address' => 'nullable|string|max:1000',
+            ];
 
-        $rules = [
-            'name' => 'required|string|min:2|max:100',
-            'phone' => 'nullable|string|regex:/^(\+?\d{1,4})?[\s.-]?\(?\d{1,4}\)?[\s.-]?\d{1,4}[\s.-]?\d{1,9}$/|max:40',
-            'address' => 'nullable|string|max:1000',
+            $validatedData = $request->validate($rules);
+
+            $name = $validatedData['name'];
+            $phone = $validatedData['phone'] ?? '';
+            $address = $validatedData['address'] ?? '';
+
+            Setting::setValue('company_name', $name);
+            Setting::setValue('company_phone', $phone);
+            Setting::setValue('company_address', $address);
+
+            Auth::user()->setLastActivity('Memperbarui profil perusahaan');
+
+            return JsonResponseHelper::success($this->getData(), 'Profil perusahaan berhasil diperbarui.');
+        }
+
+        $data = $this->getData();
+
+        return inertia('company-profile/Edit', compact('data'));
+    }
+
+    protected function getData()
+    {
+        return [
+            'name' => Setting::value('company_name', env('APP_NAME', 'Koperasiku')),
+            'phone' => Setting::value('company_phone', ''),
+            'address' => Setting::value('company_address', ''),
         ];
-
-        $validatedData = $request->validate($rules);
-
-        $name = $validatedData['name'];
-        $phone = $validatedData['phone'] ?? '';
-        $address = $validatedData['address'] ?? '';
-
-        Setting::setValue('company_name', $name);
-        Setting::setValue('company_phone', $phone);
-        Setting::setValue('company_address', $address);
-
-        return back()->with('success', 'Profil perusahaan berhasil diperbarui.');
     }
 }

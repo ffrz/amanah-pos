@@ -237,8 +237,8 @@ Route::middleware([Auth::class])
             });
 
             Route::prefix('settings')->group(function () {
-                Route::get('company-profile/edit', [CompanyProfileController::class, 'edit'])->name('admin.company-profile.edit');
-                Route::post('company-profile/update', [CompanyProfileController::class, 'update'])->name('admin.company-profile.update');
+                // TODO: perlu digabung agar agar acl lebih sederhana!
+                Route::match(['get', 'post'], 'company-profile/edit', [CompanyProfileController::class, 'edit'])->name('admin.company-profile.edit');
 
                 Route::prefix('users')->group(function () {
                     Route::get('', [UserController::class, 'index'])->name('admin.user.index');

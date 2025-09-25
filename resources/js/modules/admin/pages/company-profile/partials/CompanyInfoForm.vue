@@ -1,19 +1,28 @@
 <script setup>
+import { useApiForm } from "@/composables/useApiForm";
 import { handleSubmit } from "@/helpers/client-req-handler";
 import { scrollToFirstErrorField } from "@/helpers/utils";
-import { useForm, usePage } from "@inertiajs/vue3";
+import { usePage } from "@inertiajs/vue3";
 import { ref } from "vue";
 
 const nameInputRef = ref();
 const page = usePage();
-const form = useForm({
+const form = useApiForm({
   name: page.props.data.name,
   phone: page.props.data.phone,
   address: page.props.data.address,
 });
 
 const submit = () =>
-  handleSubmit({ form, url: route("admin.company-profile.update") });
+  handleSubmit({
+    form,
+    url: route("admin.company-profile.edit"),
+    onSuccess: (response) => {
+      form.name = response.data.name;
+      form.phone = response.data.phone;
+      form.address = response.data.address;
+    },
+  });
 </script>
 
 <template>
