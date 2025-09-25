@@ -83,7 +83,7 @@ const submit = () => handleSubmit({ form, url: route("admin.user.save") });
               />
               <q-select
                 v-model="form.role"
-                label="Hak Akses"
+                label="Jenis Akun"
                 :options="roles"
                 map-options
                 emit-value

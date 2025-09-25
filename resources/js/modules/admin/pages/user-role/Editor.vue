@@ -2,11 +2,10 @@
 import { useForm, usePage } from "@inertiajs/vue3";
 import { handleSubmit } from "@/helpers/client-req-handler";
 import { scrollToFirstErrorField } from "@/helpers/utils";
-import CheckBox from "@/components/CheckBox.vue";
 import { computed } from "vue";
 
 const page = usePage();
-const title = (!!page.props.data.id ? "Edit" : "Tambah") + " Role";
+const title = (!!page.props.data.id ? "Edit" : "Tambah") + " Peran Pengguna";
 const form = useForm({
   id: page.props.data.id,
   name: page.props.data.name,
@@ -37,7 +36,7 @@ const groupedPermissions = computed(() => {
 
 <template>
   <i-head :title="title" />
-  <authenticated-layout :show-drawer-button="false">
+  <authenticated-layout :show-drawer-button="true">
     <template #title>{{ title }}</template>
 
     <template #left-button>
@@ -51,6 +50,18 @@ const groupedPermissions = computed(() => {
           @click="$goBack()"
         />
       </div>
+    </template>
+    <template #right-button>
+      <q-btn
+        icon="save"
+        type="submit"
+        label="Simpan"
+        color="primary"
+        :disable="form.processing"
+        size="sm"
+        dense
+        class="custom-dense"
+      />
     </template>
     <q-page class="row justify-center">
       <div class="col col-md-6 q-pa-xs">
@@ -107,21 +118,6 @@ const groupedPermissions = computed(() => {
                   />
                 </div>
               </div>
-            </q-card-section>
-            <q-card-section class="q-gutter-sm">
-              <q-btn
-                icon="save"
-                type="submit"
-                label="Simpan"
-                color="primary"
-                :disable="form.processing"
-              />
-              <q-btn
-                icon="cancel"
-                label="Batal"
-                :disable="form.processing"
-                @click="$goBack()"
-              />
             </q-card-section>
           </q-card>
         </q-form>

@@ -113,6 +113,7 @@ const updatePassword = () => {
           color="primary"
           icon="save"
           :disable="form.processing"
+          :loading="form.processing"
         />
       </q-card-section>
     </q-card>

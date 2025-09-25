@@ -37,11 +37,11 @@ class RolesAndPermissionsSeeder extends Seeder
         $permissionsByCategories = AppPermissions::all();
 
         foreach ($permissionsByCategories as $category => $permissions) {
-            foreach ($permissions as $permissionData) {
+            foreach ($permissions as $permissionName => $permissionLabel) {
                 Permission::firstOrCreate(
-                    ['name' => $permissionData['name']],
+                    ['name' => $permissionName],
                     [
-                        'label' => $permissionData['label'],
+                        'label' => $permissionLabel,
                         'category' => $category,
                         'guard_name' => 'web'
                     ]
@@ -51,9 +51,43 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // Daftar semua izin yang akan diberikan ke peran 'kasir'
         $cashier_permissions = [
-            'admin.cashier-session.start',
+            'admin.cashier-session.index',
             'admin.cashier-session.detail',
+            'admin.cashier-session.open',
+            'admin.cashier-session.close',
+
+            'admin.cashier-terminal.index',
+            'admin.cashier-terminal.detail',
+
+            'admin.customer.index',
+            'admin.customer.detail',
+            'admin.customer.add',
+            'admin.customer.edit',
+
             'admin.product.index',
+            'admin.product.detail',
+
+            'admin.product-category.index',
+            'admin.stock-movement.index',
+
+            // 'admin.finance-account.detail',
+
+            'admin.finance-transaction.index',
+            'admin.finance-transaction.detail',
+            'admin.finance-transaction.add',
+
+            'admin.operational-cost.index',
+            'admin.operational-cost.detail',
+            'admin.operational-cost.add',
+
+            'admin.operational-cost-category.index',
+            'admin.operational-cost-category.add',
+
+            'admin.sales-order.index',
+            'admin.sales-order.detail',
+            'admin.sales-order.edit',
+
+            'admin.user.detail',
         ];
 
         // Pastikan semua izin di dalam array sudah ada di database.

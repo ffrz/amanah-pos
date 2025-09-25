@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Spatie\Permission\Models\Permission;
+use Illuminate\Support\Facades\Log;
 use App\Constants\AppPermissions;
 
 class SyncPermissions extends Command
@@ -29,20 +30,25 @@ class SyncPermissions extends Command
     {
         $this->info('Starting permissions synchronization...');
 
-        // Dapatkan semua izin yang terdefinisi dalam kode
+        // Dapatkan semua izin yang terdefinisi dalam kelas AppPermissions.
+        // Asumsi metode `all()` mengembalikan array multi-dimensi dengan kategori.
         $allPermissions = AppPermissions::all();
 
         // Koleksi untuk melacak izin yang ada dan baru
         $existingPermissions = Permission::all()->pluck('name')->toArray();
         $permissionsToCreate = [];
+        $permissionsInCode = []; // List of all permission names in the code
 
         foreach ($allPermissions as $category => $permissions) {
-            foreach ($permissions as $permissionData) {
+            foreach ($permissions as $permissionName => $permissionLabel) {
+                // Tambahkan nama izin ke array untuk pelacakan izin di kode
+                $permissionsInCode[] = $permissionName;
+
                 // Tambahkan izin ke array untuk dibuat jika belum ada di database
-                if (!in_array($permissionData['name'], $existingPermissions)) {
+                if (!in_array($permissionName, $existingPermissions)) {
                     $permissionsToCreate[] = [
-                        'name' => $permissionData['name'],
-                        'label' => $permissionData['label'],
+                        'name' => $permissionName,
+                        'label' => $permissionLabel,
                         'category' => $category,
                         'guard_name' => 'web', // Sesuaikan dengan guard Anda
                     ];
@@ -59,7 +65,6 @@ class SyncPermissions extends Command
         }
 
         // Hapus izin di database yang tidak lagi ada di kode
-        $permissionsInCode = collect($allPermissions)->flatten(1)->pluck('name')->all();
         $permissionsToDelete = array_diff($existingPermissions, $permissionsInCode);
 
         if (!empty($permissionsToDelete)) {

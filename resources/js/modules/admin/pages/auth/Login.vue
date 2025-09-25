@@ -1,16 +1,24 @@
 <script setup>
 import StandardCheckBox from "@/components/StandardCheckBox.vue";
+import { useApiForm } from "@/composables/useApiForm";
 import { handleSubmit } from "@/helpers/client-req-handler";
-import { useForm } from "@inertiajs/vue3";
 import { ref } from "vue";
 
-let form = useForm({
+let form = useApiForm({
   username: window.CONFIG.APP_DEMO ? "admin" : "",
   password: window.CONFIG.APP_DEMO ? "12345" : "",
   remember: true,
 });
 
-const submit = () => handleSubmit({ form, url: route("admin.auth.login") });
+const submit = () =>
+  handleSubmit({
+    form,
+    url: route("admin.auth.login"),
+    onSuccess: () => {
+      form.processing = true;
+      window.location.href = route("admin.dashboard");
+    },
+  });
 const showPassword = ref(false);
 </script>
 
@@ -90,6 +98,7 @@ const showPassword = ref(false);
                   class="full-width"
                   label="Login"
                   :disable="form.processing"
+                  :loading="form.loading"
                   data-test="submit"
                 />
               </q-card-actions>

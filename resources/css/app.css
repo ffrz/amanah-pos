@@ -312,3 +312,7 @@ table.detail tr:nth-child(even) td {
 .q-menu .q-item {
   min-height: 40px !important;
 }
+
+.custom-dense {
+  padding: 0.25em 0.75em !important;
+}
