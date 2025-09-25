@@ -8,7 +8,7 @@ const title = "Rincian Biaya Operasional";
 
 <template>
   <i-head :title="title" />
-  <authenticated-layout :show-drawer-button="false">
+  <authenticated-layout :show-drawer-button="true">
     <template #left-button>
       <div class="q-gutter-sm">
         <q-btn

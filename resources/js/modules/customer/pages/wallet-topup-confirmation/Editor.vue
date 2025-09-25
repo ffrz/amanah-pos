@@ -30,7 +30,7 @@ const submit = () => {
 
 <template>
   <i-head :title="title" />
-  <authenticated-layout ref="layoutRef" :show-drawer-button="false">
+  <authenticated-layout ref="layoutRef" :show-drawer-button="true">
     <template #title>{{ title }}</template>
     <template #left-button>
       <div class="q-gutter-sm">

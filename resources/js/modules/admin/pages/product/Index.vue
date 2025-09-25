@@ -127,7 +127,7 @@ const { filteredCategories, filterCategories } = useProductCategoryFilter(
   page.props.categories,
   true
 );
-const { filteredSuppliers, filterSuppliers } = useSupplierFilter(
+const { filteredSuppliers, filterSupplierFn } = useSupplierFilter(
   page.props.suppliers,
   true
 );
@@ -289,7 +289,7 @@ const goToDetail = (props) => {
             map-options
             dense
             emit-value
-            @filter="filterSuppliers"
+            @filter="filterSupplierFn"
             style="min-width: 150px"
             @update:model-value="onFilterChange"
           />

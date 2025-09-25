@@ -13,7 +13,7 @@ const title = "Rincian Transaksi";
 
 <template>
   <i-head :title="title" />
-  <authenticated-layout :show-drawer-button="false">
+  <authenticated-layout :show-drawer-button="true">
     <template #left-button>
       <div class="q-gutter-sm">
         <q-btn

@@ -25,7 +25,7 @@ const submit = () => handleSubmit({ form, url: route("admin.user.save") });
 
 <template>
   <i-head :title="title" />
-  <authenticated-layout :show-drawer-button="false">
+  <authenticated-layout :show-drawer-button="true">
     <template #title>{{ title }}</template>
     <template #left-button>
       <div class="q-gutter-sm">

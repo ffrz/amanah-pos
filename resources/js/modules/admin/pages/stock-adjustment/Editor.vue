@@ -7,6 +7,7 @@ import { computed } from "vue";
 import { createOptions } from "@/helpers/options";
 import DateTimePicker from "@/components/DateTimePicker.vue";
 import { formatNumber } from "@/helpers/formatter";
+import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
 
 const page = usePage();
 const title = "Penyesuaian Stok";
@@ -100,7 +101,7 @@ const computedColumns = computed(() => {
 
 <template>
   <i-head :title="title" />
-  <authenticated-layout :show-drawer-button="false">
+  <authenticated-layout :show-drawer-button="true">
     <template #title>{{ title }}</template>
 
     <template #left-button>
@@ -116,7 +117,7 @@ const computedColumns = computed(() => {
       </div>
     </template>
     <q-page class="row justify-center">
-      <div class="col col-md-6 q-pa-xs">
+      <div class="col col-lg-6 q-pa-xs">
         <q-form
           class="row"
           @submit.prevent="submit"
@@ -162,7 +163,7 @@ const computedColumns = computed(() => {
                 hide-bottom-space
               />
             </q-card-section>
-            <q-card-section>
+            <q-card-section class="q-pa-xs">
               <q-table
                 flat
                 bordered
@@ -195,11 +196,13 @@ const computedColumns = computed(() => {
                   </q-td>
                 </template>
                 <template v-slot:body-cell-new_quantity="props">
-                  <q-td :props="props">
-                    <q-input
+                  <q-td :props="props" class="text-center">
+                    <LocaleNumberInput
                       v-model.number="props.row[props.col.name]"
                       input-class="text-right"
-                      type="number"
+                      dense
+                      style="width: 60px"
+                      hide-bottom-space
                     />
                   </q-td>
                 </template>
