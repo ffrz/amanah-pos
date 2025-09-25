@@ -20,6 +20,9 @@ const tableRef = ref(null);
 const rows = ref([]);
 const loading = ref(true);
 
+// Ref untuk melacak item yang dipilih
+const selectedIndex = ref(-1);
+
 const filter = reactive({
   search: "",
   status: "active",
@@ -55,6 +58,7 @@ const fetchItemsWithoutProps = () => {
 
 const fetchItems = (props = null) => {
   loading.value = true;
+  selectedIndex.value = -1; // Reset selected index on new fetch
 
   handleFetchItems({
     pagination,
@@ -81,6 +85,22 @@ const onProductSelect = (product) => {
   // });
 };
 
+const handleKeydown = (event) => {
+  const listCount = rows.value.length;
+  if (listCount === 0) return;
+
+  if (event.key === "ArrowDown") {
+    event.preventDefault();
+    selectedIndex.value = (selectedIndex.value + 1) % listCount;
+  } else if (event.key === "ArrowUp") {
+    event.preventDefault();
+    selectedIndex.value = (selectedIndex.value - 1 + listCount) % listCount;
+  } else if (event.key === "Enter" && selectedIndex.value !== -1) {
+    event.preventDefault();
+    onProductSelect(rows.value[selectedIndex.value]);
+  }
+};
+
 watch(
   () => props.modelValue,
   (newValue, oldValue) => {
@@ -100,7 +120,12 @@ watch(
     @update:model-value="(val) => $emit('update:modelValue', val)"
     :maximized="$q.screen.lt.sm"
   >
-    <q-card class="column fit">
+    <q-card
+      class="column fit"
+      tabindex="0"
+      @keydown="handleKeydown"
+      ref="cardRef"
+    >
       <q-card-section class="q-py-sm">
         <div class="row items-center no-wrap">
           <div class="col text-subtitle text-grey-8 text-bold">Cari Produk</div>
@@ -167,7 +192,10 @@ watch(
             <q-tr
               tabindex="0"
               :props="props"
-              :class="{ inactive: !props.row.active }"
+              :class="{
+                inactive: !props.row.active,
+                'selected-row': selectedIndex === props.rowIndex,
+              }"
               class="cursor-pointer"
               @click="onProductSelect(props.row)"
               @keydown.enter.prevent.stop="onProductSelect(props.row)"
@@ -181,13 +209,6 @@ watch(
                   :max-length="50"
                   class="text-grey-6"
                 />
-                <!-- <div
-                  v-if="props.row.category_id"
-                  class="text-grey-8 text-caption"
-                >
-                  <q-icon name="category" />
-                  {{ props.row.category.name }}
-                </div> -->
               </q-td>
               <q-td key="stock" :props="props" class="wrap-column text-right">
                 {{
@@ -206,3 +227,12 @@ watch(
     </q-card>
   </q-dialog>
 </template>
+
+<style>
+.q-card {
+  width: 360px;
+}
+.selected-row {
+  background-color: #e0e0e0;
+}
+</style>
