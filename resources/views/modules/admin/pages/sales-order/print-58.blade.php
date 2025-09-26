@@ -104,11 +104,13 @@
                     </div>
                     <br style="margin: 4px 0;">
                     <div class="text-center">
-                        <div>
-                            L: {{ $item->cashierSession->cashierTerminal?->location }} |
-                            T: {{ $item->cashierSession->cashierTerminal?->name }} | K:
-                            {{ $item->cashier->username }}
-                        </div>
+                        @if ($item->cashierSession)
+                            <div>
+                                L: {{ $item->cashierSession->cashierTerminal?->location }} |
+                                T: {{ $item->cashierSession->cashierTerminal?->name }} | K:
+                                {{ $item->cashier->username }}
+                            </div>
+                        @endif
                         Dicetak: {{ Auth::user()->username }} | {{ format_datetime(current_datetime()) }}
                         <br>
                         {{ env('APP_NAME') . ' v' . env('APP_VERSION_STR') }}
