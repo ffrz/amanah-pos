@@ -400,7 +400,7 @@ class PurchaseOrderController extends Controller
 
     public function close(Request $request)
     {
-        $order = PurchaseOrder::with(['customer', 'details', 'details.product'])->find($request->post('id'));
+        $order = PurchaseOrder::with(['supplier', 'details', 'details.product'])->find($request->post('id'));
 
         if (!$order) {
             return JsonResponseHelper::error('Item tidak ditemukan');
@@ -470,7 +470,10 @@ class PurchaseOrderController extends Controller
                         'ref_type' => FinanceTransaction::RefType_PurchaseOrderPayment,
                         'notes' => "Pembayaran transaksi #$order->formatted_id",
                     ]);
-                    FinanceAccount::where('id', $accountId)->increment('balance', $amount);
+
+                    // kurangi saldo
+                    FinanceAccount::where('id', $accountId)
+                        ->decrement('balance', $amount);
                 }
             }
 
@@ -514,10 +517,13 @@ class PurchaseOrderController extends Controller
                     'quantity'        => $quantity,
                     'quantity_before' => $detail->product->stock,
                     'quantity_after'  => $detail->product->stock + $quantity,
-                    'notes'           => "Transaksi penjualan #$order->formatted_id",
+                    'notes'           => "Transaksi pembelian #$order->formatted_id",
                 ]);
 
-                Product::where('id', $detail->product_id)->increment('stock', $quantity);
+                $product = Product::where('id', $detail->product_id)->lockForUpdate()->firstOrFail();
+                $product->stock += $quantity; // increment
+                $product->cost = $detail->cost;
+                $product->save();
             }
 
             DB::commit();
@@ -595,13 +601,14 @@ class PurchaseOrderController extends Controller
                     FinanceTransaction::create([
                         'account_id' => $accountId,
                         'datetime' => now(),
-                        'type' => FinanceTransaction::Type_Income,
-                        'amount' => $amount,
+                        'type' => FinanceTransaction::Type_Expense,
+                        'amount' => -$amount,
                         'ref_id' => $payment->id,
                         'ref_type' => FinanceTransaction::RefType_PurchaseOrderPayment,
                         'notes' => "Pembayaran transaksi #$order->formatted_id",
                     ]);
-                    FinanceAccount::where('id', $accountId)->increment('balance', $amount);
+                    FinanceAccount::where('id', $accountId)
+                        ->decrement('balance', abs($amount));
                 }
             }
 
@@ -633,8 +640,9 @@ class PurchaseOrderController extends Controller
      * @param int $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function deletePayment(Request $request, $id)
+    public function deletePayment(Request $request)
     {
+        $id = $request->id;
         DB::beginTransaction();
 
         try {
@@ -668,7 +676,7 @@ class PurchaseOrderController extends Controller
                 // Kurangi saldo akun keuangan
                 if ($payment->finance_account_id) {
                     FinanceAccount::where('id', $payment->finance_account_id)
-                        ->decrement('balance', $payment->amount);
+                        ->increment('balance', abs($payment->amount));
                 }
             }
 

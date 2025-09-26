@@ -33,7 +33,7 @@ const handleAcceptedPayment = async (payload) => {
 
   try {
     const response = await axios.post(
-      route("admin.sales-order.add-payment"),
+      route("admin.purchase-order.add-payment"),
       postData
     );
 
@@ -45,7 +45,8 @@ const handleAcceptedPayment = async (payload) => {
     showPaymentDialog.value = false;
 
     router.visit(
-      route("admin.sales-order.detail", { id: props.data.id }) + "?tab=payment"
+      route("admin.purchase-order.detail", { id: props.data.id }) +
+        "?tab=payment"
     );
   } catch (error) {
     let errorMessage = "Gagal memproses pembayaran.";
@@ -77,8 +78,8 @@ const deletePayment = (payment) => {
     });
 
     try {
-      await axios.delete(
-        route("admin.sales-order.delete-payment", { payment_id: payment.id })
+      await axios.post(
+        route("admin.purchase-order.delete-payment", { id: payment.id })
       );
 
       $q.notify({
@@ -88,7 +89,7 @@ const deletePayment = (payment) => {
       });
 
       router.visit(
-        route("admin.sales-order.detail", { id: props.data.id }) +
+        route("admin.purchase-order.detail", { id: props.data.id }) +
           "?tab=payment"
       );
     } catch (error) {

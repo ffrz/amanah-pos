@@ -16,7 +16,7 @@ const props = defineProps({
     type: Object,
     required: true,
   },
-  customer: {
+  supplier: {
     type: Object,
     required: false,
   },
@@ -30,19 +30,25 @@ const emit = defineEmits(["update:modelValue", "accepted"]);
 
 const page = usePage();
 const isProcessing = ref(false);
-const paymentMode = ref("cash");
+const paymentMode = ref("payment");
 const debtDueDate = ref(new Date());
 const firstPaymentInputRef = ref(null);
-const payments = reactive([{ id: "cash", amount: 0.0 }]);
+const payments = reactive([]);
 
-const paymentOptions = computed(() => [
-  { label: "Tunai", value: "cash" },
-  ...(props.customer ? [{ label: "Wallet", value: "wallet" }] : []),
-  ...page.props.accounts.map((a) => ({
-    label: a.name + " - " + a.number,
+const arePaymentsValid = computed(() => {
+  // Memastikan setiap pembayaran memiliki akun dan jumlah yang valid
+  return payments.every(
+    (payment) =>
+      payment.id && typeof payment.amount === "number" && payment.amount > 0
+  );
+});
+
+const paymentOptions = computed(() =>
+  page.props.accounts.map((a) => ({
+    label: a.name,
     value: a.id,
-  })),
-]);
+  }))
+);
 
 const totalPayment = computed(() => {
   return payments.reduce((sum, p) => sum + (p.amount || 0.0), 0.0);
@@ -52,11 +58,11 @@ const remainingTotal = computed(() => {
   return props.total - totalPayment.value;
 });
 
-const isWalletAmountValid = computed(() => {
-  if (!props.customer) return true;
+const isAmountValid = computed(() => {
+  if (!props.supplier) return true;
   const walletPayment = payments.find((p) => p.id === "wallet");
   const amount = walletPayment ? walletPayment.amount : 0.0;
-  return amount <= props.customer.balance;
+  return amount <= props.supplier.balance;
 });
 
 const today = new Date();
@@ -80,22 +86,27 @@ const debtDateRules = computed(() => [
 const isValid = computed(() => {
   if (paymentMode.value === "debt") {
     return (
-      !!props.customer &&
+      !!props.supplier &&
       debtDateRules.value.every((rule) => rule(debtDueDate.value) === true)
     );
   }
 
-  const walletValid = isWalletAmountValid.value;
   const hasPaymentAmount = payments.some((p) => (p.amount || 0) > 0);
   const noNegativePayment = payments.every((p) => (p.amount || 0) >= 0);
   const isFullyPaid = remainingTotal.value <= 0;
 
-  return walletValid && hasPaymentAmount && noNegativePayment && isFullyPaid;
+  // Validasi pembayaran: setiap item harus punya akun & jumlah valid
+  return (
+    arePaymentsValid.value &&
+    hasPaymentAmount &&
+    noNegativePayment &&
+    isFullyPaid
+  );
 });
 
 const addPayment = () => {
   if (payments.length < 3) {
-    payments.push({ id: "cash", amount: 0.0 });
+    payments.push({ id: null, amount: 0.0 });
   }
 };
 
@@ -113,17 +124,22 @@ const changePaymentMode = (mode) => {
   debtDueDate.value = new Date();
   payments.splice(0, payments.length);
 
-  if (mode === "cash") {
-    payments.splice(0, payments.length, {
-      id: "cash",
-      amount: props.total,
-    });
-    nextTick(() => {
-      if (firstPaymentInputRef.value && firstPaymentInputRef.value.length > 0) {
-        firstPaymentInputRef.value[0].focus();
-        firstPaymentInputRef.value[0].select();
-      }
-    });
+  if (mode === "payment") {
+    if (paymentOptions.value.length > 0) {
+      payments.splice(0, payments.length, {
+        id: paymentOptions.value[0].value,
+        amount: props.total,
+      });
+      nextTick(() => {
+        if (
+          firstPaymentInputRef.value &&
+          firstPaymentInputRef.value.length > 0
+        ) {
+          firstPaymentInputRef.value[0].focus();
+          firstPaymentInputRef.value[0].select();
+        }
+      });
+    }
   }
 };
 
@@ -155,8 +171,12 @@ const handleFinalizePayment = () => {
 };
 
 const onBeforeShow = () => {
-  changePaymentMode("cash");
-  nextTick(() => {});
+  if (paymentOptions.value.length === 0) {
+    // Menggunakan konsol.log sebagai pengganti alert, karena alert tidak muncul di lingkungan tertentu
+    console.log("Tidak ada akun yang dapat digunakan untuk pembayaran!");
+    return;
+  }
+  changePaymentMode("payment");
 };
 </script>
 
@@ -173,11 +193,10 @@ const onBeforeShow = () => {
         </div>
       </q-card-section>
       <q-card-section class="q-pt-none">
-        <div v-if="customer" class="text-center q-mb-md text-grey-8">
+        <div v-if="supplier" class="text-center q-mb-md text-grey-8">
           <div class="text-subtitle2 text-weight-medium">
-            Username: {{ customer.username }} <br />
-            Nama: {{ customer.name }}<br />
-            Saldo: Rp. {{ formatNumber(customer.balance) }}
+            Nama: {{ supplier.name }}<br />
+            Utang / Piutang: Rp. {{ formatNumber(supplier.balance) }}
           </div>
         </div>
         <div class="text-h5 text-center text-primary q-pb-md">
@@ -188,12 +207,17 @@ const onBeforeShow = () => {
             v-model="paymentMode"
             @update:model-value="changePaymentMode"
             :options="[
-              { label: 'Tunai', value: 'cash', slot: 'cash', color: 'green' },
+              {
+                label: 'Pembayaran',
+                value: 'payment',
+                slot: 'payment',
+                color: 'green',
+              },
               {
                 label: 'Tempo',
                 value: 'debt',
                 slot: 'debt',
-                disable: !customer,
+                disable: !supplier,
                 color: 'red',
               },
             ]"
@@ -202,24 +226,27 @@ const onBeforeShow = () => {
             class="bg-grey-2"
           />
         </div>
-        <div v-if="paymentMode === 'cash'">
+        <div v-if="paymentMode === 'payment'">
           <div
             v-for="(payment, index) in payments"
-            :key="payment.id"
+            :key="index"
             class="row q-col-gutter-sm q-mb-sm"
           >
             <div class="col-6">
               <q-select
                 v-model="payment.id"
                 :options="paymentOptions"
-                label="Metode Pembayaran"
+                label="Akun"
                 :outlined="true"
                 emit-value
                 map-options
                 dense
-                class="custom-select"
                 :disable="isProcessing"
                 hide-bottom-space
+                :rules="[(val) => !!val || 'Akun harus dipilih']"
+                :error="!payment.id"
+                error-message="Akun tidak valid"
+                class="custom-select"
               />
             </div>
             <div class="col-6">
@@ -229,12 +256,8 @@ const onBeforeShow = () => {
                 :outlined="true"
                 dense
                 :disable="isProcessing"
-                :error="payment.id === 'wallet' && !isWalletAmountValid"
-                :error-message="
-                  payment.id === 'wallet' && !isWalletAmountValid
-                    ? 'Saldo tidak cukup!'
-                    : ''
-                "
+                :error="!isAmountValid"
+                :error-message="!isAmountValid ? 'Jumlah Tidak valid!' : ''"
                 hide-bottom-space
                 :ref="index === 0 ? 'firstPaymentInputRef' : null"
               >
@@ -243,7 +266,7 @@ const onBeforeShow = () => {
                     size="xs"
                     name="close"
                     class="cursor-pointer"
-                    @click="removePayment(payment.id)"
+                    @click="removePayment(index)"
                   />
                 </template>
               </LocaleNumberInput>
@@ -278,7 +301,7 @@ const onBeforeShow = () => {
             </div>
           </div>
         </div>
-        <div v-else-if="paymentMode === 'debt' && customer">
+        <div v-else-if="paymentMode === 'debt' && supplier">
           <DatePicker
             outlined
             v-model="debtDueDate"
@@ -293,7 +316,7 @@ const onBeforeShow = () => {
             Total Utang: Rp. {{ formatNumber(total) }}
           </div>
         </div>
-        <div v-else-if="paymentMode === 'debt' && !customer">
+        <div v-else-if="paymentMode === 'debt' && !supplier">
           <div class="text-center text-negative text-h6">
             Tidak dapat mencatat utang tanpa memilih pelanggan.
           </div>

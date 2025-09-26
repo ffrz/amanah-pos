@@ -39,7 +39,7 @@ const paymentOptions = computed(() => [
   { label: "Tunai", value: "cash" },
   ...(props.customer ? [{ label: "Wallet", value: "wallet" }] : []),
   ...page.props.accounts.map((a) => ({
-    label: a.name + " - " + a.number,
+    label: a.name,
     value: a.id,
   })),
 ]);

@@ -510,7 +510,7 @@ class SalesOrderController extends Controller
                         // bisa pilih secara spesifik di payment untuk tangani penjualan
                         // tanpa harus memulai sesi kasir
                         DB::rollBack();
-                        throw new Exception("Akun kas belum diset!");
+                        throw new Exception("Anda belum memulai sesi kasir.");
                     }
 
                     $accountId = $session->cashierTerminal->financeAccount->id;
@@ -668,7 +668,7 @@ class SalesOrderController extends Controller
                     $session = CashierSessionService::getActiveSession();
 
                     if (!$session) {
-                        throw new Exception("Akun kas belum diset!");
+                        throw new Exception("Anda belum memulai sesi kasir.");
                     }
 
                     $accountId = $session->cashierTerminal->financeAccount->id;
@@ -747,8 +747,10 @@ class SalesOrderController extends Controller
      * @param int $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function deletePayment(Request $request, $id)
+    public function deletePayment(Request $request)
     {
+        $id = $request->id;
+
         DB::beginTransaction();
 
         try {

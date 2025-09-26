@@ -77,8 +77,8 @@ const deletePayment = (payment) => {
     });
 
     try {
-      await axios.delete(
-        route("admin.sales-order.delete-payment", { payment_id: payment.id })
+      await axios.post(
+        route("admin.sales-order.delete-payment", { id: payment.id })
       );
 
       $q.notify({

@@ -34,7 +34,7 @@ const paymentOptions = computed(() => [
   // Opsi wallet hanya tersedia jika ada data customer
   ...(customer ? [{ label: "Wallet", value: "wallet" }] : []),
   ...page.props.accounts.map((a) => ({
-    label: a.name + " - " + a.number,
+    label: a.name,
     value: a.id,
   })),
 ]);

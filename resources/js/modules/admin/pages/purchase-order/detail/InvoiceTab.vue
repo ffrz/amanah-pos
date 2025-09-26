@@ -122,16 +122,17 @@ const props = defineProps({
               Item
             </th>
             <th
-              class="text-right q-pa-sm"
-              style="border-bottom: 2px solid #ddd"
-            >
-              Harga (Rp)
-            </th>
-            <th
+              colspan="2"
               class="text-center q-pa-sm"
               style="border-bottom: 2px solid #ddd"
             >
-              Jumlah
+              Qty
+            </th>
+            <th
+              class="text-right q-pa-sm"
+              style="border-bottom: 2px solid #ddd"
+            >
+              Harga Beli (Rp)
             </th>
             <th
               class="text-right q-pa-sm"
@@ -144,19 +145,26 @@ const props = defineProps({
         <tbody>
           <tr v-for="item in props.data.details" :key="item.id">
             <td class="q-pa-sm" style="border-bottom: 1px solid #eee">
-              {{ item.product_name }}
+              <i-link
+                :href="route('admin.product.detail', { id: item.product_id })"
+              >
+                {{ item.product_name }}
+              </i-link>
+            </td>
+            <td
+              class="text-right q-pa-sm"
+              style="border-bottom: 1px solid #eee"
+            >
+              {{ item.quantity }}
+            </td>
+            <td>
+              {{ item.product_uom }}
             </td>
             <td
               class="text-right q-pa-sm"
               style="border-bottom: 1px solid #eee"
             >
               {{ formatNumber(item.cost) }}
-            </td>
-            <td
-              class="text-center q-pa-sm"
-              style="border-bottom: 1px solid #eee"
-            >
-              {{ item.quantity }}
             </td>
             <td
               class="text-right q-pa-sm"
