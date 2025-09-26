@@ -40,7 +40,7 @@ const tab = ref("main");
               <q-tab name="main" label="Info Utama" />
               <q-tab name="session-history" label="Riwayat Sesi Kasir" />
             </q-tabs>
-            <q-tab-panels v-model="tab">
+            <q-tab-panels v-model="tab" animated>
               <q-tab-panel name="main">
                 <MainInfoTab />
               </q-tab-panel>

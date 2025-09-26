@@ -58,7 +58,7 @@ const tab = ref("main");
               <q-tab name="main" label="Info Utama" />
               <q-tab name="history" label="Riwayat Stok" />
             </q-tabs>
-            <q-tab-panels v-model="tab">
+            <q-tab-panels v-model="tab" animated>
               <q-tab-panel name="main">
                 <MainInfoTab :product="page.props.data" />
               </q-tab-panel>

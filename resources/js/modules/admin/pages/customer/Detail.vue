@@ -47,7 +47,7 @@ const $q = useQuasar();
               <q-tab name="history" label="Riwayat Wallet" />
               <q-tab name="order-history" label="Riwayat Order" />
             </q-tabs>
-            <q-tab-panels v-model="tab">
+            <q-tab-panels v-model="tab" animated>
               <q-tab-panel name="main">
                 <MainInfoTab />
               </q-tab-panel>

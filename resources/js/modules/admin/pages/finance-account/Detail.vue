@@ -59,7 +59,7 @@ const tab = ref("main");
               <q-tab name="main" label="Info Akun" />
               <q-tab name="history" label="Riwayat Transaksi" />
             </q-tabs>
-            <q-tab-panels v-model="tab">
+            <q-tab-panels v-model="tab" animated>
               <q-tab-panel name="main">
                 <MainInfoTab />
               </q-tab-panel>
