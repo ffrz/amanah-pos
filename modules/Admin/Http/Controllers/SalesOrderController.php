@@ -304,15 +304,24 @@ class SalesOrderController extends Controller
             'details',
         ])->findOrFail($id);
 
+        $size = $request->get('size', 'a4');
+        if (!in_array($size, ['a4', '58'])) {
+            $size = 'a4';
+        }
+        $paper = $size === '58' ? '58mm' : 'a4';
+
         if ($request->get('output') == 'pdf') {
-            return Pdf::loadView('modules.admin.pages.sales-order.print', [
-                'item' => $item
+            $pdf = Pdf::loadView('modules.admin.pages.sales-order.print-' . $size, [
+                'item' => $item,
+                'pdf'  => true,
             ])
-                ->setPaper('a4', 'landscape')
-                ->download(env('APP_NAME') . $item->formatted_id . '.pdf');
+                ->setPaper($paper, 'portrait')
+                ->setOption('isHtml5ParserEnabled', true)
+                ->setOption('isPhpEnabled', true);
+            return $pdf->download(env('APP_NAME') . '_' . $item->formatted_id . '.pdf');
         }
 
-        return view('modules.admin.pages.sales-order.print', [
+        return view('modules.admin.pages.sales-order.print-' . $size, [
             'item' => $item,
         ]);
     }

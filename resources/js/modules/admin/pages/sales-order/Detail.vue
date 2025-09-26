@@ -16,8 +16,11 @@ const getInitialTab = () => {
 
 const currentTab = ref(getInitialTab());
 
-const print = () => {
-  window.print();
+const print = (size) => {
+  window.open(
+    route("admin.sales-order.print", { id: page.props.data.id, size: size }),
+    "_self"
+  );
 };
 </script>
 
@@ -42,7 +45,22 @@ const print = () => {
       </div>
     </template>
     <template #right-button>
-      <q-btn icon="print" dense color="primary" flat rounded @click="print()" />
+      <q-btn
+        icon="receipt"
+        dense
+        color="primary"
+        flat
+        rounded
+        @click="print('58')"
+      />
+      <q-btn
+        icon="print"
+        dense
+        color="primary"
+        flat
+        rounded
+        @click="print('a4')"
+      />
       <q-btn
         v-if="!isPreview"
         class="q-ml-sm"
@@ -92,15 +110,3 @@ const print = () => {
     </q-page>
   </authenticated-layout>
 </template>
-
-<style scoped>
-@media print {
-  .q-btn,
-  .q-header,
-  .q-footer,
-  .q-drawer-container,
-  .no-print {
-    display: none !important;
-  }
-}
-</style>

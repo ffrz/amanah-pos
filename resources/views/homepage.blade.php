@@ -73,7 +73,7 @@
                     <!-- Contact admin koperasi -->
                     <p class="mt-3"><strong>Telepon / WA:</strong> <a
                             href="https://wa.me/{{ $company_phone }}">{{ $company_phone }}</a></p>
-                    @if ($company_email)
+                    @if (isset($company_email))
                         <p><strong>Email:</strong> <span>{{ $company_email }}</span></p>
                     @endif
                 </div>
