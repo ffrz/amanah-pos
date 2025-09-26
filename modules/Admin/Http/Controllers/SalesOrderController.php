@@ -292,6 +292,18 @@ class SalesOrderController extends Controller
         ]);
     }
 
+    public function print($id)
+    {
+        return view('modules.admin.pages.sales-order.print', [
+            'item' => SalesOrder::with([
+                'cashier',
+                'customer',
+                'details',
+            ])
+                ->findOrFail($id),
+        ]);
+    }
+
     public function addItem(Request $request)
     {
         $order = SalesOrder::find($request->post('order_id'));

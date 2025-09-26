@@ -1,0 +1,83 @@
+html,
+body {
+    margin: 0 auto;
+    max-width: 21cm;
+    font-size: 10pt;
+    padding: 0;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+@media print {
+
+    html,
+    body {
+        height: 100%;
+        position: absolute;
+    }
+}
+
+@media print {
+
+    html.receipt-58,
+    .receipt-58 body {
+        width: 58mm;
+    }
+}
+
+.report-table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.report-table,
+.report-table th,
+.report-table td {
+    border: 1px solid #000;
+    padding: 2px 5px;
+}
+
+.report-table th {
+    text-align: center;
+}
+
+.page {
+    padding: 0.5cm;
+    background: #fff;
+}
+
+.table th {
+    text-align: center;
+}
+
+table {
+    margin: 0;
+    padding: 0;
+}
+
+.report .table-bordered thead th,
+.report .table-bordered tfoot th,
+.report .table-bordered tbody td {
+    border: 1px solid #000;
+    background: #fff;
+}
+
+hr {
+    margin: 0;
+    border: none;
+    border-bottom: 1px solid #000;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.no-break {
+    page-break-after: avoid;
+    page-break-before: avoid;
+    break-after: avoid-page;
+    break-before: avoid-page;
+}
+
+.report-table.dense td, .report-table.dense th {
+    padding: 0 3px;
+}

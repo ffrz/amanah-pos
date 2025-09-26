@@ -1,27 +1,52 @@
 <script setup>
-import { useApiForm } from "@/composables/useApiForm";
 import { handleSubmit } from "@/helpers/client-req-handler";
 import { scrollToFirstErrorField } from "@/helpers/utils";
-import { usePage } from "@inertiajs/vue3";
-import { ref } from "vue";
+import { useForm, usePage } from "@inertiajs/vue3";
+import { onMounted, ref } from "vue";
 
 const nameInputRef = ref();
 const page = usePage();
-const form = useApiForm({
+const form = useForm({
   name: page.props.data.name,
+  headline: page.props.data.headline,
   phone: page.props.data.phone,
   address: page.props.data.address,
+  logo_path: page.props.data.logo_path,
+  logo_image: null,
 });
+
+const fileInput = ref(null);
+const imagePreview = ref("");
+
+onMounted(() => {
+  if (form.logo_path) {
+    imagePreview.value = `/${form.logo_path}`;
+  }
+});
+
+function triggerInput() {
+  fileInput.value.click();
+}
+
+function onFileChange(event) {
+  const file = event.target.files[0];
+  if (file) {
+    form.logo_image = file;
+    imagePreview.value = URL.createObjectURL(file);
+  }
+}
+
+function clearImage() {
+  form.logo_image = null;
+  form.logo_path = null;
+  imagePreview.value = null;
+  fileInput.value.value = null;
+}
 
 const submit = () =>
   handleSubmit({
     form,
     url: route("admin.company-profile.edit"),
-    onSuccess: (response) => {
-      form.name = response.data.name;
-      form.phone = response.data.phone;
-      form.address = response.data.address;
-    },
   });
 </script>
 
@@ -49,6 +74,16 @@ const submit = () =>
           hide-bottom-space
         />
         <q-input
+          v-model.trim="form.headline"
+          label="Headline"
+          :disable="form.processing"
+          maxlength="200"
+          lazy-rules
+          :error="!!form.errors.headline"
+          :error-message="form.errors.headline"
+          hide-bottom-space
+        />
+        <q-input
           v-model.trim="form.phone"
           label="No Telepon"
           :disable="form.processing"
@@ -61,7 +96,7 @@ const submit = () =>
           type="textarea"
           counter
           autogrow
-          maxlength="200"
+          maxlength="500"
           v-model.trim="form.address"
           label="Alamat"
           :disable="form.processing"
@@ -70,6 +105,57 @@ const submit = () =>
           :error-message="form.errors.address"
           hide-bottom-space
         />
+        <div>
+          <div class="text-subtitle1 q-my-sm">Logo:</div>
+          <q-btn
+            label="Browse Logo"
+            size="sm"
+            @click="triggerInput"
+            color="secondary"
+            icon="add_a_photo"
+            :disable="form.processing"
+          />
+          <!-- Tombol buang -->
+          <q-btn
+            class="q-ml-sm"
+            size="sm"
+            icon="close"
+            label="Buang"
+            :disable="form.processing || !imagePreview"
+            color="red"
+            @click="clearImage"
+          />
+          <input
+            type="file"
+            ref="fileInput"
+            accept="image/*"
+            style="display: none"
+            @change="onFileChange"
+          />
+          <div>
+            <q-img
+              :src="imagePreview"
+              class="q-mt-md"
+              :ratio="1"
+              spinner-color="white"
+              style="width: 240px; border: 1px solid #ddd"
+            >
+              <template v-slot:error>
+                <div class="text-negative text-center q-pa-md">
+                  Gambar tidak tersedia
+                </div>
+              </template>
+              <template v-slot:default v-if="!imagePreview">
+                <div class="absolute-full text-subtitle2 flex flex-center">
+                  Logo belum diset
+                </div>
+              </template>
+            </q-img>
+            <p class="q-my-sm text-grey-9">
+              Logo akan di resize ke ukuran 240px x 240px
+            </p>
+          </div>
+        </div>
       </q-card-section>
       <q-card-section>
         <q-btn

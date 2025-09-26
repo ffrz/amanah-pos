@@ -16,6 +16,7 @@
 
 namespace Modules\Admin\Http\Controllers;
 
+use App\Helpers\ImageUploaderHelper;
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
@@ -43,23 +44,41 @@ class CompanyProfileController extends Controller
         if ($request->getMethod() === Request::METHOD_POST) {
             $rules = [
                 'name' => 'required|string|min:2|max:100',
+                'headline' => 'nullable|string|max:200',
                 'phone' => 'nullable|string|regex:/^(\+?\d{1,4})?[\s.-]?\(?\d{1,4}\)?[\s.-]?\d{1,4}[\s.-]?\d{1,9}$/|max:40',
-                'address' => 'nullable|string|max:1000',
+                'address' => 'nullable|string|max:500',
+                'logo_path' => 'nullable|max:500',
+                'logo_image' => 'nullable|image|max:5120',
             ];
 
-            $validatedData = $request->validate($rules);
+            $validated = $request->validate($rules);
 
-            $name = $validatedData['name'];
-            $phone = $validatedData['phone'] ?? '';
-            $address = $validatedData['address'] ?? '';
+            $existingLogoPath = Setting::value('company.logo_path');
 
-            Setting::setValue('company_name', $name);
-            Setting::setValue('company_phone', $phone);
-            Setting::setValue('company_address', $address);
+            if ($request->hasFile('logo_image')) {
+                $newlyUploadedImagePath = ImageUploaderHelper::uploadAndResize(
+                    $request->file('logo_image'),
+                    'company',
+                    $existingLogoPath,
+                    240,
+                    240
+                );
+                $validated['logo_path'] = $newlyUploadedImagePath;
+            }
+
+            if (empty($validated['logo_path'])) {
+                ImageUploaderHelper::deleteImage($existingLogoPath);
+            }
+
+            Setting::setValue('company.name', $validated['name']);
+            Setting::setValue('company.phone', $validated['phone'] ?? '');
+            Setting::setValue('company.address', $validated['address'] ?? '');
+            Setting::setValue('company.headline', $validated['headline'] ?? '');
+            Setting::setValue('company.logo_path', $validated['logo_path'] ?? '');
 
             Auth::user()->setLastActivity('Memperbarui profil perusahaan');
 
-            return JsonResponseHelper::success($this->getData(), 'Profil perusahaan berhasil diperbarui.');
+            return redirect()->back()->with('success', 'Profil perusahaan berhasil diperbarui.');
         }
 
         $data = $this->getData();
@@ -70,9 +89,11 @@ class CompanyProfileController extends Controller
     protected function getData()
     {
         return [
-            'name' => Setting::value('company_name', env('APP_NAME', 'Koperasiku')),
-            'phone' => Setting::value('company_phone', ''),
-            'address' => Setting::value('company_address', ''),
+            'name' => Setting::value('company.name', env('APP_NAME', 'Koperasiku')),
+            'headline' => Setting::value('company.headline', ''),
+            'phone' => Setting::value('company.phone', ''),
+            'address' => Setting::value('company.address', ''),
+            'logo_path' => Setting::value('company.logo_path', null),
         ];
     }
 }

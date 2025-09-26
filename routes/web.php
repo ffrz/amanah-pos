@@ -19,10 +19,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('homepage', [
-        'company_name' => Setting::value('company_name', 'Nama Koperasi'),
-        'company_phone' => Setting::value('company_phone', '081xxxxxxxxx'),
-        'company_email' => Setting::value('company_email', 'namakoperasi@abc.com'),
-        'company_address' => Setting::value('company_address', 'Indonesia'),
+        'company_name' => Setting::value('company.name', env('APP_NAME', 'Amanah POS')),
+        'company_headline' => Setting::value('company.headline', 'Headline'),
+        'company_phone' => Setting::value('company.phone', '081xxxxxxxxx'),
+        'company_address' => Setting::value('company.address', 'Indonesia'),
     ]);
 })->name('home');
 
