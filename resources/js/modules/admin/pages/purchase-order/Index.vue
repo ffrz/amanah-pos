@@ -83,7 +83,7 @@ const columns = [
   },
   {
     name: "supplier_id",
-    label: "Pelanggan",
+    label: "Pemasok",
     field: "supplier_id",
     align: "left",
   },
