@@ -1,29 +1,36 @@
 @php
     use App\Models\Setting;
+
+    $logo_path = Setting::value('company.logo_path');
     $title = '#' . $item->formatted_id;
+    $foot_note = '
+    - Barang yang sudah dibeli tidak dapat ditukar atau dikembalikan.<br>
+    - Garansi hangus jika segel rusak, human error atau force majeure.<br><br>
+    ';
 @endphp
 
 @extends('modules.admin.layouts.print-receipt-a4')
 
 @section('content')
-    <div class="no-print text-center">
-        <br>
-        <a class="btn" href="{{ route('admin.sales-order.add') }}">+ Order Baru</a>
-        <a class="btn" href="{{ route('admin.sales-order.index') }}">&leftarrow; List Order Penjualan</a>
-        <a class="btn" href="{{ route('admin.sales-order.detail', $item->id) }}">&leftarrow; Rincian</a>
-        <br><br><br>
+    <div class="no-print text-center" style="margin-top: 10px; margin-bottom:20px;">
+        <a class="btn my-xs" href="{{ route('admin.sales-order.add') }}">+ Order Baru</a>
+        <a class="btn my-xs" href="{{ route('admin.sales-order.index') }}">&laquo; Daftar Order</a>
+        <a class="btn my-xs" href="{{ route('admin.sales-order.detail', $item->id) }}">&laquo; Rincian</a>
+        <a class="btn my-xs" href="{{ route('admin.sales-order.print', $item->id) }}?output=pdf">Simpan PDF</a>
+        <a class="btn my-xs" href="#" onclick="window.print()">Cetak</a>
     </div>
 
     <table style="width:100%">
         <tr>
-            <td>
-                <img src="{{ Setting::value('company.logo_path', url('/dist/img/logo.png')) }}" alt="" width="48"
-                    height="48">
-            </td>
+            @if ($logo_path)
+                <td>
+                    <img src="{{ url($logo_path) }}" alt="" width="48" height="48">
+                </td>
+            @endif
             <td>
                 <h5 class="m-0 text-primary">{{ Setting::value('company.name') }}</h5>
                 @if (!empty(Setting::value('company.headline')))
-                    <h6 class="m-0 text-primary">{{ Setting::value('company.headline') }}</h6>
+                    <h6 class="m-0">{{ Setting::value('company.headline') }}</h6>
                 @endif
                 <i>
                     @if (!empty(Setting::value('company.address')))
@@ -41,25 +48,33 @@
             <td style="width:35%;;padding-left:10px;">
                 <table>
                     <tr>
-                        <td>No. Invoice</td>
+                        <td style="width: 2cm;">No. Invoice</td>
                         <td>:</td>
                         <td>{{ $item->formatted_id }}</td>
                     </tr>
-                    <tr>
-                        <td>Pelanggan</td>
-                        <td>:</td>
-                        <td>{{ $item->customer_name }}</td>
-                    </tr>
-                    <tr>
-                        <td>No. Telepon</td>
-                        <td>:</td>
-                        <td>{{ $item->customer_phone }}</td>
-                    </tr>
-                    <tr>
-                        <td>Alamat</td>
-                        <td>:</td>
-                        <td>{{ $item->customer_address }}</td>
-                    </tr>
+                    @if ($item->customer_id)
+                        <tr>
+                            <td>Pelanggan</td>
+                            <td>:</td>
+                            <td>{{ $item->customer_name }}</td>
+                        </tr>
+                        <tr>
+                            <td>No. Telepon</td>
+                            <td>:</td>
+                            <td>{{ $item->customer_phone }}</td>
+                        </tr>
+                        <tr>
+                            <td style="vertical-align:top;">Alamat</td>
+                            <td>:</td>
+                            <td>{{ $item->customer_address }}</td>
+                        </tr>
+                    @else
+                        <tr>
+                            <td>Pelanggan</td>
+                            <td>:</td>
+                            <td>[Umum]</td>
+                        </tr>
+                    @endif
                 </table>
             </td>
         </tr>
@@ -97,26 +112,50 @@
         <tfoot>
             <tr>
                 <th colspan="4" class="text-right">Total</th>
-                <th class="text-right">{{ format_number(abs($total_price)) }}</th>
+                <th class="text-right">{{ format_number(abs($item->total_price)) }}</th>
+            </tr>
+            {{-- <tr>
+                <th colspan="4" class="text-right">Diskon</th>
+                <th class="text-right">{{ format_number(abs($item->total_discount)) }}</th>
+            </tr>
+            <tr>
+                <th colspan="4" class="text-right">Pajak</th>
+                <th class="text-right">{{ format_number(abs($item->total_tax)) }}</th>
+            </tr>
+            <tr>
+                <th colspan="4" class="text-right">Biaya Lain</th>
+                <th class="text-right">{{ format_number(abs($item->extra_payment)) }}</th>
+            </tr> --}}
+            <tr>
+                <th colspan="4" class="text-right">Grand Total</th>
+                <th class="text-right">{{ format_number(abs($item->grand_total)) }}</th>
             </tr>
         </tfoot>
     </table>
     <br>
     <table style="width:100%;">
         <tr>
-            <td>
-                <div class="warning-notes">
-                    Catatan:<br>
-                    - Barang yang sudah dibeli tidak dapat ditukar atau dikembalikan.<br>
-                    - Garansi hangus jika segel rusak, human error atau force majeure.<br>
+            <td style="font-size: small;">
+                @if ($foot_note)
+                    <div class="warning-notes">
+                        Catatan:<br>
+                        {!! $foot_note !!}
+                    </div>
+                @endif
+                @if ($item->cashierSession)
+                    <div>
+                        Lokasi: {{ $item->cashierSession->cashierTerminal?->location }} |
+                        Terminal: {{ $item->cashierSession->cashierTerminal?->name }} | Kasir: {{ $item->cashier->name }}
+                    </div>
+                @endif
+                <div>
+                    Dicetak oleh <b>{{ Auth::user()->username }}</b> pada {{ format_datetime(now()) }} |
+                    {{ env('APP_NAME') . ' v' . env('APP_VERSION_STR') }}
                 </div>
-                <br>
-                <small>Dicetak oleh {{ Auth::user()->username }} | {{ format_datetime(current_datetime()) }} -
-                    {{ env('APP_NAME') . ' v' . env('APP_VERSION_STR') }}</small>
             </td>
             <td style="width:4cm;text-align:center;">
                 Hormat Kami,<br><br><br><br>
-                {{ Auth::user()->fullname }}
+                {{ Auth::user()->name }}
             </td>
         </tr>
     </table>

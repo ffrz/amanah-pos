@@ -16,6 +16,7 @@
 
 namespace Modules\Admin\Http\Controllers;
 
+use App\Helpers\GeneratePdfHelper;
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\SalesOrder;
@@ -29,6 +30,7 @@ use App\Models\SalesOrderPayment;
 use App\Models\StockMovement;
 use App\Services\CashierSessionService;
 use App\Services\FinanceTransactionService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -292,15 +294,26 @@ class SalesOrderController extends Controller
         ]);
     }
 
-    public function print($id)
+    public function print($id, Request $request)
     {
-        return view('modules.admin.pages.sales-order.print', [
-            'item' => SalesOrder::with([
-                'cashier',
-                'customer',
-                'details',
+        $item = SalesOrder::with([
+            'cashier',
+            'cashierSession',
+            'cashierSession.cashierTerminal',
+            'customer',
+            'details',
+        ])->findOrFail($id);
+
+        if ($request->get('output') == 'pdf') {
+            return Pdf::loadView('modules.admin.pages.sales-order.print', [
+                'item' => $item
             ])
-                ->findOrFail($id),
+                ->setPaper('a4', 'landscape')
+                ->download(env('APP_NAME') . $item->formatted_id . '.pdf');
+        }
+
+        return view('modules.admin.pages.sales-order.print', [
+            'item' => $item,
         ]);
     }
 

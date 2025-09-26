@@ -148,3 +148,8 @@ table.info table td {
     color: red;
     font-size: 9pt;
 }
+
+.my-xs {
+    margin-top: 3px;
+    margin-bottom: 3px;
+}
