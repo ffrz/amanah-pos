@@ -29,17 +29,17 @@ class DatabaseSettingsController extends Controller
      */
     public function index()
     {
-        return inertia('database-settings/Index');
+        return inertia('settings/database/Index');
     }
 
     public function logs()
     {
-        return inertia('database-settings/Logs');
+        return inertia('settings/database/Logs');
     }
 
     public function logDetail()
     {
-        return inertia('database-settings/LogDetail');
+        return inertia('settings/database/LogDetail');
     }
 
     public function logData(Request $request)
