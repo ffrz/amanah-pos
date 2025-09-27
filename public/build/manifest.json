@@ -88,7 +88,7 @@
     "isEntry": true
   },
   "resources/js/modules/admin/app.js": {
-    "file": "assets/app-DFfYrs2A.js",
+    "file": "assets/app-Dtl1NQ91.js",
     "name": "app",
     "src": "resources/js/modules/admin/app.js",
     "isEntry": true,
@@ -96,11 +96,11 @@
       "_BaseGuestLayout-Bpy6VPPc.js"
     ],
     "css": [
-      "assets/app-Dp--Hd2G.css"
+      "assets/app-nTJduO22.css"
     ]
   },
   "resources/js/modules/customer/app.js": {
-    "file": "assets/app-qB7KHj3d.js",
+    "file": "assets/app-Z3kqZqxl.js",
     "name": "app",
     "src": "resources/js/modules/customer/app.js",
     "isEntry": true,
@@ -108,7 +108,7 @@
       "_BaseGuestLayout-Bpy6VPPc.js"
     ],
     "css": [
-      "assets/app-DA2GC3Kc.css"
+      "assets/app-zWOq_k0n.css"
     ]
   }
 }
