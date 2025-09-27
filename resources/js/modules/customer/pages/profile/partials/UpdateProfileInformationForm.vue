@@ -8,10 +8,10 @@ const page = usePage();
 const user = page.props.data;
 const form = useForm({
   name: user.name,
-  username: user.username,
+  code: user.code,
   phone: user.phone,
   address: user.address,
-  balance: user.balance,
+  wallet_balance: user.wallet_balance,
 });
 
 const submit = () =>
@@ -28,7 +28,7 @@ const submit = () =>
             <tr>
               <td style="width: 100px">Username</td>
               <td style="width: 1px">:</td>
-              <td>{{ user.username }}</td>
+              <td>{{ user.code }}</td>
             </tr>
             <tr>
               <td>Nama</td>
@@ -38,7 +38,7 @@ const submit = () =>
             <tr>
               <td>Saldo</td>
               <td>:</td>
-              <td>Rp. {{ formatNumber(user.balance) }}</td>
+              <td>Rp. {{ formatNumber(user.wallet_balance) }}</td>
             </tr>
           </tbody>
         </table>
@@ -53,17 +53,6 @@ const submit = () =>
     <q-card square flat bordered class="col">
       <q-card-section>
         <div class="text-h6 text-subtitle1">Kontak</div>
-        <!-- <q-input
-          v-model.trim="form.parent_name"
-          type="text"
-          label="Nama Wali Santri"
-          lazy-rules
-          :disable="form.processing"
-          hide-bottom-space
-          :error="!!form.errors.parent_name"
-          :error-message="form.errors.parent_name"
-          :rules="[(val) => (val && val.length > 0) || 'Nama harus diisi.']"
-        /> -->
         <q-input
           v-model.trim="form.phone"
           type="text"

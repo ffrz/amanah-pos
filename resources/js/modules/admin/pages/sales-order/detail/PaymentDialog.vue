@@ -60,7 +60,7 @@ const errorMessage = computed(() => {
   if (
     paymentForm.value.method === "wallet" &&
     customer &&
-    amount > customer.balance
+    amount > customer.wallet_balance
   ) {
     return "Saldo wallet tidak mencukupi.";
   }
@@ -119,9 +119,9 @@ const onBeforeShow = () => {
       <q-card-section class="q-pt-none">
         <div v-if="customer" class="text-center q-mb-md text-grey-8">
           <div class="text-subtitle2 text-weight-medium">
-            {{ customer.username }} <br />
+            {{ customer.code }} <br />
             {{ customer.name }} <br />
-            Saldo: Rp. {{ formatNumber(customer.balance) }}
+            Saldo: Rp. {{ formatNumber(customer.wallet_balance) }}
           </div>
         </div>
         <div class="text-h5 text-center text-primary q-pb-md">

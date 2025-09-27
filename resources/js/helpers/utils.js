@@ -7,25 +7,16 @@ export const getQueryParams = (...args) => {
     return {};
   }
   queryString = queryString.substring(queryString.indexOf("?") + 1);
-  return Object.assign(Object.fromEntries(new URLSearchParams(queryString)), ...args);
-}
-
-/**
- * Memeriksa apakah current user role ada di roles
- * @param {string | Array} roles
- * @returns boolean
- */
-export function check_role(roles) {
-  const page = usePage();
-  if (!Array.isArray(roles))
-    roles = [roles];
-  return roles.includes(page.props.auth.user.role);
-}
+  return Object.assign(
+    Object.fromEntries(new URLSearchParams(queryString)),
+    ...args
+  );
+};
 
 export async function scrollToFirstErrorField(ref) {
   const element = ref.getNativeElement();
   if (element) {
-    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    element.scrollIntoView({ behavior: "smooth", block: "center" });
     element.focus();
   }
 }

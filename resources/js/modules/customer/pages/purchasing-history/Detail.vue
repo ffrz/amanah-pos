@@ -49,7 +49,7 @@ const title = "Rincian Pembelian";
                     <td>:</td>
                     <td>
                       <q-icon name="person" />
-                      {{ page.props.data.customer?.username }} -
+                      {{ page.props.data.customer?.code }} -
                       {{ page.props.data.customer?.name }}
                       <div v-if="page.props.data.customer?.phone">
                         <q-icon name="phone" />

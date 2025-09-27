@@ -25,7 +25,7 @@ const onFilterChange = () => {
 };
 
 const summaryData = ref({
-  balance: page.props.data.actual_balance,
+  wallet_balance: page.props.data.actual_wallet_balance,
   total_in: page.props.data.total_income,
   total_out: page.props.data.total_expense,
 });

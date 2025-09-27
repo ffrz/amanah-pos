@@ -59,6 +59,7 @@
                     <hr style="margin: 4px 0;">
                     @if (!empty($item->customer_name))
                         <b>Pelanggan:</b><br>
+                        {{ $item->customer_code }}<br>
                         {{ $item->customer_name }}<br>
                         {{ $item->customer_address }}<br>
                         {{ $item->customer_phone }}

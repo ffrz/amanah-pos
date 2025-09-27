@@ -38,7 +38,7 @@ const page = usePage();
       <tr>
         <td style="width: 120px">Username</td>
         <td style="width: 1px">:</td>
-        <td>{{ page.props.data.username }}</td>
+        <td>{{ page.props.data.code }}</td>
       </tr>
       <tr>
         <td>Jenis</td>
@@ -65,7 +65,7 @@ const page = usePage();
       <tr>
         <td>Saldo Wallet</td>
         <td>:</td>
-        <td>Rp. {{ formatNumber(page.props.data.balance) }}</td>
+        <td>Rp. {{ formatNumber(page.props.data.wallet_balance) }}</td>
       </tr>
       <tr>
         <td>Status</td>

@@ -160,7 +160,7 @@ class CustomerWalletTransactionController extends Controller
                     'account_id' => $validated['finance_account_id'],
                     'amount' => $amount,
                     'type' => $amount >= 0 ? FinanceTransaction::Type_Income : FinanceTransaction::Type_Expense,
-                    'notes' => 'Transaksi wallet customer ' . $item->customer->username . ' Ref: ' . $item->formatted_id,
+                    'notes' => 'Transaksi wallet customer ' . $item->customer->code . ' Ref: ' . $item->formatted_id,
                     'ref_type' => FinanceTransaction::RefType_CustomerWalletTransaction,
                     'ref_id' => $item->id,
                 ]);
@@ -191,7 +191,7 @@ class CustomerWalletTransactionController extends Controller
 
         $validated = $request->validate([
             'customer_id' => 'required|exists:customers,id',
-            'new_balance' => 'required|numeric',
+            'new_wallet_balance' => 'required|numeric',
             'notes' => 'nullable|string|max:255',
         ]);
 
@@ -206,7 +206,7 @@ class CustomerWalletTransactionController extends Controller
                 'customer_id' => $customer->id,
                 'datetime' => Carbon::now(),
                 'type' => CustomerWalletTransaction::Type_Adjustment,
-                'amount' => $validated['new_balance'] - $customer->balance,
+                'amount' => $validated['new_wallet_balance'] - $customer->wallet_balance,
                 'notes' => $validated['notes'],
             ]);
 
@@ -232,7 +232,7 @@ class CustomerWalletTransactionController extends Controller
         try {
             DB::beginTransaction();
 
-            // restore customer balance
+            // restore customer wallet_balance
             $this->customerWalletTransactionService->addToBalance($item->customer, -$item->amount);
 
             // Jika transaksi menyentuh kas, kembalikan saldo kas

@@ -56,7 +56,7 @@ const isWalletAmountValid = computed(() => {
   if (!props.customer) return true;
   const walletPayment = payments.find((p) => p.id === "wallet");
   const amount = walletPayment ? walletPayment.amount : 0.0;
-  return amount <= props.customer.balance;
+  return amount <= props.customer.wallet_balance;
 });
 
 const today = new Date();
@@ -175,9 +175,9 @@ const onBeforeShow = () => {
       <q-card-section class="q-pt-none">
         <div v-if="customer" class="text-center q-mb-md text-grey-8">
           <div class="text-subtitle2 text-weight-medium">
-            Username: {{ customer.username }} <br />
+            Username: {{ customer.code }} <br />
             Nama: {{ customer.name }}<br />
-            Saldo: Rp. {{ formatNumber(customer.balance) }}
+            Saldo: Rp. {{ formatNumber(customer.wallet_balance) }}
           </div>
         </div>
         <div class="text-h5 text-center text-primary q-pb-md">

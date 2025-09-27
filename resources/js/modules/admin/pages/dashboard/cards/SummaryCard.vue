@@ -132,7 +132,9 @@ const goToUrl = (url, newFilter) => {
               <q-item-section class="q-pa-md q-ml-none text-white">
                 <q-item-label class="text-white text-weight-bold">
                   Rp.
-                  {{ formatNumber($page.props.data.total_customer_balance) }}
+                  {{
+                    formatNumber($page.props.data.total_customer_wallet_balance)
+                  }}
                 </q-item-label>
                 <q-item-label>Total Saldo Pelanggan</q-item-label>
               </q-item-section>

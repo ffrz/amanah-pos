@@ -15,20 +15,21 @@ const { filteredCustomers, filterCustomersFn } = useCustomerFilter(
 
 const form = useForm({
   customer_id: null,
-  old_balance: 0,
-  new_balance: 0,
+  old_wallet_balance: 0,
+  new_wallet_balance: 0,
   notes: "",
 });
 
-const updateAmount = () => (form.amount = form.new_balance - form.old_balance);
+const updateAmount = () =>
+  (form.amount = form.new_wallet_balance - form.old_wallet_balance);
 
-// Fetch balance saat customer_id berubah
+// Fetch wallet_balance saat customer_id berubah
 watch(
   () => form.customer_id,
   async (newCustomerId) => {
     if (!newCustomerId) {
-      form.old_balance = 0;
-      form.new_balance = 0;
+      form.old_wallet_balance = 0;
+      form.new_wallet_balance = 0;
       updateAmount();
       return;
     }
@@ -36,20 +37,23 @@ watch(
     form.processing = true;
     try {
       const res = await axios.get(
-        route("admin.customer.balance", { id: newCustomerId })
+        route("admin.customer.wallet_balance", { id: newCustomerId })
       );
-      form.new_balance = form.old_balance = res.data.balance;
+      form.new_wallet_balance = form.old_wallet_balance =
+        res.data.wallet_balance;
     } catch (err) {
       console.error("Gagal mengambil saldo:", err);
-      form.old_balance = 0;
-      form.new_balance = 0;
+      form.old_wallet_balance = 0;
+      form.new_wallet_balance = 0;
     }
     form.processing = false;
     updateAmount();
   }
 );
 
-const amount = computed(() => form.new_balance - form.old_balance);
+const amount = computed(
+  () => form.new_wallet_balance - form.old_wallet_balance
+);
 
 const submit = () =>
   handleSubmit({
@@ -94,21 +98,21 @@ const submit = () =>
                 </template>
               </q-select>
               <LocaleNumberInput
-                v-model:modelValue="form.old_balance"
+                v-model:modelValue="form.old_wallet_balance"
                 label="Saldo Tercatat"
                 readonly
                 lazyRules
                 :disable="form.processing"
-                :error="!!form.errors.balance"
-                :errorMessage="form.errors.balance"
+                :error="!!form.errors.old_wallet_balance"
+                :errorMessage="form.errors.old_wallet_balance"
               />
               <LocaleNumberInput
-                v-model:modelValue="form.new_balance"
+                v-model:modelValue="form.new_wallet_balance"
                 label="Saldo Seharusnya"
                 lazyRules
                 :disable="form.processing"
-                :error="!!form.errors.new_balance"
-                :errorMessage="form.errors.new_balance"
+                :error="!!form.errors.new_wallet_balance"
+                :errorMessage="form.errors.new_wallet_balance"
               />
               <LocaleNumberInput
                 v-model:modelValue="amount"

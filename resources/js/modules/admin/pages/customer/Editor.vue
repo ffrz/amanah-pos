@@ -9,7 +9,7 @@ const page = usePage();
 const title = (!!page.props.data.id ? "Edit" : "Tambah") + " Pelanggan";
 const form = useForm({
   id: page.props.data.id,
-  username: page.props.data.username,
+  code: page.props.data.code,
   name: page.props.data.name,
   phone: page.props.data.phone,
   address: page.props.data.address,
@@ -56,13 +56,13 @@ const submit = () =>
           <q-card square flat bordered class="col">
             <q-card-section class="q-pt-none">
               <q-input
-                v-model.trim="form.username"
-                label="Username"
-                :error="!!form.errors.username"
+                v-model.trim="form.code"
+                label="Kode Pelanggan"
+                :error="!!form.errors.code"
                 :disable="form.processing"
-                :error-message="form.errors.username"
+                :error-message="form.errors.code"
                 :rules="[
-                  (val) => (val && val.length > 0) || 'Username harus diisi.',
+                  (val) => (val && val.length > 0) || 'Kode harus diisi.',
                 ]"
                 autofocus
                 lazy-rules
@@ -101,9 +101,7 @@ const submit = () =>
                 :disable="form.processing"
                 :error="!!form.errors.phone"
                 :error-message="form.errors.phone"
-                :rules="[
-                  (val) => (val && val.length > 0) || 'No HP harus diisi.',
-                ]"
+                :rules="[]"
                 lazy-rules
                 hide-bottom-space
               />
@@ -115,9 +113,7 @@ const submit = () =>
                 :disable="form.processing"
                 :error="!!form.errors.address"
                 :error-message="form.errors.address"
-                :rules="[
-                  (val) => (val && val.length > 0) || 'Alamat harus diisi.',
-                ]"
+                :rules="[]"
                 autogrow
                 counter
                 lazy-rules

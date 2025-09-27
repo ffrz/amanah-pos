@@ -57,7 +57,7 @@ const title = "Rincian Transaksi";
                     <td>
                       <div>
                         <q-icon name="person" class="inline-icon" />
-                        {{ page.props.data.customer.username }}
+                        {{ page.props.data.customer.code }}
                       </div>
                       <div>
                         <q-icon name="person" class="inline-icon" />

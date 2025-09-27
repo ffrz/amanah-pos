@@ -24,6 +24,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
 class CustomerController extends Controller
 {
@@ -50,7 +51,7 @@ class CustomerController extends Controller
         if (!empty($filter['search'])) {
             $q->where(function ($q) use ($filter) {
                 $q->where('name', 'like', '%' . $filter['search'] . '%');
-                $q->orWhere('username', 'like', '%' . $filter['search'] . '%');
+                $q->orWhere('code', 'like', '%' . $filter['search'] . '%');
                 $q->orWhere('phone', 'like', '%' . $filter['search'] . '%');
                 $q->orWhere('address', 'like', '%' . $filter['search'] . '%');
             });
@@ -92,18 +93,22 @@ class CustomerController extends Controller
     public function save(Request $request)
     {
         $validated = $request->validate([
-            'username' => 'required|string|max:40|unique:customers,username' . ($request->id ? ',' . $request->id : ''),
+            'code' => 'required|string|max:40|unique:customers,code' . ($request->id ? ',' . $request->id : ''),
+            'type' => [
+                'required',
+                'max:40',
+                Rule::in(Customer::Types), // Memastikan nilai 'type' ada di dalam array Customer::TYPES
+            ],
             'name' => 'required|max:255',
-            'parent_name' => 'nullable|max:255',
-            'phone' => 'required|max:100',
-            'address' => 'required|max:1000',
+            'phone' => 'nullable|max:100',
+            'address' => 'nullable|max:1000',
             'active'   => 'required|boolean',
             'password' => (!$request->id ? 'required|' : '') . 'min:5|max:40',
         ]);
 
         $item = !$request->id ? new Customer() : Customer::findOrFail($request->id);
         if (!$request->id) {
-            $validated['balance'] = 0;
+            $validated['wallet_balance'] = 0;
         }
 
         if (!empty($validated['password'])) {
@@ -131,7 +136,7 @@ class CustomerController extends Controller
     public function getBalance(Request $request)
     {
         $customer = Customer::findOrFail($request->id);
-        return response()->json(['balance' => $customer->balance]);
+        return response()->json(['wallet_balance' => $customer->wallet_balance]);
     }
 
     public function import(Request $request)
@@ -181,16 +186,16 @@ class CustomerController extends Controller
                         $cleanedBalance = str_replace([',00', ','], '', $cleanedBalance);
                         $initialBalance = (float) $cleanedBalance;
 
-                        // Buat username otomatis: 5 karakter awal nama + 5 karakter akhir no. rekening
+                        // Buat code otomatis: 5 karakter awal nama + 5 karakter akhir no. rekening
                         $name_sanitized = str_replace([' ', '.'], '', $name);
                         $first_five_name = substr($name_sanitized, 0, 5);
                         $last_five_account = substr($accountNumber, -5);
 
-                        $username = strtolower($first_five_name . $last_five_account);
+                        $code = strtolower($first_five_name . $last_five_account);
 
                         // Cari atau buat customer berdasarkan nomor rekening
                         $customer = Customer::updateOrCreate(
-                            ['username' => $username,],
+                            ['code' => $code,],
                             [
                                 'type'     => Customer::Type_Student,
                                 'name'     => $name,

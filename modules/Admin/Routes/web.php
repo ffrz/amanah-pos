@@ -153,7 +153,7 @@ Route::middleware([Auth::class])
                 Route::get('detail/{id}', [CustomerController::class, 'detail'])->name('admin.customer.detail');
                 // Route::post('save', [CustomerController::class, 'save'])->name('admin.customer.save');
                 Route::post('delete/{id}', [CustomerController::class, 'delete'])->name('admin.customer.delete');
-                Route::get('balance', [CustomerController::class, 'getBalance'])->name('admin.customer.balance');
+                Route::get('wallet_balance', [CustomerController::class, 'getBalance'])->name('admin.customer.wallet_balance');
                 Route::match(['get', 'post'], 'import', [CustomerController::class, 'import'])->name('admin.customer.import');
             });
 

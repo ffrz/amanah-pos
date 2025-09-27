@@ -32,15 +32,15 @@ class CustomerSeeder extends Seeder
 
         for ($i = 1; $i <= 100; $i++) {
             $phone = $faker->unique()->numerify('08##########');
-            $username = $faker->randomElement(['2025']) . str_pad($i, 3, '0', STR_PAD_LEFT);
+            $code = $faker->randomElement(['2025']) . str_pad($i, 3, '0', STR_PAD_LEFT);
 
             Customer::create([
                 'type' => Customer::Type_Student,
-                'username' => $username,
+                'code' => $code,
                 'name' => $faker->firstName('male') . ' ' . $faker->lastName('male'),
                 'phone' => $phone,
                 'address' => $faker->address,
-                'balance' => 0, //$faker->randomNumber(3) * 500,
+                'wallet_balance' => 0, //$faker->randomNumber(3) * 500,
                 'active' => $faker->boolean(90),
 
                 'password' => $password,

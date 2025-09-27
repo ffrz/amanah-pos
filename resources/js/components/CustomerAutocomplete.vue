@@ -25,7 +25,7 @@
           <q-item-label>{{ scope.opt.name }}</q-item-label>
           <q-item-label caption>
             <q-icon name="person" size="14px" />
-            {{ scope.opt.username }}
+            {{ scope.opt.code }}
           </q-item-label>
         </q-item-section>
       </q-item>
@@ -33,7 +33,7 @@
 
     <template #selected-item="scope">
       <div v-if="scope.opt" class="q-select__selected-item">
-        {{ scope.opt.name }} ({{ scope.opt.username }})
+        {{ scope.opt.name }} ({{ scope.opt.code }})
       </div>
     </template>
   </q-select>

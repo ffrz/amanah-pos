@@ -61,7 +61,7 @@ class PurchaseOrderController extends Controller
         if (!empty($filter['search'])) {
             $q->where(function ($q) use ($filter) {
                 $q->orWhere('notes', 'like', '%' . $filter['search'] . '%');
-                $q->orWhere('supplier_username', 'like', '%' . $filter['search'] . '%');
+                $q->orWhere('supplier_code', 'like', '%' . $filter['search'] . '%');
                 $q->orWhere('supplier_name', 'like', '%' . $filter['search'] . '%');
                 $q->orWhere('supplier_phone', 'like', '%' . $filter['search'] . '%');
                 $q->orWhere('supplier_address', 'like', '%' . $filter['search'] . '%');

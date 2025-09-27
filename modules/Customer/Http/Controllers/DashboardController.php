@@ -63,7 +63,7 @@ class DashboardController extends Controller
 
         return inertia('dashboard/Index', [
             'data' => [
-                'actual_balance' => $customer->balance,
+                'actual_wallet_balance' => $customer->wallet_balance,
                 'total_income' => $total_income,
                 'total_expense' => $total_expense,
                 'recent_wallet_transactions' => $recent_wallet_transactions,

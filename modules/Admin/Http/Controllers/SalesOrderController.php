@@ -62,7 +62,7 @@ class SalesOrderController extends Controller
         if (!empty($filter['search'])) {
             $q->where(function ($q) use ($filter) {
                 $q->orWhere('notes', 'like', '%' . $filter['search'] . '%');
-                $q->orWhere('customer_username', 'like', '%' . $filter['search'] . '%');
+                $q->orWhere('customer_code', 'like', '%' . $filter['search'] . '%');
                 $q->orWhere('customer_name', 'like', '%' . $filter['search'] . '%');
                 $q->orWhere('customer_phone', 'like', '%' . $filter['search'] . '%');
                 $q->orWhere('customer_address', 'like', '%' . $filter['search'] . '%');
@@ -173,7 +173,7 @@ class SalesOrderController extends Controller
 
         // Nilai awal customer info dari saat diganti customer
         $item->customer_id = $customer ? $customer->id : null;
-        $item->customer_username = $customer?->username;
+        $item->customer_code = $customer?->code;
         $item->customer_name = $customer?->name;
         $item->customer_phone = $customer?->phone;
         $item->customer_address = $customer?->address;
@@ -244,7 +244,7 @@ class SalesOrderController extends Controller
                     // refund customer wallet
                     if ($payment->type == SalesOrderPayment::Type_Wallet) {
                         $customer = $payment->customer;
-                        $customer->balance += $amount;
+                        $customer->wallet_balance += $amount;
                         $customer->save();
 
                         $walletTx = CustomerWalletTransaction::where('ref_type', '=', CustomerWalletTransaction::RefType_SalesOrderPayment)
@@ -586,7 +586,7 @@ class SalesOrderController extends Controller
                         'ref_id' => $payment->id,
                         'notes' => "Pembayaran transaksi #$order->formatted_id",
                     ]);
-                    Customer::where('id', $order->customer->id)->decrement('balance', $amount);
+                    Customer::where('id', $order->customer->id)->decrement('wallet_balance', $amount);
                 }
             }
 
@@ -710,7 +710,7 @@ class SalesOrderController extends Controller
                     $type = SalesOrderPayment::Type_Wallet;
                     if ($order->customer) {
                         // Backend validation for wallet balance
-                        if ($order->customer->balance < $amount) {
+                        if ($order->customer->wallet_balance < $amount) {
                             throw new Exception("Saldo wallet pelanggan tidak mencukupi.");
                         }
                     }
@@ -749,7 +749,7 @@ class SalesOrderController extends Controller
                         'ref_id' => $payment->id,
                         'notes' => "Pembayaran transaksi #$order->formatted_id",
                     ]);
-                    Customer::where('id', $order->customer->id)->decrement('balance', $amount);
+                    Customer::where('id', $order->customer->id)->decrement('wallet_balance', $amount);
                 }
             }
 
@@ -829,7 +829,7 @@ class SalesOrderController extends Controller
                 // Tambahkan kembali saldo ke dompet pelanggan
                 if ($order->customer) {
                     Customer::where('id', $order->customer->id)
-                        ->increment('balance', $payment->amount);
+                        ->increment('wallet_balance', $payment->amount);
                 }
             }
 

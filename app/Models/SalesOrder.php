@@ -25,7 +25,7 @@ class SalesOrder extends BaseModel
         'cashier_session_id',
 
         'customer_id',
-        'customer_username',
+        'customer_code',
         'customer_name',
         'customer_phone',
         'customer_address',
@@ -112,7 +112,7 @@ class SalesOrder extends BaseModel
             'cashier_id'        => 'integer',
 
             'customer_id'       => 'integer',
-            'customer_username' => 'string',
+            'customer_code' => 'string',
             'customer_name'     => 'string',
             'customer_phone'    => 'string',
             'customer_address'  => 'string',

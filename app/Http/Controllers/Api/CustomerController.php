@@ -29,7 +29,7 @@ class CustomerController extends Controller
         $q = Customer::where('active', '=', true);
         if ($query = $request->query('q', '')) {
             $q->where('name', 'like', '%' . $query . '%')
-                ->orWhere('username', 'like', '%' . $query . '%')
+                ->orWhere('code', 'like', '%' . $query . '%')
                 ->orWhere('phone', 'like', '%' . $query . '%');
         }
         $customers = $q->get();

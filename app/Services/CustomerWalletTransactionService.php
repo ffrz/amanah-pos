@@ -25,7 +25,7 @@ class CustomerWalletTransactionService
     public static function addToBalance(Customer $customer, $amount): void
     {
         $lockedCustomer = Customer::where('id', $customer->id)->lockForUpdate()->firstOrFail();
-        $lockedCustomer->balance += $amount;
+        $lockedCustomer->wallet_balance += $amount;
         $lockedCustomer->save();
     }
 

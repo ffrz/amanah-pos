@@ -60,7 +60,7 @@ class CommonDataService
      *
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function getCustomers($fields = ['id', 'username', 'name'], $activeOnly = true)
+    public function getCustomers($fields = ['id', 'code', 'name'], $activeOnly = true)
     {
         $query = Customer::query();
 
@@ -68,7 +68,7 @@ class CommonDataService
             $query->where('active', true);
         }
 
-        $query->orderBy('username');
+        $query->orderBy('code');
 
         return $query->get($fields);
     }

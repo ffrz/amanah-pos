@@ -42,13 +42,13 @@ class Customer extends BaseModel implements
     public $timestamps = false;
 
     protected $fillable = [
-        'username',
+        'code',
         'password',
         'name',
         'type',
         'phone',
         'address',
-        'balance',
+        'wallet_balance',
         'active',
         'last_login_datetime',
         'last_activity_description',
@@ -65,12 +65,16 @@ class Customer extends BaseModel implements
         'remember_token',
     ];
 
-    public const Type_Student = 'student';
-    public const Type_Staff   = 'staff';
-    public const Type_General = 'general';
+    public const Type_Category_3 = 'category3';
+    public const Type_Category_2 = 'category2';
+    public const Type_Category_1 = 'category1';
+    public const Type_Staff      = 'staff';
+    public const Type_General    = 'general';
 
     public const Types = [
-        self::Type_Student => 'Santri',
+        self::Type_Category_3 => 'Kategori 3',
+        self::Type_Category_2 => 'Kategori 2',
+        self::Type_Category_1 => 'Kategori 1',
         self::Type_Staff   => 'Staff',
         self::Type_General => 'Umum',
     ];
@@ -83,14 +87,14 @@ class Customer extends BaseModel implements
     protected function casts(): array
     {
         return [
-            'username' => 'string',
+            'code' => 'string',
             'password' => 'hashed',
             'name' => 'string',
             'type' => 'string',
             'parent_name' => 'string',
             'phone' => 'string',
             'address' => 'string',
-            'balance' => 'decimal:2',
+            'wallet_balance' => 'decimal:2',
             'active' => 'boolean',
             'last_login_datetime' => 'datetime',
             'last_activity_description' => 'string',
@@ -140,21 +144,21 @@ class Customer extends BaseModel implements
     public static function totalActiveBalance()
     {
         return DB::select(
-            'select sum(balance) as sum from customers where active=1'
+            'select sum(wallet_balance) as sum from customers where active=1'
         )[0]->sum;
     }
 
     public static function totalActiveDebt()
     {
         return DB::select(
-            'select sum(balance) as sum from customers where active=1 and balance < 0'
+            'select sum(wallet_balance) as sum from customers where active=1 and wallet_balance < 0'
         )[0]->sum;
     }
 
     public static function totalActiveCredit()
     {
         return DB::select(
-            'select sum(balance) as sum from customers where active=1 and balance > 0'
+            'select sum(wallet_balance) as sum from customers where active=1 and wallet_balance > 0'
         )[0]->sum;
     }
 }

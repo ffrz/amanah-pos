@@ -106,7 +106,7 @@ onMounted(() => {
                 <q-item-section>
                   <q-item-label>
                     <div class="text-bold">
-                      Username: {{ page.props.auth.customer.username }}
+                      Username: {{ page.props.auth.customer.code }}
                     </div>
                     <div>{{ page.props.auth.customer.name }}</div>
                   </q-item-label>

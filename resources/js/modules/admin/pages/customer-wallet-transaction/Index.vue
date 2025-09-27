@@ -2,7 +2,7 @@
 import { computed, onMounted, reactive, ref, watch } from "vue";
 import { router } from "@inertiajs/vue3";
 import { handleDelete, handleFetchItems } from "@/helpers/client-req-handler";
-import { check_role, getQueryParams } from "@/helpers/utils";
+import { getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
 import { createMonthOptions, createYearOptions } from "@/helpers/options";
 import {
@@ -266,9 +266,7 @@ const showAttachment = (url) => {
                 <LongTextView
                   icon="person"
                   :text="
-                    props.row.customer.username +
-                    ' - ' +
-                    props.row.customer.name
+                    props.row.customer.code + ' - ' + props.row.customer.name
                   "
                 />
                 <div
@@ -296,7 +294,7 @@ const showAttachment = (url) => {
             <q-td key="customer" :props="props">
               <LongTextView
                 :text="
-                  props.row.customer.username + ' - ' + props.row.customer.name
+                  props.row.customer.code + ' - ' + props.row.customer.name
                 "
               />
             </q-td>

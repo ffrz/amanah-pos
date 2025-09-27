@@ -61,9 +61,12 @@
                         </tr>
                         @if ($item->customer_id)
                             <tr>
-                                <td>Pelanggan</td>
+                                <td style="vertical-align:top;">Pelanggan</td>
                                 <td>:</td>
-                                <td>{{ $item->customer_name }}</td>
+                                <td>
+                                    {{ $item->customer_code }}<br />
+                                    {{ $item->customer_name }}
+                                </td>
                             </tr>
                             <tr>
                                 <td>No. Telepon</td>

@@ -56,7 +56,7 @@ const title = "Rincian Transaksi";
                     <td>:</td>
                     <td>
                       <div>
-                        {{ page.props.data.customer.username }} -
+                        {{ page.props.data.customer.code }} -
                         {{ page.props.data.customer.name }}
                       </div>
                     </td>

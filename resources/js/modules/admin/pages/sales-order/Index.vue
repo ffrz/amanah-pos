@@ -388,7 +388,7 @@ watch(
                       })
                     "
                     @click.stop
-                    >&nbsp; {{ props.row.customer.username }} -
+                    >&nbsp; {{ props.row.customer.code }} -
                     {{ props.row.customer.name }}
                   </my-link>
                 </div>
@@ -422,7 +422,7 @@ watch(
               <div v-if="props.row.customer">
                 <div>
                   <q-icon name="person" class="inline-icon" />
-                  {{ props.row.customer_username }} -
+                  {{ props.row.customer_code }} -
                   {{ props.row.customer_name }}
                 </div>
                 <div v-if="props.row.customer_phone">

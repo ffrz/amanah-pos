@@ -13,7 +13,7 @@ const dashboardData = ref({
     total_active_customer: page.props.data.active_customer_count,
     total_sales: 15500000,
     total_transactions: 1250,
-    total_wallet_balance: page.props.data.total_customer_balance,
+    total_wallet_balance: page.props.data.total_customer_wallet_balance,
     total_topup: 75000000,
     total_purchase: 85000000,
     total_withdrawal: 65000000,

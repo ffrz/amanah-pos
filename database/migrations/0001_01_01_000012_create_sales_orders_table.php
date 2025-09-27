@@ -34,7 +34,7 @@ return new class extends Migration
             $table->string('type', 40)->nullable()->deafult('');
 
             // harus dicatat karena data historical
-            $table->string('customer_username', 100)->nullable()->deafult('');
+            $table->string('customer_code', 100)->nullable()->deafult('');
             $table->string('customer_name', 100)->nullable()->deafult('');
             $table->string('customer_phone', 40)->nullable()->deafult('');
             $table->string('customer_address', 200)->nullable()->deafult('');

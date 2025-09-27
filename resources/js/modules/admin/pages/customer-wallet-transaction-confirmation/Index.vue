@@ -296,7 +296,7 @@ const showAttachment = (url) => {
                 />
                 <div>
                   <q-icon name="person" class="inline-icon" />
-                  {{ props.row.customer.username }} -
+                  {{ props.row.customer.code }} -
                   {{ props.row.customer.name }}
                 </div>
                 <div>

@@ -2,7 +2,7 @@
 import { computed, onMounted, reactive, ref } from "vue";
 import { router } from "@inertiajs/vue3";
 import { handleDelete, handleFetchItems } from "@/helpers/client-req-handler";
-import { check_role, getQueryParams } from "@/helpers/utils";
+import { getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
 import { formatNumber } from "@/helpers/formatter";
 import LongTextView from "@/components/LongTextView.vue";
@@ -32,9 +32,9 @@ const pagination = ref({
 
 const columns = [
   {
-    name: "username",
+    name: "code",
     label: $q.screen.lt.md ? "Pelanggan" : "Kode",
-    field: "username",
+    field: "code",
     align: "left",
     sortable: true,
   },
@@ -46,9 +46,9 @@ const columns = [
     sortable: true,
   },
   {
-    name: "balance",
+    name: "wallet_balance",
     label: "Saldo (Rp)",
-    field: "balance",
+    field: "wallet_balance",
     align: "right",
   },
   {
@@ -106,9 +106,7 @@ const onRowClicked = (row) =>
 
 const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return columns;
-  return columns.filter(
-    (col) => col.name === "username" || col.name === "action"
-  );
+  return columns.filter((col) => col.name === "code" || col.name === "action");
 });
 </script>
 
@@ -237,10 +235,10 @@ const computedColumns = computed(() => {
             class="cursor-pointer"
             @click="onRowClicked(props.row)"
           >
-            <q-td key="username" :props="props" class="wrap-column">
+            <q-td key="code" :props="props" class="wrap-column">
               <div>
                 <q-icon name="person" v-if="$q.screen.lt.md" />
-                {{ props.row.username }}
+                {{ props.row.code }}
               </div>
               <template v-if="$q.screen.lt.md">
                 <div>
@@ -251,15 +249,15 @@ const computedColumns = computed(() => {
                 <LongTextView :text="props.row.address" icon="home_pin" />
                 <div>
                   <q-icon name="wallet" /> Rp.
-                  {{ formatNumber(props.row.balance) }}
+                  {{ formatNumber(props.row.wallet_balance) }}
                 </div>
               </template>
             </q-td>
             <q-td key="name" :props="props">
               {{ props.row.name }}
             </q-td>
-            <q-td key="balance" :props="props">
-              {{ formatNumber(props.row.balance) }}
+            <q-td key="wallet_balance" :props="props">
+              {{ formatNumber(props.row.wallet_balance) }}
             </q-td>
             <q-td key="phone" :props="props">
               {{ props.row.phone }}

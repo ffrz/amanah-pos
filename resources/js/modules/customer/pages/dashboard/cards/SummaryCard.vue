@@ -7,7 +7,7 @@ const props = defineProps({
     type: Object,
     required: true,
     default: () => ({
-      balance: 0,
+      wallet_balance: 0,
       total_in: 0,
       total_out: 0,
     }),
@@ -36,7 +36,7 @@ const props = defineProps({
               </q-item-section>
               <q-item-section class="q-pa-md q-ml-none text-white">
                 <q-item-label class="text-white text-h6 text-weight-bolder">
-                  Rp. {{ formatNumber(props.summaryData.balance) }}
+                  Rp. {{ formatNumber(props.summaryData.wallet_balance) }}
                 </q-item-label>
                 <q-item-label>Saldo Aktual</q-item-label>
               </q-item-section>

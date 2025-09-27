@@ -55,7 +55,7 @@ const focusOnButton = () => {
             <tr v-if="customer">
               <td style="vertical-align: top">Pelanggan</td>
               <td style="vertical-align: top">:</td>
-              <td>{{ customer.name }} <br />{{ customer.username }}</td>
+              <td>{{ customer.name }} <br />{{ customer.code }}</td>
             </tr>
             <tr>
               <td>Total</td>

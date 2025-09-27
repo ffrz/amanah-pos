@@ -28,12 +28,12 @@ return new class extends Migration
         Schema::create('customers', function (Blueprint $table) {
             $table->id();
             $table->string('type', 30); // santri, non santri (umum)
-            $table->string('username', 40)->nullable(); // unique tapi nullable, pertimbangkan ganti ke nama lain agar lebih generik
+            $table->string('code', 40)->unique()->nullable(); // unique tapi nullable, pertimbangkan ganti ke nama lain agar lebih generik
             $table->string('name', 255);
             $table->string('phone', 100)->nullable()->default('');
             $table->string('address', 200)->nullable()->default('');
 
-            $table->decimal('balance', 15, 0)->default(0.); // wallet balance
+            $table->decimal('wallet_balance', 15, 0)->default(0.); // wallet balance
             $table->decimal('outstanding_balance', 15, 0)->default(0); // utang - piutang
             $table->boolean('active')->default(true);
 
@@ -47,7 +47,7 @@ return new class extends Migration
         });
 
         Schema::create('customer_password_reset_tokens', function (Blueprint $table) {
-            $table->string('username')->primary();
+            $table->string('code')->primary();
             $table->string('token');
             $table->timestamp('created_at')->nullable();
         });

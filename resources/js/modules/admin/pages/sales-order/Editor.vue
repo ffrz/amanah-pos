@@ -466,7 +466,8 @@ const invoicePreview = () => {
                 Saldo:
                 {{
                   customer
-                    ? "Rp. " + formatNumber(customer ? customer.balance : 0)
+                    ? "Rp. " +
+                      formatNumber(customer ? customer.wallet_balance : 0)
                     : "Tidak tersedia"
                 }}
               </div>

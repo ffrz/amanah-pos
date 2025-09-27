@@ -25,7 +25,7 @@ const filterFn = (val, update) => {
       .then((response) => {
         const transformedData = response.data.data.map((customer) => {
           return {
-            label: `${customer.username} - ${customer.name}`,
+            label: `${customer.code} - ${customer.name}`,
             value: customer.id,
             data: customer,
           };
@@ -58,7 +58,7 @@ const filterFn = (val, update) => {
         clearable
       />
       <div v-if="selectedCustomer">
-        Saldo: Rp. {{ formatNumber(selectedCustomer.data.balance) }}
+        Saldo: Rp. {{ formatNumber(selectedCustomer.data.wallet_balance) }}
       </div>
     </div>
   </guest-layout>

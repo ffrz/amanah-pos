@@ -115,7 +115,7 @@ const computedColumns = computed(() => {
           <template v-if="$q.screen.lt.md">
             <div v-if="props.row.customer">
               <q-icon class="inline-icon" name="person" />
-              {{ props.row.customer_username }}
+              {{ props.row.customer_code }}
               {{ props.row.customer.name }}
             </div>
             <div class="text-bold">
@@ -140,7 +140,7 @@ const computedColumns = computed(() => {
           <div v-if="props.row.customer">
             <div>
               <q-icon name="person" class="inline-icon" />
-              {{ props.row.customer_username }} -
+              {{ props.row.customer_code }} -
               {{ props.row.customer_name }}
             </div>
             <div v-if="props.row.customer_phone">
