@@ -86,6 +86,21 @@ class UserActivityLog extends Model
         'logged_at' => 'datetime',
     ];
 
+    /**
+     * Accessor untuk mendapatkan Label Tampilan dari Kunci Nama Aktivitas.
+     */
+    public function getActivityNameLabelAttribute(): string
+    {
+        return self::Names[$this->activity_name] ?? $this->activity_name;
+    }
+
+    /**
+     * Accessor untuk mendapatkan Label Tampilan dari Kunci Kategori Aktifitas.
+     */
+    public function getActivityCategoryLabelAttribute(): string
+    {
+        return self::Categories[$this->activity_category] ?? $this->activity_category;
+    }
 
     /**
      * Relasi ke model User.
@@ -94,5 +109,75 @@ class UserActivityLog extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Menganalisis User-Agent untuk mendapatkan nama Browser dan Versi.
+     * Ini hanya dieksekusi saat Anda mengakses $log->browser.
+     */
+    public function getBrowserAttribute(): string
+    {
+        if (empty($this->user_agent)) {
+            return 'Tidak Diketahui';
+        }
+
+        // --- SIMULASI LOGIKA PARSING (Ganti dengan Logic/Library Anda) ---
+        // $agent = new Agent();
+        // $agent->setUserAgent($this->user_agent);
+        // return $agent->browser() . ' ' . $agent->version($agent->browser());
+
+        if (str_contains($this->user_agent, 'Chrome')) {
+            return 'Google Chrome (Parsed)';
+        }
+        if (str_contains($this->user_agent, 'Firefox')) {
+            return 'Mozilla Firefox (Parsed)';
+        }
+        // ... Logika lengkap
+        return 'Browser Lain';
+    }
+
+    /**
+     * Menganalisis User-Agent untuk mendapatkan Sistem Operasi.
+     * Ini hanya dieksekusi saat Anda mengakses $log->os.
+     */
+    public function getOsAttribute(): string
+    {
+        if (empty($this->user_agent)) {
+            return 'Tidak Diketahui';
+        }
+
+        // --- SIMULASI LOGIKA PARSING (Ganti dengan Logic/Library Anda) ---
+        // $agent->setUserAgent($this->user_agent);
+        // return $agent->platform() . ' ' . $agent->version($agent->platform());
+
+        if (str_contains($this->user_agent, 'Windows NT 10.0')) {
+            return 'Windows 10/11 (Parsed)';
+        }
+        if (str_contains($this->user_agent, 'Mac OS X')) {
+            return 'macOS (Parsed)';
+        }
+        // ... Logika lengkap
+        return 'OS Lain';
+    }
+
+    /**
+     * Melakukan lookup GeoIP untuk mendapatkan nama Negara.
+     * Ini hanya dieksekusi saat Anda mengakses $log->country.
+     */
+    public function getCountryAttribute(): string
+    {
+        if (empty($this->ip_address)) {
+            return 'IP Tidak Tersedia';
+        }
+
+        // --- SIMULASI LOGIKA GEOIP (Ganti dengan Logic/Library GeoIP Anda) ---
+        // $ipService = resolve(GeoIpService::class);
+        // return $ipService->getCountryName($this->ip_address);
+
+        if (str_starts_with($this->ip_address, '103.')) {
+            return 'Indonesia (GeoIP Lookup)';
+        }
+
+        return 'Negara Lain (GeoIP Lookup)';
     }
 }
