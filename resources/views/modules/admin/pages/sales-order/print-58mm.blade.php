@@ -6,7 +6,7 @@
     $title = '#' . $item->formatted_id;
 @endphp
 
-@extends('modules.admin.layouts.print-receipt-58')
+@extends('modules.admin.layouts.print-receipt-58mm')
 
 @section('content')
     @if (!$is_pdf_export)
@@ -101,7 +101,7 @@
                 <td style="font-size: smaller;">
                     <br style="margin: 4px 0;">
                     <div class="text-center">
-                        <i>{{ Setting::value('pos.receipt.footnote', 'Terima kasih sudah berbelanja di toko kami.') }}</i>
+                        <i>{{ Setting::value('pos.foot_note', 'Terima kasih sudah berbelanja.') }}</i>
                     </div>
                     <br style="margin: 4px 0;">
                     <div class="text-center">

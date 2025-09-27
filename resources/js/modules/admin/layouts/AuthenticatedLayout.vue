@@ -561,6 +561,38 @@ defineExpose({
             :default-opened="$page.url.startsWith('/admin/settings')"
           >
             <q-item
+              v-if="$can('admin.pos-settings.edit')"
+              class="subnav"
+              clickable
+              v-ripple
+              :active="$page.url.startsWith('/admin/settings/pos')"
+              @click="router.get(route('admin.pos-settings.edit'))"
+            >
+              <q-item-section avatar>
+                <q-icon name="point_of_sale" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Point of Sales</q-item-label>
+              </q-item-section>
+            </q-item>
+
+            <q-item
+              v-if="$can('admin.database-settings.index')"
+              class="subnav"
+              clickable
+              v-ripple
+              :active="$page.url.startsWith('/admin/settings/database')"
+              @click="router.get(route('admin.database-settings.index'))"
+            >
+              <q-item-section avatar>
+                <q-icon name="database" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Database</q-item-label>
+              </q-item-section>
+            </q-item>
+
+            <q-item
               v-if="$can('admin.user.index')"
               class="subnav"
               clickable

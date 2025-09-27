@@ -6,11 +6,7 @@
     $logo_path = $is_pdf_export ? public_path($logo_path) : url($logo_path);
 
     $title = '#' . $item->formatted_id;
-    // TODO: footnote harus bisa di simpan di pengaturan
-    $foot_note = '
-    - Barang yang sudah dibeli tidak dapat ditukar atau dikembalikan.<br>
-    - Garansi hangus jika segel rusak, human error atau force majeure.<br><br>
-    ';
+    $foot_note = Setting::value('pos.foot_note');
 @endphp
 
 @extends('modules.admin.layouts.print-receipt-a4')

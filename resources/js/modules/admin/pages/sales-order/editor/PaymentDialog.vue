@@ -35,6 +35,8 @@ const debtDueDate = ref(new Date());
 const firstPaymentInputRef = ref(null);
 const payments = reactive([{ id: "cash", amount: 0.0 }]);
 
+const default_payment_mode = page.props.settings.default_payment_mode;
+
 const paymentOptions = computed(() => [
   { label: "Tunai", value: "cash" },
   ...(props.customer ? [{ label: "Wallet", value: "wallet" }] : []),
@@ -108,14 +110,14 @@ const removePayment = (id) => {
   }
 };
 
-const changePaymentMode = (mode) => {
+const changePaymentMode = (mode, default_payment_mode = "cash") => {
   paymentMode.value = mode;
   debtDueDate.value = new Date();
   payments.splice(0, payments.length);
 
   if (mode === "cash") {
     payments.splice(0, payments.length, {
-      id: "cash",
+      id: default_payment_mode,
       amount: props.total,
     });
     nextTick(() => {
@@ -155,7 +157,7 @@ const handleFinalizePayment = () => {
 };
 
 const onBeforeShow = () => {
-  changePaymentMode("cash");
+  changePaymentMode("cash", props.customer ? default_payment_mode : "cash");
   nextTick(() => {});
 };
 </script>

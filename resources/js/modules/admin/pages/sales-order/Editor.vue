@@ -353,7 +353,15 @@ const handlePayment = (data) => {
     .post(route("admin.sales-order.close"), payload)
     .then((response) => {
       showInfo("Transaksi selesai");
-      router.visit(route("admin.sales-order.detail", { id: form.id }));
+
+      window.open(
+        route("admin.sales-order.print", {
+          id: form.id,
+          size: page.props.settings.default_print_size,
+        }),
+        "_self"
+      );
+      return;
     })
     .catch((error) => {
       showError(error.response?.data?.message);
@@ -404,6 +412,14 @@ const invoicePreview = () => {
     "_blank"
   );
 };
+
+const isValidWalletBalance = computed(() => {
+  if (customer.value) {
+    return customer.value.wallet_balance >= total.value;
+  }
+
+  return true;
+});
 </script>
 
 <template>
@@ -462,7 +478,10 @@ const invoicePreview = () => {
                 outlined
                 autofocus
               />
-              <div class="text-grey q-mt-xs q-ml-sm">
+              <div
+                class="q-mt-xs q-ml-sm text-bold"
+                :class="isValidWalletBalance ? 'text-green' : 'text-red'"
+              >
                 Saldo:
                 {{
                   customer
@@ -569,6 +588,7 @@ const invoicePreview = () => {
               icon="payment"
               @click="showPaymentDialog = true"
               :disable="
+                !isValidWalletBalance ||
                 !$can('admin.sales-order.close') ||
                 isProcessing ||
                 form.items.length === 0 ||

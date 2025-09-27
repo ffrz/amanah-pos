@@ -27,6 +27,7 @@ use App\Models\FinanceTransaction;
 use App\Models\Product;
 use App\Models\SalesOrderDetail;
 use App\Models\SalesOrderPayment;
+use App\Models\Setting;
 use App\Models\StockMovement;
 use App\Services\CashierSessionService;
 use App\Services\FinanceTransactionService;
@@ -158,6 +159,10 @@ class SalesOrderController extends Controller
         return inertia('sales-order/Editor', [
             'data' => $item,
             'accounts' => $this->getFinanceAccounts(),
+            'settings' => [
+                'default_payment_mode' => Setting::value('pos.default_payment_mode', 'cash'),
+                'default_print_size' => Setting::value('pos.default_print_size', '58mm')
+            ]
         ]);
     }
 
@@ -305,10 +310,9 @@ class SalesOrderController extends Controller
         ])->findOrFail($id);
 
         $size = $request->get('size', 'a4');
-        if (!in_array($size, ['a4', '58'])) {
+        if (!in_array($size, ['a4', '58mm'])) {
             $size = 'a4';
         }
-        $paper = $size === '58' ? '58mm' : 'a4';
 
         if ($request->get('output') == 'pdf') {
             $pdf = Pdf::loadView('modules.admin.pages.sales-order.print-' . $size, [

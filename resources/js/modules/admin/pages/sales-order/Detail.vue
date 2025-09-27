@@ -1,6 +1,6 @@
 <script setup>
 import { router, usePage } from "@inertiajs/vue3";
-import { ref } from "vue";
+import { nextTick, onMounted, ref } from "vue";
 import InvoiceTab from "./detail/InvoiceTab.vue";
 import PaymentTab from "./detail/PaymentTab.vue";
 
@@ -15,6 +15,15 @@ const getInitialTab = () => {
 };
 
 const currentTab = ref(getInitialTab());
+
+onMounted(() => {
+  nextTick(() => {
+    const printSize = urlParams.get("print_size");
+    if (printSize) {
+      print(printSize);
+    }
+  });
+});
 
 const print = (size) => {
   window.open(
@@ -51,7 +60,7 @@ const print = (size) => {
         color="primary"
         flat
         rounded
-        @click="print('58')"
+        @click="print('58mm')"
       />
       <q-btn
         icon="print"

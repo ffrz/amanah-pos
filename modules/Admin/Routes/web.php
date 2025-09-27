@@ -40,6 +40,8 @@ use Modules\Admin\Http\Controllers\StockMovementController;
 use Modules\Admin\Http\Controllers\SupplierController;
 use Modules\Admin\Http\Controllers\UserController;
 use Modules\Admin\Http\Controllers\UserRoleController;
+use Modules\Admin\Http\Controllers\Settings\DatabaseSettingsController;
+use Modules\Admin\Http\Controllers\Settings\PosSettingsController;
 
 Route::middleware(NonAuthenticated::class)
     ->group(function () {
@@ -251,8 +253,20 @@ Route::middleware([Auth::class])
             });
 
             Route::prefix('settings')->group(function () {
-                // TODO: perlu digabung agar agar acl lebih sederhana!
-                Route::match(['get', 'post'], 'company-profile/edit', [CompanyProfileController::class, 'edit'])->name('admin.company-profile.edit');
+
+                Route::prefix('database')->group(function () {
+                    Route::get('', [DatabaseSettingsController::class, 'index'])->name('admin.database-settings.index');
+                    Route::get('logs', [DatabaseSettingsController::class, 'logs'])->name('admin.database-settings.logs');
+                    Route::get('detail', [DatabaseSettingsController::class, 'logDetail'])->name('admin.database-settings.log-detail');
+                    Route::get('log-data', [DatabaseSettingsController::class, 'logData'])->name('admin.database-settings.log-data');
+                    Route::match(['get', 'post'], 'backup', [DatabaseSettingsController::class, 'backup'])->name('admin.database-settings.backup');
+                    Route::match(['get', 'post'], 'restore', [DatabaseSettingsController::class, 'restore'])->name('admin.database-settings.restore');
+                    Route::match(['get', 'post'], 'reset', [DatabaseSettingsController::class, 'reset'])->name('admin.database-settings.reset');
+                });
+
+                Route::match(['get', 'post'], 'pos', [PosSettingsController::class, 'edit'])->name('admin.pos-settings.edit');
+
+                Route::match(['get', 'post'], 'company-profile', [CompanyProfileController::class, 'edit'])->name('admin.company-profile.edit');
 
                 Route::prefix('users')->group(function () {
                     Route::get('', [UserController::class, 'index'])->name('admin.user.index');
