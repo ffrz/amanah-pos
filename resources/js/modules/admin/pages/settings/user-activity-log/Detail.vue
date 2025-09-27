@@ -110,7 +110,9 @@ const deleteItem = () =>
                   <tr>
                     <td>User Agent</td>
                     <td>:</td>
-                    <td>{{ page.props.data.user_agent }}</td>
+                    <td style="text-wrap: initial !important">
+                      {{ page.props.data.user_agent }}
+                    </td>
                   </tr>
                   <tr>
                     <td>Meta Data</td>
@@ -126,7 +128,8 @@ const deleteItem = () =>
                   <tr v-if="page.props.data.metadata !== ''">
                     <td colspan="100%">
                       <pre
-                        class="bg-grey-3 q-pa-sm overflow-auto"
+                        class="bg-grey-3 q-pa-sm"
+                        style="overflow: auto; width: 100%; text-wrap: auto"
                       ><code class="text-caption text-mono">{{ formattedMetadata }}</code></pre>
                     </td>
                   </tr>

@@ -108,7 +108,7 @@ class UserRoleController extends Controller
         ]);
 
         try {
-            $role = $request->id ? Role::findOrFail($request->id) : new Role();
+            $role = $request->id ? Role::with(['permissions'])->findOrFail($request->id) : new Role();
 
             $oldData = $request->id ? $role->toArray() : [];
 
@@ -119,6 +119,7 @@ class UserRoleController extends Controller
 
             $role->save();
             $role->syncPermissions($permissions);
+            $role->permissions; // trigger ???
 
             if (!$request->id) {
                 $this->userActivityLogService->log(
@@ -133,8 +134,8 @@ class UserRoleController extends Controller
                     UserActivityLog::Name_UserRole_Update,
                     "Peran pengguna '$role->name' telah diperbarui.",
                     [
+                        'new_data' => $role->toArray(),
                         'old_data' => $oldData,
-                        'new_data' => $role->toArray()
                     ]
                 );
             }
@@ -159,7 +160,7 @@ class UserRoleController extends Controller
     {
         try {
             DB::beginTransaction();
-            $role = Role::findOrFail($id);
+            $role = Role::with(['permissions'])->findOrFail($id);
             $roleName = $role->name;
             $role->delete();
             $this->userActivityLogService->log(

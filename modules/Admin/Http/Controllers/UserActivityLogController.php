@@ -111,13 +111,9 @@ class UserActivityLogController extends Controller
     public function clear()
     {
         try {
-            DB::beginTransaction();
             UserActivityLog::truncate();
-            DB::commit();
-
             return JsonResponseHelper::success(null, "Semua log aktifitas telah dibersihkan!");
         } catch (\Exception $e) {
-            DB::rollBack();
             return JsonResponseHelper::error("Gagal membersihkan log: " . $e->getMessage(), 500);
         }
     }
