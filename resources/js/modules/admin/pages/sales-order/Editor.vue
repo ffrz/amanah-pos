@@ -588,7 +588,6 @@ const isValidWalletBalance = computed(() => {
               icon="payment"
               @click="showPaymentDialog = true"
               :disable="
-                !isValidWalletBalance ||
                 !$can('admin.sales-order.close') ||
                 isProcessing ||
                 form.items.length === 0 ||

@@ -25,11 +25,6 @@ class AuthController extends Controller
 {
     private function _logout(Request $request)
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::guard('customer')->user();
-        // if ($user) {
-        //     $user->setLastActivity('Logout');
-        // }
         Auth::guard('customer')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
@@ -67,7 +62,6 @@ class AuthController extends Controller
             /** @var \App\Models\Customer $user */
             $user = Auth::guard('customer')->user();
             $user->setLastLogin();
-            $user->setLastActivity('Login');
             $request->session()->regenerate();
             return redirect(route('customer.dashboard'));
         }

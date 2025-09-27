@@ -18,6 +18,8 @@ namespace Modules\Admin\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\UserActivityLog;
+use App\Services\UserActivityLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -32,6 +34,13 @@ use Illuminate\Validation\ValidationException;
  */
 class AuthController extends Controller
 {
+    protected $userActivityLogService;
+
+    public function __construct(UserActivityLogService $userActivityLogService)
+    {
+        $this->userActivityLogService = $userActivityLogService;
+    }
+
     /**
      * Menangani proses logout pengguna.
      *
@@ -44,7 +53,11 @@ class AuthController extends Controller
         $user = Auth::user();
 
         if ($user) {
-            $user->setLastActivity('Logout');
+            $this->userActivityLogService->log(
+                UserActivityLog::Category_Auth,
+                UserActivityLog::Name_Auth_Logout,
+                "Pengguna $user->username telah logout."
+            );
         }
 
         Auth::logout();
@@ -102,7 +115,12 @@ class AuthController extends Controller
         }
 
         $user->setLastLogin();
-        $user->setLastActivity('Login');
+
+        $this->userActivityLogService->log(
+            UserActivityLog::Category_Auth,
+            UserActivityLog::Name_Auth_Login,
+            "Pengguna $user->username telah login."
+        );
 
         $request->session()->regenerate();
 

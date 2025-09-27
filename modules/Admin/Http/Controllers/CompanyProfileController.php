@@ -76,8 +76,6 @@ class CompanyProfileController extends Controller
             Setting::setValue('company.headline', $validated['headline'] ?? '');
             Setting::setValue('company.logo_path', $validated['logo_path'] ?? '');
 
-            Auth::user()->setLastActivity('Memperbarui profil perusahaan');
-
             return redirect()->back()->with('success', 'Profil perusahaan berhasil diperbarui.');
         }
 

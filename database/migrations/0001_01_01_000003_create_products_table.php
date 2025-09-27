@@ -29,11 +29,11 @@ return new class extends Migration
             $table->id();
             $table->foreignId('category_id')->nullable()->constrained('product_categories')->onDelete('restrict');
             $table->foreignId('supplier_id')->nullable()->constrained('suppliers')->onDelete('restrict');
-            $table->string('name', 100)->index(); // Primary search field
-            $table->string('barcode', 255)->default('')->index(); // Crucial for POS lookup
+            $table->string('name', 100)->index();
+            $table->string('barcode', 255)->default('')->index();
             $table->text('description')->nullable();
-            $table->string('type', 20)->index(); // For filtering product types
-            $table->boolean('active')->default(true)->index(); // For filtering active products
+            $table->string('type', 20)->index();
+            $table->boolean('active')->default(true)->index();
             $table->boolean('price_editable')->default(false);
             $table->decimal('cost', 10, 2)->default(0.);
             $table->decimal('price', 10, 2)->default(0.);
@@ -41,7 +41,7 @@ return new class extends Migration
             $table->decimal('price_3', 10, 2)->default(0.);
             $table->string('uom')->default('');
             $table->text('notes')->nullable();
-            $table->decimal('stock', 10, 3)->default(0.)->index(); // Crucial for low-stock reporting
+            $table->decimal('stock', 10, 3)->default(0.)->index();
             $table->decimal('min_stock', 10, 3)->default(0.);
             $table->decimal('max_stock', 10, 3)->default(0.);
             $table->createdUpdatedTimestamps();

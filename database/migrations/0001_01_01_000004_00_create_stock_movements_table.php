@@ -42,7 +42,7 @@ return new class extends Migration
             $table->decimal('quantity_after', 10, 3)->default(0.);
             $table->string('notes', 100);
 
-            $table->createdUpdatedTimestamps(); // Index on created_at for sorting/history
+            $table->createdUpdatedTimestamps();
         });
     }
 

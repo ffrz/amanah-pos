@@ -43,8 +43,6 @@ class PosSettingsController extends Controller
             Setting::setValue('pos.default_print_size', $validated['default_print_size']);
             Setting::setValue('pos.foot_note', $validated['foot_note'] ?? '');
 
-            Auth::user()->setLastActivity('Memperbarui pengaturan POS.');
-
             return redirect()->back()->with('success', 'Pengaturan POS berhasil diperbarui.');
         }
 

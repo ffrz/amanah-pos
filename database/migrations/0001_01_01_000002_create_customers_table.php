@@ -27,8 +27,8 @@ return new class extends Migration
     {
         Schema::create('customers', function (Blueprint $table) {
             $table->id();
-            $table->string('type', 30)->index(); // santri, non santri (umum)
-            $table->string('code', 40)->unique()->nullable(); // unique tapi nullable, pertimbangkan ganti ke nama lain agar lebih generik
+            $table->string('type', 30)->index();
+            $table->string('code', 40)->unique()->nullable();
             $table->string('name', 255)->index();
             $table->string('email', 255)->nullable()->default('')->index(); // untuk reset password
             $table->string('phone', 100)->nullable()->default('')->index();

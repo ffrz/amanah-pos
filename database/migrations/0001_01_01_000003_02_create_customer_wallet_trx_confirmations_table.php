@@ -29,10 +29,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('finance_account_id')->nullable()->constrained('finance_accounts')->onDelete('restrict');
             $table->foreignId('customer_id')->nullable()->constrained('customers')->onDelete('restrict');
-            $table->datetime('datetime')->nullable()->index(); // Crucial for sorting/reporting time
+            $table->datetime('datetime')->nullable()->index();
             $table->decimal('amount', 12, 2)->default(0.);
             $table->string('image_path', 255)->nullable()->default('');
-            $table->string('status', 20)->index(); // Crucial for filtering pending, approved, rejected
+            $table->string('status', 20)->index();
             $table->text('notes')->nullable();
             $table->createdUpdatedTimestamps();
         });
