@@ -28,8 +28,12 @@ return new class extends Migration
         Schema::create('stock_movements', function (Blueprint $table) {
             $table->id();
             $table->foreignId('product_id')->nullable()->constrained('products')->onDelete('restrict');
+
+            // Custom Polymorphic Index
             $table->unsignedBigInteger('ref_id')->nullable();
             $table->string('ref_type', 40)->default('');
+            $table->index(['ref_type', 'ref_id']); // Combined index for fast polymorphic lookups
+
             $table->decimal('quantity', 10, 3)->default(0.);
 
             $table->string('product_name', 100)->default('');
@@ -38,8 +42,7 @@ return new class extends Migration
             $table->decimal('quantity_after', 10, 3)->default(0.);
             $table->string('notes', 100);
 
-            $table->createdUpdatedTimestamps();
-            $table->index(['ref_id', 'ref_type']);
+            $table->createdUpdatedTimestamps(); // Index on created_at for sorting/history
         });
     }
 

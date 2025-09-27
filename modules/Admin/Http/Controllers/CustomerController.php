@@ -197,7 +197,7 @@ class CustomerController extends Controller
                         $customer = Customer::updateOrCreate(
                             ['code' => $code,],
                             [
-                                'type'     => Customer::Type_Student,
+                                'type'     => Customer::Type_General,
                                 'name'     => $name,
                                 'address'  => $address,
                                 'phone'    => $phone,

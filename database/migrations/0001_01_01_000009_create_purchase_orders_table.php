@@ -27,34 +27,32 @@ return new class extends Migration
     {
         Schema::create('purchase_orders', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('supplier_id')->nullable()->constrained('suppliers')->onDelete('restrict');
+            $table->foreignId('supplier_id')->nullable()->constrained('suppliers')->onDelete('restrict')->index(); // FK Index
 
-            $table->string('type', 40)->nullable()->deafult('');
+            $table->string('type', 40)->nullable()->default('')->index(); // Index for PO type (e.g., standard, return)
 
-            // harus dicatat karena data historical
-            $table->string('supplier_name', 100)->nullable()->deafult('');
-            $table->string('supplier_phone', 40)->nullable()->deafult('');
-            $table->string('supplier_address', 200)->nullable()->deafult('');
+            // Data Supplier Historical (for reporting integrity)
+            $table->string('supplier_name', 100)->nullable()->default('');
+            $table->string('supplier_phone', 40)->nullable()->default('');
+            $table->string('supplier_address', 200)->nullable()->default('');
 
-            $table->string('status', 30);
-            $table->string('payment_status', 30);
-            $table->string('delivery_status', 30);
-            $table->datetime('datetime');
-            $table->date('due_date')->nullable();
+            $table->string('status', 30)->index(); // Index for general status (e.g., draft, ordered, cancelled)
+            $table->string('payment_status', 30)->index(); // Index for payment status (e.g., paid, pending, partial)
+            $table->string('delivery_status', 30)->index(); // Index for delivery status (e.g., delivered, pending)
+
+            $table->datetime('datetime')->index(); // Crucial index for reporting and sorting by date
+            $table->date('due_date')->nullable()->index(); // Index for debt/payment due reporting
+
             $table->decimal('total', 18, 2)->default(0.);
-            $table->decimal('total_paid', 18, 2)->default(0.); // jumlah yang dibayar
-
+            $table->decimal('total_paid', 18, 2)->default(0.); // Jumlah yang dibayar
             $table->decimal('total_discount', 18, 2)->default(0.);
             $table->decimal('total_tax', 18, 2)->default(0.);
-            $table->decimal('grand_total', 18, 2)->default(0.); // grand total setelah pajak dan diskon
-            $table->decimal('remaining_debt', 18, 2)->default(0.); // jumlah sisa utang
+            $table->decimal('grand_total', 18, 2)->default(0.); // Grand total setelah pajak dan diskon
+            $table->decimal('remaining_debt', 18, 2)->default(0.)->index(); // Index for debt reporting
 
             $table->text('notes')->nullable();
 
             $table->createdUpdatedTimestamps();
-            $table->index(['supplier_id']);
-            $table->index(['status']);
-            $table->index(['payment_status']);
         });
     }
 

@@ -28,14 +28,14 @@ return new class extends Migration
 
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('username');
-            $table->string('name');
+            $table->string('username')->unique();
+            $table->string('name')->index();
             $table->string('password');
-            $table->string('type', 30);
-            $table->boolean('active')->default(false);
-            $table->datetime('last_login_datetime')->nullable();
-            $table->string('last_activity_description')->default('');
-            $table->datetime('last_activity_datetime')->nullable();
+            $table->string('type', 30)->index();
+            $table->boolean('active')->default(false)->index();
+            $table->datetime('last_login_datetime')->nullable()->index();
+            $table->string('last_activity_description')->default('')->index();
+            $table->datetime('last_activity_datetime')->nullable()->index();
             $table->rememberToken();
         });
 

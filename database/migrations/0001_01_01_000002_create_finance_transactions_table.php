@@ -14,7 +14,6 @@
  * Email: fahmifauzirahman@gmail.com
  */
 
-use App\Models\FinanceTransaction;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -30,8 +29,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('account_id')->nullable()->constrained('finance_accounts')->onDelete('restrict');
             $table->nullableMorphs('ref');
-            $table->datetime('datetime')->nullable();
-            $table->enum('type', array_keys(FinanceTransaction::Types));
+            $table->datetime('datetime')->nullable()->index();
+            $table->string('type', '100')->index();
             $table->decimal('amount', 12, 2)->default(0.);
             $table->text('notes')->nullable();
             $table->string('image_path', 255)->nullable()->default('');

@@ -27,10 +27,10 @@ return new class extends Migration
     {
         Schema::create('operational_costs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('category_id')->nullable()->constrained('operational_cost_categories')->onDelete('restrict');
-            $table->foreignId('finance_account_id')->nullable()->constrained('finance_accounts')->onDelete('restrict');
-            $table->date('date');
-            $table->string('description', 100)->default('');
+            $table->foreignId('category_id')->nullable()->constrained('operational_cost_categories')->onDelete('restrict'); // Added index on foreign key
+            $table->foreignId('finance_account_id')->nullable()->constrained('finance_accounts')->onDelete('restrict'); // Added index on foreign key
+            $table->date('date')->index(); // Crucial index for filtering by date/report period
+            $table->string('description', 100)->default('')->index(); // Added index for searching/sorting description
             $table->string('image_path', 255)->nullable()->default('');
             $table->decimal('amount', 8, 0)->default(0.);
             $table->text('notes');

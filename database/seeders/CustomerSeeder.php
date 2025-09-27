@@ -35,7 +35,7 @@ class CustomerSeeder extends Seeder
             $code = $faker->randomElement(['2025']) . str_pad($i, 3, '0', STR_PAD_LEFT);
 
             Customer::create([
-                'type' => Customer::Type_Student,
+                'type' => Customer::Type_General,
                 'code' => $code,
                 'name' => $faker->firstName('male') . ' ' . $faker->lastName('male'),
                 'phone' => $phone,

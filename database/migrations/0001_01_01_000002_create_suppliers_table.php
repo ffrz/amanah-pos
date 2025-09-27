@@ -27,13 +27,13 @@ return new class extends Migration
     {
         Schema::create('suppliers', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 100);
-            $table->string('phone', 100)->default('');
+            $table->string('name', 100)->index(); // Added index for searching/sorting
+            $table->string('phone', 100)->default('')->index(); // Added index for lookup
             $table->string('bank_account_number', 40)->default('');
             $table->string('address', 200)->default('');
             $table->string('return_address', 200)->default('');
-            $table->boolean('active')->default(true);
-            $table->decimal('balance', 15, 0)->default(0.);
+            $table->boolean('active')->default(true)->index(); // Added index for filtering active suppliers
+            $table->decimal('balance', 15, 0)->default(0.)->index(); // Added index for reporting/sorting
             $table->createdUpdatedTimestamps();
         });
     }

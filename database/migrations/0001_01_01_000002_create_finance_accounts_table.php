@@ -28,15 +28,15 @@ return new class extends Migration
         Schema::create('finance_accounts', function (Blueprint $table) {
             $table->id();
             $table->string('name', 40)->unique();
-            $table->string('type', 30);
+            $table->string('type', 30)->index();
             $table->string('bank', 40)->default('');
             $table->string('number', 20)->default('');
             $table->string('holder', 100)->default('');
-            $table->decimal('balance', 15, 0)->default(0.);
-            $table->boolean('active')->default(true);
-            $table->boolean('show_in_pos_payment')->default(false);
-            $table->boolean('show_in_purchasing_payment')->default(false);
-            $table->boolean('has_wallet_access')->default(false);
+            $table->decimal('balance', 15, 0)->default(0.)->index();
+            $table->boolean('active')->default(true)->index();
+            $table->boolean('show_in_pos_payment')->default(false)->index();
+            $table->boolean('show_in_purchasing_payment')->default(false)->index();
+            $table->boolean('has_wallet_access')->default(false)->index();
             $table->text('notes')->nullable();
             $table->createdUpdatedTimestamps();
         });

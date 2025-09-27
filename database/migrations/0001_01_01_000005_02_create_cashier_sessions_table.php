@@ -27,15 +27,15 @@ return new class extends Migration
     {
         Schema::create('cashier_sessions', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id');
-            $table->unsignedBigInteger('cashier_terminal_id');
+            $table->unsignedBigInteger('user_id')->index(); // Added index for filtering by cashier/user
+            $table->unsignedBigInteger('cashier_terminal_id')->index(); // Added index for filtering by terminal
 
             $table->decimal('opening_balance', 15, 2);
             $table->decimal('closing_balance', 15, 2)->nullable();
-            $table->boolean('is_closed')->default(false);
+            $table->boolean('is_closed')->default(false)->index(); // Added index for filtering open/closed sessions
 
-            $table->datetime('opened_at')->nullable();
-            $table->datetime('closed_at')->nullable();
+            $table->datetime('opened_at')->nullable()->index(); // Crucial for reporting/sorting
+            $table->datetime('closed_at')->nullable()->index(); // Crucial for reporting/sorting
 
             $table->text('opening_notes')->nullable();
             $table->text('closing_notes')->nullable();

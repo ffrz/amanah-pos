@@ -27,19 +27,19 @@ return new class extends Migration
     {
         Schema::create('customers', function (Blueprint $table) {
             $table->id();
-            $table->string('type', 30); // santri, non santri (umum)
+            $table->string('type', 30)->index(); // santri, non santri (umum)
             $table->string('code', 40)->unique()->nullable(); // unique tapi nullable, pertimbangkan ganti ke nama lain agar lebih generik
-            $table->string('name', 255);
-            $table->string('email', 255)->nullable()->default(''); // untuk reset password
-            $table->string('phone', 100)->nullable()->default('');
+            $table->string('name', 255)->index();
+            $table->string('email', 255)->nullable()->default('')->index(); // untuk reset password
+            $table->string('phone', 100)->nullable()->default('')->index();
             $table->string('address', 200)->nullable()->default('');
 
-            $table->decimal('wallet_balance', 15, 0)->default(0.); // wallet balance
-            $table->decimal('balance', 15, 0)->default(0); // utang - piutang
-            $table->boolean('active')->default(true);
+            $table->decimal('wallet_balance', 15, 0)->default(0.)->index(); // wallet balance
+            $table->decimal('balance', 15, 0)->default(0)->index(); // utang - piutang
+            $table->boolean('active')->default(true)->index();
 
             $table->string('password');
-            $table->datetime('last_login_datetime')->nullable();
+            $table->datetime('last_login_datetime')->nullable()->index();
             $table->string('last_activity_description')->default('');
             $table->datetime('last_activity_datetime')->nullable();
             $table->rememberToken();

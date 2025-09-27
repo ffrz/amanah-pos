@@ -27,11 +27,11 @@ return new class extends Migration
     {
         Schema::create('cashier_terminals', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('finance_account_id')->unique();
+            $table->unsignedBigInteger('finance_account_id')->unique(); // Unique constraint ensures 1:1 with finance account
             $table->string('name', 40)->unique();
             $table->string('location', 100)->nullable();
             $table->string('notes', 200)->nullable();
-            $table->boolean('active')->default(false);
+            $table->boolean('active')->default(false)->index(); // Added index for filtering active terminals
             $table->createdUpdatedTimestamps();
 
             $table->foreign('finance_account_id')

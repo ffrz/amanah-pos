@@ -27,41 +27,38 @@ return new class extends Migration
     {
         Schema::create('sales_orders', function (Blueprint $table) {
             $table->id();
+
             $table->foreignId('customer_id')->nullable()->constrained('customers')->onDelete('restrict');
             $table->foreignId('cashier_id')->nullable()->constrained('users')->onDelete('restrict');
             $table->foreignId('cashier_session_id')->nullable()->constrained('cashier_sessions')->onDelete('restrict');
 
-            $table->string('type', 40)->nullable()->deafult('');
+            $table->string('type', 40)->nullable()->default('')->index();
 
-            // harus dicatat karena data historical
-            $table->string('customer_code', 100)->nullable()->deafult('');
-            $table->string('customer_name', 100)->nullable()->deafult('');
-            $table->string('customer_phone', 40)->nullable()->deafult('');
-            $table->string('customer_address', 200)->nullable()->deafult('');
+            $table->string('customer_code', 100)->nullable()->default('');
+            $table->string('customer_name', 100)->nullable()->default('');
+            $table->string('customer_phone', 40)->nullable()->default('');
+            $table->string('customer_address', 200)->nullable()->default('');
 
-            $table->string('status', 30);
-            $table->string('payment_status', 30);
-            $table->string('delivery_status', 30);
-            $table->datetime('datetime');
-            $table->date('due_date')->nullable();
+            $table->string('status', 30)->index();
+            $table->string('payment_status', 30)->index();
+            $table->string('delivery_status', 30)->index();
+
+            $table->datetime('datetime')->index();
+            $table->date('due_date')->nullable()->index();
+
             $table->decimal('total_cost', 18, 2)->default(0.);
             $table->decimal('total_price', 18, 2)->default(0.);
-            $table->decimal('total_paid', 18, 2)->default(0.); // jumlah yang dibayar
+            $table->decimal('total_paid', 18, 2)->default(0.);
 
             $table->decimal('total_discount', 18, 2)->default(0.);
             $table->decimal('total_tax', 18, 2)->default(0.);
-            $table->decimal('grand_total', 18, 2)->default(0.); // grand total setelah pajak dan diskon
-            $table->decimal('remaining_debt', 18, 2)->default(0.); // jumlah sisa utang
-            $table->decimal('change', 18, 2)->default(0.); // kembalian
+            $table->decimal('grand_total', 18, 2)->default(0.);
+            $table->decimal('remaining_debt', 18, 2)->default(0.)->index();
+            $table->decimal('change', 18, 2)->default(0.);
 
             $table->text('notes')->nullable();
 
             $table->createdUpdatedTimestamps();
-            $table->index(['customer_id']);
-            $table->index(['cashier_id']);
-            $table->index(['cashier_session_id']);
-            $table->index(['status']);
-            $table->index(['payment_status']);
         });
     }
 

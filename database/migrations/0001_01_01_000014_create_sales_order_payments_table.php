@@ -30,7 +30,8 @@ return new class extends Migration
             $table->foreignId('order_id')->nullable()->constrained('sales_orders')->onDelete('cascade');
             $table->foreignId('customer_id')->nullable()->constrained('customers')->onDelete('restrict');
             $table->foreignId('finance_account_id')->nullable()->constrained('finance_accounts')->onDelete('restrict');
-            $table->string('type', 20)->nullable();
+
+            $table->string('type', 20)->nullable()->index();
             $table->decimal('amount', 18, 2)->nullable();
             $table->createdTimestamps();
         });

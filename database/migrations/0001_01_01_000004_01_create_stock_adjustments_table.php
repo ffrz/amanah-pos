@@ -29,9 +29,9 @@ return new class extends Migration
     {
         Schema::create('stock_adjustments', function (Blueprint $table) {
             $table->id();
-            $table->datetime('datetime')->nullable();
-            $table->string('status', 30);
-            $table->string('type', 30);
+            $table->datetime('datetime')->nullable()->index(); // Crucial for reporting
+            $table->string('status', 30)->index(); // For filtering by status (e.g., pending, completed)
+            $table->string('type', 30)->index(); // For filtering by type
             $table->decimal('total_cost', 15, 2)->default(0.);
             $table->decimal('total_price', 15, 2)->default(0.);
             $table->text('notes')->nullable();

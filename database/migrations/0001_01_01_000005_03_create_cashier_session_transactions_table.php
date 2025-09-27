@@ -28,8 +28,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('cashier_session_transactions', function (Blueprint $table) {
-            $table->foreignId('cashier_session_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('finance_transaction_id')->constrained()->cascadeOnDelete();
+            // Menggunakan foreignId() helper dan cascadeOnDelete() untuk efisiensi
+            $table->foreignId('cashier_session_id')->constrained('cashier_sessions')->cascadeOnDelete();
+            $table->foreignId('finance_transaction_id')->constrained('finance_transactions')->cascadeOnDelete();
 
             // Menentukan kunci primer komposit
             $table->primary(['cashier_session_id', 'finance_transaction_id']);
