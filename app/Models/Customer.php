@@ -49,6 +49,7 @@ class Customer extends BaseModel implements
         'phone',
         'address',
         'wallet_balance',
+        'balance',
         'active',
         'last_login_datetime',
         'last_activity_description',
@@ -95,6 +96,7 @@ class Customer extends BaseModel implements
             'phone' => 'string',
             'address' => 'string',
             'wallet_balance' => 'decimal:2',
+            'balance' => 'decimal:2',
             'active' => 'boolean',
             'last_login_datetime' => 'datetime',
             'last_activity_description' => 'string',
@@ -141,7 +143,7 @@ class Customer extends BaseModel implements
         )[0]->count;
     }
 
-    public static function totalActiveBalance()
+    public static function totalActiveWalletBalance()
     {
         return DB::select(
             'select sum(wallet_balance) as sum from customers where active=1'

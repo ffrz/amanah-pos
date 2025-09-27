@@ -72,7 +72,7 @@ class DashboardController extends Controller
                 'active_customer_count' => Customer::activeCustomerCount(),
                 'active_user_count' => User::activeUserCount(),
                 'total_finance_account_balance' => FinanceAccount::totalActiveBalance(),
-                'total_customer_wallet_balance' => Customer::totalActiveBalance(),
+                'total_customer_wallet_balance' => Customer::totalActiveWalletBalance(),
                 'total_customer_debt' => Customer::totalActiveDebt(),
                 'total_customer_credit' => Customer::totalActiveCredit(),
 

@@ -22,7 +22,7 @@ use App\Models\CustomerWalletTransaction;
 class CustomerWalletTransactionService
 {
 
-    public static function addToBalance(Customer $customer, $amount): void
+    public static function addToWalletBalance(Customer $customer, $amount): void
     {
         $lockedCustomer = Customer::where('id', $customer->id)->lockForUpdate()->firstOrFail();
         $lockedCustomer->wallet_balance += $amount;
@@ -34,7 +34,7 @@ class CustomerWalletTransactionService
     {
         // Perbarui saldo akun baru
         $account = Customer::findOrFail($newData['customer_id']);
-        static::addToBalance($account, $newData['amount']);
+        static::addToWalletBalance($account, $newData['amount']);
 
         // Buat transaksi baru
         return CustomerWalletTransaction::create(
@@ -59,7 +59,7 @@ class CustomerWalletTransactionService
             ->first();
 
         if ($trx) {
-            static::addToBalance($trx->customer, -$trx->amount);
+            static::addToWalletBalance($trx->customer, -$trx->amount);
             $trx->delete();
         }
 

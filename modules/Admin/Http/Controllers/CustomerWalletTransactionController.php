@@ -233,7 +233,7 @@ class CustomerWalletTransactionController extends Controller
             DB::beginTransaction();
 
             // restore customer wallet_balance
-            $this->customerWalletTransactionService->addToBalance($item->customer, -$item->amount);
+            $this->customerWalletTransactionService->addToWalletBalance($item->customer, -$item->amount);
 
             // Jika transaksi menyentuh kas, kembalikan saldo kas
             if (in_array($item->type, [

@@ -30,11 +30,12 @@ return new class extends Migration
             $table->string('type', 30); // santri, non santri (umum)
             $table->string('code', 40)->unique()->nullable(); // unique tapi nullable, pertimbangkan ganti ke nama lain agar lebih generik
             $table->string('name', 255);
+            $table->string('email', 255)->nullable()->default(''); // untuk reset password
             $table->string('phone', 100)->nullable()->default('');
             $table->string('address', 200)->nullable()->default('');
 
             $table->decimal('wallet_balance', 15, 0)->default(0.); // wallet balance
-            $table->decimal('outstanding_balance', 15, 0)->default(0); // utang - piutang
+            $table->decimal('balance', 15, 0)->default(0); // utang - piutang
             $table->boolean('active')->default(true);
 
             $table->string('password');
