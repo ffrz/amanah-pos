@@ -18,6 +18,7 @@ class UserActivityLog extends Model
     public const Category_Inventory = 'inventory';
     public const Category_Finance = 'finance';
     public const Category_Settings = 'settings';
+    public const Category_UserProfile = 'user_profile';
 
     /**
      * Array pemetaan Kategori untuk tampilan (Opsional, tapi konsisten)
@@ -27,6 +28,7 @@ class UserActivityLog extends Model
         self::Category_Inventory => 'Manajemen Inventori',
         self::Category_Finance => 'Transaksi & Keuangan',
         self::Category_Settings => 'Pengaturan Sistem',
+        self::Category_UserProfile => 'Profil Pengguna',
     ];
 
     /**
@@ -36,29 +38,44 @@ class UserActivityLog extends Model
     public const Name_Auth_Logout = 'auth.logout';
 
     // Product managment
-    public const Name_Product_Create = 'products.create';
-    public const Name_Product_Update = 'products.update';
-    public const Name_Product_Delete = 'products.delete';
-    public const Name_Product_Import = 'products.import';
-    public const Name_Product_Export = 'products.export';
+    public const Name_Product_Create = 'product.create';
+    public const Name_Product_Update = 'product.update';
+    public const Name_Product_Delete = 'product.delete';
+    public const Name_Product_Import = 'product.import';
+    public const Name_Product_Export = 'product.export';
+
+    public const Name_UserRole_Create = 'user-role.create';
+    public const Name_UserRole_Update = 'user-role.update';
+    public const Name_UserRole_Delete = 'user-role.delete';
+
+    public const Name_UserProfile_UpdateProfile  = 'user-profile.update';
+    public const Name_UserProfile_ChangePassword = 'user-profile.change-password';
 
     /**
      * Array pemetaan Nama Aktivitas
      */
     public const Names = [
-        self::Name_Auth_Login     => 'Login Berhasil',
+        self::Name_Auth_Login     => 'Login',
         self::Name_Auth_Logout    => 'Logout',
+
+        self::Name_UserRole_Create => 'Membuat Peran Pengguna',
+        self::Name_UserRole_Update => 'Memperbarui Peran Pengguna',
+        self::Name_UserRole_Delete => 'Menghapus Peran Pengguna',
 
         self::Name_Product_Create => 'Membuat Produk',
         self::Name_Product_Update => 'Memperbarui Produk',
         self::Name_Product_Delete => 'Menghapus Produk',
         self::Name_Product_Import => 'Mengimpor Produk',
         self::Name_Product_Export => 'Mengekspor Produk',
+
+        self::Name_UserProfile_UpdateProfile => 'Memperbarui Profile',
+        self::Name_UserProfile_ChangePassword => 'Mengganti Kata Sandi',
     ];
 
     // Kolom yang dapat diisi massal
     protected $fillable = [
         'user_id',
+        'username',
         'logged_at',
         'activity_category',
         'activity_name',

@@ -94,7 +94,8 @@ export function handleSubmit(data) {
 }
 
 export function handlePost(options) {
-  const { title, message, url, fetchItemsCallback, loading, data } = options;
+  const { title, message, url, fetchItemsCallback, onSuccess, loading, data } =
+    options;
   Dialog.create({
     title: title ? title : "Konfirmasi",
     icon: "question",
@@ -103,15 +104,24 @@ export function handlePost(options) {
     cancel: true,
     persistent: true,
   }).onOk(() => {
-    loading.value = true;
+    if (loading) {
+      loading.value = true;
+    }
     axios
       .post(url, data)
       .then((response) => {
         Notify.create(response.data.message);
-        fetchItemsCallback();
+        if (fetchItemsCallback) {
+          fetchItemsCallback();
+        }
+        if (onSuccess) {
+          onSuccess();
+        }
       })
       .finally(() => {
-        loading.value = false;
+        if (loading) {
+          loading.value = false;
+        }
       })
       .catch((error) => {
         let message = "";

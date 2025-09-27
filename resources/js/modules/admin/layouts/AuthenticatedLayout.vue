@@ -597,6 +597,24 @@ defineExpose({
               class="subnav"
               clickable
               v-ripple
+              :active="
+                $page.url.startsWith('/admin/settings/user-activity-log')
+              "
+              @click="router.get(route('admin.user-activity-log.index'))"
+            >
+              <q-item-section avatar>
+                <q-icon name="article" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Log Aktivitas Pengguna</q-item-label>
+              </q-item-section>
+            </q-item>
+
+            <q-item
+              v-if="$can('admin.user.index')"
+              class="subnav"
+              clickable
+              v-ripple
               :active="$page.url.startsWith('/admin/settings/users')"
               @click="router.get(route('admin.user.index'))"
             >

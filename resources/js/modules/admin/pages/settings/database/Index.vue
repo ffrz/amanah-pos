@@ -28,7 +28,7 @@ const dbActions = [
     icon: "insights",
     color: "primary",
     description:
-      "Melihat riwayat operasi database untuk mendiagnosis masalah, melacak aktivitas pengguna, dan memantau *error* aplikasi. Log ini penting untuk *troubleshooting*.",
+      "Melihat riwayat operasi database untuk mendiagnosis masalah, melacak aktifitas pengguna, dan memantau *error* aplikasi. Log ini penting untuk *troubleshooting*.",
     action: () => console.log("Aksi: Lihat Log Sistem"), // Ganti dengan logika navigasi/aksi yang sebenarnya
   },
   {

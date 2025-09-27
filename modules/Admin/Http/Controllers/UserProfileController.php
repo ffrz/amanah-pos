@@ -17,13 +17,27 @@
 namespace Modules\Admin\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\UserActivityLog;
+use App\Services\UserActivityLogService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class UserProfileController extends Controller
 {
+    /**
+     * @var UserActivityLogService
+     */
+    protected $userActivityLogService;
+
+    public function __construct(UserActivityLogService $userActivityLogService)
+    {
+        $this->userActivityLogService = $userActivityLogService;
+    }
+
     /**
      * Display the user's profile form.
      */
@@ -41,9 +55,33 @@ class UserProfileController extends Controller
             'name' => 'required|min:2|max:100',
         ]);
 
-        $request->user()->update([
-            'name' => $validated['name'],
-        ]);
+        /** @var \App\Models\User */
+        $user = Auth::user();
+        $originalAttributes = $user->getOriginal();
+        $user->fill($validated);
+        $dirtyAttributes = $user->getDirty();
+
+        if (empty($dirtyAttributes)) {
+            return back()->with('warning', 'Tidak ada perubahan yang terdeteksi');
+        }
+
+        $metadata = [];
+        foreach (array_keys($dirtyAttributes) as $key) {
+            $metadata[$key] = [
+                'old' => $originalAttributes[$key] ?? null,
+                'new' => $dirtyAttributes[$key],
+            ];
+        }
+
+        DB::beginTransaction();
+        $user->save();
+        $this->userActivityLogService->log(
+            UserActivityLog::Category_UserProfile,
+            UserActivityLog::Name_UserProfile_UpdateProfile,
+            'Data profil telah diperbarui.',
+            $metadata
+        );
+        DB::commit();
 
         return back()->with('success', 'Profil berhasil diperbarui');
     }
@@ -64,9 +102,16 @@ class UserProfileController extends Controller
             return back()->withErrors(['current_password' => 'Password saat ini salah.']);
         }
 
+        DB::beginTransaction();
         $user->update([
             'password' => Hash::make($request->input('password')),
         ]);
+        $this->userActivityLogService->log(
+            UserActivityLog::Category_UserProfile,
+            UserActivityLog::Name_UserProfile_ChangePassword,
+            'Kata sandi telah diperbarui.'
+        );
+        DB::commit();
 
         return back()->with('success', 'Password berhasil diperbarui');
     }

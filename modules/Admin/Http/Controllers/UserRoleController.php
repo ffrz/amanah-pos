@@ -4,14 +4,30 @@ namespace Modules\Admin\Http\Controllers;
 
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
+use App\Models\UserActivityLog;
+use App\Services\UserActivityLogService;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
+use function PHPSTORM_META\map;
+
 class UserRoleController extends Controller
 {
+
+    /**
+     * @var UserActivityLogService
+     */
+    protected $userActivityLogService;
+
+    public function __construct(UserActivityLogService $userActivityLogService)
+    {
+        $this->userActivityLogService = $userActivityLogService;
+    }
+
     /**
      * Tampilkan halaman indeks peran.
      *
@@ -93,18 +109,42 @@ class UserRoleController extends Controller
 
         try {
             $role = $request->id ? Role::findOrFail($request->id) : new Role();
+
+            $oldData = $request->id ? $role->toArray() : [];
+
             $role->name = $validated['name'];
             $role->description = $validated['description'];
-            $role->save();
 
+            DB::beginTransaction();
+
+            $role->save();
             $role->syncPermissions($permissions);
 
-            $message = "Role '{$role->name}' telah berhasil disimpan.";
+            if (!$request->id) {
+                $this->userActivityLogService->log(
+                    UserActivityLog::Category_Settings,
+                    UserActivityLog::Name_UserRole_Create,
+                    "Peran pengguna '$role->name' telah ditambahkan.",
+                    $role->toArray()
+                );
+            } else {
+                $this->userActivityLogService->log(
+                    UserActivityLog::Category_Settings,
+                    UserActivityLog::Name_UserRole_Update,
+                    "Peran pengguna '$role->name' telah diperbarui.",
+                    [
+                        'old_data' => $oldData,
+                        'new_data' => $role->toArray()
+                    ]
+                );
+            }
+            DB::commit();
 
+            $message = "Peran pengguna '$role->name' telah berhasil disimpan.";
             return redirect()->route('admin.user-role.index')
                 ->with('success', $message);
         } catch (Exception $ex) {
-
+            DB::rollBack();
             return back()->with('error', 'Terjadi kesalahan: ' . $ex->getMessage());
         }
     }
@@ -118,12 +158,21 @@ class UserRoleController extends Controller
     public function delete($id)
     {
         try {
+            DB::beginTransaction();
             $role = Role::findOrFail($id);
             $roleName = $role->name;
             $role->delete();
-
-            return JsonResponseHelper::success(null, "Role '{$roleName}' telah berhasil dihapus.");
+            $this->userActivityLogService->log(
+                UserActivityLog::Category_Settings,
+                UserActivityLog::Name_UserRole_Delete,
+                "Role $role->name telah dihapus.",
+                $role->toArray()
+            );
+            DB::commit();
+            return JsonResponseHelper::success($role, "Role '{$roleName}' telah berhasil dihapus.");
         } catch (Exception $ex) {
+            DB::rollBack();
+
             return JsonResponseHelper::error("Terdapat kesalahan saat menghapus role: " . $ex->getMessage(), 500);
         }
     }

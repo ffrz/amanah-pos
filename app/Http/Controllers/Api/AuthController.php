@@ -82,7 +82,7 @@ class AuthController extends Controller
         // Buat token baru dengan nama 'api-token'
         $token = $user->createToken('api-token')->plainTextToken;
 
-        // Perbarui status login dan aktivitas user (jika metode ini ada di model User)
+        // Perbarui status login dan aktifitas user (jika metode ini ada di model User)
         // Ini adalah metode kustom Anda, jadi pastikan tersedia di App\Models\User.
         if (method_exists($user, 'setLastLogin')) {
             $user->setLastLogin();
@@ -112,7 +112,7 @@ class AuthController extends Controller
         if ($request->user()) {
             $request->user()->currentAccessToken()->delete();
 
-            // Opsional: Mencatat aktivitas logout API
+            // Opsional: Mencatat aktifitas logout API
             if (method_exists($request->user(), 'setLastActivity')) {
                 $request->user()->setLastActivity('API Logout');
             }

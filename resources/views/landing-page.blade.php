@@ -2,149 +2,165 @@
 <html lang="en">
 
 <head>
-  <meta charset="utf-8">
-  <meta content="width=device-width, initial-scale=1.0" name="viewport">
-  <title>{{ env('APP_NAME') }}</title>
-  <meta name="description" content="">
-  <meta name="keywords" content="">
-  <link href="assets/img/favicon.png" rel="icon">
-  <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon">
-  <link href="https://fonts.googleapis.com" rel="preconnect">
-  <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&family=Raleway:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
-    rel="stylesheet">
-  <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-  <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
-  <link href="assets/vendor/aos/aos.css" rel="stylesheet">
-  <link href="assets/css/main.css" rel="stylesheet">
-  @vite([])
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>{{ env('APP_NAME') }}</title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <link href="assets/img/favicon.png" rel="icon">
+    <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&family=Raleway:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+        rel="stylesheet">
+    <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link href="assets/vendor/aos/aos.css" rel="stylesheet">
+    <link href="assets/css/main.css" rel="stylesheet">
+    @vite([])
 </head>
 
 <body class="index-page">
-  <header id="header" class="header d-flex align-items-center sticky-top">
-    <div class="container-fluid container-xl position-relative d-flex align-items-center">
-      <a href="./" class="logo d-flex align-items-center me-auto">
-        <h1 class="sitename">{{ env('APP_NAME') }}</h1>
-      </a>
+    <header id="header" class="header d-flex align-items-center sticky-top">
+        <div class="container-fluid container-xl position-relative d-flex align-items-center">
+            <a href="./" class="logo d-flex align-items-center me-auto">
+                <h1 class="sitename">{{ env('APP_NAME') }}</h1>
+            </a>
 
-      <nav id="navmenu" class="navmenu">
-        <ul>
-          <li><a href="#hero" class="active">Beranda</a></li>
-          <li><a href="#about">Tentang</a></li>
-          <li><a href="#features">Fitur</a></li>
-          <li><a href="#contact">Hubungi Kami</a></li>
-        </ul>
-        <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
-      </nav>
+            <nav id="navmenu" class="navmenu">
+                <ul>
+                    <li><a href="#hero" class="active">Beranda</a></li>
+                    <li><a href="#about">Tentang</a></li>
+                    <li><a href="#features">Fitur</a></li>
+                    <li><a href="#contact">Hubungi Kami</a></li>
+                </ul>
+                <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+            </nav>
 
-      <!-- <a class="btn-getstarted" href="{{ route('admin.auth.login') }}">Masuk</a> -->
-      <!-- <a class="btn-getstarted" href="#register">Pesan</a> -->
+            <!-- <a class="btn-getstarted" href="{{ route('admin.auth.login') }}">Masuk</a> -->
+            <!-- <a class="btn-getstarted" href="#register">Pesan</a> -->
 
-    </div>
-  </header>
-
-  <main class="main">
-
-    <!-- Hero Section -->
-    <section id="hero" class="section hero light-background">
-
-      <div class="container">
-        <div class="row gy-4">
-          <div class="col-lg-6 order-lg-1 d-flex flex-column justify-content-center order-2" data-aos="fade-up">
-            <h2>Kelola Koperasi dan Saldo Santri dengan Transparan dan Profesional</h2>
-            <p>{{ env('APP_NAME') }} adalah solusi digital untuk mencatat dan mengelola saldo santri di lingkungan
-              pesantren secara terstruktur, transparan, dan mudah diawasi — mulai dari proses top up, pembelian,
-              hingga penarikan dana oleh santri.</p>
-          </div>
-          <div class="col-lg-6 order-lg-2 hero-img order-1" data-aos="zoom-out" data-aos-delay="200">
-            <img src="assets/img/hero-img.jpg" class="img-fluid" style="border-radius: 10px;" alt="">
-          </div>
         </div>
-      </div>
+    </header>
 
-    </section><!-- /Hero Section -->
+    <main class="main">
 
-    <!-- About Section -->
-    <section id="about" class="section about">
+        <!-- Hero Section -->
+        <section id="hero" class="section hero light-background">
 
-      <div class="container">
-
-        <h3 class="text-center">Sistem Terintegrasi untuk Manajemen Keuangan Santri yang Aman dan Rapi</h3>
-        <p class="mb-5 text-center">
-          {{ env('APP_NAME') }} dirancang khusus untuk koperasi pesantren, sekolah Islam, dan lingkungan pendidikan
-          berbasis boarding. Aplikasi ini memudahkan operator koperasi untuk mencatat setiap transaksi
-          keuangan santri secara akurat, sekaligus memberikan akses informasi saldo bagi orang tua atau
-          wali secara real time.
-        </p>
-        <div class="row gy-3 items-center">
-          <div class="col-lg-6 d-flex flex-column justify-content-center" data-aos="fade-up" data-aos-delay="100">
-            <img src="assets/img/about-img.jpg" alt="" class="img-fluid" style="border-radius:10px;">
-          </div>
-          <div class="col-lg-6 d-flex flex-column justify-content-center" data-aos="fade-up" data-aos-delay="200">
-            <div class="about-content ps-lg-3 ps-0">
-              <ul>
-                <li>
-                  <i class="bi bi-activity"></i>
-                  <div>
-                    <h4>Pencatatan Top Up Saldo</h4>
-                    <p>Operator koperasi dapat mencatat setoran dari orang tua atau wali ke akun saldo masing-masing santri dengan cepat dan aman.</p>
-                  </div>
-                </li>
-                <li>
-                  <i class="bi bi-person-bounding-box"></i>
-                  <div>
-                    <h4>Pencatatan Top Up Saldo</h4>
-                    <p>Setiap transaksi pembelian di koperasi atau penarikan tunai oleh santri tercatat secara otomatis, memastikan transparansi dana yang keluar.</p>
-                  </div>
-                </li>
-                <li>
-                  <i class="bi bi-hand-thumbs-up"></i>
-                  <div>
-                    <h4>Riwayat Transaksi Digital</h4>
-                    <p>Orang tua dan santri dapat melihat semua aktivitas keuangan secara rinci, mulai dari tanggal, jenis transaksi, hingga sisa saldo.</p>
-                  </div>
-                </li>
-                <li>
-                  <i class="bi bi-journal-check"></i>
-                  <div>
-                    <h4>Akses Online untuk Wali Santri</h4>
-                    <p>Orang tua bisa memantau saldo anak mereka melalui tautan pribadi atau akun login yang aman — tanpa perlu bertanya ke koperasi.</p>
-                  </div>
-                </li>
-                <li>
-                  <i class="bi bi-journal-check"></i>
-                  <div>
-                    <h4>Integrasi dengan POS Koperasi</h4>
-                    <p>{{ env('APP_NAME') }} siap diintegrasikan dengan sistem penjualan koperasi (Point of Sale) untuk mencatat pembelian secara otomatis dan langsung memotong saldo.</p>
-                  </div>
-                </li>
-                <li>
-                  <i class="bi bi-journal-check"></i>
-                  <div>
-                    <h4>Laporan Keuangan Koperasi</h4>
-                    <p>Manajemen koperasi dapat mengakses laporan harian, mingguan, atau bulanan mengenai pemasukan, pengeluaran, dan total transaksi saldo santri.</p>
-                  </div>
-                </li>
-                <li>
-                  <i class="bi bi-journal-check"></i>
-                  <div>
-                    <h4>Notifikasi & Pengingat</h4>
-                    <p>Sistem memberikan notifikasi otomatis untuk transaksi besar, saldo minim, atau top up terbaru — membantu pengawasan dan pengendalian konsumsi.</p>
-                  </div>
-                </li>
-              </ul>
+            <div class="container">
+                <div class="row gy-4">
+                    <div class="col-lg-6 order-lg-1 d-flex flex-column justify-content-center order-2"
+                        data-aos="fade-up">
+                        <h2>Kelola Koperasi dan Saldo Santri dengan Transparan dan Profesional</h2>
+                        <p>{{ env('APP_NAME') }} adalah solusi digital untuk mencatat dan mengelola saldo santri di
+                            lingkungan
+                            pesantren secara terstruktur, transparan, dan mudah diawasi — mulai dari proses top up,
+                            pembelian,
+                            hingga penarikan dana oleh santri.</p>
+                    </div>
+                    <div class="col-lg-6 order-lg-2 hero-img order-1" data-aos="zoom-out" data-aos-delay="200">
+                        <img src="assets/img/hero-img.jpg" class="img-fluid" style="border-radius: 10px;"
+                            alt="">
+                    </div>
+                </div>
             </div>
 
-          </div>
-        </div>
+        </section><!-- /Hero Section -->
 
-      </div>
+        <!-- About Section -->
+        <section id="about" class="section about">
 
-    </section><!-- /About Section -->
+            <div class="container">
 
-    <!-- Features Section -->
-    <!-- <section id="features" class="services section light-background">
+                <h3 class="text-center">Sistem Terintegrasi untuk Manajemen Keuangan Santri yang Aman dan Rapi</h3>
+                <p class="mb-5 text-center">
+                    {{ env('APP_NAME') }} dirancang khusus untuk koperasi pesantren, sekolah Islam, dan lingkungan
+                    pendidikan
+                    berbasis boarding. Aplikasi ini memudahkan operator koperasi untuk mencatat setiap transaksi
+                    keuangan santri secara akurat, sekaligus memberikan akses informasi saldo bagi orang tua atau
+                    wali secara real time.
+                </p>
+                <div class="row gy-3 items-center">
+                    <div class="col-lg-6 d-flex flex-column justify-content-center" data-aos="fade-up"
+                        data-aos-delay="100">
+                        <img src="assets/img/about-img.jpg" alt="" class="img-fluid"
+                            style="border-radius:10px;">
+                    </div>
+                    <div class="col-lg-6 d-flex flex-column justify-content-center" data-aos="fade-up"
+                        data-aos-delay="200">
+                        <div class="about-content ps-lg-3 ps-0">
+                            <ul>
+                                <li>
+                                    <i class="bi bi-activity"></i>
+                                    <div>
+                                        <h4>Pencatatan Top Up Saldo</h4>
+                                        <p>Operator koperasi dapat mencatat setoran dari orang tua atau wali ke akun
+                                            saldo masing-masing santri dengan cepat dan aman.</p>
+                                    </div>
+                                </li>
+                                <li>
+                                    <i class="bi bi-person-bounding-box"></i>
+                                    <div>
+                                        <h4>Pencatatan Top Up Saldo</h4>
+                                        <p>Setiap transaksi pembelian di koperasi atau penarikan tunai oleh santri
+                                            tercatat secara otomatis, memastikan transparansi dana yang keluar.</p>
+                                    </div>
+                                </li>
+                                <li>
+                                    <i class="bi bi-hand-thumbs-up"></i>
+                                    <div>
+                                        <h4>Riwayat Transaksi Digital</h4>
+                                        <p>Orang tua dan santri dapat melihat semua aktifitas keuangan secara rinci,
+                                            mulai dari tanggal, jenis transaksi, hingga sisa saldo.</p>
+                                    </div>
+                                </li>
+                                <li>
+                                    <i class="bi bi-journal-check"></i>
+                                    <div>
+                                        <h4>Akses Online untuk Wali Santri</h4>
+                                        <p>Orang tua bisa memantau saldo anak mereka melalui tautan pribadi atau akun
+                                            login yang aman — tanpa perlu bertanya ke koperasi.</p>
+                                    </div>
+                                </li>
+                                <li>
+                                    <i class="bi bi-journal-check"></i>
+                                    <div>
+                                        <h4>Integrasi dengan POS Koperasi</h4>
+                                        <p>{{ env('APP_NAME') }} siap diintegrasikan dengan sistem penjualan koperasi
+                                            (Point of Sale) untuk mencatat pembelian secara otomatis dan langsung
+                                            memotong saldo.</p>
+                                    </div>
+                                </li>
+                                <li>
+                                    <i class="bi bi-journal-check"></i>
+                                    <div>
+                                        <h4>Laporan Keuangan Koperasi</h4>
+                                        <p>Manajemen koperasi dapat mengakses laporan harian, mingguan, atau bulanan
+                                            mengenai pemasukan, pengeluaran, dan total transaksi saldo santri.</p>
+                                    </div>
+                                </li>
+                                <li>
+                                    <i class="bi bi-journal-check"></i>
+                                    <div>
+                                        <h4>Notifikasi & Pengingat</h4>
+                                        <p>Sistem memberikan notifikasi otomatis untuk transaksi besar, saldo minim,
+                                            atau top up terbaru — membantu pengawasan dan pengendalian konsumsi.</p>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </section><!-- /About Section -->
+
+        <!-- Features Section -->
+        <!-- <section id="features" class="services section light-background">
       <div class="section-title container" data-aos="fade-up">
         <h2>Mendukung Dua Skema Produksi</h2>
       </div>
@@ -173,52 +189,60 @@
       </div>
 
     </section> -->
-    <!-- /Services Section -->
+        <!-- /Services Section -->
 
-    <!-- Contact Section -->
-    <section id="features" class="contact section">
+        <!-- Contact Section -->
+        <section id="features" class="contact section">
 
-      <!-- Section Title -->
-      <div class="container" data-aos="fade-up">
-        <h2 class="text-center">Kenapa Memilih {{ env('APP_NAME') }}?</h2>
-        <div class="text-center">
-          <p><strong>1. Transparansi & Amanah:</strong> Semua transaksi tercatat secara digital, meminimalkan kecurangan, dan membangun kepercayaan antara koperasi, santri, dan wali.</p>
-          <p><strong>2. Mendukung Pendidikan Karakter:</strong> Membantu santri belajar mengelola keuangan sejak dini dengan sistem yang terpantau dan bertanggung jawab.</p>
-          <p><strong>3. Efisiensi Operasional Koperasi:</strong> Kurangi pencatatan manual yang memakan waktu, sehingga petugas koperasi bisa fokus pada pelayanan.</p>
-          <p><strong>4. Siap Dikembangkan Lebih Lanjut:</strong> Dirancang modular untuk mendukung fitur tambahan seperti tabungan, belanja online internal, atau pelaporan pajak koperasi di masa depan.</p>
+            <!-- Section Title -->
+            <div class="container" data-aos="fade-up">
+                <h2 class="text-center">Kenapa Memilih {{ env('APP_NAME') }}?</h2>
+                <div class="text-center">
+                    <p><strong>1. Transparansi & Amanah:</strong> Semua transaksi tercatat secara digital, meminimalkan
+                        kecurangan, dan membangun kepercayaan antara koperasi, santri, dan wali.</p>
+                    <p><strong>2. Mendukung Pendidikan Karakter:</strong> Membantu santri belajar mengelola keuangan
+                        sejak dini dengan sistem yang terpantau dan bertanggung jawab.</p>
+                    <p><strong>3. Efisiensi Operasional Koperasi:</strong> Kurangi pencatatan manual yang memakan waktu,
+                        sehingga petugas koperasi bisa fokus pada pelayanan.</p>
+                    <p><strong>4. Siap Dikembangkan Lebih Lanjut:</strong> Dirancang modular untuk mendukung fitur
+                        tambahan seperti tabungan, belanja online internal, atau pelaporan pajak koperasi di masa depan.
+                    </p>
+                </div>
+            </div><!-- End Section Title -->
+
+        </section><!-- /Contact Section -->
+
+    </main>
+
+    <footer id="footer" class="footer position-relative">
+
+        <div class="footer-newsletter">
+            <div class="container">
+                <div class="row justify-content-center text-center">
+                    <div class="col-lg-12">
+                        <h4 id="register">Mulai Sekarang!</h4>
+                        <p>Daftar Sekarang dan nikmati pengalaman manajemen koperasi yang lebih mudah dan modern dengan
+                            {{ env('APP_NAME') }} !</p>
+                        <a href="https://wa.me/6285317404760?text=Bismillah,+Assalamu'alaikum.+Saya+ingin+mendaftar+aplikasi+Amanah+POS+untuk+manajemen+koperasi+instansi+kami.+Mohon+info+selanjutnya."
+                            target="_blank" class="btn-get-started">
+                            Pesan Sekarang!!!
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div><!-- End Section Title -->
 
-    </section><!-- /Contact Section -->
-
-  </main>
-
-  <footer id="footer" class="footer position-relative">
-
-    <div class="footer-newsletter">
-      <div class="container">
-        <div class="row justify-content-center text-center">
-          <div class="col-lg-12">
-            <h4 id="register">Mulai Sekarang!</h4>
-            <p>Daftar Sekarang dan nikmati pengalaman manajemen koperasi yang lebih mudah dan modern dengan {{ env('APP_NAME') }} !</p>
-            <a href="https://wa.me/6285317404760?text=Bismillah,+Assalamu'alaikum.+Saya+ingin+mendaftar+aplikasi+Amanah+POS+untuk+manajemen+koperasi+instansi+kami.+Mohon+info+selanjutnya." target="_blank" class="btn-get-started">
-              Pesan Sekarang!!!
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="container">
-      <div id="contact" class="row text-center">
-        <div class="col-lg-12 mt-5 text-center">
-          <h4>Hubungi Kami</h4>
-          <p class="mt-3"><strong>Telepon / WA:</strong> <a href="https://wa.me/6285317404760">+6285-3174-04760</a>
-          </p>
-          <p><strong>Email:</strong> <span>amanahpos@shiftech.my.id</span></p>
-        </div>
-      </div>
-      <!--
+        <div class="container">
+            <div id="contact" class="row text-center">
+                <div class="col-lg-12 mt-5 text-center">
+                    <h4>Hubungi Kami</h4>
+                    <p class="mt-3"><strong>Telepon / WA:</strong> <a
+                            href="https://wa.me/6285317404760">+6285-3174-04760</a>
+                    </p>
+                    <p><strong>Email:</strong> <span>amanahpos@shiftech.my.id</span></p>
+                </div>
+            </div>
+            <!--
         <div class="col-lg-2 col-md-3 footer-links">
           <h4>Tautan Lainnya</h4>
           <ul>
@@ -241,34 +265,34 @@
           </div>
         </div>-->
 
-    </div>
+        </div>
 
-    <div class="copyright container mt-4 text-center">
-      <p>© {{ date('Y') }} <strong class="sitename px-1"><a href="https://shiftech.my.id">Shiftech
-            Indonesia</a></strong> <span>All Rights Reserved</span></p>
-      <!-- <div class="credits"> -->
-      <!-- All the links in the footer should remain intact. -->
-      <!-- You can delete the links only if you've purchased the pro version. -->
-      <!-- Licensing information: https://bootstrapmade.com/license/ -->
-      <!-- Purchase the pro version with working PHP/AJAX contact form: [buy-url] -->
-      <!-- Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a>
+        <div class="copyright container mt-4 text-center">
+            <p>© {{ date('Y') }} <strong class="sitename px-1"><a href="https://shiftech.my.id">Shiftech
+                        Indonesia</a></strong> <span>All Rights Reserved</span></p>
+            <!-- <div class="credits"> -->
+            <!-- All the links in the footer should remain intact. -->
+            <!-- You can delete the links only if you've purchased the pro version. -->
+            <!-- Licensing information: https://bootstrapmade.com/license/ -->
+            <!-- Purchase the pro version with working PHP/AJAX contact form: [buy-url] -->
+            <!-- Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a>
       </div> -->
-    </div>
+        </div>
 
-  </footer>
+    </footer>
 
-  <!-- Scroll Top -->
-  <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i
-      class="bi bi-arrow-up-short"></i></a>
+    <!-- Scroll Top -->
+    <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i
+            class="bi bi-arrow-up-short"></i></a>
 
-  <!-- Preloader -->
-  <div id="preloader"></div>
+    <!-- Preloader -->
+    <div id="preloader"></div>
 
-  <!-- Vendor JS Files -->
-  <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-  <script src="assets/vendor/aos/aos.js"></script>
-  <!-- Main JS File -->
-  <script src="assets/js/main.js"></script>
+    <!-- Vendor JS Files -->
+    <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/vendor/aos/aos.js"></script>
+    <!-- Main JS File -->
+    <script src="assets/js/main.js"></script>
 
 </body>
 

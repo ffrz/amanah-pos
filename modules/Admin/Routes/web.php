@@ -42,6 +42,7 @@ use Modules\Admin\Http\Controllers\UserController;
 use Modules\Admin\Http\Controllers\UserRoleController;
 use Modules\Admin\Http\Controllers\Settings\DatabaseSettingsController;
 use Modules\Admin\Http\Controllers\Settings\PosSettingsController;
+use Modules\Admin\Http\Controllers\UserActivityLogController;
 
 Route::middleware(NonAuthenticated::class)
     ->group(function () {
@@ -267,6 +268,14 @@ Route::middleware([Auth::class])
                 Route::match(['get', 'post'], 'pos', [PosSettingsController::class, 'edit'])->name('admin.pos-settings.edit');
 
                 Route::match(['get', 'post'], 'company-profile', [CompanyProfileController::class, 'edit'])->name('admin.company-profile.edit');
+
+                Route::prefix('user-activity-log')->group(function () {
+                    Route::get('', [UserActivityLogController::class, 'index'])->name('admin.user-activity-log.index');
+                    Route::get('data', [UserActivityLogController::class, 'data'])->name('admin.user-activity-log.data');
+                    Route::post('delete/{id}', [UserActivityLogController::class, 'delete'])->name('admin.user-activity-log.delete');
+                    Route::post('clear', [UserActivityLogController::class, 'clear'])->name('admin.user-activity-log.clear');
+                    Route::get('detail/{id}', [UserActivityLogController::class, 'detail'])->name('admin.user-activity-log.detail');
+                });
 
                 Route::prefix('users')->group(function () {
                     Route::get('', [UserController::class, 'index'])->name('admin.user.index');

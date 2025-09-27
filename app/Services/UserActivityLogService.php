@@ -10,11 +10,11 @@ use Illuminate\Support\Facades\Request;
 class UserActivityLogService
 {
     /**
-     * Mencatat aktivitas pengguna dengan otomatis mengisi konteks lingkungan.
+     * Mencatat aktifitas pengguna dengan otomatis mengisi konteks lingkungan.
      *
      * @param string $category Menggunakan UserActivityLog::Category_...
      * @param string $name Menggunakan UserActivityLog::Name_...
-     * @param string $description Deskripsi ringkas aktivitas.
+     * @param string $description Deskripsi ringkas aktifitas.
      * @param array $metadata Data tambahan yang kompleks.
      * @return UserActivityLog
      */
@@ -35,7 +35,8 @@ class UserActivityLogService
             'activity_name' => $name,
             'description' => $description,
             'metadata' => $metadata,
-            'user_id' => Auth::id(),
+            'user_id' => $user ? $user->id : null,
+            'username' => $user ? $user->username : '',
             'logged_at' => Carbon::now(),
             'ip_address' => Request::ip(),
             'user_agent' => Request::header('User-Agent'),
