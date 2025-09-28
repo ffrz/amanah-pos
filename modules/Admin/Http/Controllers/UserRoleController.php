@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * Proprietary Software / Perangkat Lunak Proprietary
+ * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
+ * 
+ * EN: Unauthorized use, copying, modification, or distribution is prohibited.
+ * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
+ * 
+ * See the LICENSE file in the project root for full license information.
+ * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
+ * 
+ * GitHub: https://github.com/ffrz
+ * Email: fahmifauzirahman@gmail.com
+ */
+
 namespace Modules\Admin\Http\Controllers;
 
 use App\Helpers\JsonResponseHelper;
@@ -12,8 +26,6 @@ use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
-
-use function PHPSTORM_META\map;
 
 class UserRoleController extends Controller
 {
@@ -103,14 +115,14 @@ class UserRoleController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:40',
             'description' => 'nullable|string|max:200',
-            // 'permissions' => 'nullable|array',
-            // 'permissions.*' => 'exists:acl_permissions,id',
+            'permissions' => 'nullable|array',
+            'permissions.*' => 'exists:acl_permissions,id',
         ]);
 
         try {
             $role = $request->id ? Role::with(['permissions'])->findOrFail($request->id) : new Role();
 
-            $oldData = $request->id ? $role->toArray() : [];
+            // $oldData = $request->id ? $role->toArray() : [];
 
             $role->name = $validated['name'];
             $role->description = $validated['description'];
@@ -119,24 +131,24 @@ class UserRoleController extends Controller
 
             $role->save();
             $role->syncPermissions($permissions);
-            $role->permissions; // trigger ???
+            // $role->permissions; // trigger ???
 
             if (!$request->id) {
                 $this->userActivityLogService->log(
                     UserActivityLog::Category_Settings,
                     UserActivityLog::Name_UserRole_Create,
                     "Peran pengguna '$role->name' telah ditambahkan.",
-                    $role->toArray()
+                    // $role->toArray()
                 );
             } else {
                 $this->userActivityLogService->log(
                     UserActivityLog::Category_Settings,
                     UserActivityLog::Name_UserRole_Update,
                     "Peran pengguna '$role->name' telah diperbarui.",
-                    [
-                        'new_data' => $role->toArray(),
-                        'old_data' => $oldData,
-                    ]
+                    // [
+                    //     'new_data' => $role->toArray(),
+                    //     'old_data' => $oldData,
+                    // ]
                 );
             }
             DB::commit();
@@ -167,7 +179,7 @@ class UserRoleController extends Controller
                 UserActivityLog::Category_Settings,
                 UserActivityLog::Name_UserRole_Delete,
                 "Role $role->name telah dihapus.",
-                $role->toArray()
+                // $role->toArray()
             );
             DB::commit();
             return JsonResponseHelper::success($role, "Role '{$roleName}' telah berhasil dihapus.");
