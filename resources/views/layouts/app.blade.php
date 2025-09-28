@@ -44,9 +44,6 @@
   @yield('scripts')
   @routes
 
-  {{-- VITE SCRIPTS: Ini akan menyertakan app.js DAN registerSW.js secara otomatis --}}
-  {{-- @vite(['resources/js/app.js']) --}}
-
   @yield('vite')
   @inertiaHead
 </head>

@@ -105,7 +105,7 @@ export default defineConfig({
       }
     }
   ],
-  optimizeDeps: {
-    exclude: ['qs', 'qs-esm'],
-  },
+  // optimizeDeps: {
+  //   exclude: ['qs', 'qs-esm'],
+  // },
 });

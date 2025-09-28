@@ -353,14 +353,23 @@ const handlePayment = (data) => {
     .post(route("admin.sales-order.close"), payload)
     .then((response) => {
       showInfo("Transaksi selesai");
-
-      window.open(
-        route("admin.sales-order.print", {
-          id: form.id,
-          size: page.props.settings.default_print_size,
-        }),
-        "_self"
-      );
+      if (payload.after_payment_action === "print") {
+        window.open(
+          route("admin.sales-order.print", {
+            id: form.id,
+            size: page.props.settings.default_print_size,
+          }),
+          "_self"
+        );
+      } else if (payload.after_payment_action === "detail") {
+        router.get(
+          route("admin.sales-order.detail", {
+            id: form.id,
+          })
+        );
+      } else if (payload.after_payment_action === "new-order") {
+        router.get(route("admin.sales-order.add"));
+      }
       return;
     })
     .catch((error) => {

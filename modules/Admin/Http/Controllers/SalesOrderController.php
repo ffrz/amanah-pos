@@ -161,7 +161,8 @@ class SalesOrderController extends Controller
             'accounts' => $this->getFinanceAccounts(),
             'settings' => [
                 'default_payment_mode' => Setting::value('pos.default_payment_mode', 'cash'),
-                'default_print_size' => Setting::value('pos.default_print_size', '58mm')
+                'default_print_size' => Setting::value('pos.default_print_size', '58mm'),
+                'after_payment_action' => Setting::value('pos.after_payment_action', 'new-order'),
             ]
         ]);
     }
@@ -643,6 +644,8 @@ class SalesOrderController extends Controller
 
                 Product::where('id', $detail->product_id)->decrement('stock', $quantity);
             }
+
+            Setting::setValue('pos.after_payment_action', $request->post('after_payment_action', 'print'));
 
             DB::commit();
         } catch (\Throwable $ex) {
