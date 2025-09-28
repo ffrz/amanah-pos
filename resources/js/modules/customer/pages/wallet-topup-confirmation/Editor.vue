@@ -12,7 +12,7 @@ const title = "Konfirmasi Topup";
 const { accountOptions } = useFinanceAccount(page.props.accounts);
 
 const form = useForm({
-  username: page.props.auth.customer.username,
+  code: page.props.auth.customer.code,
   name: page.props.auth.customer.name,
   finance_account_id: null,
   datetime: new Date(),
@@ -59,7 +59,7 @@ const submit = () => {
 
               <q-input
                 readonly
-                v-model.trim="form.username"
+                v-model.trim="form.code"
                 label="Username"
                 :disable="form.processing"
                 hide-bottom-space
