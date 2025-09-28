@@ -57,11 +57,20 @@ class UserProfileController extends Controller
 
         /** @var \App\Models\User */
         $user = Auth::user();
+        $originalAttributes = $user->getOriginal();
         $user->fill($validated);
         $dirtyAttributes = $user->getDirty();
 
         if (empty($dirtyAttributes)) {
             return back()->with('warning', 'Tidak ada perubahan yang terdeteksi');
+        }
+
+        $metadata = [];
+        foreach (array_keys($dirtyAttributes) as $key) {
+            $metadata[$key] = [
+                'old' => $originalAttributes[$key] ?? null,
+                'new' => $dirtyAttributes[$key],
+            ];
         }
 
         DB::beginTransaction();
@@ -70,7 +79,7 @@ class UserProfileController extends Controller
             UserActivityLog::Category_UserProfile,
             UserActivityLog::Name_UserProfile_UpdateProfile,
             'Data profil telah diperbarui.',
-
+            $metadata
         );
         DB::commit();
 
