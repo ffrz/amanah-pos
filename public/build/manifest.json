@@ -1,13 +1,16 @@
 {
-  "_BaseGuestLayout-Db0YhfYJ.css": {
-    "file": "assets/BaseGuestLayout-Db0YhfYJ.css",
-    "src": "_BaseGuestLayout-Db0YhfYJ.css"
+  "_virtual_pwa-register-Db0YhfYJ.css": {
+    "file": "assets/virtual_pwa-register-Db0YhfYJ.css",
+    "src": "_virtual_pwa-register-Db0YhfYJ.css"
   },
-  "_BaseGuestLayout-XhGcz19y.js": {
-    "file": "assets/BaseGuestLayout-XhGcz19y.js",
-    "name": "BaseGuestLayout",
+  "_virtual_pwa-register-zmVkat8N.js": {
+    "file": "assets/virtual_pwa-register-zmVkat8N.js",
+    "name": "virtual_pwa-register",
+    "dynamicImports": [
+      "node_modules/workbox-window/build/workbox-window.prod.es5.mjs"
+    ],
     "css": [
-      "assets/BaseGuestLayout-Db0YhfYJ.css"
+      "assets/virtual_pwa-register-Db0YhfYJ.css"
     ],
     "assets": [
       "assets/flUhRq6tzZclQEJ-Vdg-IuiaDsNcIhQ8tQ-D-x-0Q06.woff2",
@@ -82,30 +85,36 @@
     "file": "assets/kJF1BvYX7BgnkSrUwT8OhrdQw4oELdPIeeII9v6oDMzByHX9rA6RzaxHMPdY43zj-jCxv3fzvRNU22ZXGJpEpjC_1p-p_4MrImHCIJIZrDCvHeel-Da-CAEls.woff",
     "src": "node_modules/@quasar/extras/material-symbols-outlined/web-font/kJF1BvYX7BgnkSrUwT8OhrdQw4oELdPIeeII9v6oDMzByHX9rA6RzaxHMPdY43zj-jCxv3fzvRNU22ZXGJpEpjC_1p-p_4MrImHCIJIZrDCvHeel.woff"
   },
+  "node_modules/workbox-window/build/workbox-window.prod.es5.mjs": {
+    "file": "assets/workbox-window.prod.es5-CwtvwXb3.js",
+    "name": "workbox-window.prod.es5",
+    "src": "node_modules/workbox-window/build/workbox-window.prod.es5.mjs",
+    "isDynamicEntry": true
+  },
   "resources/css/app.css": {
     "file": "assets/app-DDlwgARO.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/js/modules/admin/app.js": {
-    "file": "assets/app-Dws51RLr.js",
+    "file": "assets/app-G3H4e7-6.js",
     "name": "app",
     "src": "resources/js/modules/admin/app.js",
     "isEntry": true,
     "imports": [
-      "_BaseGuestLayout-XhGcz19y.js"
+      "_virtual_pwa-register-zmVkat8N.js"
     ],
     "css": [
       "assets/app-CsHPAwKM.css"
     ]
   },
   "resources/js/modules/customer/app.js": {
-    "file": "assets/app-BaBo-Fw_.js",
+    "file": "assets/app-BPfCWGQA.js",
     "name": "app",
     "src": "resources/js/modules/customer/app.js",
     "isEntry": true,
     "imports": [
-      "_BaseGuestLayout-XhGcz19y.js"
+      "_virtual_pwa-register-zmVkat8N.js"
     ],
     "css": [
       "assets/app-pL1WgWQO.css"

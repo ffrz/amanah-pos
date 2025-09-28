@@ -5,7 +5,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
+  @php
+    $isAdminRoute = request()->is('admin*');
+    $manifestFile = $isAdminRoute ? 'admin-manifest.webmanifest' : 'customer-manifest.webmanifest';
+  @endphp
+
   <title inertia>{{ config('app.name', 'Laravel') }}</title>
+
+  {{-- MANIFEST LINK --}}
+  <link href="{{ asset('build/' . $manifestFile) }}" rel="manifest">
 
   <!-- Fonts -->
   <link href="https://fonts.bunny.net" rel="preconnect">
@@ -35,6 +43,10 @@
   </script>
   @yield('scripts')
   @routes
+
+  {{-- VITE SCRIPTS: Ini akan menyertakan app.js DAN registerSW.js secara otomatis --}}
+  {{-- @vite(['resources/js/app.js']) --}}
+
   @yield('vite')
   @inertiaHead
 </head>
@@ -57,19 +69,9 @@
     });
   </script>
 
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/build/registerSW.js')
-          .then(registration => {
-            console.log('Service Worker registered successfully:', registration);
-          })
-          .catch(error => {
-            console.error('Service Worker registration failed:', error);
-          });
-      });
-    }
-  </script>
+  {{-- KODE PWA DI BAWAH SUDAH DIHAPUS karena Vite PWA sudah menangani pendaftaran --}}
+  {{-- Blok Pendaftaran Service Worker yang salah telah dihapus --}}
+
 </body>
 
 </html>
