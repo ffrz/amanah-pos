@@ -210,7 +210,6 @@ const computedColumns = computed(() => {
         color="primary"
         class="full-height-table stock-adjustment-list"
         row-key="id"
-        virtual-scroll
         v-model:pagination="pagination"
         :filter="filter.search"
         :loading="loading"

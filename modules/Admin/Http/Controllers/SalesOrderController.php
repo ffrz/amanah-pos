@@ -540,18 +540,11 @@ class SalesOrderController extends Controller
 
                 if ($inputPayment['id'] === 'cash') {
                     $type = SalesOrderPayment::Type_Cash;
-
-                    // ambil akun dimana sesi aktif berjalan untuk user ini
                     $session = CashierSessionService::getActiveSession();
-
                     if (!$session) {
-                        // Todo: mungkin bisa handle auto select / default cash account atau
-                        // bisa pilih secara spesifik di payment untuk tangani penjualan
-                        // tanpa harus memulai sesi kasir
                         DB::rollBack();
-                        throw new Exception("Anda belum memulai sesi kasir.");
+                        return JsonResponseHelper::error("Anda belum memulai sesi kasir.", 402);
                     }
-
                     $accountId = $session->cashierTerminal->financeAccount->id;
                 } else if ($inputPayment['id'] === 'wallet') {
                     $type = SalesOrderPayment::Type_Wallet;

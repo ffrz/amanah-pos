@@ -179,7 +179,6 @@ const onRowClicked = (row) => {
         class="full-height-table"
         v-model:pagination="pagination"
         row-key="id"
-        virtual-scroll
         :filter="filter.search"
         :loading="loading"
         :columns="computedColumns"

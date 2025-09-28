@@ -223,7 +223,6 @@ const computedColumns = computed(() => {
                 color="primary"
                 class="full-height-table"
                 row-key="id"
-                virtual-scroll
                 :columns="computedColumns"
                 :rows="filteredProducts"
                 binary-state-sort

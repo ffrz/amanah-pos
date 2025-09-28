@@ -55,9 +55,6 @@ defineEmits(["update-quantity", "remove-item", "edit-item"]);
     :rows-per-page-options="[0]"
     hide-pagination
     :no-data-label="'Belum ada item'"
-    virtual-scroll
-    :virtual-scroll-item-size="48"
-    :virtual-scroll-sticky-size-start="48"
     :style="{ height: tableHeight }"
   >
     <template v-slot:header="props">
@@ -75,11 +72,11 @@ defineEmits(["update-quantity", "remove-item", "edit-item"]);
 
     <template v-slot:body="props">
       <q-tr :props="props" class="hover-highlight">
-        <q-td key="name" :props="props" class="text-left">
+        <q-td key="name" :props="props" class="text-left wrap-column">
           <div class="text-weight-medium">
             {{ props.row.product_name }}
           </div>
-          <div class="text-caption text-grey-6">
+          <div class="text-caption text-grey-6 elipsis">
             {{ props.row.product_barcode }}
           </div>
           <LongTextView

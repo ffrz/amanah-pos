@@ -189,7 +189,6 @@ watch(
           @request="fetchItems"
           binary-state-sort
           no-data-label="Tidak ada produk ditemukan"
-          :virtual-scroll="true"
           :rows-per-page-label="null"
         >
           <template v-slot:no-data="{ icon, message, filter }">
