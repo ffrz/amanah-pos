@@ -40,7 +40,8 @@
 </head>
 
 <body class="font-sans antialiased">
-  <div id="loading-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background-color: #fff; z-index: 9999;">
+  <div id="loading-screen"
+    style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background-color: #fff; z-index: 9999;">
     <svg id="loading-spinner" width="30" height="30" viewBox="0 0 50 50">
       <circle cx="25" cy="25" r="20" fill="none" stroke="#007bff" stroke-width="4" stroke-dasharray="80" stroke-dashoffset="60" stroke-linecap="round"></circle>
     </svg>
@@ -54,6 +55,20 @@
         loadingScreen.style.display = 'none';
       }
     });
+  </script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/build/registerSW.js')
+          .then(registration => {
+            console.log('Service Worker registered successfully:', registration);
+          })
+          .catch(error => {
+            console.error('Service Worker registration failed:', error);
+          });
+      });
+    }
   </script>
 </body>
 
