@@ -3,13 +3,13 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
+ *
  * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
+ *
  * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
+ *
  * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
@@ -21,7 +21,6 @@ use Illuminate\Support\Facades\Route;
 use Modules\Admin\Http\Controllers\AuthController;
 use Modules\Admin\Http\Controllers\CashierSessionController;
 use Modules\Admin\Http\Controllers\CashierTerminalController;
-use Modules\Admin\Http\Controllers\CompanyProfileController;
 use Modules\Admin\Http\Controllers\CustomerController;
 use Modules\Admin\Http\Controllers\CustomerWalletTransactionConfirmationController;
 use Modules\Admin\Http\Controllers\CustomerWalletTransactionController;
@@ -32,17 +31,18 @@ use Modules\Admin\Http\Controllers\OperationalCostController;
 use Modules\Admin\Http\Controllers\OperationalCostCategoryController;
 use Modules\Admin\Http\Controllers\ProductCategoryController;
 use Modules\Admin\Http\Controllers\ProductController;
-use Modules\Admin\Http\Controllers\UserProfileController;
 use Modules\Admin\Http\Controllers\PurchaseOrderController;
 use Modules\Admin\Http\Controllers\SalesOrderController;
 use Modules\Admin\Http\Controllers\StockAdjustmentController;
 use Modules\Admin\Http\Controllers\StockMovementController;
 use Modules\Admin\Http\Controllers\SupplierController;
-use Modules\Admin\Http\Controllers\UserController;
-use Modules\Admin\Http\Controllers\UserRoleController;
+use Modules\Admin\Http\Controllers\Settings\CompanyProfileController;
+use Modules\Admin\Http\Controllers\Settings\UserProfileController;
+use Modules\Admin\Http\Controllers\Settings\UserController;
+use Modules\Admin\Http\Controllers\Settings\UserRoleController;
 use Modules\Admin\Http\Controllers\Settings\DatabaseSettingsController;
 use Modules\Admin\Http\Controllers\Settings\PosSettingsController;
-use Modules\Admin\Http\Controllers\UserActivityLogController;
+use Modules\Admin\Http\Controllers\Settings\UserActivityLogController;
 
 Route::middleware(NonAuthenticated::class)
     ->group(function () {
@@ -293,6 +293,7 @@ Route::middleware([Auth::class])
                     Route::get('data', [UserRoleController::class, 'data'])->name('admin.user-role.data');
                     Route::get('add', [UserRoleController::class, 'editor'])->name('admin.user-role.add');
                     Route::get('detail/{id}', [UserRoleController::class, 'detail'])->name('admin.user-role.detail');
+                    Route::get('duplicate/{id}', [UserRoleController::class, 'duplicate'])->name('admin.user-role.duplicate');
                     Route::get('edit/{id}', [UserRoleController::class, 'editor'])->name('admin.user-role.edit');
                     Route::post('save', [UserRoleController::class, 'save'])->name('admin.user-role.save');
                     Route::post('delete/{id}', [UserRoleController::class, 'delete'])->name('admin.user-role.delete');

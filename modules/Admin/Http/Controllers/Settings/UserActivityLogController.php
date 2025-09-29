@@ -14,13 +14,12 @@
  * Email: fahmifauzirahman@gmail.com
  */
 
-namespace Modules\Admin\Http\Controllers;
+namespace Modules\Admin\Http\Controllers\Settings;
 
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\UserActivityLog;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class UserActivityLogController extends Controller
 {

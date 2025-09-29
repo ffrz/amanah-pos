@@ -14,7 +14,7 @@
  * Email: fahmifauzirahman@gmail.com
  */
 
-namespace Modules\Admin\Http\Controllers;
+namespace Modules\Admin\Http\Controllers\Settings;
 
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
@@ -35,7 +35,7 @@ class UserController extends Controller
      */
     public function index()
     {
-        return inertia('user/Index');
+        return inertia('settings/user/Index');
     }
 
     /**
@@ -46,7 +46,7 @@ class UserController extends Controller
      */
     public function detail($id = 0)
     {
-        return inertia('user/Detail', [
+        return inertia('settings/user/Detail', [
             'data' => User::with('roles')->findOrFail($id),
         ]);
     }
@@ -106,7 +106,7 @@ class UserController extends Controller
 
         $roles = Role::orderBy('name', 'asc')->get();
 
-        return inertia('user/Editor', [
+        return inertia('settings/user/Editor', [
             'data' => $user,
             'roles' => $roles
         ]);
@@ -131,7 +131,7 @@ class UserController extends Controller
 
         $roles = Role::orderBy('name', 'asc')->get();
 
-        return inertia('user/Editor', [
+        return inertia('settings/user/Editor', [
             'data' => $user,
             'roles' => $roles
         ]);

@@ -14,7 +14,7 @@
  * Email: fahmifauzirahman@gmail.com
  */
 
-namespace Modules\Admin\Http\Controllers;
+namespace Modules\Admin\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Models\UserActivityLog;
@@ -43,7 +43,7 @@ class UserProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
-        return Inertia::render('user-profile/Edit');
+        return Inertia::render('settings/user-profile/Edit');
     }
 
     /**

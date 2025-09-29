@@ -14,14 +14,12 @@
  * Email: fahmifauzirahman@gmail.com
  */
 
-namespace Modules\Admin\Http\Controllers;
+namespace Modules\Admin\Http\Controllers\Settings;
 
 use App\Helpers\ImageUploaderHelper;
-use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Class CompanyProfileController
@@ -81,13 +79,13 @@ class CompanyProfileController extends Controller
 
         $data = $this->getData();
 
-        return inertia('company-profile/Edit', compact('data'));
+        return inertia('settings/company-profile/Edit', compact('data'));
     }
 
     protected function getData()
     {
         return [
-            'name' => Setting::value('company.name', env('APP_NAME', 'Koperasiku')),
+            'name' => Setting::value('company.name', env('APP_NAME', 'Amanah POS')),
             'headline' => Setting::value('company.headline', ''),
             'phone' => Setting::value('company.phone', ''),
             'address' => Setting::value('company.address', ''),

@@ -1,6 +1,21 @@
 <?php
 
-namespace Modules\Admin\Http\Controllers;
+/**
+ * Proprietary Software / Perangkat Lunak Proprietary
+ * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
+ *
+ * EN: Unauthorized use, copying, modification, or distribution is prohibited.
+ * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
+ *
+ * See the LICENSE file in the project root for full license information.
+ * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
+ *
+ * GitHub: https://github.com/ffrz
+ * Email: fahmifauzirahman@gmail.com
+ */
+
+
+namespace Modules\Admin\Http\Controllers\Settings;
 
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
@@ -9,11 +24,10 @@ use App\Services\UserActivityLogService;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
-
-use function PHPSTORM_META\map;
 
 class UserRoleController extends Controller
 {
@@ -35,7 +49,7 @@ class UserRoleController extends Controller
      */
     public function index()
     {
-        return inertia('user-role/Index');
+        return inertia('settings/user-role/Index');
     }
 
     /**
@@ -66,8 +80,20 @@ class UserRoleController extends Controller
 
     public function detail($id = 0)
     {
-        return inertia('user-role/Detail', [
+        return inertia('settings/user-role/Detail', [
             'data' => Role::with(['permissions', 'users'])->findOrFail($id),
+        ]);
+    }
+
+    public function duplicate($id)
+    {
+        $item = Role::with('permissions')->findOrFail($id);
+        $item->id = null;
+        $permissions = Permission::all()->toArray();
+
+        return inertia('settings/user-role/Editor', [
+            'data' => $item,
+            'permissions' => $permissions
         ]);
     }
 
@@ -82,7 +108,7 @@ class UserRoleController extends Controller
         $item = $id ? Role::with('permissions')->findOrFail($id) : new Role();
         $permissions = Permission::all()->toArray();
 
-        return inertia('user-role/Editor', [
+        return inertia('settings/user-role/Editor', [
             'data' => $item,
             'permissions' => $permissions
         ]);
@@ -101,10 +127,14 @@ class UserRoleController extends Controller
         })->toArray();
 
         $validated = $request->validate([
-            'name' => 'required|string|max:40',
+            'name'  => [
+                'required',
+                'max:40',
+                Rule::unique('acl_roles', 'name')->ignore($request->id),
+            ],
             'description' => 'nullable|string|max:200',
-            // 'permissions' => 'nullable|array',
-            // 'permissions.*' => 'exists:acl_permissions,id',
+            'permissions' => 'nullable|array',
+            'permissions.*' => 'exists:acl_permissions,id',
         ]);
 
         try {
