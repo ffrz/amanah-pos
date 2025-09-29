@@ -19,7 +19,10 @@ namespace Modules\Admin\Http\Controllers\Settings;
 use App\Helpers\ImageUploaderHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
+use App\Models\UserActivityLog;
+use App\Services\UserActivityLogService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Class CompanyProfileController
@@ -30,6 +33,16 @@ use Illuminate\Http\Request;
  */
 class CompanyProfileController extends Controller
 {
+    /**
+     * @var UserActivityLogService
+     */
+    protected $userActivityLogService;
+
+    public function __construct(UserActivityLogService $userActivityLogService)
+    {
+        $this->userActivityLogService = $userActivityLogService;
+    }
+
     /**
      * Memperbarui informasi profil perusahaan.
      *
@@ -68,11 +81,33 @@ class CompanyProfileController extends Controller
                 ImageUploaderHelper::deleteImage($existingLogoPath);
             }
 
+            unset($validated['logo_image']);
+            $oldData = $this->getData();
+            if ($validated == $oldData) {
+                return redirect()->back()->with('success', 'Tidak terdeteksi perubahan data.');
+            }
+
+            DB::beginTransaction();
+
             Setting::setValue('company.name', $validated['name']);
             Setting::setValue('company.phone', $validated['phone'] ?? '');
             Setting::setValue('company.address', $validated['address'] ?? '');
             Setting::setValue('company.headline', $validated['headline'] ?? '');
             Setting::setValue('company.logo_path', $validated['logo_path'] ?? '');
+
+            Setting::refreshAll();
+
+            $this->userActivityLogService->log(
+                UserActivityLog::Category_Settings,
+                UserActivityLog::Name_UpdateCompanyProfile,
+                'Pengaturan pos telah diperbarui.',
+                [
+                    'new_data' => $this->getData(),
+                    'old_data' => $oldData,
+                ]
+            );
+
+            DB::commit();
 
             return redirect()->back()->with('success', 'Profil perusahaan berhasil diperbarui.');
         }

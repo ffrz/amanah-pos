@@ -57,10 +57,10 @@ class UserProfileController extends Controller
 
         /** @var \App\Models\User */
         $user = Auth::user();
+        $oldData = $user->toArray();
         $user->fill($validated);
-        $dirtyAttributes = $user->getDirty();
 
-        if (empty($dirtyAttributes)) {
+        if (empty($user->getDirty())) {
             return back()->with('warning', 'Tidak ada perubahan yang terdeteksi');
         }
 
@@ -70,7 +70,10 @@ class UserProfileController extends Controller
             UserActivityLog::Category_UserProfile,
             UserActivityLog::Name_UserProfile_UpdateProfile,
             'Data profil telah diperbarui.',
-            $dirtyAttributes
+            [
+                'new_data' => $user->toArray(),
+                'old_data' => $oldData,
+            ]
         );
         DB::commit();
 
@@ -100,7 +103,7 @@ class UserProfileController extends Controller
         $this->userActivityLogService->log(
             UserActivityLog::Category_UserProfile,
             UserActivityLog::Name_UserProfile_ChangePassword,
-            'Kata sandi telah diperbarui.'
+            'Kata sandi telah diperbarui.',
         );
         DB::commit();
 

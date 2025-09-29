@@ -19,10 +19,23 @@ namespace Modules\Admin\Http\Controllers\Settings;
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\UserActivityLog;
+use App\Services\UserActivityLogService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class UserActivityLogController extends Controller
 {
+    /**
+     * @var UserActivityLogService
+     */
+    protected $userActivityLogService;
+
+    public function __construct(UserActivityLogService $userActivityLogService)
+    {
+        $this->userActivityLogService = $userActivityLogService;
+    }
+
     /**
      * Tampilkan halaman indeks log aktifitas pengguna.
      *
@@ -98,8 +111,15 @@ class UserActivityLogController extends Controller
     public function delete($id)
     {
         $item = UserActivityLog::findOrFail($id);
-        $item->delete();
-        return JsonResponseHelper::success($item, "Log aktifitas #$item->id telah dihapus!");
+        try {
+            DB::beginTransaction();
+            $item->delete();
+            DB::commit();
+            return JsonResponseHelper::success($item, "Log aktifitas #$item->id telah dihapus!");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return JsonResponseHelper::error("Log aktifitas #$item->id tidak dapat dihapus!", 500, $e);
+        }
     }
 
     /**
@@ -109,10 +129,19 @@ class UserActivityLogController extends Controller
      */
     public function clear()
     {
+        $user = Auth::user();
         try {
+            DB::beginTransaction();
             UserActivityLog::truncate();
+            $this->userActivityLogService->log(
+                UserActivityLog::Category_UserActivityLog,
+                UserActivityLog::Name_UserActivityLog_Clear,
+                "Pengguna '$user->username' telah membersihkan riwayat aktifitas pengguna.",
+            );
+            DB::commit();
             return JsonResponseHelper::success(null, "Semua log aktifitas telah dibersihkan!");
         } catch (\Exception $e) {
+            DB::rollBack();
             return JsonResponseHelper::error("Gagal membersihkan log: " . $e->getMessage(), 500);
         }
     }

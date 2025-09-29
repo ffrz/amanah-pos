@@ -19,6 +19,8 @@ namespace Modules\Admin\Http\Controllers\Settings;
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\UserActivityLog;
+use App\Services\UserActivityLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -28,6 +30,16 @@ use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
+    /**
+     * @var UserActivityLogService
+     */
+    protected $userActivityLogService;
+
+    public function __construct(UserActivityLogService $userActivityLogService)
+    {
+        $this->userActivityLogService = $userActivityLogService;
+    }
+
     /**
      * Tampilkan halaman indeks pengguna.
      *
@@ -153,18 +165,17 @@ class UserController extends Controller
         $password = $request->get('password');
 
         $rules = [
-            'name'      => 'required|max:255',
             'username'  => [
                 'required',
                 'alpha_num',
                 'max:255',
                 Rule::unique('users', 'username')->ignore($request->id),
             ],
-            // Peran sekarang adalah array, bukan lagi string
-            'type'      => 'required|string',
-            'roles'     => 'nullable|array',
-            'roles.*'   => 'exists:acl_roles,id',
-            'active'    => 'required|boolean'
+            'name'    => 'required|max:255',
+            'type'    => ['required', Rule::in(array_keys(User::Types))],
+            'roles'   => 'nullable|array',
+            'roles.*' => 'exists:acl_roles,id',
+            'active'  => 'required|boolean'
         ];
 
         if ($isNew || !empty($password)) {
@@ -172,41 +183,66 @@ class UserController extends Controller
         }
 
         $validated = $request->validate($rules);
+
+        unset($validated['password']); // kita gak butuh data password dari validated
+
         $user = $isNew ? new User() : User::findOrFail($request->id);
 
         try {
-            DB::beginTransaction();
+            $oldData = $user->toArray();
 
-            // Isi properti model dari data yang divalidasi
-            $user->name = $validated['name'];
-            $user->username = $validated['username'];
-            $user->active = $validated['active'];
-            $user->role = $validated['role'];
+            $user->fill($validated);
+
+            $dirtyAttributes = $user->getDirty();
 
             // Jika ada password baru, hash dan simpan
             if (!empty($password)) {
                 $user->password = Hash::make($password);
+                $dirtyAttributes['password'] = '********';
             }
+
+            if (empty($dirtyAttributes)) {
+                return redirect(route('admin.user.index'))->with('success', "Tidak ada perubahan terdeteksi.");
+            }
+
+            DB::beginTransaction();
 
             $user->save();
 
-            // Atur peran pengguna menggunakan Spatie
-            // Jika role adalah SuperUser, hapus semua peran spatie agar bisa bypass
-            if ($validated['role'] === 'SuperUser') {
+            // Jika jenis akun adalah SuperUser, hapus semua peran spatie agar bisa bypass
+            if ($user->type === User::Type_SuperUser) {
                 $user->syncRoles([]);
-                $user->admin = true;
             } else {
                 $user->syncRoles($validated['roles'] ?? []);
-                $user->admin = false;
+            }
+
+            // catat log
+            $user->roles;
+            if (!$request->id) {
+                $this->userActivityLogService->log(
+                    UserActivityLog::Category_User,
+                    UserActivityLog::Name_User_Create,
+                    "Pengguna '$user->username' telah ditambahkan.",
+                    $user->toArray(),
+                );
+                $message = "Pengguna {$user->username} telah ditambahkan.";
+            } else {
+                $this->userActivityLogService->log(
+                    UserActivityLog::Category_User,
+                    UserActivityLog::Name_User_Update,
+                    "Pengguna '$user->username' telah diperbarui.",
+                    [
+                        'new_data' => $user->toArray(),
+                        'old_data' => $oldData,
+                    ]
+                );
+                $message = "Pengguna {$user->username} telah diperbarui.";
             }
 
             DB::commit();
 
-            $action = $isNew ? 'ditambahkan' : 'diperbarui';
-            $message = "Pengguna {$user->username} telah {$action}.";
-
             return redirect(route('admin.user.index'))->with('success', $message);
-        } catch (\Throwable $ex) {
+        } catch (\Throwable $e) {
             DB::rollBack();
             return redirect(route('admin.user.index'))->with('error', 'Terjadi kesalahan. Gagal menyimpan pengguna. Silakan coba lagi.');
         }
@@ -226,8 +262,23 @@ class UserController extends Controller
             return JsonResponseHelper::error('Tidak dapat menghapus akun sendiri!', 409);
         }
 
-        $user->delete();
+        try {
+            DB::beginTransaction();
+            $user->delete();
 
-        return JsonResponseHelper::success($user, "Pengguna {$user->username} telah dihapus!");
+            $this->userActivityLogService->log(
+                UserActivityLog::Category_User,
+                UserActivityLog::Name_User_Delete,
+                "Pengguna '$user->username' telah dihapus.",
+                $user->toArray(),
+            );
+
+            DB::commit();
+
+            return JsonResponseHelper::success($user, "Pengguna {$user->username} telah dihapus!");
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return JsonResponseHelper::error("Gagal menghapus pengguna $user->username", 500, $e);
+        }
     }
 }

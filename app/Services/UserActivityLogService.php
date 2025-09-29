@@ -15,7 +15,7 @@ class UserActivityLogService
      * @param string $category Menggunakan UserActivityLog::Category_...
      * @param string $name Menggunakan UserActivityLog::Name_...
      * @param string $description Deskripsi ringkas aktifitas.
-     * @param array $metadata Data tambahan yang kompleks.
+     * @param array $metadata Data tambahan yang kompleks (standarnya gunakan data baru, data yang dihapus, data sebelum update + dirty attributes).
      * @return UserActivityLog
      */
     public function log(

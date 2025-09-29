@@ -18,10 +18,20 @@ namespace Modules\Admin\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\UserActivityLogService;
 use Illuminate\Http\Request;
 
 class DatabaseSettingsController extends Controller
 {
+    /**
+     * @var UserActivityLogService
+     */
+    protected $userActivityLogService;
+
+    public function __construct(UserActivityLogService $userActivityLogService)
+    {
+        $this->userActivityLogService = $userActivityLogService;
+    }
     /**
      * Tampilkan halaman indeks pengguna.
      *

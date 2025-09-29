@@ -19,6 +19,8 @@ class UserActivityLog extends Model
     public const Category_Finance = 'finance';
     public const Category_Settings = 'settings';
     public const Category_UserProfile = 'user_profile';
+    public const Category_User = 'user';
+    public const Category_UserActivityLog = 'user_activity_log';
 
     /**
      * Array pemetaan Kategori untuk tampilan (Opsional, tapi konsisten)
@@ -29,6 +31,8 @@ class UserActivityLog extends Model
         self::Category_Finance => 'Transaksi & Keuangan',
         self::Category_Settings => 'Pengaturan Sistem',
         self::Category_UserProfile => 'Profil Pengguna',
+        self::Category_User => 'Manajemen Pengguna',
+        self::Category_UserActivityLog => 'Manajemen Log Aktifitas Pengguna',
     ];
 
     /**
@@ -51,6 +55,14 @@ class UserActivityLog extends Model
     public const Name_UserProfile_UpdateProfile  = 'user-profile.update';
     public const Name_UserProfile_ChangePassword = 'user-profile.change-password';
 
+    public const Name_User_Create = 'user.create';
+    public const Name_User_Update = 'user.update';
+    public const Name_User_Delete = 'user.delete';
+
+    public const Name_UserActivityLog_Clear = 'user-activity-log.clear';
+    public const Name_UpdatePosSettings = 'pos-settings.update';
+    public const Name_UpdateCompanyProfile = 'company-profile.update';
+
     /**
      * Array pemetaan Nama Aktivitas
      */
@@ -70,6 +82,14 @@ class UserActivityLog extends Model
 
         self::Name_UserProfile_UpdateProfile => 'Memperbarui Profile',
         self::Name_UserProfile_ChangePassword => 'Mengganti Kata Sandi',
+
+        self::Name_User_Create => 'Menambah Pengguna',
+        self::Name_User_Update => 'Memperbarui Pengguna',
+        self::Name_User_Delete => 'Menghapus Pengguna',
+
+        self::Name_UserActivityLog_Clear => 'Membersihkan Log Aktifitas Pengguna',
+        self::Name_UpdatePosSettings => 'Memperbarui Pengaturan POS',
+        self::Name_UpdateCompanyProfile => 'Memperbarui Profil Perusahaan',
     ];
 
     // Kolom yang dapat diisi massal

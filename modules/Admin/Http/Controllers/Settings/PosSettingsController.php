@@ -18,11 +18,23 @@ namespace Modules\Admin\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
+use App\Models\UserActivityLog;
+use App\Services\UserActivityLogService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class PosSettingsController extends Controller
 {
+    /**
+     * @var UserActivityLogService
+     */
+    protected $userActivityLogService;
+
+    public function __construct(UserActivityLogService $userActivityLogService)
+    {
+        $this->userActivityLogService = $userActivityLogService;
+    }
+
     /**
      * Tampilkan halaman indeks pengguna.
      *
@@ -39,11 +51,31 @@ class PosSettingsController extends Controller
             ];
 
             $validated = $request->validate($rules);
+            $oldData = $this->getData();
+
+            if ($validated == $oldData) {
+                return redirect()->back()->with('success', 'Tidak terdeteksi perubahan data.');
+            }
+
+            DB::beginTransaction();
 
             Setting::setValue('pos.default_payment_mode', $validated['default_payment_mode']);
             Setting::setValue('pos.default_print_size', $validated['default_print_size']);
             Setting::setValue('pos.foot_note', $validated['foot_note'] ?? '');
             Setting::setValue('pos.after_payment_action', $validated['after_payment_action']);
+
+            Setting::refreshAll();
+
+            $this->userActivityLogService->log(
+                UserActivityLog::Category_Settings,
+                UserActivityLog::Name_UpdatePosSettings,
+                'Pengaturan pos telah diperbarui.',
+                [
+                    'new_data' => $this->getData(),
+                    'old_data' => $oldData,
+                ]
+            );
+            DB::commit();
 
             return redirect()->back()->with('success', 'Pengaturan POS berhasil diperbarui.');
         }
