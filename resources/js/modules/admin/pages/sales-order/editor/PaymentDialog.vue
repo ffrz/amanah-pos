@@ -34,8 +34,23 @@ const paymentMode = ref("cash");
 const debtDueDate = ref(new Date());
 const firstPaymentInputRef = ref(null);
 const payments = reactive([{ id: "cash", amount: 0.0 }]);
+const nextAction = ref(page.props.settings.after_payment_action ?? "print");
 
 const default_payment_mode = page.props.settings.default_payment_mode;
+const nextActionOptions = [
+  {
+    value: "print",
+    label: "Cetak",
+  },
+  {
+    value: "detail",
+    label: "Rincian",
+  },
+  {
+    value: "new-order",
+    label: "Penjualan Baru",
+  },
+];
 
 const paymentOptions = computed(() => [
   { label: "Tunai", value: "cash" },
@@ -138,6 +153,7 @@ const handleFinalizePayment = () => {
   let payload = {
     total: props.total,
     is_debt: paymentMode.value === "debt",
+    after_payment_action: nextAction.value,
   };
 
   if (paymentMode.value === "debt") {
@@ -301,12 +317,25 @@ const onBeforeShow = () => {
           </div>
         </div>
       </q-card-section>
-      <q-card-actions align="center" class="q-mb-sm">
+      <q-card-actions align="center" class="q-mb-sm row q-gutter-xs q-pa-md">
+        <q-select
+          v-model="nextAction"
+          :options="nextActionOptions"
+          label="Aksi setelah bayar"
+          :outlined="true"
+          emit-value
+          map-options
+          dense
+          class="custom-select col"
+          :disable="isProcessing"
+          hide-bottom-space
+        />
         <q-btn
           flat
           label="Batal"
           color="grey"
           @click="$emit('update:modelValue', false)"
+          class="col"
         />
         <q-btn
           :label="paymentMode === 'debt' ? 'Catat Utang' : 'Bayar'"
@@ -314,6 +343,7 @@ const onBeforeShow = () => {
           @click="handleFinalizePayment"
           :disable="isProcessing || !isValid"
           :loading="isProcessing"
+          class="col"
         />
       </q-card-actions>
     </q-card>
