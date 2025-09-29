@@ -5,7 +5,7 @@ namespace App\Models\Traits;
 use App\Models\DocumentVersion;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
-trait HasVersions
+trait HasDocumentVersions
 {
     /**
      * Mendefinisikan relasi ke semua versi dokumen.

@@ -28,12 +28,30 @@ return new class extends Migration
         Schema::create('suppliers', function (Blueprint $table) {
             $table->id();
             $table->string('name', 100)->unique();
-            $table->string('phone', 100)->default('')->index();
-            $table->string('bank_account_number', 40)->default('');
-            $table->string('address', 200)->default('');
-            $table->string('return_address', 200)->default('');
+
+            $table->string('phone_1', 50)->default('')->index();
+            $table->string('phone_2', 50)->default('')->index();
+            $table->string('phone_3', 50)->default('')->index();
+
+            $table->string('bank_account_name_1', 50)->default('');
+            $table->string('bank_account_number_1', 50)->default('');
+            $table->string('bank_account_holder_1', 100)->default('');
+
+            $table->string('bank_account_name_2', 50)->default('');
+            $table->string('bank_account_number_2', 50)->default('');
+            $table->string('bank_account_holder_2', 100)->default('');
+
+            $table->string('address', 255)->default('');
+            $table->string('return_address', 255)->default('');
+
             $table->boolean('active')->default(true)->index();
             $table->decimal('balance', 15, 0)->default(0.)->index();
+
+            $table->string('url_1', 255)->default('');
+            $table->string('url_2', 255)->default('');
+
+            $table->text('notes', 255)->nullable();
+
             $table->createdUpdatedTimestamps();
         });
     }

@@ -203,12 +203,16 @@ const computedColumns = computed(() => {
                 {{ props.row.name }}
               </div>
               <template v-if="$q.screen.lt.md">
-                <div><q-icon name="phone" /> {{ props.row.phone }}</div>
-                <div>
+                <div v-if="props.row.phone">
+                  <q-icon name="phone" /> {{ props.row.phone }}
+                </div>
+                <div v-if="props.row.bank_account_number">
                   <q-icon name="credit_card" />
                   {{ props.row.bank_account_number }}
                 </div>
-                <div><q-icon name="home_pin" /> {{ props.row.address }}</div>
+                <div v-if="props.row.address">
+                  <q-icon name="home_pin" /> {{ props.row.address }}
+                </div>
               </template>
             </q-td>
             <q-td key="phone" :props="props">

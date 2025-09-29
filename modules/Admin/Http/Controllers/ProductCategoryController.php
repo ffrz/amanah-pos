@@ -26,7 +26,6 @@ use App\Services\ProductCategoryService;
 use App\Services\UserActivityLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
@@ -161,7 +160,7 @@ class ProductCategoryController extends Controller
             Log::error("Gagal menyimpan kategori produk ID: $item->id", ['exception' => $ex]);
         }
 
-        return redirect(route('admin.product-category.index'))
+        return redirect()->back()->withInput()
             ->with('error', "Gagal menyimpan kategori produk $item->name.");
     }
 

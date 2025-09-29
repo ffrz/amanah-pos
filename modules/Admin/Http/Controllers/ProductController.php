@@ -20,24 +20,24 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Product\GetProductsRequest;
 use App\Http\Requests\Product\SaveProductRequest;
 use App\Models\Product;
-use App\Models\ProductCategory;
-use App\Models\Supplier;
+use App\Models\UserActivityLog;
 use App\Services\CommonDataService;
+use App\Services\DocumentVersionService;
 use App\Services\ProductService;
+use App\Services\UserActivityLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class ProductController extends Controller
 {
-    protected $productService;
-    protected $commonDataService;
-
-    public function __construct(ProductService $productService, CommonDataService $commonDataService) // Inject CommonDataService
-    {
-        $this->productService = $productService;
-        $this->commonDataService = $commonDataService;
-    }
+    public function __construct(
+        protected ProductService $productService,
+        protected CommonDataService $commonDataService,
+        protected UserActivityLogService $userActivityLogService,
+        protected DocumentVersionService $documentVersionService,
+    ) {}
 
     public function index()
     {
@@ -49,7 +49,7 @@ class ProductController extends Controller
 
     public function detail($id = 0)
     {
-        $item = $this->productService->findProductById($id);
+        $item = $this->productService->find($id);
 
         if (!$item) {
             return redirect()->route('admin.product.index')
@@ -76,15 +76,14 @@ class ProductController extends Controller
 
     public function duplicate($id)
     {
-        $item = $this->productService->findProductById($id);
+        $item = $this->productService->find($id);
 
         if (!$item) {
-            return redirect()->route('admin.product.index')->with('error', 'Product to duplicate not found.');
+            return redirect()->route('admin.product.index')->with('error', 'Produk tidak ditemukan.');
         }
 
-        // Kloning item dan null-kan ID untuk dianggap baru
         $item->id = null;
-        $item->exists = false; // Penting agar Eloquent tahu ini objek baru
+        $item->exists = false;
 
         return Inertia::render('product/Editor', [
             'data' => $item,
@@ -95,7 +94,7 @@ class ProductController extends Controller
 
     public function editor($id = 0)
     {
-        $item = $id ? $this->productService->findProductById($id) : new Product(
+        $item = $id ? $this->productService->find($id) : new Product(
             ['active' => 1, 'type' => Product::Type_Stocked]
         );
 
@@ -116,130 +115,110 @@ class ProductController extends Controller
      * @param \App\Http\Requests\Api\Product\SaveProductRequest $request
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function save(SaveProductRequest $request) // Menggunakan SaveProductRequest
+    public function save(SaveProductRequest $request)
     {
+        $validated = $request->validated();
+        $validated['description'] = $validated['description'] ?? '';
+        $validated['barcode'] = $validated['barcode'] ?? '';
+        $validated['notes'] = $validated['notes'] ?? '';
+        $validated['uom'] = $validated['uom'] ?? '';
+
+        $item = $request->id ? $this->productService->find($request->input('id')) : new Product();
+        $oldValue = $item->getAttributes();
+
         try {
-            $validatedData = $request->validated();
-            $validatedData['description'] = $validatedData['description'] ?? '';
-            $validatedData['barcode'] = $validatedData['barcode'] ?? '';
-            $validatedData['notes'] = $validatedData['notes'] ?? '';
-            $validatedData['uom'] = $validatedData['uom'] ?? '';
+            DB::beginTransaction();
 
-            $product = null;
-
-            // Jika ada ID dalam request, coba temukan produk yang ada
-            if ($request->has('id') && $request->input('id')) {
-                $product = $this->productService->findProductById($request->input('id'));
-                if (!$product) {
-                    return redirect()->back()->with('error', 'Produk tidak ditemukan.');
-                }
+            $changes = $this->productService->save($item, $validated);
+            if (!$changes) {
+                DB::rollBack();
+                return redirect(route('admin.product.index'))
+                    ->with('success', "Tidak ada perubahan data");
             }
 
-            // Memanggil saveProduct di ProductService untuk create atau update
-            $item = $this->productService->saveProduct($validatedData, $product);
+            // versioning
+            $this->documentVersionService->createVersion($item);
+
+            // logging
+            if (!$oldValue) {
+                $this->userActivityLogService->log(
+                    UserActivityLog::Category_Product,
+                    UserActivityLog::Name_Product_Create,
+                    "Produk $item->name berhasil dibuat.",
+                    $changes
+                );
+            } else {
+                $this->userActivityLogService->log(
+                    UserActivityLog::Category_Product,
+                    UserActivityLog::Name_Product_Update,
+                    "Produk $item->name berhasil diperbarui.",
+                    $changes
+                );
+            }
+            DB::commit();
 
             return redirect(route('admin.product.index'))
                 ->with('success', "Produk $item->name telah disimpan.");
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Operation failed: ' . $e->getMessage());
+            DB::rollBack();
+            Log::error("Gagal menyimpan produk $item->id", $e);
         }
+
+        return redirect()->back()->withInput()
+            ->with('error', 'Gagal menyimpan produk.');
     }
 
     public function delete($id)
     {
-        try {
-            $item = $this->productService->findProductById($id);
-            if (!$item) {
-                return redirect()->back()->with('error', 'Product tidak ditemukan.');
-            }
+        $item = $this->productService->find($id);
+        if (!$item) {
+            return redirect()->back()->with('error', 'Product tidak ditemukan.');
+        }
 
-            if ($this->productService->isProductUsedInTransactions($item)) {
-                return redirect()->back()->with('error', 'Produk ini tidak dapat dihapus karena sedang digunakan dalam transaksi.');
-            }
+        if ($this->productService->isProductUsedInTransactions($item)) {
+            return redirect()->back()->with('error', 'Produk ini tidak dapat dihapus karena sudah digunakan dalam transaksi.');
+        }
+
+        try {
             $this->productService->deleteProduct($item);
 
-            return redirect()->route('admin.product.index')
+            $this->userActivityLogService->log(
+                UserActivityLog::Category_Product,
+                UserActivityLog::Name_Product_Delete,
+                "Produk $item->name berhasil dihapus.",
+                $item->toArray(),
+            );
+
+            return redirect(route('admin.product.index'))
                 ->with('success', "Produk $item->name telah dihapus.");
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Failed to delete product: ' . $e->getMessage());
+            Log::error("Gagal menghapus produk $item->id - $item->name.", $e->getMessage());
         }
+
+        return redirect(route('admin.product.index'))
+            ->with('error', "Gagal menghapus produk $item->name");
     }
 
     public function import(Request $request)
     {
         if ($request->getMethod() === Request::METHOD_POST) {
-            // 1. Validasi file yang diunggah
             $request->validate([
                 'csv_file' => 'required|mimes:csv,txt|max:10240',
             ]);
 
             $file = $request->file('csv_file');
 
-            // 2. Buka file untuk dibaca
-            if (($handle = fopen($file->getRealPath(), 'r')) !== false) {
-
-                // Dapatkan header dari baris pertama untuk pemetaan kolom
-                $header = fgetcsv($handle, 1000, ',');
-
-                // Mulai transaksi database untuk memastikan data konsisten
-                DB::beginTransaction();
-
-                try {
-                    // Loop melalui setiap baris data
-                    while (($data = fgetcsv($handle, 1000, ',')) !== false) {
-
-                        // Pastikan baris data tidak kosong
-                        if (empty(array_filter($data, 'strlen'))) {
-                            continue;
-                        }
-
-                        // 3. Gabungkan header dan data untuk membuat array yang mudah diakses
-                        $row = array_combine($header, $data);
-
-                        // 4. Proses relasi: Kategori dan Supplier
-                        $category = ProductCategory::firstOrCreate([
-                            'name' => trim($row['category']),
-                        ]);
-
-                        $supplier = Supplier::firstOrCreate([
-                            'name' => trim($row['supplier']),
-                        ]);
-
-                        // 5. Siapkan data produk
-                        $productData = [
-
-                            'description' => trim($row['description']),
-                            'cost'        => $row['cost'],
-                            'price'       => $row['price'],
-                            'uom'         => $row['uom'],
-                            'stock'       => $row['stock'],
-                            'category_id' => $category->id,
-                            'supplier_id' => $supplier->id,
-                            'type'        => $row['type'] ?? Product::Type_Stocked,
-                        ];
-
-                        // 6. Simpan data produk
-                        Product::firstOrCreate([
-                            'barcode' => $row['barcode'],
-                            'name'    => trim($row['name']),
-                        ], $productData);
-                    }
-
-                    // Commit transaksi jika semua baris berhasil
-                    DB::commit();
-
-                    fclose($handle);
-                    return redirect()->back()->with('success', 'Data produk berhasil diimpor!');
-                } catch (\Exception $e) {
-                    // Rollback transaksi jika terjadi kesalahan
-                    DB::rollBack();
-                    fclose($handle);
-
-                    return redirect()->back()->with('error', 'Gagal mengimpor data: ' . $e->getMessage());
-                }
-
-                return redirect()->back()->with('error', 'Gagal membuka file.');
+            if (!$this->productService->import($file)) {
+                return redirect()->back()->with('error', 'Gagal mengimpor data.');
             }
+
+            $this->userActivityLogService->log(
+                UserActivityLog::Category_Product,
+                UserActivityLog::Name_Product_Import,
+                "Produk berhasil diimport."
+            );
+
+            return redirect()->back()->with('success', 'Data produk berhasil diimpor!');
         }
 
         return inertia('product/Import');

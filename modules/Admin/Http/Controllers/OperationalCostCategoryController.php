@@ -148,7 +148,7 @@ class OperationalCostCategoryController extends Controller
             Log::error("Gagal menghapus kategori biaya operasional ID: $item->id", ['exception' => $ex]);
         }
 
-        return redirect(route('admin.operational-cost-category.index'))
+        return redirect()->back()->withInput()
             ->with('error', "Kategori $item->name gagal disimpan.");
     }
 

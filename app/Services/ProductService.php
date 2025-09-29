@@ -3,13 +3,13 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
+ *
  * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
+ *
  * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
+ *
  * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
@@ -17,10 +17,14 @@
 namespace App\Services;
 
 use App\Models\Product;
+use App\Models\ProductCategory;
 use App\Models\StockMovement;
+use App\Models\Supplier;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use PhpOffice\PhpSpreadsheet\Calculation\Logical\Boolean;
 
 class ProductService
 {
@@ -113,7 +117,7 @@ class ProductService
      * @param int $id
      * @return \App\Models\Product|null
      */
-    public function findProductById(int $id): ?Product
+    public function find(int $id): ?Product
     {
         return Product::with(['category', 'supplier', 'creator', 'updater'])->find($id);
     }
@@ -134,52 +138,47 @@ class ProductService
     /**
      * Create or update a product and handle stock movement.
      *
+     * @param \App\Models\Product $product Product instance to save.
      * @param array $data Data for the product.
-     * @param \App\Models\Product|null $product Optional: Product instance to update. If null, a new product will be created.
-     * @return \App\Models\Product
-     * @throws \Exception
+     * @return bool|array
      */
-    public function saveProduct(array $data, ?Product $product = null): Product
+    public function save(Product $product, array $data): bool|array
     {
-        DB::beginTransaction();
-        try {
-            $oldStock = $product ? $product->stock : 0;
+        $oldStock = $product->stock;
+        $isNewProduct = !!$product->id;
 
-            if ($product) {
-                $product->update($data);
-                $isNewProduct = false;
-            } else {
-                $product = Product::create($data);
-                $isNewProduct = true;
-            }
+        $product->fill($data);
 
-            $newStock = $product->stock;
+        $changedFields = $product->getDirty();
 
-            if (isset($data['stock']) && $product->type === Product::Type_Stocked) {
-                $refType = $isNewProduct ? StockMovement::RefType_InitialStock : StockMovement::RefType_ManualAdjustment;
-                $quantityBefore = $isNewProduct ? 0 : $oldStock;
-                $quantity = $isNewProduct ? $newStock : $newStock - $oldStock;
-
-                if ($quantityBefore != $newStock) {
-                    StockMovement::create([
-                        'ref_type' => $refType,
-                        'product_id' => $product->id,
-                        'product_name' => $product->name,
-                        'uom' => $product->uom,
-                        'quantity_before' => $quantityBefore,
-                        'quantity_after' => $newStock,
-                        'quantity' => $quantity,
-                        'notes' => $isNewProduct ? 'Stok awal' : 'Edit stok manual',
-                    ]);
-                }
-            }
-
-            DB::commit();
-            return $product;
-        } catch (\Exception $e) {
-            DB::rollBack();
-            throw $e;
+        if (empty($changedFields)) {
+            return false;
         }
+
+        $product->save();
+
+        $newStock = $product->stock;
+
+        if (isset($data['stock']) && $product->type === Product::Type_Stocked) {
+            $refType = $isNewProduct ? StockMovement::RefType_InitialStock : StockMovement::RefType_ManualAdjustment;
+            $quantityBefore = $isNewProduct ? 0 : $oldStock;
+            $quantity = $isNewProduct ? $newStock : $newStock - $oldStock;
+
+            if ($quantityBefore != $newStock) {
+                StockMovement::create([
+                    'ref_type' => $refType,
+                    'product_id' => $product->id,
+                    'product_name' => $product->name,
+                    'uom' => $product->uom,
+                    'quantity_before' => $quantityBefore,
+                    'quantity_after' => $newStock,
+                    'quantity' => $quantity,
+                    'notes' => $isNewProduct ? 'Stok awal' : 'Edit stok manual',
+                ]);
+            }
+        }
+
+        return $changedFields;
     }
 
     /**
@@ -233,5 +232,65 @@ class ProductService
     public function isProductUsedInTransactions(Product $product): bool
     {
         return $product->isUsedInTransactions();
+    }
+
+    public function import($file)
+    {
+        try {
+            if (($handle = fopen($file->getRealPath(), 'r')) === false) {
+                return false;
+            }
+
+            $header = fgetcsv($handle, 1000, ',');
+
+            DB::beginTransaction();
+
+            while (($data = fgetcsv($handle, 1000, ',')) !== false) {
+                if (empty(array_filter($data, 'strlen'))) {
+                    continue;
+                }
+
+                // Gabungkan header dan data untuk membuat array yang mudah diakses
+                $row = array_combine($header, $data);
+
+                // Proses relasi: Kategori dan Supplier
+                $category = ProductCategory::firstOrCreate([
+                    'name' => trim($row['category']),
+                ]);
+
+                $supplier = Supplier::firstOrCreate([
+                    'name' => trim($row['supplier']),
+                ]);
+
+                // Siapkan data produk
+                $productData = [
+                    'description' => trim($row['description']),
+                    'cost'        => $row['cost'],
+                    'price'       => $row['price'],
+                    'uom'         => $row['uom'],
+                    'stock'       => $row['stock'],
+                    'category_id' => $category->id,
+                    'supplier_id' => $supplier->id,
+                    'type'        => $row['type'] ?? Product::Type_Stocked,
+                ];
+
+                // Simpan data produk
+                Product::firstOrCreate([
+                    'barcode' => $row['barcode'],
+                    'name'    => trim($row['name']),
+                ], $productData);
+            }
+
+            DB::commit();
+            fclose($handle);
+            Log::info('Import produk berhasil.');
+            return true;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            fclose($handle);
+            Log::error('Gagal mengimpor data produk.', $e);
+        }
+
+        return false;
     }
 }
