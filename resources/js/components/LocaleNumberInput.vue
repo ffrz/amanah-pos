@@ -24,7 +24,11 @@ defineExpose({
 
 // Props
 const props = defineProps({
-  modelValue: { type: Number, required: true, default: 0 },
+  modelValue: {
+    type: [Number, null], // <-- UBAH INI
+    required: false, // Jika bisa null, sebaiknya jangan required
+    default: 0, // Opsional: Tetapkan 0 sebagai nilai default yang aman
+  },
   label: { type: String, default: "" },
   locale: { type: String, default: "id-ID" },
   outlined: { type: Boolean, default: false },
@@ -156,6 +160,7 @@ const filterInput = (event: KeyboardEvent) => {
     @update:model-value="onInput"
     @blur="onBlur"
     @keydown="filterInput"
+    @focus="qInputRef.select()"
     :lazy-rules="props.lazyRules"
     :disable="props.disable"
     :error="props.error"

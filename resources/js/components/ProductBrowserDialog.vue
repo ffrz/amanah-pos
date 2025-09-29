@@ -95,6 +95,10 @@ const onProductSelect = (product) => {
 };
 
 const handleKeydown = (event) => {
+  if (!props.modelValue) {
+    return;
+  }
+
   const listCount = rows.value.length;
   if (listCount === 0) return;
 

@@ -1,6 +1,6 @@
 <script setup>
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
-import { computed, onMounted, onUnmounted } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 
 const props = defineProps({
   modelValue: {
@@ -36,6 +36,7 @@ const handleKeyDown = (e) => {
   if (props.modelValue) {
     if (e.key === "Enter") {
       handleSave();
+      emit("update:modelValue", false);
       preventEvent(e);
     } else if (e.key === "Escape") {
       emit("update:modelValue", false);
