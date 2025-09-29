@@ -39,11 +39,18 @@ return new class extends Migration
             $table->decimal('price', 10, 2)->default(0.);
             $table->decimal('price_2', 10, 2)->default(0.);
             $table->decimal('price_3', 10, 2)->default(0.);
+
+            $table->decimal('discount_percentage', 5, 2)->default(0.00);
+            $table->datetime('discount_start_date')->nullable();
+            $table->datetime('discount_end_date')->nullable();
+            $table->string('discount_reason', 150)->nullable();
+
             $table->string('uom')->default('');
             $table->text('notes')->nullable();
             $table->decimal('stock', 10, 3)->default(0.)->index();
             $table->decimal('min_stock', 10, 3)->default(0.);
             $table->decimal('max_stock', 10, 3)->default(0.);
+
             $table->createdUpdatedTimestamps();
         });
     }

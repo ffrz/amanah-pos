@@ -44,6 +44,12 @@ class Product extends BaseModel
         'price',
         'price_2',
         'price_3',
+
+        'discount_percentage',
+        'discount_start_date',
+        'discount_end_date',
+        'discount_reason',
+
         'uom',
         'stock',
         'min_stock',
@@ -104,6 +110,12 @@ class Product extends BaseModel
             'price'      => 'decimal:2',
             'price_2'    => 'decimal:2',
             'price_3'    => 'decimal:2',
+
+            'discount_percentage' => 'decimal:2',
+            'discount_start_datetime' => 'datetime',
+            'discount_end_datetime' => 'datetime',
+            'discount_reason' => 'string',
+
             'uom'        => 'string',
             'stock'      => 'decimal:3',
             'min_stock'  => 'decimal:3',
