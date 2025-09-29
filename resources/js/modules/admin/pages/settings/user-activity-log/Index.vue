@@ -120,19 +120,16 @@ const confirmClear = () => {
   // lalu ganti penggunaan seluruh dialog di aplikasi agar lebih seragam dan mudah dimaintain!
   Dialog.create({
     title: "PERINGATAN: Hapus Permanen Log",
-    message: `Anda yakin ingin menghapus **SELURUH** log aktivitas pengguna? Aksi ini **tidak dapat dibatalkan** dan akan menghapus semua rekaman riwayat.`,
+    message: `Anda yakin ingin menghapus SELURUH log aktivitas pengguna? Aksi ini tidak dapat dibatalkan dan akan menghapus semua rekaman riwayat.`,
     focus: "cancel",
     cancel: true,
     persistent: true,
     ok: {
       label: "YA, HAPUS SEKARANG",
       color: "negative",
-      push: true,
     },
     cancel: {
       label: "Batal",
-      color: "white",
-      textColor: "dark",
     },
   }).onOk(() => {
     axios

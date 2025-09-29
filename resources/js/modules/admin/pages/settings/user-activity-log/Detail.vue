@@ -85,7 +85,17 @@ const deleteItem = () =>
                   <tr>
                     <td>Pengguna</td>
                     <td>:</td>
-                    <td>{{ page.props.data.username }}</td>
+                    <td>
+                      <i-link
+                        :href="
+                          route('admin.user.detail', {
+                            id: page.props.data.user_id,
+                          })
+                        "
+                      >
+                        {{ page.props.data.username }}
+                      </i-link>
+                    </td>
                   </tr>
                   <tr>
                     <td>Kategori</td>
@@ -118,14 +128,14 @@ const deleteItem = () =>
                     <td>Meta Data</td>
                     <td>:</td>
                     <td>
-                      <template v-if="page.props.data.metadata === ''">
+                      <template v-if="page.props.data.metadata.length === 0">
                         <div class="text-italic text-grey-8">
                           Tidak tersedia
                         </div>
                       </template>
                     </td>
                   </tr>
-                  <tr v-if="page.props.data.metadata !== ''">
+                  <tr v-if="page.props.data.metadata.length">
                     <td colspan="100%">
                       <pre
                         class="bg-grey-3 q-pa-sm"
