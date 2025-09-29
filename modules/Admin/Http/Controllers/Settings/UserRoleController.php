@@ -139,14 +139,11 @@ class UserRoleController extends Controller
 
         try {
             $role = $request->id ? Role::with(['permissions'])->findOrFail($request->id) : new Role();
-
-            $oldData = $request->id ? $role->toArray() : [];
-
             $role->name = $validated['name'];
             $role->description = $validated['description'];
 
             DB::beginTransaction();
-
+            $dirtyAttributes = $role->getDirty();
             $role->save();
             $role->syncPermissions($permissions);
             $role->permissions; // trigger ???
@@ -156,17 +153,14 @@ class UserRoleController extends Controller
                     UserActivityLog::Category_Settings,
                     UserActivityLog::Name_UserRole_Create,
                     "Peran pengguna '$role->name' telah ditambahkan.",
-                    $role->toArray()
+                    $role->toArray(),
                 );
             } else {
                 $this->userActivityLogService->log(
                     UserActivityLog::Category_Settings,
                     UserActivityLog::Name_UserRole_Update,
                     "Peran pengguna '$role->name' telah diperbarui.",
-                    [
-                        'new_data' => $role->toArray(),
-                        'old_data' => $oldData,
-                    ]
+                    $dirtyAttributes
                 );
             }
             DB::commit();
@@ -197,7 +191,6 @@ class UserRoleController extends Controller
                 UserActivityLog::Category_Settings,
                 UserActivityLog::Name_UserRole_Delete,
                 "Role $role->name telah dihapus.",
-                $role->toArray()
             );
             DB::commit();
             return JsonResponseHelper::success($role, "Role '{$roleName}' telah berhasil dihapus.");
