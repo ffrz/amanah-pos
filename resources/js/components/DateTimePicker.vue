@@ -10,7 +10,13 @@
     :rules="displayRules"
   >
     <template v-slot:append>
-      <q-icon name="event" class="cursor-pointer">
+      <q-btn
+        icon="event"
+        :disable="props.disable || props.readonly"
+        flat
+        rounded
+        dense
+      >
         <q-popup-proxy cover transition-show="scale" transition-hide="scale">
           <q-date
             v-model="dateValue"
@@ -18,9 +24,15 @@
             @update:model-value="updateDateTime"
           />
         </q-popup-proxy>
-      </q-icon>
+      </q-btn>
 
-      <q-icon name="access_time" class="cursor-pointer">
+      <q-btn
+        icon="access_time"
+        :disable="props.disable || props.readonly"
+        flat
+        rounded
+        dense
+      >
         <q-popup-proxy cover transition-show="scale" transition-hide="scale">
           <q-time
             v-model="timeValue"
@@ -29,7 +41,7 @@
             @update:model-value="updateDateTime"
           />
         </q-popup-proxy>
-      </q-icon>
+      </q-btn>
     </template>
   </q-input>
 </template>

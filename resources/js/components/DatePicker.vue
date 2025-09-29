@@ -15,7 +15,13 @@
     :rules="displayRules"
   >
     <template v-slot:append>
-      <q-icon name="event" class="cursor-pointer">
+      <q-btn
+        icon="event"
+        :disable="props.disable || props.readonly"
+        flat
+        rounded
+        dense
+      >
         <q-popup-proxy cover transition-show="scale" transition-hide="scale">
           <q-date
             v-model="dbDate"
@@ -27,7 +33,7 @@
             </div>
           </q-date>
         </q-popup-proxy>
-      </q-icon>
+      </q-btn>
     </template>
   </q-input>
 </template>
