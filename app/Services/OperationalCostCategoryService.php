@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\OperationalCostCategory;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
@@ -15,23 +16,28 @@ class OperationalCostCategoryService
     /**
      * Mengambil daftar kategori biaya operasional dengan paginasi dan filter.
      *
-     * @param array $params
-     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
+     * @param array $data Parameter yang berisi filter, urutan, dan paginasi.
+     * @return LengthAwarePaginator
      */
-    public function getData($data)
+    public function getData(array $data): LengthAwarePaginator
     {
-        extract($data);
+        // Hindari extract() untuk keamanan dan kejelasan scope variabel
+        $filter = $data['filter'] ?? [];
+        $orderBy = $data['order_by'] ?? 'id';
+        $orderType = $data['order_type'] ?? 'asc';
+        $perPage = $data['per_page'] ?? 10;
 
         $query = OperationalCostCategory::query();
 
         if (!empty($filter['search'])) {
             $query->where(function (Builder $q) use ($filter) {
-                $q->where('name', 'like', '%' . $filter['search'] . '%')
-                    ->orWhere('description', 'like', '%' . $filter['search'] . '%');
+                $searchTerm = '%' . $filter['search'] . '%';
+                $q->where('name', 'like', $searchTerm)
+                    ->orWhere('description', 'like', $searchTerm);
             });
         }
 
-        return $query->orderBy($order_by, $order_type)->paginate($per_page);
+        return $query->orderBy($orderBy, $orderType)->paginate($perPage);
     }
 
     /**
@@ -43,33 +49,49 @@ class OperationalCostCategoryService
      */
     public function find(?int $id): OperationalCostCategory
     {
-        if (!$id) {
-            return new OperationalCostCategory();
-        }
         return OperationalCostCategory::findOrFail($id);
     }
 
     /**
      * Menyimpan (membuat atau memperbarui) kategori biaya operasional.
      *
-     * @param array $data Data yang divalidasi dari FormRequest.
-     * @param int|null $id ID kategori yang akan diperbarui (null jika membuat baru).
-     * @return OperationalCostCategory
+     * @param OperationalCostCategory $item Model yang sudah diisi datanya.
+     * @return bool
      */
-    public function save(OperationalCostCategory $item, array $data)
+    public function save(OperationalCostCategory $item): bool
     {
-        $item->fill($data);
         return $item->save();
     }
 
     /**
      * Menghapus kategori biaya operasional.
      *
-     * @param int $id
-     * @return void
+     * @param OperationalCostCategory $item Model kategori yang akan dihapus.
+     * @return bool
      */
-    public function delete(OperationalCostCategory $item)
+    public function delete(OperationalCostCategory $item): bool
     {
         return $item->delete();
+    }
+
+    /**
+     * Menduplikasi kategori biaya operasional yang sudah ada.
+     *
+     * @param int $id ID kategori yang akan diduplikasi.
+     * @return OperationalCostCategory Model kategori baru yang sudah diduplikasi.
+     * @throws ModelNotFoundException
+     */
+    public function duplicate(int $id): OperationalCostCategory
+    {
+        $original = OperationalCostCategory::findOrFail($id);
+        $duplicate = $original->replicate();
+        $duplicate->exists = false;
+        $duplicate->id = null;
+        $duplicate->name = $original->name . ' (COPY)';
+        $duplicate->created_at = null;
+        $duplicate->created_by = null;
+        $duplicate->updated_at = null;
+        $duplicate->updated_by = null;
+        return $duplicate;
     }
 }

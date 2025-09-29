@@ -1,12 +1,11 @@
 <script setup>
-import { usePage } from "@inertiajs/vue3";
+import { useForm, usePage } from "@inertiajs/vue3";
 import { handleSubmit } from "@/helpers/client-req-handler";
 import { scrollToFirstErrorField } from "@/helpers/utils";
-import { useApiForm } from "@/composables/useApiForm";
 
 const page = usePage();
 const title = (!!page.props.data.id ? "Edit" : "Tambah") + " Pemasok";
-const form = useApiForm({
+const form = useForm({
   id: page.props.data.id,
   name: page.props.data.name,
   phone: page.props.data.phone,
@@ -101,7 +100,7 @@ const submit = () => handleSubmit({ form, url: route("admin.supplier.save") });
                 autogrow
                 counter
                 maxlength="200"
-                label="Alamat Return"
+                label="Alamat Retur"
                 lazy-rules
                 :disable="form.processing"
                 :error="!!form.errors.return_address"

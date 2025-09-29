@@ -25,16 +25,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('suppliers', function (Blueprint $table) {
+        Schema::create('document_versions', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 100)->unique();
-            $table->string('phone', 100)->default('')->index();
-            $table->string('bank_account_number', 40)->default('');
-            $table->string('address', 200)->default('');
-            $table->string('return_address', 200)->default('');
-            $table->boolean('active')->default(true)->index();
-            $table->decimal('balance', 15, 0)->default(0.)->index();
-            $table->createdUpdatedTimestamps();
+            $table->morphs('document');
+            $table->unsignedInteger('version');
+            $table->createdTimestamps();
+            $table->string('changelog', 255)->nullable()->comment('Deskripsi singkat perubahan (opsional)');
+            $table->json("data");
+            $table->unique(['document_type', 'document_id', 'version']);
         });
     }
 
@@ -43,6 +41,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('suppliers');
+        Schema::dropIfExists('document_versions');
     }
 };
