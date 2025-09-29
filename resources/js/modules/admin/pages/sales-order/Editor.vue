@@ -270,19 +270,30 @@ const updateItem = () => {
 
 onMounted(() => {
   const handler = (e) => {
+    // abaikan jika ada dialog yang sedang terbuka
+    if (
+      showPaymentDialog.value ||
+      showHelpDialog.value ||
+      showItemEditorDialog.value ||
+      showProductBrowserDialog.value ||
+      showOrderInfoDialog.value
+    ) {
+      return;
+    }
+
     if (e.key === "F1") {
       e.preventDefault();
       showHelpDialog.value = true;
     } else if (e.key === "F2") {
       e.preventDefault();
-      userInputRef.value.focus();
+      customerAutocompleteRef.value.focus();
     } else if (e.key === "F3") {
       e.preventDefault();
-      customerAutocompleteRef.value.focus();
+      userInputRef.value.focus();
     } else if (e.key === "F4") {
       e.preventDefault();
       mergeItem.value = !mergeItem.value;
-    } else if (e.key === "F10") {
+    } else if (e.key === "F10" || (e.ctrlKey && e.key === "Enter")) {
       e.preventDefault();
       showPaymentDialog.value = true;
     } else if (e.key === "F11") {
@@ -300,16 +311,16 @@ onMounted(() => {
   });
 });
 
-const handleCustomerSelected = (data) => {
+const handleCustomerSelected = async (data) => {
   customer.value = data;
   form.customer_id = data?.id;
-  updateOrder();
+  await updateOrder();
   nextTick(() => {
     userInputRef.value?.focus(); // INI GAK NGARUH
-  });
+  }, 300);
 };
 
-const updateOrder = () => {
+const updateOrder = async () => {
   isProcessing.value = true;
 
   const data = {
@@ -319,7 +330,7 @@ const updateOrder = () => {
     notes: form.notes,
   };
 
-  axios
+  await axios
     .post(route("admin.sales-order.update"), data)
     .then((response) => {
       const updated = response.data.data.id;

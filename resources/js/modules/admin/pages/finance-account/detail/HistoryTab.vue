@@ -97,7 +97,6 @@ const fetchItems = (props = null) =>
     color="primary"
     class="full-height-table"
     row-key="id"
-    virtual-scroll
     v-model:pagination="pagination"
     :filter="filter.search"
     :loading="loading"

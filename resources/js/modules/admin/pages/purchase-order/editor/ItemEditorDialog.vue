@@ -59,11 +59,16 @@ const getCurrentItem = () => {
 defineExpose({
   getCurrentItem,
 });
+
+const onBeforeShow = () => {
+  // alert("show");
+};
 </script>
 <template>
   <q-dialog
     :model-value="modelValue"
     @update:model-value="(val) => $emit('update:modelValue', val)"
+    @before-show="onBeforeShow"
   >
     <q-card>
       <q-card-section class="q-py-sm">

@@ -95,6 +95,10 @@ const onProductSelect = (product) => {
 };
 
 const handleKeydown = (event) => {
+  if (!props.modelValue) {
+    return;
+  }
+
   const listCount = rows.value.length;
   if (listCount === 0) return;
 
@@ -189,7 +193,6 @@ watch(
           @request="fetchItems"
           binary-state-sort
           no-data-label="Tidak ada produk ditemukan"
-          :virtual-scroll="true"
           :rows-per-page-label="null"
         >
           <template v-slot:no-data="{ icon, message, filter }">

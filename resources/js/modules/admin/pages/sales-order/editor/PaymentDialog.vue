@@ -1,6 +1,6 @@
 <script setup>
 import { formatNumber } from "@/helpers/formatter";
-import { ref, computed, nextTick, reactive } from "vue";
+import { ref, computed, nextTick, reactive, onMounted, onUnmounted } from "vue";
 import { usePage } from "@inertiajs/vue3";
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
 import { QSelect, QBtnToggle } from "quasar";
@@ -32,10 +32,21 @@ const page = usePage();
 const isProcessing = ref(false);
 const paymentMode = ref("cash");
 const debtDueDate = ref(new Date());
-const firstPaymentInputRef = ref(null);
-const payments = reactive([{ id: "cash", amount: 0.0 }]);
+// <<<<<<< HEAD
+// const firstPaymentInputRef = ref(null);
+// const payments = reactive([{ id: "cash", amount: 0.0 }]);
+
+// =======
+// >>>>>>> 5c574a5bf5fc52f899fef022e6f9dc83c1f7af4d
 const nextAction = ref(page.props.settings.after_payment_action ?? "print");
 
+// Array ref BARU untuk menampung semua instance QSelect (Metode Pembayaran)
+const selectRefs = ref([]);
+
+// Array ref LAMA untuk menampung semua instance LocaleNumberInput (Jumlah)
+const paymentInputRefs = ref([]);
+
+const payments = reactive([{ id: "cash", amount: 0.0 }]);
 const default_payment_mode = page.props.settings.default_payment_mode;
 const nextActionOptions = [
   {
@@ -112,7 +123,18 @@ const isValid = computed(() => {
 
 const addPayment = () => {
   if (payments.length < 3) {
+    const newIndex = payments.length; // Index dari item yang baru akan ditambahkan
     payments.push({ id: "cash", amount: 0.0 });
+
+    nextTick(() => {
+      const newSelect = selectRefs.value[newIndex];
+      if (newSelect) {
+        // 1. Fokuskan ke QSelect yang baru
+        newSelect.focus();
+        // 2. Tampilkan popup pilihannya (showPopup adalah metode Quasar QSelect)
+        newSelect.showPopup();
+      }
+    });
   }
 };
 
@@ -136,9 +158,10 @@ const changePaymentMode = (mode, default_payment_mode = "cash") => {
       amount: props.total,
     });
     nextTick(() => {
-      if (firstPaymentInputRef.value && firstPaymentInputRef.value.length > 0) {
-        firstPaymentInputRef.value[0].focus();
-        firstPaymentInputRef.value[0].select();
+      // Fokuskan ke input jumlah pembayaran pertama
+      if (paymentInputRefs.value.length > 0 && paymentInputRefs.value[0]) {
+        paymentInputRefs.value[0].focus();
+        paymentInputRefs.value[0].select();
       }
     });
   }
@@ -174,7 +197,38 @@ const handleFinalizePayment = () => {
 
 const onBeforeShow = () => {
   changePaymentMode("cash", props.customer ? default_payment_mode : "cash");
-  nextTick(() => {});
+};
+
+onMounted(() => {
+  const handler = (e) => {
+    if (!props.modelValue) {
+      // abaikan kalau dialog tidak sedang tampil
+      return;
+    }
+
+    if (e.ctrlKey && e.key === "Enter") {
+      e.preventDefault();
+      handleFinalizePayment();
+    }
+  };
+
+  document.addEventListener("keydown", handler);
+  onUnmounted(() => {
+    document.removeEventListener("keydown", handler);
+  });
+});
+
+/**
+ * Memfokuskan ke LocaleNumberInput yang sesuai setelah QSelect diubah.
+ */
+const handlePaymentMethodSelected = (newId, index) => {
+  // Gunakan nextTick untuk memastikan input sudah ada di DOM
+  nextTick(() => {
+    if (paymentInputRefs.value[index]) {
+      paymentInputRefs.value[index].focus();
+      paymentInputRefs.value[index].select(); // Pilih semua teks agar mudah ditimpa
+    }
+  });
 };
 </script>
 
@@ -223,7 +277,7 @@ const onBeforeShow = () => {
         <div v-if="paymentMode === 'cash'">
           <div
             v-for="(payment, index) in payments"
-            :key="payment.id"
+            :key="index"
             class="row q-col-gutter-sm q-mb-sm"
           >
             <div class="col-6">
@@ -238,6 +292,10 @@ const onBeforeShow = () => {
                 class="custom-select"
                 :disable="isProcessing"
                 hide-bottom-space
+                @update:model-value="
+                  (newId) => handlePaymentMethodSelected(newId, index)
+                "
+                :ref="(el) => (selectRefs[index] = el)"
               />
             </div>
             <div class="col-6">
@@ -254,7 +312,7 @@ const onBeforeShow = () => {
                     : ''
                 "
                 hide-bottom-space
-                :ref="index === 0 ? 'firstPaymentInputRef' : null"
+                :ref="(el) => (paymentInputRefs[index] = el)"
               >
                 <template v-slot:append v-if="payments.length > 1">
                   <q-icon

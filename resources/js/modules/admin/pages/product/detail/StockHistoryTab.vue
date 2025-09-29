@@ -103,7 +103,6 @@ const computedColumns = computed(() => {
     color="primary"
     class="full-height-table full-height-table2"
     row-key="id"
-    virtual-scroll
     v-model:pagination="pagination"
     :filter="filter.search"
     :loading="loading"

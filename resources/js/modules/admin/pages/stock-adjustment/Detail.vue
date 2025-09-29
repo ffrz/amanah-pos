@@ -241,7 +241,6 @@ const computedColumns = computed(() => {
                 color="primary"
                 class="full-height-table"
                 row-key="id"
-                virtual-scroll
                 dense
                 :columns="computedColumns"
                 :rows="rows"

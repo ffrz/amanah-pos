@@ -262,7 +262,6 @@ const showAttachment = (url) => {
         square
         color="primary"
         row-key="id"
-        virtual-scroll
         v-model:pagination="pagination"
         :filter="filter.search"
         :loading="loading"
