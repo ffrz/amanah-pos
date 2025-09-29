@@ -8,6 +8,7 @@ const form = useForm({
   foot_note: page.props.data.foot_note,
   default_payment_mode: page.props.data.default_payment_mode,
   default_print_size: page.props.data.default_print_size,
+  after_payment_action: page.props.data.after_payment_action,
 });
 
 const submit = () =>
@@ -35,6 +36,21 @@ const printSizeOptions = [
   {
     value: "a4",
     label: "Nota A4",
+  },
+];
+
+const afterPaymentActionOptions = [
+  {
+    value: "print",
+    label: "Cetak",
+  },
+  {
+    value: "detail",
+    label: "Rincian Order",
+  },
+  {
+    value: "new-order",
+    label: "Order Baru",
   },
 ];
 </script>
@@ -83,6 +99,20 @@ const printSizeOptions = [
                   transition-hide="jump-up"
                   :error="!!form.errors.default_print_size"
                   :error-message="form.errors.default_print_size"
+                  hide-bottom-space
+                />
+                <q-select
+                  v-model="form.after_payment_action"
+                  label="Aksi Setelah Pembayaran"
+                  :options="afterPaymentActionOptions"
+                  map-options
+                  emit-value
+                  lazy-rules
+                  :disable="form.processing"
+                  transition-show="jump-up"
+                  transition-hide="jump-up"
+                  :error="!!form.errors.after_payment_action"
+                  :error-message="form.errors.after_payment_action"
                   hide-bottom-space
                 />
                 <q-input

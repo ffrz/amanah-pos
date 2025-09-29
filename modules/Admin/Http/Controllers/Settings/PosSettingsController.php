@@ -34,6 +34,7 @@ class PosSettingsController extends Controller
             $rules = [
                 'default_payment_mode' => 'required|string',
                 'default_print_size' => 'required|string',
+                'after_payment_action' => 'required|string',
                 'foot_note' => 'nullable|string|max:200',
             ];
 
@@ -42,6 +43,7 @@ class PosSettingsController extends Controller
             Setting::setValue('pos.default_payment_mode', $validated['default_payment_mode']);
             Setting::setValue('pos.default_print_size', $validated['default_print_size']);
             Setting::setValue('pos.foot_note', $validated['foot_note'] ?? '');
+            Setting::setValue('pos.after_payment_action', $validated['after_payment_action']);
 
             return redirect()->back()->with('success', 'Pengaturan POS berhasil diperbarui.');
         }
@@ -56,6 +58,7 @@ class PosSettingsController extends Controller
         return [
             'default_payment_mode' => Setting::value('pos.default_payment_mode', 'cash'),
             'default_print_size' => Setting::value('pos.default_print_size', '58mm'),
+            'after_payment_action' => Setting::value('pos.after_payment_action', 'print'),
             'foot_note' => Setting::value('pos.foot_note', ''),
         ];
     }
