@@ -9,6 +9,7 @@ const dbActions = [
     description:
       "Melihat riwayat operasi database untuk mendiagnosis masalah, melacak aktifitas pengguna, dan memantau *error* aplikasi. Log ini penting untuk *troubleshooting*.",
     action: () => console.log("Aksi: Lihat Log Sistem"),
+    disable: true,
   },
   {
     name: "Buat Salinan Cadangan (Backup)",
@@ -19,6 +20,7 @@ const dbActions = [
     warning:
       "Pastikan proses backup berjalan sepenuhnya sebelum menutup halaman. Waktu pemrosesan tergantung ukuran database Anda.",
     action: () => console.log("Aksi: Mulai Backup"),
+    disable: true,
   },
   {
     name: "Pulihkan Database (Restore)",
@@ -29,6 +31,7 @@ const dbActions = [
     warning:
       "⚠️ **Peringatan Kritis:** Tindakan ini akan **menghapus semua data saat ini** dan digantikan oleh data dari file backup. Lakukan dengan sangat hati-hati.",
     action: () => console.log("Aksi: Mulai Restore"),
+    disable: true,
   },
   {
     name: "Reset Database Transaksional",
@@ -39,6 +42,7 @@ const dbActions = [
     warning:
       "⛔ **Hati-hati:** Semua riwayat transaksi dan operasional akan **hilang permanen**. Data master aman, tetapi relasi data akan terputus.",
     action: () => console.log("Aksi: Mulai Reset Transaksional"),
+    disable: true,
   },
   {
     name: "Reset Database Total",
@@ -49,6 +53,7 @@ const dbActions = [
     warning:
       "❌ **Tindakan Penghapusan Data Total:** Semua data (transaksi dan master) akan **hilang permanen**. Gunakan hanya untuk tujuan testing atau reset menyeluruh.",
     action: () => console.log("Aksi: Mulai Reset Total"),
+    disable: true,
   },
 ];
 </script>
@@ -108,6 +113,7 @@ const dbActions = [
                   :icon="action.icon"
                   :label="action.name.split(' ')[0]"
                   :color="action.color"
+                  :disable="action.disable"
                   @click="action.action"
                   class="full-width"
                 />

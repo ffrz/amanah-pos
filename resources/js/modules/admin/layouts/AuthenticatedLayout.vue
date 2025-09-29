@@ -577,22 +577,6 @@ defineExpose({
             </q-item>
 
             <q-item
-              v-if="$can('admin.database-settings.index')"
-              class="subnav"
-              clickable
-              v-ripple
-              :active="$page.url.startsWith('/admin/settings/database')"
-              @click="router.get(route('admin.database-settings.index'))"
-            >
-              <q-item-section avatar>
-                <q-icon name="database" />
-              </q-item-section>
-              <q-item-section>
-                <q-item-label>Database</q-item-label>
-              </q-item-section>
-            </q-item>
-
-            <q-item
               v-if="$can('admin.user.index')"
               class="subnav"
               clickable
@@ -667,6 +651,22 @@ defineExpose({
               </q-item-section>
               <q-item-section>
                 <q-item-label>Profil Perusahaan</q-item-label>
+              </q-item-section>
+            </q-item>
+
+            <q-item
+              v-if="$can('admin.database-settings.index')"
+              class="subnav"
+              clickable
+              v-ripple
+              :active="$page.url.startsWith('/admin/settings/database')"
+              @click="router.get(route('admin.database-settings.index'))"
+            >
+              <q-item-section avatar>
+                <q-icon name="database" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Database</q-item-label>
               </q-item-section>
             </q-item>
           </q-expansion-item>
