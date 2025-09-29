@@ -3,7 +3,6 @@ import { computed } from "vue";
 import { formatDateTime } from "@/helpers/formatter";
 import { router, usePage } from "@inertiajs/vue3";
 import { handleDelete } from "@/helpers/client-req-handler";
-import { showInfo } from "@/composables/useNotify";
 
 const page = usePage();
 const title = "Rincian Log Aktifitas";
@@ -128,17 +127,29 @@ const deleteItem = () =>
                     <td>Meta Data</td>
                     <td>:</td>
                     <td>
-                      <template v-if="page.props.data.metadata.length === 0">
+                      <template
+                        v-if="
+                          !page.props.data.metadata ||
+                          Object.keys(page.props.data.metadata).length === 0
+                        "
+                      >
                         <div class="text-italic text-grey-8">
                           Tidak tersedia
                         </div>
                       </template>
                     </td>
                   </tr>
-                  <tr v-if="page.props.data.metadata.length">
-                    <td colspan="100%">
+                  <tr
+                    v-if="
+                      (typeof page.props.data.metadata === 'object' &&
+                        Object.keys(page.props.data.metadata).length > 0) ||
+                      (Array.isArray(page.props.data.metadata) &&
+                        page.props.data.metadata.length > 0)
+                    "
+                  >
+                    <td colspan="100%" class="q-pa-none bg-white">
                       <pre
-                        class="bg-grey-3 q-pa-sm"
+                        class="bg-grey-3 q-ma-none"
                         style="overflow: auto; width: 100%; text-wrap: auto"
                       ><code class="text-caption text-mono">{{ formattedMetadata }}</code></pre>
                     </td>
