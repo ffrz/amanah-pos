@@ -79,7 +79,10 @@ const groupedPermissions = computed(() => {
               </div>
               <div v-if="page.props.data.users.length > 0">
                 <div v-for="user in page.props.data.users">
-                  ● {{ user.username }} - {{ user.name }}
+                  ●
+                  <i-link :href="route('admin.user.detail', { id: user.id })"
+                    >{{ user.username }} - {{ user.name }}</i-link
+                  >
                 </div>
               </div>
               <div v-else class="text-grey-8 text-italic">

@@ -67,12 +67,18 @@ const title = "Rincian Pengguna";
                     <td>{{ $CONSTANTS.USER_TYPES[page.props.data.type] }}</td>
                   </tr>
                   <tr v-if="page.props.data.roles.length > 0">
-                    <td>Peran</td>
+                    <td>Peran Pengguna</td>
                     <td>:</td>
                     <td>
-                      {{
-                        page.props.data.roles.map((role) => role.name).join(",")
-                      }}
+                      <div v-for="role in page.props.data.roles" :key="role.id">
+                        <i-link
+                          :href="
+                            route('admin.user-role.detail', { id: role.id })
+                          "
+                        >
+                          {{ role.name }} </i-link
+                        >,
+                      </div>
                     </td>
                   </tr>
                   <tr>
