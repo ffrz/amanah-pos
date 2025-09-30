@@ -94,41 +94,36 @@ class SupplierController extends Controller
         ]);
 
         $item = !$request->filled('id') ? new Supplier() : Supplier::findOrFail($request->post('id'));
-        $oldData = $item->toArray();
         $isCreating = !$item->exists;
 
-        $tempItem = $item->replicate()->fill($validated);
-        if ($item->exists && empty($tempItem->getDirty())) {
+        $item->fill($validated);
+        $dirtyAttributes = $item->getDirty();
+        if (empty($dirtyAttributes)) {
             return redirect()
                 ->route('admin.supplier.index')
                 ->with('success', "Tidak terdeteksi perubahan data.");
         }
 
-        $savedItem = $item;
-
         try {
             DB::beginTransaction();
 
-            $savedItem = $this->supplierService->save($validated, $item);
+            $item->save();
 
-            $this->documentVersionService->createVersion($savedItem);
+            $this->documentVersionService->createVersion($item);
 
             if ($isCreating) {
                 $this->userActivityLogService->log(
                     UserActivityLog::Category_Supplier,
                     UserActivityLog::Name_Supplier_Create,
-                    "Pemasok '$savedItem->name' telah dibuat.",
-                    $savedItem->toArray(),
+                    "Pemasok '$item->name' telah dibuat.",
+                    $item->getAttributes(),
                 );
             } else {
                 $this->userActivityLogService->log(
                     UserActivityLog::Category_Supplier,
                     UserActivityLog::Name_Supplier_Update,
-                    "Pemasok '$savedItem->name' telah diperbarui.",
-                    [
-                        'new_data' => $savedItem->toArray(),
-                        'old_data' => $oldData,
-                    ]
+                    "Pemasok '$item->name' telah diperbarui.",
+                    $dirtyAttributes
                 );
             }
 
@@ -136,16 +131,13 @@ class SupplierController extends Controller
 
             return redirect()
                 ->route('admin.supplier.index')
-                ->with('success', "Pemasok $savedItem->name telah disimpan.");
+                ->with('success', "Pemasok $item->name telah disimpan.");
         } catch (Exception $ex) {
             DB::rollBack();
-
-            $itemId = isset($savedItem) ? $savedItem->id : 'baru';
-            Log::error("Gagal menyimpan pemasok ID: $itemId", ['exception' => $ex]);
-
-            $itemName = isset($savedItem) ? $savedItem->name : 'baru';
-            return redirect()->back()->withInput()->with('error', "Gagal menyimpan pemasok $itemName.");
+            Log::error("Gagal menyimpan pemasok ID: $item->id", ['exception' => $ex]);
         }
+
+        return redirect()->back()->withInput()->with('error', "Gagal menyimpan pemasok $item->name.");
     }
 
     public function delete($id)

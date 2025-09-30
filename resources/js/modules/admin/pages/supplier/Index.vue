@@ -38,25 +38,18 @@ const columns = [
     sortable: true,
   },
   {
-    name: "phone",
+    name: "phone_1",
     label: "No HP",
-    field: "phone",
+    field: "phone_1",
     align: "left",
-    sortable: true,
+    sortable: false,
   },
   {
     name: "address",
     label: "Alamat",
     field: "address",
     align: "left",
-    sortable: true,
-  },
-  {
-    name: "bank_account_number",
-    label: "No Rek",
-    field: "bank_account_number",
-    align: "left",
-    sortable: true,
+    sortable: false,
   },
   {
     name: "action",
@@ -203,26 +196,19 @@ const computedColumns = computed(() => {
                 {{ props.row.name }}
               </div>
               <template v-if="$q.screen.lt.md">
-                <div v-if="props.row.phone">
-                  <q-icon name="phone" /> {{ props.row.phone }}
-                </div>
-                <div v-if="props.row.bank_account_number">
-                  <q-icon name="credit_card" />
-                  {{ props.row.bank_account_number }}
+                <div v-if="props.row.phone_1">
+                  <q-icon name="phone" /> {{ props.row.phone_1 }}
                 </div>
                 <div v-if="props.row.address">
                   <q-icon name="home_pin" /> {{ props.row.address }}
                 </div>
               </template>
             </q-td>
-            <q-td key="phone" :props="props">
-              {{ props.row.phone }}
+            <q-td key="phone_1" :props="props">
+              {{ props.row.phone_1 }}
             </q-td>
             <q-td key="address" :props="props">
               {{ props.row.address }}
-            </q-td>
-            <q-td key="bank_account_number" :props="props">
-              {{ props.row.bank_account_number }}
             </q-td>
             <q-td key="action" :props="props">
               <div class="flex justify-end">
