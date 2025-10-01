@@ -10,7 +10,7 @@ use Illuminate\Validation\Rule;
  * Ia memastikan bahwa data yang masuk memenuhi aturan yang diperlukan
  * sebelum diteruskan ke layanan atau model.
  */
-class SaveProductCategoryRequest extends FormRequest
+class SaveRequest extends FormRequest
 {
     /**
      * Tentukan apakah pengguna diizinkan untuk membuat permintaan ini.

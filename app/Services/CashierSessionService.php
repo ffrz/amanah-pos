@@ -21,7 +21,6 @@ use Illuminate\Support\Facades\Auth;
 
 class CashierSessionService
 {
-
     public static function getActiveSession()
     {
         return CashierSession::with(['cashierTerminal', 'cashierTerminal.financeAccount'])

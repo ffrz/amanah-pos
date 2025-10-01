@@ -30,11 +30,18 @@ class DocumentVersion extends BaseModel
         'version',
         'data',
         'created_by',
+        'is_deleted',
         'changelog',
     ];
 
     protected $casts = [
+        'document_type' => 'string',
+        'document_id' => 'integer',
+        'version' => 'integer',
         'data' => 'array',
+        'created_at' => 'datetime',
+        'is_deleted' => 'boolean',
+        'changelog' => 'string',
     ];
 
     /**

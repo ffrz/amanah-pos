@@ -1,0 +1,44 @@
+<?php
+
+/**
+ * Proprietary Software / Perangkat Lunak Proprietary
+ * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
+ * * EN: Unauthorized use, copying, modification, or distribution is prohibited.
+ * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
+ * * Class ini menangani semua validasi untuk menyimpan Terminal Kasir.
+ */
+
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class SaveRequest extends FormRequest
+{
+    /**
+     * Tentukan apakah pengguna diizinkan untuk membuat permintaan ini.
+     */
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    /**
+     * Dapatkan aturan validasi yang berlaku untuk permintaan.
+     */
+    public function rules(): array
+    {
+        // Mendapatkan ID terminal baik dari route atau body request
+        $terminalId = $this->route('id') ?? $this->input('id');
+
+        $rules = [
+            'name'                 => 'required|string|max:40|unique:cashier_terminals,name' . ($terminalId ? ',' . $terminalId : ''),
+            'location'             => 'nullable|max:255',
+            'notes'                => 'nullable|max:255',
+            'active'               => 'required|boolean',
+            // Gunakan required_unless untuk menangani kasus 'new'
+            'finance_account_id'   => 'required_unless:finance_account_id,new|nullable|exists:finance_accounts,id',
+        ];
+
+        return $rules;
+    }
+}

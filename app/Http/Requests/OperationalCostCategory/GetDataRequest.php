@@ -9,7 +9,7 @@ use Illuminate\Validation\Rule;
  * Validates request parameters for retrieving paginated and filtered
  * operational cost categories.
  */
-class GetOperationalCostCategoriesRequest extends FormRequest
+class GetDataRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.

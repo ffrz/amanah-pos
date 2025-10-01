@@ -18,8 +18,8 @@ namespace Modules\Admin\Http\Controllers;
 
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\ProductCategory\GetProductCategoriesRequest;
-use App\Http\Requests\ProductCategory\SaveProductCategoryRequest;
+use App\Http\Requests\ProductCategory\ProductCategoryGetDataRequest;
+use App\Http\Requests\ProductCategorySaveRequest;
 use App\Models\ProductCategory;
 use App\Models\UserActivityLog;
 use App\Services\ProductCategoryService;
@@ -60,10 +60,10 @@ class ProductCategoryController extends Controller
     /**
      * Mengambil data kategori produk dengan paginasi dan filter.
      *
-     * @param GetProductCategoriesRequest $request
+     * @param ProductCategoryGetDataRequest $request
      * @return JsonResponse
      */
-    public function data(GetProductCategoriesRequest $request): JsonResponse
+    public function data(ProductCategoryGetDataRequest $request): JsonResponse
     {
         $this->authorize('viewAny', ProductCategory::class);
         $items = $this->productCategoryService->getData($request->validated());
@@ -108,10 +108,10 @@ class ProductCategoryController extends Controller
     /**
      * Menyimpan kategori produk baru atau yang sudah ada.
      *
-     * @param SaveProductCategoryRequest $request
+     * @param ProductCategorySaveRequest $request
      * @return RedirectResponse
      */
-    public function save(SaveProductCategoryRequest $request): RedirectResponse
+    public function save(ProductCategorySaveRequest $request): RedirectResponse
     {
         $item = $request->id ? $this->productCategoryService->find($request->id) : new ProductCategory();
 

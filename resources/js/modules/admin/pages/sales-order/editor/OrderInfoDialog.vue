@@ -86,6 +86,7 @@ defineExpose({
           label="Waktu"
           hide-bottom-space
           :disable="isProcessing"
+          readonly
           autofocus
         />
 

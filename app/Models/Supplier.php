@@ -30,7 +30,7 @@ class Supplier extends BaseModel
 
         'phone_1',
         'phone_2',
-        'phone_3',
+        // 'phone_3',
 
         'address',
         'return_address',
@@ -56,7 +56,9 @@ class Supplier extends BaseModel
     {
         return [
             'name'    => 'string',
-            'phone'   => 'string',
+            'phone_1'   => 'string',
+            'phone_2'   => 'string',
+            // 'phone_3'   => 'string',
             'address' => 'string',
             'active'  => 'boolean',
             'balance' => 'decimal:2',

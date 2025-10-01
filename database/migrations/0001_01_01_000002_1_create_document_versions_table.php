@@ -31,6 +31,7 @@ return new class extends Migration
             $table->unsignedInteger('version');
             $table->createdTimestamps();
             $table->string('changelog', 255)->nullable()->comment('Deskripsi singkat perubahan (opsional)');
+            $table->boolean('is_deleted')->index();
             $table->json("data");
             $table->unique(['document_type', 'document_id', 'version']);
         });

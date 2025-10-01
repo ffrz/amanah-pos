@@ -20,7 +20,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule; // Import Rule
 use App\Models\Product; // Import Product model untuk Product::Types
 
-class SaveProductRequest extends FormRequest
+class SaveRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
