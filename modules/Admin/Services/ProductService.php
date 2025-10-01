@@ -188,7 +188,7 @@ class ProductService
      */
     public function createProduct(array $data): Product
     {
-        return $this->saveProduct($data);
+        return $this->save($data);
     }
 
     /**
@@ -201,7 +201,7 @@ class ProductService
      */
     public function updateProduct(Product $product, array $data): Product
     {
-        return $this->saveProduct($data, $product);
+        return $this->save($data, $product);
     }
 
     /**
