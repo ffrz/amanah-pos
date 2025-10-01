@@ -25,7 +25,7 @@ use App\Models\Supplier;
 class CommonDataService
 {
     /**
-     * Get product categories for dropdowns.
+     * Get product categories.
      *
      * @return \Illuminate\Database\Eloquent\Collection
      */
@@ -38,7 +38,7 @@ class CommonDataService
     }
 
     /**
-     * Get suppliers for dropdowns.
+     * Get suppliers.
      *
      * @return \Illuminate\Database\Eloquent\Collection
      */
@@ -56,7 +56,7 @@ class CommonDataService
     }
 
     /**
-     * Get customers for dropdowns.
+     * Get customers.
      *
      * @return \Illuminate\Database\Eloquent\Collection
      */
@@ -74,7 +74,7 @@ class CommonDataService
     }
 
     /**
-     * Get finance accounts for dropdowns.
+     * Get finance accounts.
      *
      * @return \Illuminate\Database\Eloquent\Collection
      */
@@ -91,6 +91,9 @@ class CommonDataService
         return $query->get($fields);
     }
 
+    /**
+     * Get operational cost categories.
+     */
     public function getOperationalCategories($fields = ['id', 'name'])
     {
         $query = OperationalCostCategory::query()
