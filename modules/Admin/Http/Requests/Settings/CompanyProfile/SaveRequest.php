@@ -20,6 +20,10 @@ class SaveRequest extends FormRequest
      */
     public function rules(): array
     {
+        if ($this->isMethod('GET')) {
+            return [];
+        }
+
         return [
             'name'       => 'required|string|min:2|max:100',
             'headline'   => 'nullable|string|max:200',
