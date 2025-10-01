@@ -22,6 +22,8 @@ use App\Models\OperationalCostCategory;
 use App\Models\ProductCategory;
 use App\Models\Supplier;
 
+use Spatie\Permission\Models\Permission;
+
 class CommonDataService
 {
     /**
@@ -100,5 +102,10 @@ class CommonDataService
             ->orderBy('name');
 
         return $query->get($fields);
+    }
+
+    public function getAclPermissions()
+    {
+        return Permission::all();
     }
 }

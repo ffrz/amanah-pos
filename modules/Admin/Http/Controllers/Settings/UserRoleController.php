@@ -19,77 +19,85 @@ namespace Modules\Admin\Http\Controllers\Settings;
 
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
-use App\Models\UserActivityLog;
-use Modules\Admin\Services\UserActivityLogService;
-use Exception;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
-use Inertia\Inertia;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 
+use Modules\Admin\Http\Requests\UserRole\GetDataRequest;
+use Modules\Admin\Http\Requests\UserRole\SaveRequest;
+use Modules\Admin\Services\UserRoleService;
+use Modules\Admin\Services\CommonDataService;
+
+use Exception;
+use Inertia\Inertia;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Log;
+use Inertia\Response;
+
+/**
+ * Controller untuk mengelola Peran Pengguna (User Roles) dalam pengaturan (Settings).
+ * Menerima Request, mendelegasikan operasi ke Service, dan mengembalikan Response Inertia atau JSON.
+ */
 class UserRoleController extends Controller
 {
-
     /**
-     * @var UserActivityLogService
+     * Inisialisasi UserRoleService untuk logika CRUD dan CommonDataService untuk data umum.
+     * * @param UserRoleService $userRoleService
+     * @param CommonDataService $commonDataService
      */
-    protected $userActivityLogService;
-
-    public function __construct(UserActivityLogService $userActivityLogService)
-    {
-        $this->userActivityLogService = $userActivityLogService;
-    }
+    public function __construct(
+        protected UserRoleService $userRoleService,
+        protected CommonDataService $commonDataService
+    ) {}
 
     /**
      * Tampilkan halaman indeks peran.
      *
-     * @return \Inertia\Response
+     * @return Response
      */
-    public function index()
+    public function index(): Response
     {
         return inertia('settings/user-role/Index');
     }
 
     /**
      * Dapatkan data peran dalam format paginasi.
+     * Menggunakan GetDataRequest untuk validasi input paginasi.
      *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @param GetDataRequest $request
+     * @return JsonResponse
      */
-    public function data(Request $request)
+    public function data(GetDataRequest $request): JsonResponse
     {
-        $orderBy = $request->get('order_by', 'id');
-        $orderType = $request->get('order_type', 'desc');
-        $filter = $request->get('filter', []);
+        $items = $this->userRoleService->getPaginatedData($request->validated());
 
-        $q = Role::query();
-
-        if (!empty($filter['search'])) {
-            $q->where('name', 'like', '%' . $filter['search'] . '%');
-        }
-
-        $q->orderBy($orderBy, $orderType);
-
-        $items = $q->paginate($request->get('per_page', 10))->withQueryString();
-
-        return response()->json($items);
+        return JsonResponseHelper::success($items);
     }
 
 
-    public function detail($id = 0)
+    /**
+     * Tampilkan detail peran.
+     *
+     * @param int $id ID Peran yang akan ditampilkan.
+     * @return Response
+     */
+    public function detail(int $id): Response
     {
+        $role = $this->userRoleService->find($id);
+
         return inertia('settings/user-role/Detail', [
-            'data' => Role::with(['permissions', 'users'])->findOrFail($id),
+            'data' => $role,
         ]);
     }
 
-    public function duplicate($id)
+    /**
+     * Tampilkan halaman editor untuk duplikasi peran.
+     *
+     * @param int $id ID Peran sumber yang akan diduplikasi.
+     * @return Response
+     */
+    public function duplicate(int $id): Response
     {
-        $item = Role::with('permissions')->findOrFail($id);
-        $item->id = null;
-        $permissions = Permission::all()->toArray();
+        $item = $this->userRoleService->duplicate($id);
+        $permissions = $this->commonDataService->getAclPermissions();
 
         return inertia('settings/user-role/Editor', [
             'data' => $item,
@@ -100,13 +108,14 @@ class UserRoleController extends Controller
     /**
      * Tampilkan halaman editor untuk membuat atau mengedit peran.
      *
-     * @param int $id
-     * @return \Inertia\Response
+     * @param int $id ID Peran yang akan diedit, default 0 jika membuat baru.
+     * @return Response
      */
-    public function editor($id = 0)
+    public function editor(int $id = 0): Response
     {
-        $item = $id ? Role::with('permissions')->findOrFail($id) : new Role();
-        $permissions = Permission::all()->toArray();
+        $item = $this->userRoleService->findOrCreate($id);
+
+        $permissions = $this->commonDataService->getAclPermissions();
 
         return inertia('settings/user-role/Editor', [
             'data' => $item,
@@ -116,63 +125,20 @@ class UserRoleController extends Controller
 
     /**
      * Simpan peran baru atau perbarui peran yang sudah ada.
+     * Menggunakan SaveRequest untuk validasi input.
      *
-     * @param Request $request
-     * @return \Illuminate\Http\RedirectResponse
+     * @param SaveRequest $request
+     * @return RedirectResponse
      */
-    public function save(Request $request)
+    public function save(SaveRequest $request): RedirectResponse
     {
-        $permissions = collect($request->permissions)->map(function ($permission) {
-            return is_array($permission) ? $permission['id'] : $permission;
-        })->toArray();
-
-        $validated = $request->validate([
-            'name'  => [
-                'required',
-                'max:40',
-                Rule::unique('acl_roles', 'name')->ignore($request->id),
-            ],
-            'description' => 'nullable|string|max:200',
-            'permissions' => 'nullable|array',
-            'permissions.*' => 'exists:acl_permissions,id',
-        ]);
-
         try {
-            $role = $request->id ? Role::with(['permissions'])->findOrFail($request->id) : new Role();
-            $oldData = $role->toArray();
-            $role->name = $validated['name'];
-            $role->description = $validated['description'];
-
-            DB::beginTransaction();
-            $role->save();
-            $role->syncPermissions($permissions);
-            // $role->permissions; kayaknya gak terlalu penting, agar data tidak terlalu banyak
-
-            if (!$request->id) {
-                $this->userActivityLogService->log(
-                    UserActivityLog::Category_Settings,
-                    UserActivityLog::Name_UserRole_Create,
-                    "Peran pengguna '$role->name' telah ditambahkan.",
-                    $role->toArray(),
-                );
-            } else {
-                $this->userActivityLogService->log(
-                    UserActivityLog::Category_Settings,
-                    UserActivityLog::Name_UserRole_Update,
-                    "Peran pengguna '$role->name' telah diperbarui.",
-                    [
-                        'new_data' => $role->toArray(),
-                        'old_data' => $oldData,
-                    ]
-                );
-            }
-            DB::commit();
-
-            $message = "Peran pengguna '$role->name' telah berhasil disimpan.";
+            $role = $this->userRoleService->save($request->validated());
+            $message = "Peran pengguna '{$role->name}' telah berhasil disimpan.";
             return redirect()->route('admin.user-role.index')
                 ->with('success', $message);
         } catch (Exception $ex) {
-            DB::rollBack();
+            Log::error("Gagal menyimpan atau memperbarui role. ID: " . ($request->id ?? 'new') . ": " . $ex->getMessage(), ['exception' => $ex]);
             return back()->with('error', 'Terjadi kesalahan: ' . $ex->getMessage());
         }
     }
@@ -180,28 +146,17 @@ class UserRoleController extends Controller
     /**
      * Hapus peran yang sudah ada.
      *
-     * @param int $id
-     * @return \Illuminate\Http\JsonResponse
+     * @param int $id ID Peran yang akan dihapus.
+     * @return JsonResponse
      */
-    public function delete($id)
+    public function delete(int $id): JsonResponse
     {
         try {
-            DB::beginTransaction();
-            $role = Role::with(['permissions'])->findOrFail($id);
-            $roleName = $role->name;
-            $role->delete();
-            $this->userActivityLogService->log(
-                UserActivityLog::Category_Settings,
-                UserActivityLog::Name_UserRole_Delete,
-                "Role $role->name telah dihapus.",
-                $role->toArray(),
-            );
-            DB::commit();
-            return JsonResponseHelper::success($role, "Role '{$roleName}' telah berhasil dihapus.");
+            $role = $this->userRoleService->delete($id);
+            return JsonResponseHelper::success($role, "Role '{$role->name}' telah berhasil dihapus.");
         } catch (Exception $ex) {
-            DB::rollBack();
-
-            return JsonResponseHelper::error("Terdapat kesalahan saat menghapus role: " . $ex->getMessage(), 500);
+            Log::error("Gagal menghapus role. ID: $id. Exception: " . $ex->getMessage(), ['exception' => $ex]);
+            return JsonResponseHelper::error("Gagal menghapus role: " . $ex->getMessage(), 500);
         }
     }
 }

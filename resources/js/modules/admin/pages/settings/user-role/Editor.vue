@@ -7,7 +7,7 @@ import { computed } from "vue";
 const page = usePage();
 const title = (!!page.props.data.id ? "Edit" : "Tambah") + " Peran Pengguna";
 const form = useForm({
-  id: page.props.data.id,
+  id: page.props.data.id ?? null,
   name: page.props.data.name,
   description: page.props.data.description,
   // Perbaikan: Pastikan permissions adalah array ID, bukan array objek
