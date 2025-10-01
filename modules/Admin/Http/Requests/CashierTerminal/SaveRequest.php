@@ -8,7 +8,7 @@
  * * Class ini menangani semua validasi untuk menyimpan Terminal Kasir.
  */
 
-namespace App\Http\Requests;
+namespace Modules\Admin\Http\Requests\CashierTerminal;
 
 use Illuminate\Foundation\Http\FormRequest;
 

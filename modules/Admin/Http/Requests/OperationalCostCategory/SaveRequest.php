@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\OperationalCostCategory;
+namespace Modules\Admin\Http\Requests\OperationalCostCategory;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;

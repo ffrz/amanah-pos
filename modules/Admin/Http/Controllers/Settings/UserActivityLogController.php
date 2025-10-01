@@ -23,6 +23,7 @@ use Modules\Admin\Services\UserActivityLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\ProductCategoryFormatter;
 
 class UserActivityLogController extends Controller
 {
@@ -57,8 +58,10 @@ class UserActivityLogController extends Controller
      */
     public function detail($id = 0)
     {
+        $item = UserActivityLog::with('user')->findOrFail($id);
         return inertia('settings/user-activity-log/Detail', [
-            'data' => UserActivityLog::with('user')->findOrFail($id),
+            'data' => $item,
+            'formatted_metadata' => $item->formatted_metadata,
         ]);
     }
 

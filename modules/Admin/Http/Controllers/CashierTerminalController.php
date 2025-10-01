@@ -13,7 +13,6 @@ namespace Modules\Admin\Http\Controllers;
 
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\CashierTerminalSaveRequest;
 use App\Models\CashierTerminal;
 use App\Models\UserActivityLog;
 use Modules\Admin\Services\CashierTerminalService;
@@ -22,6 +21,7 @@ use Modules\Admin\Services\UserActivityLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Modules\Admin\Http\Requests\CashierTerminal\SaveRequest;
 
 class CashierTerminalController extends Controller
 {
@@ -85,7 +85,7 @@ class CashierTerminalController extends Controller
     /**
      * Menyimpan data (Create/Update).
      */
-    public function save(CashierTerminalSaveRequest $request)
+    public function save(SaveRequest $request)
     {
         $validated = $request->validated();
 

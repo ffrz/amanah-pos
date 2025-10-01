@@ -19,10 +19,14 @@ namespace Modules\Admin\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\UserActivityLog;
+
+use Modules\Admin\Http\Requests\Product\GetDataRequest;
+use Modules\Admin\Http\Requests\Product\SaveRequest;
 use Modules\Admin\Services\CommonDataService;
 use Modules\Admin\Services\DocumentVersionService;
 use Modules\Admin\Services\ProductService;
 use Modules\Admin\Services\UserActivityLogService;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -62,10 +66,10 @@ class ProductController extends Controller
     /**
      * Get paginated product data for Inertia table.
      *
-     * @param \App\Http\Requests\Api\Product\GetProductsRequest $request
+     * @param \Modules\Admin\Http\Requests\Product\GetDataRequests $request
      * @return \Illuminate\Pagination\LengthAwarePaginator
      */
-    public function data(GetProductsRequest $request)
+    public function data(GetDataRequest $request)
     {
         $options = $request->validated();
         $productsQuery = $this->productService->getProductsQuery($options['filter'] ?? [], $options);
@@ -110,10 +114,10 @@ class ProductController extends Controller
     /**
      * Save (create or update) a product.
      *
-     * @param \App\Http\Requests\Api\Product\SaveProductRequest $request
+     * @param \Modules\Admin\Http\Requests\Product\SaveRequest $request
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function save(SaveProductRequest $request)
+    public function save(SaveRequest $request)
     {
         $validated = $request->validated();
         $validated['description'] = $validated['description'] ?? '';

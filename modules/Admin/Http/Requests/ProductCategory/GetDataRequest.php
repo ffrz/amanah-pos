@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\OperationalCostCategory;
+namespace Modules\Admin\Http\Requests\ProductCategory;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -29,11 +29,11 @@ class GetDataRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100', Rule::in([10, 25, 50, 100])],
             'order_by' => [
                 'nullable',
                 'string',
-                Rule::in(['id', 'name', 'description', 'created_at', 'updated_at']),
+                Rule::in(['id', 'name', 'description']),
             ],
             'order_type' => ['nullable', 'string', Rule::in(['asc', 'desc'])],
 
@@ -44,5 +44,18 @@ class GetDataRequest extends FormRequest
             ],
             'filter.search' => ['nullable', 'string', 'max:255'],
         ];
+    }
+
+    /**
+     * Prepare data for validation, including the default values.
+     */
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'order_by'   => $this->input('order_by', 'name'),
+            'order_type' => $this->input('order_type', 'asc'),
+            'per_page'   => $this->input('per_page', 10),
+            'filter'     => $this->input('filter', []),
+        ]);
     }
 }

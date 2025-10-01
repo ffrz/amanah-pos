@@ -4,12 +4,14 @@ namespace Modules\Admin\Http\Controllers;
 
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\OperationalCostCategory\GetDataRequest;
-use App\Http\Requests\OperationalCostCategory\SaveRequest;
 use App\Models\OperationalCostCategory;
 use App\Models\UserActivityLog;
+
 use Modules\Admin\Services\OperationalCostCategoryService;
 use Modules\Admin\Services\UserActivityLogService;
+use Modules\Admin\Http\Requests\CashierTerminal\GetDataRequest;
+use Modules\Admin\Http\Requests\CashierTerminal\SaveRequest;
+
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\RedirectResponse;

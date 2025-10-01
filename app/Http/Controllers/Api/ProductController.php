@@ -1,5 +1,7 @@
 <?php
 
+// KELAS INI HANYA CONTOH API, TIDAK BENAR-BENAR DIGUNAKNA DI APP
+
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
@@ -19,14 +21,10 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use Modules\Admin\Services\ProductService;
-use App\Http\Requests\Product\GetProductsRequest;
-use App\Http\Requests\Product\SaveProductRequest; // Import SaveProductRequest
+
 use Illuminate\Http\JsonResponse;
 use App\Http\Resources\ProductResource;
-
-// Hapus StoreProductRequest dan UpdateProductRequest karena sudah tidak digunakan
-// use App\Http\Requests\Api\Product\StoreProductRequest;
-// use App\Http\Requests\Api\Product\UpdateProductRequest;
+use Illuminate\Support\Facades\Request;
 
 class ProductController extends Controller
 {
@@ -40,10 +38,10 @@ class ProductController extends Controller
     /**
      * Display a listing of products with search, filter, and pagination capabilities.
      *
-     * @param  \App\Http\Requests\Api\Product\GetProductsRequest  $request
+     * @param  \App\Http\Requests\Api\Product\Re  $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function index(GetProductsRequest $request): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         $filters = $request->validated();
         $perPage = $filters['per_page'] ?? 10;
@@ -112,7 +110,7 @@ class ProductController extends Controller
      * @param  \App\Http\Requests\Api\Product\SaveProductRequest  $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function store(SaveProductRequest $request): JsonResponse
+    public function store(Request $request): JsonResponse
     {
         try {
             // Memanggil saveProduct tanpa instance produk untuk membuat yang baru

@@ -4,6 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use InvalidArgumentException;
+use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\ProductCategoryFormatter;
+use Modules\Admin\Features\UserActivityLog\Formatters\MetaDataFormatterFactory;
 
 class UserActivityLog extends Model
 {
@@ -20,6 +23,7 @@ class UserActivityLog extends Model
     public const Category_UserProfile = 'user-profile';
     public const Category_User = 'user';
     public const Category_Product = 'product';
+    public const Category_ProductCategory = 'product-category';
     public const Category_Supplier = 'supplier';
     public const Category_Customer = 'customer';
     public const Category_UserActivityLog = 'user-activity-log';
@@ -41,6 +45,7 @@ class UserActivityLog extends Model
         self::Category_UserProfile => 'Profil Pengguna',
         self::Category_User => 'Manajemen Pengguna',
         self::Category_Product => 'Manajemen Produk',
+        self::Category_ProductCategory => 'Manajemen Kategori Produk',
         self::Category_Supplier => 'Manajemen Pemasok',
         self::Category_Customer => 'Manajemen Pelanggan',
         self::Category_UserActivityLog => 'Manajemen Log Aktifitas Pengguna',
@@ -321,5 +326,33 @@ class UserActivityLog extends Model
         }
 
         return 'Negara Lain (GeoIP Lookup)';
+    }
+
+    protected function getFormattedMetadataAttribute(): array
+    {
+        // 1. Ambil data metadata yang sudah di-decode (karena $casts = 'array')
+        $metaData = $this->metadata ?? [];
+
+        // 2. Tentukan Strategy (Formatter) yang benar
+        try {
+            // Kita asumsikan kolom 'category' berisi nama Model atau konteks yang diperlukan
+            $formatter = MetaDataFormatterFactory::create($this->activity_category);
+
+            // 3. Delegasikan pemformatan ke Strategy class yang sesuai
+            return $formatter->format($metaData);
+        } catch (InvalidArgumentException $e) {
+            // Tangani kasus di mana tidak ada formatter yang ditemukan (misalnya, log baru)
+            return [
+                ['type' => 'simple', 'label' => 'Perhatian!', 'value' => 'Tidak ada formatter ditemukan untuk kategori ini.'],
+                ['type' => 'simple', 'label' => 'Kategori Log', 'value' => $this->activity_category],
+                ['type' => 'simple', 'label' => 'Data Mentah (JSON)', 'value' => json_encode($metaData, JSON_PRETTY_PRINT)],
+            ];
+        } catch (\Throwable $e) {
+            // Tangani error lain (misal, error saat memproses format)
+            return [
+                ['type' => 'simple', 'label' => 'Error Pemformatan', 'value' => $e->getMessage()],
+                ['type' => 'simple', 'label' => 'Kategori Log', 'value' => $this->activity_category],
+            ];
+        }
     }
 }
