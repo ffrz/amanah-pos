@@ -7,21 +7,6 @@ import { handleDelete } from "@/helpers/client-req-handler";
 const page = usePage();
 const title = "Rincian Log Aktifitas";
 
-const formattedMetadata = computed(() => {
-  const metadataString = page.props.data.metadata;
-  if (!metadataString) {
-    return "Tidak ada Metadata.";
-  }
-
-  try {
-    const jsonObject = JSON.parse(metadataString);
-    return JSON.stringify(jsonObject, null, 2);
-  } catch (e) {
-    console.error("Gagal memformat JSON Metadata:", e);
-    return metadataString;
-  }
-});
-
 const deleteItem = () =>
   handleDelete({
     message: `Hapus log aktifitas #${page.props.data.id}?`,
@@ -48,6 +33,7 @@ const deleteItem = () =>
         />
       </div>
     </template>
+
     <template #right-button>
       <div class="q-gutter-sm">
         <q-btn
@@ -61,101 +47,190 @@ const deleteItem = () =>
         />
       </div>
     </template>
+
     <q-page class="row justify-center">
       <div class="col col-md-6 q-pa-xs">
         <div class="row">
           <q-card square flat bordered class="col">
-            <q-card-section>
-              <div class="text-subtitle1 text-bold text-grey-8">
+            <q-card-section class="detail-group">
+              <div class="text-subtitle1 text-bold text-grey-8 q-mb-sm">
                 Info Log Aktifitas Pengguna
               </div>
-              <table class="detail">
-                <tbody>
-                  <tr>
-                    <td style="width: 100px">ID</td>
-                    <td style="width: 1px">:</td>
-                    <td>{{ page.props.data.id }}</td>
-                  </tr>
-                  <tr>
-                    <td>Waktu</td>
-                    <td>:</td>
-                    <td>{{ formatDateTime(page.props.data.logged_at) }}</td>
-                  </tr>
-                  <tr>
-                    <td>Pengguna</td>
-                    <td>:</td>
-                    <td>
-                      <i-link
-                        :href="
-                          route('admin.user.detail', {
-                            id: page.props.data.user_id,
-                          })
-                        "
-                      >
-                        {{ page.props.data.username }}
-                      </i-link>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>Kategori</td>
-                    <td>:</td>
-                    <td>{{ page.props.data.activity_category_label }}</td>
-                  </tr>
-                  <tr>
-                    <td>Aktifitas</td>
-                    <td>:</td>
-                    <td>{{ page.props.data.activity_name_label }}</td>
-                  </tr>
-                  <tr>
-                    <td>Deskripsi</td>
-                    <td>:</td>
-                    <td>{{ page.props.data.description }}</td>
-                  </tr>
-                  <tr>
-                    <td>Alamat IP</td>
-                    <td>:</td>
-                    <td>{{ page.props.data.ip_address }}</td>
-                  </tr>
-                  <tr>
-                    <td>User Agent</td>
-                    <td>:</td>
-                    <td style="text-wrap: initial !important">
-                      {{ page.props.data.user_agent }}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>Meta Data</td>
-                    <td>:</td>
-                    <td>
-                      <template
-                        v-if="
-                          !page.props.data.metadata ||
-                          Object.keys(page.props.data.metadata).length === 0
-                        "
-                      >
-                        <div class="text-italic text-grey-8">
-                          Tidak tersedia
-                        </div>
-                      </template>
-                    </td>
-                  </tr>
-                  <tr
-                    v-if="
-                      (typeof page.props.data.metadata === 'object' &&
-                        Object.keys(page.props.data.metadata).length > 0) ||
-                      (Array.isArray(page.props.data.metadata) &&
-                        page.props.data.metadata.length > 0)
+
+              <div class="detail-item">
+                <div class="detail-label">ID</div>
+
+                <div class="detail-separator">:</div>
+
+                <div class="detail-value">{{ page.props.data.id }}</div>
+              </div>
+
+              <div class="detail-item">
+                <div class="detail-label">Waktu</div>
+
+                <div class="detail-separator">:</div>
+
+                <div class="detail-value">
+                  {{ formatDateTime(page.props.data.logged_at) }}
+                </div>
+              </div>
+
+              <div class="detail-item">
+                <div class="detail-label">Pengguna</div>
+
+                <div class="detail-separator">:</div>
+
+                <div class="detail-value">
+                  <i-link
+                    :href="
+                      route('admin.user.detail', {
+                        id: page.props.data.user_id,
+                      })
                     "
                   >
-                    <td colspan="100%" class="q-pa-none bg-white">
-                      <pre
-                        class="bg-grey-3 q-ma-none"
-                        style="overflow: auto; width: 100%; text-wrap: auto"
-                      ><code class="text-caption text-mono">{{ formattedMetadata }}</code></pre>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                    {{ page.props.data.username }}
+                  </i-link>
+                </div>
+              </div>
+
+              <div class="detail-item">
+                <div class="detail-label">Kategori</div>
+
+                <div class="detail-separator">:</div>
+
+                <div class="detail-value">
+                  {{ page.props.data.activity_category_label }}
+                </div>
+              </div>
+
+              <div class="detail-item">
+                <div class="detail-label">Aktifitas</div>
+
+                <div class="detail-separator">:</div>
+
+                <div class="detail-value">
+                  {{ page.props.data.activity_name_label }}
+                </div>
+              </div>
+
+              <div class="detail-item">
+                <div class="detail-label">Deskripsi</div>
+
+                <div class="detail-separator">:</div>
+
+                <div class="detail-value">
+                  {{ page.props.data.description }}
+                </div>
+              </div>
+
+              <div class="detail-item">
+                <div class="detail-label">Alamat IP</div>
+
+                <div class="detail-separator">:</div>
+
+                <div class="detail-value">
+                  {{ page.props.data.ip_address }}
+                </div>
+              </div>
+
+              <div class="detail-item">
+                <div class="detail-label">User Agent</div>
+
+                <div class="detail-separator">:</div>
+
+                <div class="detail-value user-agent-value">
+                  {{ page.props.data.user_agent }}
+                </div>
+              </div>
+
+              <div class="q-pt-md">
+                <div class="q-my-sm text-bold text-grey-8">Meta Data:</div>
+
+                <div class="table-wrapper-scroll">
+                  <template
+                    v-if="Object.keys(page.props.data.metadata).length > 0"
+                  >
+                    <table class="table-metadata">
+                      <thead>
+                        <tr>
+                          <td class="metadata-header">Bidang</td>
+
+                          <td class="metadata-header">Nilai</td>
+                        </tr>
+                      </thead>
+
+                      <tbody>
+                        <template
+                          v-for="(item, index) in page.props.formatted_metadata"
+                          :key="index"
+                        >
+                          <tr v-if="item.type === 'simple'">
+                            <td class="metadata-label">
+                              {{ item.label }}
+                            </td>
+
+                            <td class="metadata-value">
+                              <template
+                                v-if="item.label == 'Data Mentah (JSON)'"
+                              >
+                                <pre class="text-mono json-pre-scroll">{{
+                                  item.value
+                                }}</pre>
+                              </template>
+
+                              <template v-else>
+                                {{ item.value }}
+                              </template>
+                            </td>
+                          </tr>
+
+                          <tr v-if="item.type === 'comparison'">
+                            <td colspan="3">
+                              <table class="table-metadata">
+                                <thead>
+                                  <tr>
+                                    <td class="metadata-header">Bidang</td>
+
+                                    <td class="metadata-header">Nilai Lama</td>
+
+                                    <td class="metadata-header">Nilai Baru</td>
+                                  </tr>
+                                </thead>
+
+                                <tbody>
+                                  <template
+                                    v-for="(subItem, subIndex) in item.value"
+                                  >
+                                    <tr>
+                                      <td class="metadata-label">
+                                        {{ subItem.field }}
+                                      </td>
+
+                                      <td class="metadata-value">
+                                        {{ subItem.old_value }}
+                                      </td>
+
+                                      <td class="metadata-value">
+                                        {{ subItem.new_value }}
+                                      </td>
+                                    </tr>
+                                  </template>
+                                </tbody>
+                              </table>
+                            </td>
+                          </tr>
+                        </template>
+                      </tbody>
+                    </table>
+                  </template>
+
+                  <template v-else>
+                    <div class="text-grey-8 text-italic q-pa-sm">
+                      Tidak tersedia
+                    </div>
+                  </template>
+                </div>
+              </div>
             </q-card-section>
           </q-card>
         </div>
@@ -165,13 +240,102 @@ const deleteItem = () =>
 </template>
 
 <style scoped>
-.detail td {
-  padding-top: 4px;
-  padding-bottom: 4px;
-  vertical-align: top;
+/* ---------------------------------------------------- */
+/* 1. CSS UTAMA (Mengganti Table Detail dengan Flexbox) */
+/* ---------------------------------------------------- */
+
+/* Kontainer untuk semua detail log (Mengganti table.detail) */
+.detail-group {
+  padding: 16px; /* Atur padding kartu */
 }
 
+/* Setiap baris item detail (Mengganti tr) */
+.detail-item {
+  display: flex;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  align-items: flex-start; /* Label dan value rata atas */
+}
+
+/* Kolom Label (Mengganti td style="width: 100px") */
+.detail-label {
+  font-weight: bold;
+  width: 100px; /* Lebar tetap, mencegah label menyusut */
+  flex-shrink: 0;
+}
+
+/* Pemisah (Mengganti td style="width: 1px") */
+.detail-separator {
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+/* Kolom Nilai (Mengganti td konten) */
+.detail-value {
+  flex-grow: 1; /* Mengambil sisa lebar */
+  word-break: break-word; /* Memastikan teks panjang biasa (deskripsi, link) membungkus */
+  min-width: 0; /* KRITIS: Memungkinkan flex item menyusut agar tidak meluap */
+}
+
+/* ---------------------------------------------------- */
+/* 2. CSS untuk Scroll JSON dan Tabel Metadata (Masih Menggunakan Table) */
+/* ---------------------------------------------------- */
+
+/* Wrapper untuk Scroll Horizontal di Meta Data (Karena masih berupa <table>) */
+.table-wrapper-scroll {
+  overflow-x: auto;
+  width: 100%;
+}
+
+/* Elemen PRE yang berisi JSON */
+.json-pre-scroll {
+  white-space: pre; /* PALING KRITIS: Mencegah browser membungkus teks JSON */
+  overflow-x: auto; /* Memastikan scrollbar muncul di dalam PRE itu sendiri */
+  font-family: monospace;
+  max-width: 100%;
+  display: block;
+  margin: 0;
+  padding: 5px;
+  box-sizing: border-box;
+}
+
+/* Tabel Metadata (Min-width untuk memaksa scroll) */
+.table-metadata {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 500px; /* Lebar minimum agar scroll muncul di mobile */
+}
+
+.metadata-header {
+  text-align: center;
+  background-color: #f9f9f9;
+  font-weight: bold;
+  padding: 8px 12px;
+  border: 1px solid #eee;
+}
+
+.metadata-label,
+.metadata-value {
+  padding: 8px 12px;
+  border: 1px solid #eee;
+}
+
+.metadata-label {
+  font-weight: bold;
+}
+
+/* Text Mono (untuk konsistensi) */
 .text-mono {
   font-family: monospace;
+}
+
+.detail-value {
+  flex-grow: 1;
+  min-width: 0; /* KRITIS: Memungkinkan flex item menyusut */
+
+  /* Tiga Properti Kritis untuk Memecahkan Kata Panjang Tanpa Spasi */
+  word-wrap: break-word; /* Properti warisan (legacy) */
+  overflow-wrap: break-word; /* Properti standar modern */
+  word-break: break-all; /* PALING EFEKTIF: Memaksa pemotongan kata di mana saja */
 }
 </style>
