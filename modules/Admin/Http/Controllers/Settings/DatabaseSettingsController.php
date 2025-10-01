@@ -18,7 +18,7 @@ namespace Modules\Admin\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Services\UserActivityLogService;
+use Modules\Admin\Services\UserActivityLogService;
 use Illuminate\Http\Request;
 
 class DatabaseSettingsController extends Controller

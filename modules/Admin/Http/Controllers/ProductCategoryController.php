@@ -18,12 +18,14 @@ namespace Modules\Admin\Http\Controllers;
 
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Product\GetDataRequest;
+use App\Http\Requests\Product\SaveRequest;
 use App\Http\Requests\ProductCategory\ProductCategoryGetDataRequest;
 use App\Http\Requests\ProductCategorySaveRequest;
 use App\Models\ProductCategory;
 use App\Models\UserActivityLog;
-use App\Services\ProductCategoryService;
-use App\Services\UserActivityLogService;
+use Modules\Admin\Services\ProductCategoryService;
+use Modules\Admin\Services\UserActivityLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
@@ -60,10 +62,10 @@ class ProductCategoryController extends Controller
     /**
      * Mengambil data kategori produk dengan paginasi dan filter.
      *
-     * @param ProductCategoryGetDataRequest $request
+     * @param GetDataRequest $request
      * @return JsonResponse
      */
-    public function data(ProductCategoryGetDataRequest $request): JsonResponse
+    public function data(GetDataRequest $request): JsonResponse
     {
         $this->authorize('viewAny', ProductCategory::class);
         $items = $this->productCategoryService->getData($request->validated());
@@ -108,10 +110,10 @@ class ProductCategoryController extends Controller
     /**
      * Menyimpan kategori produk baru atau yang sudah ada.
      *
-     * @param ProductCategorySaveRequest $request
+     * @param SaveRequest $request
      * @return RedirectResponse
      */
-    public function save(ProductCategorySaveRequest $request): RedirectResponse
+    public function save(SaveRequest $request): RedirectResponse
     {
         $item = $request->id ? $this->productCategoryService->find($request->id) : new ProductCategory();
 

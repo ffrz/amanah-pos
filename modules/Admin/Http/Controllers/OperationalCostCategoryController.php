@@ -4,13 +4,12 @@ namespace Modules\Admin\Http\Controllers;
 
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\OperationalCostCategory\GetOperationalCostCategoriesRequest;
-use App\Http\Requests\OperationalCostCategory\SaveOperationalCostCategoryRequest;
+use App\Http\Requests\OperationalCostCategory\GetDataRequest;
+use App\Http\Requests\OperationalCostCategory\SaveRequest;
 use App\Models\OperationalCostCategory;
 use App\Models\UserActivityLog;
-use App\Services\OperationalCostCategoryService;
-use App\Services\UserActivityLogService;
-use Illuminate\Http\Request;
+use Modules\Admin\Services\OperationalCostCategoryService;
+use Modules\Admin\Services\UserActivityLogService;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\RedirectResponse;
@@ -47,10 +46,10 @@ class OperationalCostCategoryController extends Controller
     /**
      * Mengambil data kategori biaya operasional dengan paginasi dan filter.
      *
-     * @param Request $request
+     * @param GetDataRequest $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function data(GetOperationalCostCategoriesRequest $request): JsonResponse
+    public function data(GetDataRequest $request): JsonResponse
     {
         $this->authorize('viewAny', OperationalCostCategory::class);
 
@@ -96,10 +95,10 @@ class OperationalCostCategoryController extends Controller
     /**
      * Menyimpan kategori biaya operasional baru atau yang sudah ada.
      *
-     * @param SaveOperationalCostCategoryRequest $request
+     * @param SaveRequest $request
      * @return RedirectResponse
      */
-    public function save(SaveOperationalCostCategoryRequest $request): RedirectResponse
+    public function save(SaveRequest $request): RedirectResponse
     {
         $item = $request->id ? $this->operationalCostCategoryService->find($request->id) : new OperationalCostCategory();
 

@@ -17,14 +17,12 @@
 namespace Modules\Admin\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Product\GetProductsRequest;
-use App\Http\Requests\Product\SaveProductRequest;
 use App\Models\Product;
 use App\Models\UserActivityLog;
-use App\Services\CommonDataService;
-use App\Services\DocumentVersionService;
-use App\Services\ProductService;
-use App\Services\UserActivityLogService;
+use Modules\Admin\Services\CommonDataService;
+use Modules\Admin\Services\DocumentVersionService;
+use Modules\Admin\Services\ProductService;
+use Modules\Admin\Services\UserActivityLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;

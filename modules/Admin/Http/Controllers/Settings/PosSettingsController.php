@@ -19,7 +19,7 @@ namespace Modules\Admin\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use App\Models\UserActivityLog;
-use App\Services\UserActivityLogService;
+use Modules\Admin\Services\UserActivityLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 

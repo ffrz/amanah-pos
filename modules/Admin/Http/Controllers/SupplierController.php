@@ -20,13 +20,13 @@ use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Supplier;
 use App\Models\UserActivityLog;
-use App\Services\DocumentVersionService;
-use App\Services\UserActivityLogService;
-use App\Services\SupplierService;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Modules\Admin\Services\DocumentVersionService;
+use Modules\Admin\Services\SupplierService;
+use Modules\Admin\Services\UserActivityLogService;
 
 class SupplierController extends Controller
 {

@@ -16,9 +16,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\CashierTerminalSaveRequest;
 use App\Models\CashierTerminal;
 use App\Models\UserActivityLog;
-use App\Services\CashierTerminalService;
-use App\Services\DocumentVersionService;
-use App\Services\UserActivityLogService;
+use Modules\Admin\Services\CashierTerminalService;
+use Modules\Admin\Services\DocumentVersionService;
+use Modules\Admin\Services\UserActivityLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -162,7 +162,7 @@ class CashierTerminalController extends Controller
             );
 
             DB::commit();
-            
+
             return JsonResponseHelper::success($item, "Terminal Kasir {$item->name} telah dihapus.");
         } catch (\Exception $ex) {
             DB::rollBack();
