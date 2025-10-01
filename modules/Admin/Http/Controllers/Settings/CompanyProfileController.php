@@ -23,6 +23,7 @@ use App\Models\UserActivityLog;
 use Modules\Admin\Services\UserActivityLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Modules\Admin\Http\Requests\Settings\CompanyProfile\SaveRequest;
 
 /**
  * Class CompanyProfileController
@@ -50,7 +51,7 @@ class CompanyProfileController extends Controller
      * @return \Illuminate\Http\RedirectResponse
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function edit(Request $request)
+    public function edit(SaveRequest $request)
     {
         if ($request->getMethod() === Request::METHOD_POST) {
             $rules = [
