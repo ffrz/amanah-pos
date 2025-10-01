@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace Modules\Admin\Services;
 
 use App\Models\Supplier;
 use Illuminate\Database\Eloquent\Builder;

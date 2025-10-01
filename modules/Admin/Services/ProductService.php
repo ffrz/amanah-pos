@@ -14,17 +14,15 @@
  * Email: fahmifauzirahman@gmail.com
  */
 
-namespace App\Services;
+namespace Modules\Admin\Services;
 
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\StockMovement;
 use App\Models\Supplier;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use PhpOffice\PhpSpreadsheet\Calculation\Logical\Boolean;
 
 class ProductService
 {

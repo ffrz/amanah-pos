@@ -1,5 +1,5 @@
 <?php
 
-namespace App\Services;
+namespace Modules\Admin\Services;
 
 class SalesOrderService {}

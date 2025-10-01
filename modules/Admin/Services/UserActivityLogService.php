@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace Modules\Admin\Services;
 
 use App\Models\UserActivityLog;
 use Illuminate\Support\Carbon;

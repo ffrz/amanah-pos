@@ -9,7 +9,7 @@
  * Ini adalah Service Layer utama.
  */
 
-namespace App\Services;
+namespace Modules\Admin\Services;
 
 use App\Models\CashierTerminal;
 use App\Models\FinanceAccount;

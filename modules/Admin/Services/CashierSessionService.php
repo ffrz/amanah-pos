@@ -14,7 +14,7 @@
  * Email: fahmifauzirahman@gmail.com
  */
 
-namespace App\Services;
+namespace Modules\Admin\Services;
 
 use App\Models\CashierSession;
 use Illuminate\Support\Facades\Auth;

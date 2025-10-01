@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Services;
+namespace Modules\Admin\Services;
 
+use App\Models\User;
 use App\Models\DocumentVersion;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User; // Asumsi model User ada di App\Models
 
 class DocumentVersionService
 {
