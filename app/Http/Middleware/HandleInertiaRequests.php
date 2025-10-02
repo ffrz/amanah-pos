@@ -47,8 +47,26 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        $user = $request->user();
-        $customer = Auth::guard('customer')->user();
+        $auth = [];
+        $module = $request->attributes->get('module_root_view', null);
+        if ($module === 'admin') {
+            $user = $request->user();
+            $auth['user'] = [
+                'id' => $user->id,
+                'name' => $user->name,
+                'username' => $user->username,
+                'type' => $user->type,
+                'roles' => $request->user()->getRoleNames()->toArray(),
+            ];
+        } else {
+            $customer = Auth::guard('customer')->user();
+            $auth['customer'] = [
+                'id' => $customer->id,
+                'code' => $customer->code,
+                'name' => $customer->name,
+            ];
+        }
+
         return [
             ...parent::share($request),
             'company' => [
@@ -56,20 +74,7 @@ class HandleInertiaRequests extends Middleware
                 'address' => Setting::value('company.address', ''),
                 'phone' => Setting::value('company.phone', ''),
             ],
-            'auth' => [
-                'user' => $user ? [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'username' => $user->username,
-                    'type' => $user->type,
-                    'roles' => $request->user()->getRoleNames()->toArray(),
-                ] : null,
-                'customer' => $customer ? [
-                    'id' => $customer->id,
-                    'code' => $customer->code,
-                    'name' => $customer->name,
-                ] : null,
-            ],
+            'auth' => $auth,
             'flash' => [
                 'info' => $request->session()->get('message'),
                 'success' => $request->session()->get('success'),
