@@ -15,7 +15,7 @@ class DefaultFormatter extends BaseFormatter
         if (isset($metaData['new_data']) && isset($metaData['old_data'])) {
             $output[] = [
                 'label' => 'Perubahan Data',
-                'value' => $this->processChanges($metaData['old_data'], $metaData['new_data'], $mapping),
+                'value' => $this->_processChanges($metaData['old_data'], $metaData['new_data'], $mapping),
                 'type' => 'comparison'
             ];
         } else if (isset($metaData['data'])) {
@@ -31,7 +31,7 @@ class DefaultFormatter extends BaseFormatter
         return $output;
     }
 
-    protected function processChanges(array $old, array $new, array $mapping): array
+    private function _processChanges(array $old, array $new, array $mapping): array
     {
         $changes = [];
         foreach ($new as $key => $newValue) {

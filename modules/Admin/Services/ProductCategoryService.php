@@ -110,7 +110,7 @@ class ProductCategoryService
                     UserActivityLog::Name_ProductCategory_Create,
                     "Kategori $item->name telah ditambahkan.",
                     [
-                        'formatter' => ProductCategoryFormatter::class,
+                        'formatter' => 'product-category',
                         'data' => $item->getAttributes(),
                     ]
                 );
@@ -120,7 +120,7 @@ class ProductCategoryService
                     UserActivityLog::Name_ProductCategory_Update,
                     "Kategori $item->name telah diperbarui.",
                     [
-                        'formatter' => ProductCategoryFormatter::class,
+                        'formatter' => 'product-category',
                         'old_data' => $oldData,
                         'new_data' => $item->getAttributes(),
                     ]
@@ -153,7 +153,7 @@ class ProductCategoryService
                 UserActivityLog::Name_ProductCategory_Delete,
                 "Kategori $itemName telah dihapus.",
                 [
-                    'formatter' => ProductCategoryFormatter::class,
+                    'formatter' => 'product-category',
                     'data' => $item->getAttributes(),
                 ]
             );
