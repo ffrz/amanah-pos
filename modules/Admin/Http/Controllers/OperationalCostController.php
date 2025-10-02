@@ -87,14 +87,17 @@ class OperationalCostController extends Controller
     {
         $validated = $request->validated();
 
+        $item = $this->operationalCostService->findOrCreate($request->id);
+
         if ($request->id) {
-            $this->authorize('update', $this->operationalCostService->find($request->id));
+            $this->authorize('update', $item);
         } else {
             $this->authorize('create', OperationalCost::class);
         }
 
         try {
             $item = $this->operationalCostService->save(
+                $item,
                 $validated,
                 $request->hasFile('image') ? $request->file('image') : null
             );

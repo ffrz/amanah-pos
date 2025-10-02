@@ -78,7 +78,7 @@ class OperationalCostService
         return  $q->paginate($options['per_page'])->withQueryString();
     }
 
-    public function save(array $validated, $newImage)
+    public function save(OperationalCost $item, array $validated, $newImage)
     {
         try {
             DB::beginTransaction();
@@ -88,14 +88,9 @@ class OperationalCostService
             $newlyUploadedImagePath = null;
 
             $oldData = [];
-
             // 2. Tentukan item dan ambil data lama jika mode edit
             if (!empty($validated['id'])) {
-                $item = $this->find($validated['id']);
-                // Ini gak boleh clone agar relationship gak hilang, gak boleh replicate karena bakalan ngebuang attribute yang dibutuhkan
                 $oldItem = $this->find($validated['id']);
-            } else {
-                $item = new OperationalCost();
             }
 
             // 3. PENANGANAN GAMBAR (IMAGE)
