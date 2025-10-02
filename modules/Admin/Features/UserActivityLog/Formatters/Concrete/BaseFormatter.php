@@ -56,7 +56,7 @@ class BaseFormatter implements MetaDataFormatterInterface
 
             $oldValue = $old[$key] ?? null;
 
-            if ($oldValue === $newValue) continue;
+            // if ($oldValue === $newValue) continue;
 
             $changes[] = [
                 'field' => $mapping[$key],

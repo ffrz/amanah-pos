@@ -6,6 +6,7 @@ use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\DefaultFormatter;
 use Modules\Admin\Features\UserActivityLog\Contracts\MetaDataFormatterInterface;
 use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\CompanyProfileFormatter;
 use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\ProductCategoryFormatter;
+use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\UserFormatter;
 use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\UserProfileFormatter;
 use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\UserRoleFormatter;
 
@@ -17,6 +18,7 @@ class MetaDataFormatterFactory
         'company-profile' => CompanyProfileFormatter::class,
         'user-profile' => UserProfileFormatter::class,
         'user-role' => UserRoleFormatter::class,
+        'user' => UserFormatter::class,
     ];
 
     /**

@@ -23,6 +23,7 @@ use App\Models\ProductCategory;
 use App\Models\Supplier;
 
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class CommonDataService
 {
@@ -107,5 +108,10 @@ class CommonDataService
     public function getAclPermissions()
     {
         return Permission::all();
+    }
+
+    public function getRoles()
+    {
+        return Role::orderBy('name', 'asc')->get();
     }
 }

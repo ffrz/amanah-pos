@@ -19,33 +19,34 @@ namespace Modules\Admin\Http\Controllers\Settings;
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Models\UserActivityLog;
-use Modules\Admin\Services\UserActivityLogService;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rule;
+use Modules\Admin\Services\UserService;
+use Modules\Admin\Http\Requests\User\GetDataRequest;
+use Modules\Admin\Http\Requests\User\SaveRequest;
+use Modules\Admin\Services\CommonDataService;
 use Spatie\Permission\Models\Role;
+use Inertia\Response;
+use Exception;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
     /**
-     * @var UserActivityLogService
+     * Inject UserService yang sudah memiliki UserActivityLogService di dalamnya.
      */
-    protected $userActivityLogService;
-
-    public function __construct(UserActivityLogService $userActivityLogService)
-    {
-        $this->userActivityLogService = $userActivityLogService;
-    }
+    public function __construct(
+        protected UserService $userService,
+        protected CommonDataService $commonDataService
+    ) {}
 
     /**
      * Tampilkan halaman indeks pengguna.
      *
-     * @return \Inertia\Response
+     * @return Response
      */
-    public function index()
+    public function index(): Response
     {
         return inertia('settings/user/Index');
     }
@@ -54,196 +55,106 @@ class UserController extends Controller
      * Tampilkan halaman detail pengguna.
      *
      * @param int $id
-     * @return \Inertia\Response
+     * @return Response
      */
-    public function detail($id = 0)
+    public function detail(int $id): Response
     {
+        $user = $this->userService->find($id);
         return inertia('settings/user/Detail', [
-            'data' => User::with('roles')->findOrFail($id),
+            'data' => $user,
         ]);
     }
 
     /**
      * Dapatkan data pengguna dalam format paginasi, dengan filter peran dari Spatie.
      *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * Menggunakan GetDataRequest untuk validasi.
+     *
+     * @param GetDataRequest $request
+     * @return JsonResponse
      */
-    public function data(Request $request)
+    public function data(GetDataRequest $request): JsonResponse
     {
-        $orderBy = $request->get('order_by', 'name');
-        $orderType = $request->get('order_type', 'asc');
-        $filter = $request->get('filter', []);
-
-        $q = User::with(['roles']);
-
-        // Filter berdasarkan peran dari Spatie
-        if (!empty($filter['role']) && $filter['role'] != 'all') {
-            $q->whereHas('roles', function ($query) use ($filter) {
-                $query->where('id', $filter['role']);
-            });
+        try {
+            $users = $this->userService->getData($request->validated());
+            return JsonResponseHelper::success($users);
+        } catch (Exception $e) {
+            Log::error("Gagal mengambil data pengguna: " . $e->getMessage(), ['exception' => $e]);
+            return JsonResponseHelper::error('Gagal mengambil data pengguna.', 500, $e);
         }
-
-        // Filter berdasarkan status
-        if (!empty($filter['status']) && ($filter['status'] == 'active' || $filter['status'] == 'inactive')) {
-            $q->where('active', '=', $filter['status'] == 'active' ? true : false);
-        }
-
-        // Filter berdasarkan pencarian nama atau username
-        if (!empty($filter['search'])) {
-            $q->where(function ($query) use ($filter) {
-                $query->where('name', 'like', '%' . $filter['search'] . '%')
-                    ->orWhere('username', 'like', '%' . $filter['search'] . '%');
-            });
-        }
-
-        $q->orderBy($orderBy, $orderType);
-
-        $users = $q->paginate($request->get('per_page', 10))->withQueryString();
-
-        return response()->json($users);
     }
 
     /**
      * Duplikasi pengguna.
      *
      * @param int $id
-     * @return \Inertia\Response
+     * @return Response
      */
-    public function duplicate($id)
+    public function duplicate(int $id): Response
     {
-        $user = User::with('roles')->findOrFail($id);
+        $user = $this->userService->find($id);
         $user->id = null;
-        $user->created_at = null;
-
-        $roles = Role::orderBy('name', 'asc')->get();
 
         return inertia('settings/user/Editor', [
             'data' => $user,
-            'roles' => $roles
+            'roles' => $this->commonDataService->getRoles()
         ]);
     }
 
     /**
-     * Tampilkan halaman editor untuk pengguna.
+     * Tampilkan halaman editor untuk pengguna (Create/Edit).
      *
      * @param int $id
-     * @return \Inertia\Response
+     * @return Response
      */
-    public function editor($id = 0)
+    public function editor(int $id = 0): Response
     {
-        $user = $id ? User::with('roles')->findOrFail($id) : new User();
-
-        if (!$id) {
-            $user->active = true;
-            $user->admin = true;
-        } else if ($user->id == Auth::user()->id) {
+        if ($id === Auth::user()->id) {
             return abort(403, 'Tidak dapat mengubah akun sendiri!');
         }
 
-        $roles = Role::orderBy('name', 'asc')->get();
+        $user = $this->userService->findOrCreate($id);
 
         return inertia('settings/user/Editor', [
             'data' => $user,
-            'roles' => $roles
+            'roles' => $this->commonDataService->getRoles(),
         ]);
     }
 
     /**
      * Simpan pengguna baru atau perbarui pengguna yang sudah ada, termasuk peran.
      *
-     * @param Request $request
-     * @return \Illuminate\Http\RedirectResponse
+     * Menggunakan SaveRequest untuk validasi.
+     *
+     * @param SaveRequest $request
+     * @return RedirectResponse
      */
-    public function save(Request $request)
+    public function save(SaveRequest $request): RedirectResponse
     {
-        if ($request->id == Auth::user()->id) {
-            return abort(403, 'Tidak dapat mengubah akun sendiri!');
+
+        if ($request->id == Auth::id()) {
+            return redirect(route('admin.user.index'))
+                ->with('error', 'Tidak dapat mengubah akun sendiri.');
         }
-
-        $isNew = empty($request->id);
-        $password = $request->get('password');
-
-        $rules = [
-            'username'  => [
-                'required',
-                'alpha_num',
-                'max:255',
-                Rule::unique('users', 'username')->ignore($request->id),
-            ],
-            'name'    => 'required|max:255',
-            'type'    => ['required', Rule::in(array_keys(User::Types))],
-            'roles'   => 'nullable|array',
-            'roles.*' => 'exists:acl_roles,id',
-            'active'  => 'required|boolean'
-        ];
-
-        if ($isNew || !empty($password)) {
-            $rules['password'] = 'required|min:5|max:40';
-        }
-
-        $validated = $request->validate($rules);
-
-        unset($validated['password']); // kita gak butuh data password dari validated
-
-        $user = $isNew ? new User() : User::findOrFail($request->id);
 
         try {
-            $oldData = $user->toArray();
-
-            $user->fill($validated);
-
-            $dirtyAttributes = $user->getDirty();
-
-            // Jika ada password baru, hash dan simpan
-            if (!empty($password)) {
-                $user->password = Hash::make($password);
-                $dirtyAttributes['password'] = '********';
+            $user = $this->userService->save($request->validated());
+            return redirect(route('admin.user.index'))
+                ->with('success', "Pengguna $user->username telah disimpan.");
+        } catch (Exception $e) {
+            // Pengecualian khusus untuk "Tidak ada perubahan terdeteksi" (kode 200)
+            if ($e->getCode() === 200) {
+                return redirect(route('admin.user.index'))->with('warning', $e->getMessage());
             }
 
-            if (empty($dirtyAttributes)) {
-                return redirect(route('admin.user.index'))->with('success', "Tidak ada perubahan terdeteksi.");
+            // Pengecualian khusus untuk "Tidak dapat mengubah akun sendiri" (kode 403)
+            if ($e->getCode() === 403) {
+                return abort(403, $e->getMessage());
             }
 
-            DB::beginTransaction();
+            // Logging untuk kegagalan penyimpanan umum
+            Log::error("Gagal menyimpan pengguna ID: {$request->id}. Exception: " . $e->getMessage(), ['request_data' => $request->all(), 'exception' => $e]);
 
-            $user->save();
-
-            // Jika jenis akun adalah SuperUser, hapus semua peran spatie agar bisa bypass
-            if ($user->type === User::Type_SuperUser) {
-                $user->syncRoles([]);
-            } else {
-                $user->syncRoles($validated['roles'] ?? []);
-            }
-
-            // catat log
-            $user->roles;
-            if (!$request->id) {
-                $this->userActivityLogService->log(
-                    UserActivityLog::Category_User,
-                    UserActivityLog::Name_User_Create,
-                    "Pengguna '$user->username' telah ditambahkan.",
-                    $user->toArray(),
-                );
-                $message = "Pengguna {$user->username} telah ditambahkan.";
-            } else {
-                $this->userActivityLogService->log(
-                    UserActivityLog::Category_User,
-                    UserActivityLog::Name_User_Update,
-                    "Pengguna '$user->username' telah diperbarui.",
-                    [
-                        'new_data' => $user->toArray(),
-                        'old_data' => $oldData,
-                    ]
-                );
-                $message = "Pengguna {$user->username} telah diperbarui.";
-            }
-
-            DB::commit();
-
-            return redirect(route('admin.user.index'))->with('success', $message);
-        } catch (\Throwable $e) {
-            DB::rollBack();
             return redirect(route('admin.user.index'))->with('error', 'Terjadi kesalahan. Gagal menyimpan pengguna. Silakan coba lagi.');
         }
     }
@@ -252,33 +163,27 @@ class UserController extends Controller
      * Hapus pengguna.
      *
      * @param int $id
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
-    public function delete($id)
+    public function delete(int $id): JsonResponse
     {
-        $user = User::findOrFail($id);
-
-        if ($user->id == Auth::user()->id) {
-            return JsonResponseHelper::error('Tidak dapat menghapus akun sendiri!', 409);
-        }
+        $authUserId = Auth::id();
 
         try {
-            DB::beginTransaction();
-            $user->delete();
-
-            $this->userActivityLogService->log(
-                UserActivityLog::Category_User,
-                UserActivityLog::Name_User_Delete,
-                "Pengguna '$user->username' telah dihapus.",
-                $user->toArray(),
-            );
-
-            DB::commit();
+            // Delegasikan logika penghapusan ke Service
+            $user = $this->userService->delete($id, $authUserId);
 
             return JsonResponseHelper::success($user, "Pengguna {$user->username} telah dihapus!");
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            return JsonResponseHelper::error("Gagal menghapus pengguna $user->username", 500, $e);
+        } catch (Exception $e) {
+            // Pengecualian khusus untuk "Tidak dapat menghapus akun sendiri" (kode 409)
+            if ($e->getCode() === 409) {
+                return JsonResponseHelper::error($e->getMessage(), 409);
+            }
+
+            // Logging untuk kegagalan penghapusan umum
+            Log::error("Gagal menghapus pengguna ID: {$id}. Exception: " . $e->getMessage(), ['exception' => $e]);
+
+            return JsonResponseHelper::error("Gagal menghapus pengguna. Silakan coba lagi.", 500, $e);
         }
     }
 }

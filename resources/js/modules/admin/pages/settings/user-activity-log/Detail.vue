@@ -201,7 +201,13 @@ const deleteItem = () =>
                                   <template
                                     v-for="(subItem, subIndex) in item.value"
                                   >
-                                    <tr>
+                                    <tr
+                                      :class="
+                                        subItem.new_value !== subItem.old_value
+                                          ? 'value-changed'
+                                          : ''
+                                      "
+                                    >
                                       <td class="metadata-label">
                                         {{ subItem.field }}
                                       </td>
@@ -311,18 +317,21 @@ const deleteItem = () =>
   text-align: center;
   background-color: #f9f9f9;
   font-weight: bold;
-  padding: 8px 12px;
+  padding: 0px 5px;
   border: 1px solid #eee;
+  color: #666;
 }
 
 .metadata-label,
 .metadata-value {
-  padding: 8px 12px;
+  padding: 0px 5px;
   border: 1px solid #eee;
+  color: #666;
 }
 
 .metadata-label {
   font-weight: bold;
+  color: #666;
 }
 
 /* Text Mono (untuk konsistensi) */
@@ -338,5 +347,12 @@ const deleteItem = () =>
   word-wrap: break-word; /* Properti warisan (legacy) */
   overflow-wrap: break-word; /* Properti standar modern */
   word-break: break-all; /* PALING EFEKTIF: Memaksa pemotongan kata di mana saja */
+}
+
+.value-changed {
+  background: #ff8;
+}
+.value-changed .metadata-value {
+  color: #222;
 }
 </style>
