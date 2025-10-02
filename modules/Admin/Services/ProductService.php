@@ -16,97 +16,85 @@
 
 namespace Modules\Admin\Services;
 
+use App\Exceptions\ModelInUseException;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\StockMovement;
 use App\Models\Supplier;
-use Illuminate\Database\Eloquent\Builder;
+use App\Models\UserActivityLog;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class ProductService
 {
-    // Definisikan konstanta untuk kolom yang diizinkan untuk pengurutan
-    public const ALLOWED_SORT_COLUMNS = [
-        'id',
-        'name',
-        'barcode',
-        'price',
-        'cost',
-        'type',
-        'created_at',
-        'updated_at',
-        'category_id',
-        'supplier_id'
-    ];
-
+    public function __construct(
+        protected UserActivityLogService $userActivityLogService,
+        protected DocumentVersionService $documentVersionService,
+    ) {}
     /**
      * Get a query builder for products with various filters and options.
      *
-     * @param  array  $filters Array of filters (e.g., search, category_id, type, stock_status, status)
+     * @param  array  $filter Array of filters (e.g., search, category_id, type, stock_status, status)
      * @param  array  $options Array of options (e.g., order_by, order_type)
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return LengthAwarePaginator
      */
-    public function getProductsQuery(array $filters = [], array $options = []): Builder
+    public function getData(array $options): LengthAwarePaginator
     {
+        $filter = $options['filter'];
         $query = Product::query()->with(['supplier', 'category']);
 
-        if (isset($filters['search']) && $filters['search']) {
-            $query->where(function ($q) use ($filters) {
-                $q->where('name', 'like', '%' . $filters['search'] . '%');
-                $q->orWhere('description', 'like', '%' . $filters['search'] . '%');
-                $q->orWhere('notes', 'like', '%' . $filters['search'] . '%');
-                $q->orWhere('barcode', 'like', '%' . $filters['search'] . '%');
+        if (isset($filter['search']) && $filter['search']) {
+            $query->where(function ($q) use ($filter) {
+                $q->where('name', 'like', '%' . $filter['search'] . '%');
+                $q->orWhere('description', 'like', '%' . $filter['search'] . '%');
+                $q->orWhere('notes', 'like', '%' . $filter['search'] . '%');
+                $q->orWhere('barcode', 'like', '%' . $filter['search'] . '%');
             });
         }
 
-        if (isset($filters['type']) && $filters['type'] != 'all') {
-            $query->where('type', '=', $filters['type']);
+        if (isset($filter['type']) && $filter['type'] != 'all') {
+            $query->where('type', '=', $filter['type']);
         }
 
-        if (isset($filters['stock_status']) && $filters['stock_status'] != 'all') {
-            if ($filters['stock_status'] == 'low') {
+        if (isset($filter['stock_status']) && $filter['stock_status'] != 'all') {
+            if ($filter['stock_status'] == 'low') {
                 $query->whereColumn('stock', '<', 'min_stock')->where('stock', '!=', 0);
-            } elseif ($filters['stock_status'] == 'out') {
+            } elseif ($filter['stock_status'] == 'out') {
                 $query->where('stock', '=', 0);
-            } elseif ($filters['stock_status'] == 'over') {
+            } elseif ($filter['stock_status'] == 'over') {
                 $query->whereColumn('stock', '>', 'max_stock');
-            } elseif ($filters['stock_status'] == 'ready') {
+            } elseif ($filter['stock_status'] == 'ready') {
                 $query->where('stock', '>', 0);
             }
         }
 
         // Filter by category
-        if (isset($filters['category_id']) && $filters['category_id'] != 'all') {
-            $query->where('category_id', '=', $filters['category_id']);
+        if (isset($filter['category_id']) && $filter['category_id'] != 'all') {
+            if ($filter['category_id'] == 'null') {
+                $query->whereNull('category_id');
+            } else {
+                $query->where('category_id', '=', $filter['category_id']);
+            }
         }
 
         // Filter by supplier
-        if (isset($filters['supplier_id']) && $filters['supplier_id'] != 'all') {
-            $query->where('supplier_id', '=', $filters['supplier_id']);
+        if (isset($filter['supplier_id']) && $filter['supplier_id'] != 'all') {
+            if ($filter['supplier_id'] == 'null') {
+                $query->whereNull('supplier_id');
+            } else {
+                $query->where('supplier_id', '=', $filter['supplier_id']);
+            }
         }
 
         // Filter by active status
-        if (isset($filters['status']) && ($filters['status'] == 'active' || $filters['status'] == 'inactive')) {
-            $query->where('active', '=', $filters['status'] == 'active');
+        if (isset($filter['status']) && ($filter['status'] == 'active' || $filter['status'] == 'inactive')) {
+            $query->where('active', '=', $filter['status'] == 'active');
         }
 
-        $orderBy = $options['order_by'] ?? 'name'; // Default sort column
-        $orderType = strtolower($options['order_type'] ?? 'asc'); // Default sort type, pastikan lowercase
+        $query->orderBy($options['order_by'], $options['order_type']);
 
-        // Validasi kolom pengurutan menggunakan konstanta
-        if (!in_array($orderBy, self::ALLOWED_SORT_COLUMNS)) {
-            $orderBy = 'name'; // Fallback ke default jika kolom tidak valid
-        }
-
-        // Validasi tipe pengurutan
-        if (!in_array($orderType, ['asc', 'desc'])) {
-            $orderType = 'asc'; // Fallback ke default jika tipe tidak valid
-        }
-
-        $query->orderBy($orderBy, $orderType);
-
-        return $query;
+        return $query->paginate($options['per_page'])->withQueryString();
     }
 
     /**
@@ -117,7 +105,14 @@ class ProductService
      */
     public function find(int $id): ?Product
     {
-        return Product::with(['category', 'supplier', 'creator', 'updater'])->find($id);
+        return Product::with(['category', 'supplier', 'creator', 'updater'])->findOrFail($id);
+    }
+
+    public function findOrCreate($id = null)
+    {
+        return $id ? $this->find($id) : new Product(
+            ['active' => 1, 'type' => Product::Type_Stocked]
+        );
     }
 
     /**
@@ -136,100 +131,114 @@ class ProductService
     /**
      * Create or update a product and handle stock movement.
      *
-     * @param \App\Models\Product $product Product instance to save.
+     * @param \App\Models\Product $item Product instance to save.
      * @param array $data Data for the product.
-     * @return bool|array
+     * @return Product
      */
-    public function save(Product $product, array $data): bool|array
+    public function save(array $data): bool|Product
     {
-        $oldStock = $product->stock;
-        $isNewProduct = !!$product->id;
+        $item = $this->findOrCreate($data['id']);
+        $isNew = !$item->id;
+        $oldStock = $item->stock;
+        $oldData = $isNew ? [] : $item->toArray();
 
-        $product->fill($data);
+        $item->fill($data);
 
-        $changedFields = $product->getDirty();
-
-        if (empty($changedFields)) {
+        if (empty($item->getDirty())) {
             return false;
         }
 
-        $product->save();
+        $item->save();
 
-        $newStock = $product->stock;
+        $newStock = $item->stock;
 
-        if (isset($data['stock']) && $product->type === Product::Type_Stocked) {
-            $refType = $isNewProduct ? StockMovement::RefType_InitialStock : StockMovement::RefType_ManualAdjustment;
-            $quantityBefore = $isNewProduct ? 0 : $oldStock;
-            $quantity = $isNewProduct ? $newStock : $newStock - $oldStock;
+        if (isset($data['stock']) && $item->type === Product::Type_Stocked) {
+            $refType = $isNew ? StockMovement::RefType_InitialStock : StockMovement::RefType_ManualAdjustment;
+            $quantityBefore = $isNew ? 0 : $oldStock;
+            $quantity = $isNew ? $newStock : $newStock - $oldStock;
 
             if ($quantityBefore != $newStock) {
                 StockMovement::create([
                     'ref_type' => $refType,
-                    'product_id' => $product->id,
-                    'product_name' => $product->name,
-                    'uom' => $product->uom,
+                    'product_id' => $item->id,
+                    'product_name' => $item->name,
+                    'uom' => $item->uom,
                     'quantity_before' => $quantityBefore,
                     'quantity_after' => $newStock,
                     'quantity' => $quantity,
-                    'notes' => $isNewProduct ? 'Stok awal' : 'Edit stok manual',
+                    'notes' => $isNew ? 'Stok awal' : 'Edit stok manual',
                 ]);
             }
         }
 
-        return $changedFields;
-    }
+        $this->documentVersionService->createVersion($item);
 
-    /**
-     * Create a new product and handle stock movement.
-     *
-     * @param array $data
-     * @return \App\Models\Product
-     * @throws \Exception
-     */
-    public function createProduct(array $data): Product
-    {
-        return $this->save($data);
-    }
+        if ($isNew) {
+            $this->userActivityLogService->log(
+                UserActivityLog::Category_Product,
+                UserActivityLog::Name_Product_Create,
+                "Produk $item->name berhasil dibuat.",
+                [
+                    'formatter' => 'product',
+                    'data' => $item->toArray(),
+                ],
+            );
+        } else {
+            $this->userActivityLogService->log(
+                UserActivityLog::Category_Product,
+                UserActivityLog::Name_Product_Update,
+                "Produk $item->name berhasil diperbarui.",
+                [
+                    'formatter' => 'product',
+                    'new_data' => $item->toArray(),
+                    'old_data' => $oldData,
+                ],
+            );
+        }
 
-    /**
-     * Update an existing product and handle stock movement.
-     *
-     * @param \App\Models\Product $product
-     * @param array $data
-     * @return \App\Models\Product
-     * @throws \Exception
-     */
-    public function updateProduct(Product $product, array $data): Product
-    {
-        return $this->save($data, $product);
+        return $item;
     }
 
     /**
      * Delete a product.
      *
-     * @param \App\Models\Product $product
+     * @param \App\Models\Product $item
      * @return bool|null
      * @throws \Exception
      */
-    public function deleteProduct(Product $product): ?bool
+    public function delete(Product $item): ?bool
     {
-        DB::beginTransaction();
-        try {
-            // Opsional: Hapus juga StockMovement terkait jika diperlukan
-            // StockMovement::where('product_id', $product->id)->delete();
+        if ($item->isUsedInTransactions()) {
+            throw new ModelInUseException("Produk tidak dapat dihapus karena sudah digunakan di transaksi.");
+        }
 
-            $result = $product->delete();
+        try {
+            DB::beginTransaction();
+
+            // Opsional: Hapus juga StockMovement terkait jika diperlukan
+            // StockMovement::where('product_id', $item->id)->delete();
+
+            $result = $item->delete();
+
+            $this->documentVersionService->createDeletedVersion($item);
+
+            $this->userActivityLogService->log(
+                UserActivityLog::Category_Product,
+                UserActivityLog::Name_Product_Delete,
+                "Produk $item->name berhasil dihapus.",
+                [
+                    'formatter' => 'product',
+                    'data' => $item->toArray(),
+                ],
+            );
+
             DB::commit();
+
             return $result;
         } catch (\Exception $e) {
             DB::rollBack();
             throw $e;
         }
-    }
-
-    public function isProductUsedInTransactions(Product $product): bool
-    {
-        return $product->isUsedInTransactions();
     }
 
     public function import($file)
@@ -261,7 +270,7 @@ class ProductService
                 ]);
 
                 // Siapkan data produk
-                $productData = [
+                $itemData = [
                     'description' => trim($row['description']),
                     'cost'        => $row['cost'],
                     'price'       => $row['price'],
@@ -276,8 +285,14 @@ class ProductService
                 Product::firstOrCreate([
                     'barcode' => $row['barcode'],
                     'name'    => trim($row['name']),
-                ], $productData);
+                ], $itemData);
             }
+
+            $this->userActivityLogService->log(
+                UserActivityLog::Category_Product,
+                UserActivityLog::Name_Product_Import,
+                "Produk berhasil diimport."
+            );
 
             DB::commit();
             fclose($handle);

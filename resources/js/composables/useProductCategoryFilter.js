@@ -10,7 +10,11 @@ export function useProductCategoryFilter(
   }));
 
   const categories = includeAllOption
-    ? [{ value: "all", label: "Semua" }, ...baseCategories]
+    ? [
+        { value: "all", label: "Semua" },
+        { value: "null", label: "Tanpa Kategori" },
+        ...baseCategories,
+      ]
     : baseCategories;
 
   const filteredCategories = ref([...categories]);

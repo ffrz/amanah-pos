@@ -40,6 +40,7 @@ class SaveRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
+            'id'      => $this->id ?? null,
             'notes'   => $this->input('notes') ?? '',
         ]);
     }

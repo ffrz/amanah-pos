@@ -6,7 +6,11 @@ export function useSupplierFilter(suppliersRaw, includeAllOption = false) {
   });
 
   const suppliers = includeAllOption
-    ? [{ value: "all", label: "Semua" }, ...baseSuppliers]
+    ? [
+        { value: "all", label: "Semua" },
+        { value: "null", label: "Tanpa Supplier" },
+        ...baseSuppliers,
+      ]
     : baseSuppliers;
 
   const filteredSuppliers = ref([...suppliers]);

@@ -25,6 +25,7 @@ use Modules\Admin\Services\ProductService;
 use Illuminate\Http\JsonResponse;
 use App\Http\Resources\ProductResource;
 use Illuminate\Support\Facades\Request;
+use Modules\Admin\Http\Requests\Product\SaveRequest;
 
 class ProductController extends Controller
 {
@@ -110,11 +111,11 @@ class ProductController extends Controller
      * @param  \App\Http\Requests\Api\Product\SaveProductRequest  $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function store(Request $request): JsonResponse
+    public function store(SaveRequest $request): JsonResponse
     {
         try {
             // Memanggil saveProduct tanpa instance produk untuk membuat yang baru
-            $product = $this->productService->saveProduct($request->validated());
+            $product = $this->productService->save($request->validated());
             $product->load(['category', 'supplier']); // Eager load untuk response resource
 
             // Mengembalikan single ProductResource dengan status 201 Created

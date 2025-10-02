@@ -20,7 +20,7 @@ class SaveRequest extends FormRequest
         $passwordProvided = !empty($this->input('password'));
 
         $rules = [
-            'id'       => ['nullable', 'integer', 'exists:users,id'],
+            'id' => 'nullable|integer|exists:users,id',
             'username' => [
                 'required',
                 'alpha_num',
@@ -54,5 +54,12 @@ class SaveRequest extends FormRequest
             'password.required' => 'Password wajib diisi saat membuat pengguna atau saat mengubah password.',
             'password.min' => 'Password minimal harus :min karakter.',
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'id'          => $this->id ?? null,
+        ]);
     }
 }

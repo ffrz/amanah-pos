@@ -23,14 +23,23 @@ class SaveRequest extends FormRequest
         $terminalId = $this->route('id') ?? $this->input('id');
 
         $rules = [
-            'name'                 => 'required|string|max:40|unique:cashier_terminals,name' . ($terminalId ? ',' . $terminalId : ''),
-            'location'             => 'nullable|max:255',
-            'notes'                => 'nullable|max:255',
-            'active'               => 'required|boolean',
+            'id'       => 'nullable|integer|exists:cashier_terminals,id',
+            'name'     => 'required|string|max:40|unique:cashier_terminals,name' . ($terminalId ? ',' . $terminalId : ''),
+            'location' => 'nullable|max:255',
+            'notes'    => 'nullable|max:255',
+            'active'   => 'required|boolean',
+
             // Gunakan required_unless untuk menangani kasus 'new'
-            'finance_account_id'   => 'required_unless:finance_account_id,new|nullable|exists:finance_accounts,id',
+            'finance_account_id' => 'required_unless:finance_account_id,new|nullable|exists:finance_accounts,id',
         ];
 
         return $rules;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'id' => $this->input('id') ?? null,
+        ]);
     }
 }

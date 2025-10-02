@@ -25,6 +25,7 @@ class SaveRequest extends FormRequest
         $itemId = $this->route('id') ?? $this->id;
 
         return [
+            'id' => 'nullable|integer|exists:product_categories,id',
             'name' => [
                 'required',
                 'max:255',
@@ -32,5 +33,12 @@ class SaveRequest extends FormRequest
             ],
             'description' => 'nullable|max:200',
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'id'          => $this->id ?? null,
+        ]);
     }
 }

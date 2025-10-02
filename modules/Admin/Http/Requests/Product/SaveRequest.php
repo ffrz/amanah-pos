@@ -22,15 +22,6 @@ use App\Models\Product; // Import Product model untuk Product::Types
 
 class SaveRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     *
-     * @return bool
-     */
-    public function authorize(): bool
-    {
-        return $this->user() !== null;
-    }
 
     /**
      * Get the validation rules that apply to the request.
@@ -42,6 +33,7 @@ class SaveRequest extends FormRequest
         $productId = $this->input('id');
 
         return [
+            'id' => 'nullable|integer|exists:products,id',
             'category_id' => ['nullable', Rule::exists('product_categories', 'id')],
             'supplier_id' => ['nullable', Rule::exists('suppliers', 'id')],
             'type' => ['nullable', Rule::in(array_keys(Product::Types))],
@@ -79,5 +71,16 @@ class SaveRequest extends FormRequest
             'supplier_id.exists' => 'Pemasok yang dipilih tidak ditemukan.',
             'name.unique' => 'Nama produk sudah digunakan.',
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'id'          => $this->id ?? null,
+            'description' => $this->description ?? '',
+            'barcode'     => $this->barcode ?? '',
+            'notes'       => $this->notes ?? '',
+            'uom'         => $this->uom ?? '',
+        ]);
     }
 }

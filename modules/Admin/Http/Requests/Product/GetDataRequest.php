@@ -39,7 +39,7 @@ class GetDataRequest extends FormRequest
     {
         return [
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
-            'order_by' => ['nullable', 'string', 'in:id,name,barcode,price,cost,type'], // Kolom yang bisa diurutkan
+            'order_by' => ['nullable', 'string', 'in:id,name,barcode,price_1,price_2,price_3,cost,type'],
             'order_type' => ['nullable', 'string', 'in:asc,desc'],
 
             // Filters (semua filter, termasuk search, ada di sini)

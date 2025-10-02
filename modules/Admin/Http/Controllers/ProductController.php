@@ -16,32 +16,39 @@
 
 namespace Modules\Admin\Http\Controllers;
 
+use App\Exceptions\ModelInUseException;
+use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
-use App\Models\Product;
-use App\Models\UserActivityLog;
-
+use Exception;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Modules\Admin\Http\Requests\Product\GetDataRequest;
 use Modules\Admin\Http\Requests\Product\SaveRequest;
 use Modules\Admin\Services\CommonDataService;
-use Modules\Admin\Services\DocumentVersionService;
 use Modules\Admin\Services\ProductService;
-use Modules\Admin\Services\UserActivityLogService;
-
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
+use Inertia\Response;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Pagination\LengthAwarePaginator;
 
+/**
+ * Mengelola semua operasi yang berkaitan dengan Produk (CRUD, Data, Import).
+ * Bertindak sebagai lapisan jembatan antara permintaan HTTP dan lapisan Service.
+ */
 class ProductController extends Controller
 {
     public function __construct(
         protected ProductService $productService,
         protected CommonDataService $commonDataService,
-        protected UserActivityLogService $userActivityLogService,
-        protected DocumentVersionService $documentVersionService,
     ) {}
 
-    public function index()
+    /**
+     * Menampilkan halaman indeks daftar produk.
+     * * @return Response
+     */
+    public function index(): Response
     {
         return Inertia::render('product/Index', [
             'categories' => $this->commonDataService->getProductCategories(),
@@ -49,159 +56,137 @@ class ProductController extends Controller
         ]);
     }
 
-    public function detail($id = 0)
+    /**
+     * Menampilkan halaman detail produk.
+     * * @param int $id ID Produk.
+     * @return Response|RedirectResponse
+     */
+    public function detail(int $id = 0): Response|RedirectResponse
     {
-        $item = $this->productService->find($id);
+        try {
+            $item = $this->productService->find($id);
 
-        if (!$item) {
-            return redirect()->route('admin.product.index')
-                ->with('error', 'Produk tidak ditemukan.');
+            return Inertia::render('product/Detail', [
+                'data' => $item,
+            ]);
+        } catch (ModelNotFoundException $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        } catch (Exception $e) {
+            throw $e;
         }
-
-        return Inertia::render('product/Detail', [
-            'data' => $item,
-        ]);
     }
 
     /**
-     * Get paginated product data for Inertia table.
+     * Mengambil data produk berpaginasi untuk tabel Inertia.
      *
-     * @param \Modules\Admin\Http\Requests\Product\GetDataRequests $request
-     * @return \Illuminate\Pagination\LengthAwarePaginator
+     * @param GetDataRequest $request Permintaan yang divalidasi.
+     * @return LengthAwarePaginator
      */
-    public function data(GetDataRequest $request)
+    public function data(GetDataRequest $request): LengthAwarePaginator
     {
-        $options = $request->validated();
-        $productsQuery = $this->productService->getProductsQuery($options['filter'] ?? [], $options);
-        return $productsQuery->paginate($options['per_page'] ?? 10)->withQueryString();
-    }
-
-    public function duplicate($id)
-    {
-        $item = $this->productService->find($id);
-
-        if (!$item) {
-            return redirect()->route('admin.product.index')->with('error', 'Produk tidak ditemukan.');
-        }
-
-        $item->id = null;
-        $item->exists = false;
-
-        return Inertia::render('product/Editor', [
-            'data' => $item,
-            'categories' => $this->commonDataService->getProductCategories(),
-            'suppliers' => $this->commonDataService->getSuppliers(),
-        ]);
-    }
-
-    public function editor($id = 0)
-    {
-        $item = $id ? $this->productService->find($id) : new Product(
-            ['active' => 1, 'type' => Product::Type_Stocked]
-        );
-
-        if ($id && !$item) {
-            return redirect()->route('admin.product.index')->with('error', 'Product not found for editing.');
-        }
-
-        return Inertia::render('product/Editor', [
-            'data' => $item,
-            'categories' => $this->commonDataService->getProductCategories(),
-            'suppliers' => $this->commonDataService->getSuppliers(),
-        ]);
+        return $this->productService->getData($request->validated());
     }
 
     /**
-     * Save (create or update) a product.
+     * Memuat produk yang sudah ada ke dalam form editor untuk diduplikasi.
      *
-     * @param \Modules\Admin\Http\Requests\Product\SaveRequest $request
-     * @return \Illuminate\Http\RedirectResponse
+     * @param int $id ID Produk yang akan diduplikasi.
+     * @return Response|RedirectResponse
      */
-    public function save(SaveRequest $request)
+    public function duplicate(int $id): Response|RedirectResponse
+    {
+        try {
+            $item = $this->productService->find($id);
+            // Menghilangkan ID agar dianggap sebagai entitas baru saat disave
+            $item->id = null;
+
+            return Inertia::render('product/Editor', [
+                'data' => $item,
+                'categories' => $this->commonDataService->getProductCategories(),
+                'suppliers' => $this->commonDataService->getSuppliers(),
+            ]);
+        } catch (ModelNotFoundException $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+
+    /**
+     * Menampilkan form editor untuk membuat atau mengedit produk.
+     *
+     * @param int $id ID Produk, atau 0 untuk produk baru.
+     * @return Response|RedirectResponse
+     */
+    public function editor(int $id = 0): Response|RedirectResponse
+    {
+        try {
+            $item = $this->productService->findOrCreate($id);
+
+            return Inertia::render('product/Editor', [
+                'data' => $item,
+                'categories' => $this->commonDataService->getProductCategories(),
+                'suppliers' => $this->commonDataService->getSuppliers(),
+            ]);
+        } catch (ModelNotFoundException $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+
+    /**
+     * Menyimpan (membuat atau memperbarui) produk.
+     *
+     * @param SaveRequest $request Permintaan yang divalidasi.
+     * @return RedirectResponse
+     */
+    public function save(SaveRequest $request): RedirectResponse
     {
         $validated = $request->validated();
-        $validated['description'] = $validated['description'] ?? '';
-        $validated['barcode'] = $validated['barcode'] ?? '';
-        $validated['notes'] = $validated['notes'] ?? '';
-        $validated['uom'] = $validated['uom'] ?? '';
-
-        $item = $request->id ? $this->productService->find($request->input('id')) : new Product();
-        $oldValue = $item->getAttributes();
-
         try {
-            DB::beginTransaction();
-
-            $changes = $this->productService->save($item, $validated);
-            if (!$changes) {
-                DB::rollBack();
-                return redirect(route('admin.product.index'))
-                    ->with('success', "Tidak ada perubahan data");
-            }
-
-            // versioning
-            $this->documentVersionService->createVersion($item);
-
-            // logging
-            if (!$oldValue) {
-                $this->userActivityLogService->log(
-                    UserActivityLog::Category_Product,
-                    UserActivityLog::Name_Product_Create,
-                    "Produk $item->name berhasil dibuat.",
-                    $changes
-                );
-            } else {
-                $this->userActivityLogService->log(
-                    UserActivityLog::Category_Product,
-                    UserActivityLog::Name_Product_Update,
-                    "Produk $item->name berhasil diperbarui.",
-                    $changes
-                );
-            }
-            DB::commit();
-
+            $item = $this->productService->save($validated);
             return redirect(route('admin.product.index'))
                 ->with('success', "Produk $item->name telah disimpan.");
         } catch (\Exception $e) {
+            // Rollback dan logging jika terjadi kesalahan di service (misal, DB error)
             DB::rollBack();
-            Log::error("Gagal menyimpan produk $item->id", $e);
+            Log::error("Gagal menyimpan produk $request->id", ['exception' => $e]);
         }
 
         return redirect()->back()->withInput()
             ->with('error', 'Gagal menyimpan produk.');
     }
 
-    public function delete($id)
+    /**
+     * Menghapus produk yang spesifik.
+     * * @param int $id ID Produk.
+     * @return \Illuminate\Http\JsonResponse Mengembalikan JSON Response karena ini endpoint yang sering dipanggil via AJAX.
+     */
+    public function delete(int $id): \Illuminate\Http\JsonResponse
     {
-        $item = $this->productService->find($id);
-        if (!$item) {
-            return redirect()->back()->with('error', 'Product tidak ditemukan.');
-        }
-
-        if ($this->productService->isProductUsedInTransactions($item)) {
-            return redirect()->back()->with('error', 'Produk ini tidak dapat dihapus karena sudah digunakan dalam transaksi.');
-        }
-
         try {
-            $this->productService->deleteProduct($item);
-
-            $this->userActivityLogService->log(
-                UserActivityLog::Category_Product,
-                UserActivityLog::Name_Product_Delete,
-                "Produk $item->name berhasil dihapus.",
-                $item->toArray(),
-            );
-
-            return redirect(route('admin.product.index'))
-                ->with('success', "Produk $item->name telah dihapus.");
+            $item = $this->productService->find($id);
+            $this->productService->delete($item);
+            return JsonResponseHelper::success("Produk $item->name telah dihapus.");
+        } catch (ModelNotFoundException $e) {
+            return JsonResponseHelper::error($e->getMessage(), 404);
+        } catch (ModelInUseException $e) {
+            // Error khusus jika produk tidak dapat dihapus karena sudah digunakan dalam transaksi
+            return JsonResponseHelper::error($e->getMessage(), 409);
         } catch (\Exception $e) {
-            Log::error("Gagal menghapus produk $item->id - $item->name.", $e->getMessage());
+            Log::error("Gagal menghapus produk $id.", ['exception' => $e]);
+            return JsonResponseHelper::error("Terdapat kesalahan saat menhapus produk.", 500, $e);
         }
-
-        return redirect(route('admin.product.index'))
-            ->with('error', "Gagal menghapus produk $item->name");
     }
 
-    public function import(Request $request)
+    /**
+     * Menampilkan form import CSV (GET) atau memproses file CSV (POST).
+     *
+     * @param Request $request
+     * @return Response|RedirectResponse
+     */
+    public function import(Request $request): Response|RedirectResponse
     {
         if ($request->getMethod() === Request::METHOD_POST) {
             $request->validate([
@@ -213,12 +198,6 @@ class ProductController extends Controller
             if (!$this->productService->import($file)) {
                 return redirect()->back()->with('error', 'Gagal mengimpor data.');
             }
-
-            $this->userActivityLogService->log(
-                UserActivityLog::Category_Product,
-                UserActivityLog::Name_Product_Import,
-                "Produk berhasil diimport."
-            );
 
             return redirect()->back()->with('success', 'Data produk berhasil diimpor!');
         }
