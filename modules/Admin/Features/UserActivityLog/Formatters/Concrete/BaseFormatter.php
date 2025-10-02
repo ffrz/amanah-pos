@@ -4,6 +4,7 @@ namespace Modules\Admin\Features\UserActivityLog\Formatters\Concrete;
 
 use Modules\Admin\Features\UserActivityLog\Contracts\MetaDataFormatterInterface;
 use Carbon\Carbon;
+use PhpOffice\PhpSpreadsheet\Writer\Ods\Meta;
 
 class BaseFormatter implements MetaDataFormatterInterface
 {
@@ -21,8 +22,9 @@ class BaseFormatter implements MetaDataFormatterInterface
                 'value' => $this->processChanges($metaData['old_data'], $metaData['new_data'], $mapping),
                 'type' => 'comparison'
             ];
-        } else if (isset($metaData['data'])) {
-            foreach ($metaData['data'] as $key => $value) {
+        } else if (isset($metaData['data']) || isset($metaData['new_data'])) {
+            $data = isset($metaData['data']) ? $metaData['data'] : $metaData['new_data'];
+            foreach ($data as $key => $value) {
                 if (!isset($mapping[$key])) continue;
 
                 $output[] = [

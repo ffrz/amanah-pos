@@ -21,6 +21,7 @@ class UserActivityLog extends Model
     public const Category_Settings = 'settings';
     public const Category_UserProfile = 'user-profile';
     public const Category_User = 'user';
+    public const Category_UserRole = 'user-role';
     public const Category_Product = 'product';
     public const Category_ProductCategory = 'product-category';
     public const Category_Supplier = 'supplier';
@@ -43,6 +44,7 @@ class UserActivityLog extends Model
         self::Category_Settings => 'Pengaturan Sistem',
         self::Category_UserProfile => 'Profil Pengguna',
         self::Category_User => 'Manajemen Pengguna',
+        self::Category_UserRole => 'Manajemen Peran Pengguna',
         self::Category_Product => 'Manajemen Produk',
         self::Category_ProductCategory => 'Manajemen Kategori Produk',
         self::Category_Supplier => 'Manajemen Pemasok',

@@ -107,19 +107,24 @@ class UserRoleService
             $role->save();
             $role->syncPermissions($permissions);
 
+            $role->permissions; // untuk save ke log harus fetch permissions lagi
             if (!$isUpdate) {
                 $this->userActivityLogService->log(
-                    UserActivityLog::Category_Settings,
+                    UserActivityLog::Category_UserRole,
                     UserActivityLog::Name_UserRole_Create,
                     "Peran pengguna '{$role->name}' telah ditambahkan.",
-                    $role->toArray(),
+                    [
+                        'formatter' => 'user-role',
+                        'new_data' => $role->toArray(),
+                    ],
                 );
             } else {
                 $this->userActivityLogService->log(
-                    UserActivityLog::Category_Settings,
+                    UserActivityLog::Category_UserRole,
                     UserActivityLog::Name_UserRole_Update,
                     "Peran pengguna '{$role->name}' telah diperbarui.",
                     [
+                        'formatter' => 'user-role',
                         'new_data' => $role->toArray(),
                         'old_data' => $oldData,
                     ]
@@ -147,14 +152,16 @@ class UserRoleService
         try {
             $role = Role::with(['permissions'])->findOrFail($id);
             $roleName = $role->name;
-
             $role->delete();
 
             $this->userActivityLogService->log(
-                UserActivityLog::Category_Settings,
+                UserActivityLog::Category_UserRole,
                 UserActivityLog::Name_UserRole_Delete,
                 "Role $roleName telah dihapus.",
-                $role->toArray(),
+                [
+                    'formatter' => 'user-role',
+                    'data' => $role->toArray(),
+                ]
             );
 
             DB::commit();
