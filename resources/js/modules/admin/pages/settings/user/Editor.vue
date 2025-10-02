@@ -10,6 +10,12 @@ const page = usePage();
 const roles = page.props.roles;
 const title = !!page.props.data.id ? "Edit Pengguna" : "Tambah Pengguna";
 
+// Terapkan mapping di sini untuk memastikan form.roles selalu array of ID integer
+const initialRoles = page.props.data.roles;
+const roleIds = Array.isArray(initialRoles)
+  ? initialRoles.map((role) => role.id)
+  : [];
+
 const form = useForm({
   id: page.props.data.id,
   name: page.props.data.name,
@@ -17,7 +23,8 @@ const form = useForm({
   password: "",
   type: !!page.props.data.type ? page.props.data.type : types[0].value,
   active: !!page.props.data.active,
-  roles: page.props.data.roles ?? [],
+  // Gunakan array ID yang sudah di-map di sini
+  roles: roleIds,
 });
 
 const submit = () => handleSubmit({ form, url: route("admin.user.save") });
@@ -111,8 +118,8 @@ const submit = () => handleSubmit({ form, url: route("admin.user.save") });
                 :disable="form.processing"
                 transition-show="jump-up"
                 transition-hide="jump-up"
-                :error="!!form.errors.roles"
-                :error-message="form.errors.roles"
+                :error="!!form.errors['roles'] || !!form.errors['roles.0']"
+                :error-message="form.errors['roles'] || form.errors['roles.0']"
                 hide-bottom-space
               />
               <StandardCheckBox
