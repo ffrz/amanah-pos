@@ -17,96 +17,99 @@
 namespace Modules\Admin\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
-use App\Models\UserActivityLog;
-use Modules\Admin\Services\UserActivityLogService;
-use Illuminate\Http\Request;
+use Modules\Admin\Services\UserProfileService;
+use Modules\Admin\Http\Requests\User\UpdatePasswordRequest;
+use Modules\Admin\Http\Requests\User\UpdateProfileRequest;
+
+use Exception;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use InvalidArgumentException;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * Controller untuk mengelola tampilan dan pembaruan profil pengguna yang sedang diautentikasi.
+ * Mendelegasikan semua logika bisnis dan transaksi ke UserProfileService.
+ */
 class UserProfileController extends Controller
 {
     /**
-     * @var UserActivityLogService
+     * @var UserProfileService
      */
-    protected $userActivityLogService;
+    protected UserProfileService $userProfileService;
 
-    public function __construct(UserActivityLogService $userActivityLogService)
+    /**
+     * Menggunakan Dependency Injection untuk UserProfileService.
+     *
+     * @param UserProfileService $userProfileService
+     */
+    public function __construct(UserProfileService $userProfileService)
     {
-        $this->userActivityLogService = $userActivityLogService;
+        // Injeksi Service baru
+        $this->userProfileService = $userProfileService;
     }
 
     /**
-     * Display the user's profile form.
+     * Menampilkan formulir profil pengguna.
      */
-    public function edit(Request $request): Response
+    public function edit(): Response
     {
         return Inertia::render('settings/user-profile/Edit');
     }
 
     /**
-     * Update the user's profile information.
+     * Memperbarui informasi profil pengguna.
+     *
+     * Controller hanya menerima Request (setelah divalidasi oleh Form Request) dan mendelegasikan ke Service.
+     *
+     * @param UpdateProfileRequest $request (Gunakan Form Request untuk validasi)
+     * @return RedirectResponse
      */
-    public function update(Request $request)
+    public function update(UpdateProfileRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|min:2|max:100',
-        ]);
-
         /** @var \App\Models\User */
         $user = Auth::user();
-        $oldData = $user->toArray();
-        $user->fill($validated);
 
-        if (empty($user->getDirty())) {
-            return back()->with('warning', 'Tidak ada perubahan yang terdeteksi');
+        try {
+            $this->userProfileService->updateProfile($user, $request->validated());
+
+            return back()->with('success', 'Profil berhasil diperbarui');
+        } catch (InvalidArgumentException $e) {
+            return back()->with('warning', $e->getMessage());
+        } catch (Exception $ex) {
+            Log::error("Gagal memperbarui profil pengguna ID: {$user->id}. Exception: " . $ex->getMessage(), ['exception' => $ex]);
+            return back()->with('error', 'Gagal memperbarui profil. Terjadi kesalahan sistem.');
         }
-
-        DB::beginTransaction();
-        $user->save();
-        $this->userActivityLogService->log(
-            UserActivityLog::Category_UserProfile,
-            UserActivityLog::Name_UserProfile_UpdateProfile,
-            'Data profil telah diperbarui.',
-            [
-                'new_data' => $user->toArray(),
-                'old_data' => $oldData,
-            ]
-        );
-        DB::commit();
-
-        return back()->with('success', 'Profil berhasil diperbarui');
     }
 
     /**
-     * Update the user's password.
+     * Memperbarui kata sandi pengguna.
+     *
+     * Controller hanya menerima Request (setelah divalidasi) dan mendelegasikan ke Service.
+     *
+     * @param UpdatePasswordRequest $request (Gunakan Form Request untuk validasi)
+     * @return RedirectResponse
      */
-    public function updatePassword(Request $request)
+    public function updatePassword(UpdatePasswordRequest $request): RedirectResponse
     {
-        $request->validate([
-            'current_password' => ['required'],
-            'password' => 'required|confirmed|min:5',
-        ]);
+        /** @var \App\Models\User */
+        $user = Auth::user();
 
-        $user = $request->user();
+        try {
+            $this->userProfileService->updatePassword(
+                $user,
+                $request->input('current_password'),
+                $request->input('password')
+            );
 
-        if (! $user || ! Hash::check($request->input('current_password'), $user->password)) {
-            return back()->withErrors(['current_password' => 'Password saat ini salah.']);
+            return back()->with('success', 'Password berhasil diperbarui');
+        } catch (InvalidArgumentException $e) {
+            return back()->withErrors(['current_password' => $e->getMessage()]);
+        } catch (Exception $ex) {
+            Log::error("Gagal memperbarui password pengguna ID: {$user->id}. Exception: " . $ex->getMessage(), ['exception' => $ex]);
+            return back()->with('error', 'Gagal memperbarui password. Terjadi kesalahan sistem.');
         }
-
-        DB::beginTransaction();
-        $user->update([
-            'password' => Hash::make($request->input('password')),
-        ]);
-        $this->userActivityLogService->log(
-            UserActivityLog::Category_UserProfile,
-            UserActivityLog::Name_UserProfile_ChangePassword,
-            'Kata sandi telah diperbarui.',
-        );
-        DB::commit();
-
-        return back()->with('success', 'Password berhasil diperbarui');
     }
 }

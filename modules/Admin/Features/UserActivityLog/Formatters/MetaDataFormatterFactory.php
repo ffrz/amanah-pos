@@ -4,7 +4,9 @@ namespace Modules\Admin\Features\UserActivityLog\Formatters;
 
 use Modules\Admin\Features\UserActivityLog\Contracts\MetaDataFormatterInterface;
 use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\CompanyProfileFormatter;
+use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\DefaultFormatter;
 use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\ProductCategoryFormatter;
+use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\UserProfileFormatter;
 
 class MetaDataFormatterFactory
 {
@@ -12,6 +14,7 @@ class MetaDataFormatterFactory
     protected static array $formatterMap = [
         'product-category' => ProductCategoryFormatter::class,
         'company-profile' => CompanyProfileFormatter::class,
+        'user-profile' => UserProfileFormatter::class,
     ];
 
     /**

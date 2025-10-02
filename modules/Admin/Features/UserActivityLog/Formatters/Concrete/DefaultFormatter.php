@@ -30,4 +30,22 @@ class DefaultFormatter extends BaseFormatter
 
         return $output;
     }
+
+    protected function processChanges(array $old, array $new, array $mapping): array
+    {
+        $changes = [];
+        foreach ($new as $key => $newValue) {
+            $oldValue = $old[$key] ?? null;
+
+            if ($oldValue === $newValue) continue;
+
+            $changes[] = [
+                'field' => $key,
+                'old_value' => $this->formatValue($key, $oldValue),
+                'new_value' => $this->formatValue($key, $newValue),
+            ];
+        }
+
+        return $changes;
+    }
 }
