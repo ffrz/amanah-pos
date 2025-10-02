@@ -92,8 +92,7 @@ class OperationalCostService
             // 2. Tentukan item dan ambil data lama jika mode edit
             if (!empty($validated['id'])) {
                 $item = $this->find($validated['id']);
-                $oldItem = $item->replicate();
-                $oldData = $item->toArray();
+                $oldItem = $item; // Ini gak boleh clone agar relationship gak hilang, gak boleh replicate karena bakalan ngebuang attribute yang dibutuhkan
             } else {
                 $item = new OperationalCost();
             }
