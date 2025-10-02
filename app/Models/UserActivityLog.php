@@ -27,7 +27,8 @@ class UserActivityLog extends Model
     public const Category_Supplier = 'supplier';
     public const Category_Customer = 'customer';
     public const Category_UserActivityLog = 'user-activity-log';
-    public const Category_Finance = 'finance';
+    public const Category_FinanceAccount = 'finance-account';
+    public const Category_FinanceTransaction = 'finance-transaction';
     public const Category_SalesOrder = 'sales-order';
     public const Category_PurchaseOrder = 'purchase-order';
     public const Category_OperationalCost = 'operational-cost';
@@ -41,7 +42,8 @@ class UserActivityLog extends Model
     public const Categories = [
         self::Category_Auth => 'Autentikasi Pengguna',
         self::Category_Inventory => 'Manajemen Inventori',
-        self::Category_Finance => 'Transaksi & Keuangan',
+        self::Category_FinanceAccount => 'Akun Keuangan',
+        self::Category_FinanceTransaction => 'Transaksi Keuangan',
         self::Category_Settings => 'Pengaturan Sistem',
         self::Category_UserProfile => 'Profil Pengguna',
         self::Category_User => 'Manajemen Pengguna',
@@ -210,6 +212,9 @@ class UserActivityLog extends Model
         self::Name_OperationalCostCategory_Update => 'Memperbarui Kategori Biaya Operasional',
         self::Name_OperationalCostCategory_Delete => 'Menghapus Kategori Biaya Operasional',
 
+        self::Name_FinanceAccount_Create => 'Membuat Akun Keuangan',
+        self::Name_FinanceAccount_Update => 'Memperbarui Akun Keuangan',
+        self::Name_FinanceAccount_Delete => 'Menghapus Akun Keuangan',
     ];
 
     // Kolom yang dapat diisi massal

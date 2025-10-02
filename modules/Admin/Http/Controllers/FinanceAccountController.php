@@ -1,34 +1,34 @@
 <?php
 
 /**
- * Proprietary Software / Perangkat Lunak Proprietary
- * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
- * EN: Unauthorized use, copying, modification, or distribution is prohibited.
- * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
- * See the LICENSE file in the project root for full license information.
- * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
- * GitHub: https://github.com/ffrz
- * Email: fahmifauzirahman@gmail.com
- */
+ * Proprietary Software / Perangkat Lunak Proprietary
+ * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
+ *  * EN: Unauthorized use, copying, modification, or distribution is prohibited.
+ * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
+ *  * See the LICENSE file in the project root for full license information.
+ * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
+ *  * GitHub: https://github.com/ffrz
+ * Email: fahmifauzirahman@gmail.com
+ */
 
 namespace Modules\Admin\Http\Controllers;
 
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\FinanceAccount;
-use App\Models\FinanceTransaction;
-use Carbon\Carbon;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Modules\Admin\Http\Requests\FinanceAccount\GetDataRequest;
+use Modules\Admin\Http\Requests\FinanceAccount\SaveRequest;
+use Modules\Admin\Services\FinanceAccountService;
 
 class FinanceAccountController extends Controller
 {
+    public function __construct(protected FinanceAccountService $financeAccountService) {}
+
     public function index()
     {
-        $balance = FinanceAccount::where('active', '=', true)->sum('balance');
+        $balance = $this->financeAccountService->getTotalActiveAccountBalance();
+
         return inertia('finance-account/Index', [
             'totalBalance' => $balance,
         ]);
@@ -36,49 +36,28 @@ class FinanceAccountController extends Controller
 
     public function detail($id = 0)
     {
+        $item = $this->financeAccountService->find($id);
         return inertia('finance-account/Detail', [
-            'data' => FinanceAccount::findOrFail($id),
+            'data' => $item,
         ]);
     }
 
-    public function data(Request $request)
+    /**
+     * Menggunakan Form Request untuk validasi dan penyiapan data query.
+     */
+    public function data(GetDataRequest $request)
     {
-        $orderBy = $request->get('order_by', 'name');
-        $orderType = $request->get('order_type', 'asc');
-        $filter = $request->get('filter', []);
+        // Hanya memanggil Service untuk menjalankan query paginasi
+        $items = $this->financeAccountService->getData(
+            $request->validated()
+        );
 
-        $q = FinanceAccount::query();
-
-        if (!empty($filter['search'])) {
-            $q->where(function ($q) use ($filter) {
-                $q->where('name', 'like', '%' . $filter['search'] . '%');
-                $q->orWhere('bank', 'like', '%' . $filter['search'] . '%');
-                $q->orWhere('holder', 'like', '%' . $filter['search'] . '%');
-                $q->orWhere('number', 'like', '%' . $filter['search'] . '%');
-                $q->orWhere('notes', 'like', '%' . $filter['search'] . '%');
-            });
-        }
-
-        if (!empty($filter['status']) && ($filter['status'] == 'active' || $filter['status'] == 'inactive')) {
-            $q->where('active', '=', $filter['status'] == 'active' ? true : false);
-        }
-
-        if (!empty($filter['type']) && $filter['type'] !== 'all') {
-            $q->where('type', '=', $filter['type']);
-        }
-
-        $q->orderBy($orderBy, $orderType);
-
-        $items = $q->paginate($request->get('per_page', 10))->withQueryString();
-
-        return response()->json($items);
+        return JsonResponseHelper::success($items);
     }
 
     public function duplicate($id)
     {
-        $item = FinanceAccount::findOrFail($id);
-        $item->id = null;
-        $item->created_at = null;
+        $item = $this->financeAccountService->duplicate($id);
         return inertia('finance-account/Editor', [
             'data' => $item,
         ]);
@@ -86,80 +65,47 @@ class FinanceAccountController extends Controller
 
     public function editor($id = 0)
     {
-        $item = $id ? FinanceAccount::findOrFail($id) : new FinanceAccount(['active' => true]);
+        $item = $this->financeAccountService->findOrCreate($id);
         return inertia('finance-account/Editor', [
             'data' => $item,
         ]);
     }
 
-    public function save(Request $request)
+    /**
+     * Menggunakan Form Request untuk validasi input POST/PUT.
+     */
+    public function save(SaveRequest $request)
     {
-        $validated = $request->validate([
-            'name'     => 'required|string|max:40|unique:finance_accounts,name' . ($request->id ? ',' . $request->id : ''),
-            'type'     => 'required|in:' . implode(',', array_keys(FinanceAccount::Types)),
-            'bank'     => 'nullable|string|max:40',
-            'number'   => 'nullable|string|max:20',
-            'holder'   => 'nullable|string|max:100',
-            'balance'  => 'required|numeric',
-            'active'   => 'required|boolean',
-            'show_in_pos_payment' => 'required|boolean',
-            'show_in_purchasing_payment' => 'required|boolean',
-            'has_wallet_access' => 'required|boolean',
-            'notes'    => 'nullable|string|max:255',
-        ]);
+        try {
+            $item = $this->financeAccountService->findOrCreate($request->id);
+            $item = $this->financeAccountService->save(
+                $item,
+                $request->validated()
+            );
 
-        $validated['bank'] = $validated['bank'] ?? '';
-        $validated['number'] = $validated['number'] ?? '';
-        $validated['holder'] = $validated['holder'] ?? '';
-
-        DB::beginTransaction();
-        $item = $request->id ? FinanceAccount::findOrFail($request->id) : new FinanceAccount();
-
-        $isNew = !$request->id;
-        $now = Carbon::now();
-        $oldBalance = $item->balance ?? 0;
-
-        $item->fill($validated);
-        $item->save();
-
-        $newBalance = $item->balance;
-        $balanceDiff = $newBalance - $oldBalance;
-
-        if ($isNew && $newBalance > 0.) {
-            FinanceTransaction::create([
-                'account_id' => $item->id,
-                'datetime' => $now,
-                'type' => FinanceTransaction::Type_Adjustment,
-                'amount'  => $newBalance,
-                'notes' => 'Saldo awal akun',
-            ]);
-        } elseif (!$isNew && $balanceDiff !== 0.) {
-            FinanceTransaction::create([
-                'account_id' => $item->id,
-                'datetime' => $now,
-                'type' => FinanceTransaction::Type_Adjustment, // pastikan enum/konstanta tersedia
-                'amount' => $balanceDiff,
-                'notes' => 'Penyesuaian saldo akun (dari ' . format_number($oldBalance) . ' ke ' . format_number($newBalance) . ')',
-            ]);
+            return redirect(route('admin.finance-account.index'))
+                ->with('success', "Akun $item->name telah disimpan.");
+        } catch (\Throwable $e) {
+            Log::error("Gagal menyimpan akun ID: $request->id", ['exception' => $e]);
         }
-
-        DB::commit();
-
-        return redirect(route('admin.finance-account.index'))
-            ->with('success', "Akun $item->name telah disimpan.");
+        return redirect()->back()->withInput()
+            ->with('error', $e->getMessage());
     }
 
     public function delete($id)
     {
-        $item = FinanceAccount::findOrFail($id);
-        if ($item->isUsedInTransaction()) {
-            return JsonResponseHelper::error('Akun tidak dapat dihapus karena sudah digunakan di transaksi!', 403);
-        }
-        $item->delete();
+        try {
+            $item = $this->financeAccountService->findOrCreate($id);
 
-        return JsonResponseHelper::success(
-            $item,
-            "Akun kas $item->name telah dihapus."
-        );
+            $item = $this->financeAccountService->delete($item);
+
+            return JsonResponseHelper::success(
+                $item,
+                "Akun kas $item->name telah dihapus."
+            );
+        } catch (\Exception $e) {
+            Log::error("Gagal menghapus akun ID: $id", ['execption' => $e]);
+            return JsonResponseHelper::error("Gagal menghapus akun ", 403);
+        }
     }
 }

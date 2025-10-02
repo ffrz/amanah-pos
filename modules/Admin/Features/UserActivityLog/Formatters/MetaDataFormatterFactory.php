@@ -5,6 +5,7 @@ namespace Modules\Admin\Features\UserActivityLog\Formatters;
 use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\DefaultFormatter;
 use Modules\Admin\Features\UserActivityLog\Contracts\MetaDataFormatterInterface;
 use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\CompanyProfileFormatter;
+use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\FinanceAccountFormatter;
 use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\OperationalCostCategoryFormatter;
 use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\OperationalCostFormatter;
 use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\PosSettingsFormatter;
@@ -25,6 +26,7 @@ class MetaDataFormatterFactory
         'user' => UserFormatter::class,
         'operational-cost' => OperationalCostFormatter::class,
         'operational-cost-category' => OperationalCostCategoryFormatter::class,
+        'finance-account' => FinanceAccountFormatter::class,
     ];
 
     /**

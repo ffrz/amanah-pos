@@ -55,7 +55,7 @@ const filter = reactive({
   category_id: "all",
   year: currentYear,
   month: currentMonth,
-...getQueryParams(),
+  ...getQueryParams(),
 });
 const pagination = ref({
   page: 1,
@@ -84,14 +84,12 @@ const columns = [
     label: "Akun",
     field: "account_id",
     align: "left",
-    sortable: true,
   },
   {
     name: "category_id",
     label: "Kategori",
     field: "category_id",
     align: "left",
-    sortable: true,
   },
   {
     name: "description",
