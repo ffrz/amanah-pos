@@ -57,7 +57,7 @@ class CompanyProfileService
         $validatedData['logo_path'] = $newLogoPath ?? '';
 
         // 2. Data yang Akan Disimpan
-        $dataToSave = [
+        $newData = [
             'name'      => $validatedData['name'],
             'headline'  => $validatedData['headline'] ?? '',
             'phone'     => $validatedData['phone'] ?? '',
@@ -66,7 +66,7 @@ class CompanyProfileService
         ];
 
         // 3. Cek Perbedaan (Logika Bisnis)
-        $isDifferent = $this->checkIfDataChanged($oldData, $dataToSave);
+        $isDifferent = $this->checkIfDataChanged($oldData, $newData);
 
         if (!$isDifferent) {
             return false; // Tidak ada perubahan
@@ -75,11 +75,11 @@ class CompanyProfileService
         // 4. Transaksi DB dan Penyimpanan
         DB::beginTransaction();
         try {
-            Setting::setValue('company.name', $dataToSave['name']);
-            Setting::setValue('company.phone', $dataToSave['phone']);
-            Setting::setValue('company.address', $dataToSave['address']);
-            Setting::setValue('company.headline', $dataToSave['headline']);
-            Setting::setValue('company.logo_path', $dataToSave['logo_path']);
+            Setting::setValue('company.name', $newData['name']);
+            Setting::setValue('company.phone', $newData['phone']);
+            Setting::setValue('company.address', $newData['address']);
+            Setting::setValue('company.headline', $newData['headline']);
+            Setting::setValue('company.logo_path', $newData['logo_path']);
 
             Setting::refreshAll();
 
@@ -87,14 +87,17 @@ class CompanyProfileService
                 UserActivityLog::Category_Settings,
                 UserActivityLog::Name_UpdateCompanyProfile,
                 'Pengaturan profil perusahaan telah diperbarui.',
-                ['new_data' => $dataToSave, 'old_data' => $oldData]
+                [
+                    'formatter' => 'company-profile',
+                    'new_data'  => $newData,
+                    'old_data'  => $oldData
+                ]
             );
 
             DB::commit();
             return true;
         } catch (\Exception $e) {
             DB::rollBack();
-            // PENTING: Log error di sini
             throw $e;
         }
     }
@@ -102,13 +105,13 @@ class CompanyProfileService
     /**
      * Membandingkan data lama dan baru untuk menentukan apakah ada perubahan.
      */
-    protected function checkIfDataChanged(array $oldData, array $newDataToSave): bool
+    protected function checkIfDataChanged(array $oldData, array $newData): bool
     {
         $oldComparison = array_diff_key($oldData, ['logo_path' => null]);
-        $newComparison = array_diff_key($newDataToSave, ['logo_path' => null]);
+        $newComparison = array_diff_key($newData, ['logo_path' => null]);
 
         $diffScalar = !empty(array_diff($oldComparison, $newComparison));
-        $diffLogo = $oldData['logo_path'] !== $newDataToSave['logo_path'];
+        $diffLogo = $oldData['logo_path'] !== $newData['logo_path'];
 
         return $diffScalar || $diffLogo;
     }

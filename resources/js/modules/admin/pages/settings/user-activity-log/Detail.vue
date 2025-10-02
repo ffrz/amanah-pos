@@ -151,19 +151,19 @@ const deleteItem = () =>
                     v-if="Object.keys(page.props.data.metadata).length > 0"
                   >
                     <table class="table-metadata">
-                      <thead>
-                        <tr>
-                          <td class="metadata-header">Bidang</td>
-
-                          <td class="metadata-header">Nilai</td>
-                        </tr>
-                      </thead>
-
                       <tbody>
                         <template
                           v-for="(item, index) in page.props.formatted_metadata"
                           :key="index"
                         >
+                          <tr v-if="item.type === 'plain'">
+                            <td colspan="100%">
+                              <pre class="text-mono json-pre-scroll">{{
+                                item.value
+                              }}</pre>
+                            </td>
+                          </tr>
+
                           <tr v-if="item.type === 'simple'">
                             <td class="metadata-label">
                               {{ item.label }}
@@ -297,6 +297,7 @@ const deleteItem = () =>
   margin: 0;
   padding: 5px;
   box-sizing: border-box;
+  background: #eee;
 }
 
 /* Tabel Metadata (Min-width untuk memaksa scroll) */

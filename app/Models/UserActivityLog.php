@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use InvalidArgumentException;
-use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\ProductCategoryFormatter;
 use Modules\Admin\Features\UserActivityLog\Formatters\MetaDataFormatterFactory;
 
 class UserActivityLog extends Model
@@ -260,7 +259,7 @@ class UserActivityLog extends Model
 
     /**
      * Menganalisis User-Agent untuk mendapatkan nama Browser dan Versi.
-     * Ini hanya dieksekusi saat Anda mengakses $log->browser.
+     * Ini hanya dieksekusi saat mengakses $log->browser.
      */
     public function getBrowserAttribute(): string
     {
@@ -268,7 +267,7 @@ class UserActivityLog extends Model
             return 'Tidak Diketahui';
         }
 
-        // --- SIMULASI LOGIKA PARSING (Ganti dengan Logic/Library Anda) ---
+        // SIMULASI LOGIKA PARSING
         // $agent = new Agent();
         // $agent->setUserAgent($this->user_agent);
         // return $agent->browser() . ' ' . $agent->version($agent->browser());
@@ -285,7 +284,7 @@ class UserActivityLog extends Model
 
     /**
      * Menganalisis User-Agent untuk mendapatkan Sistem Operasi.
-     * Ini hanya dieksekusi saat Anda mengakses $log->os.
+     * Ini hanya dieksekusi saat mengakses $log->os.
      */
     public function getOsAttribute(): string
     {
@@ -293,7 +292,7 @@ class UserActivityLog extends Model
             return 'Tidak Diketahui';
         }
 
-        // --- SIMULASI LOGIKA PARSING (Ganti dengan Logic/Library Anda) ---
+        // --- SIMULASI LOGIKA PARSING ---
         // $agent->setUserAgent($this->user_agent);
         // return $agent->platform() . ' ' . $agent->version($agent->platform());
 
@@ -309,7 +308,7 @@ class UserActivityLog extends Model
 
     /**
      * Melakukan lookup GeoIP untuk mendapatkan nama Negara.
-     * Ini hanya dieksekusi saat Anda mengakses $log->country.
+     * Ini hanya dieksekusi saat mengakses $log->country.
      */
     public function getCountryAttribute(): string
     {
@@ -317,7 +316,7 @@ class UserActivityLog extends Model
             return 'IP Tidak Tersedia';
         }
 
-        // --- SIMULASI LOGIKA GEOIP (Ganti dengan Logic/Library GeoIP Anda) ---
+        // --- SIMULASI LOGIKA GEOIP
         // $ipService = resolve(GeoIpService::class);
         // return $ipService->getCountryName($this->ip_address);
 
@@ -330,25 +329,19 @@ class UserActivityLog extends Model
 
     protected function getFormattedMetadataAttribute(): array
     {
-        // 1. Ambil data metadata yang sudah di-decode (karena $casts = 'array')
         $metaData = $this->metadata ?? [];
-
-        // 2. Tentukan Strategy (Formatter) yang benar
         try {
-            // Kita asumsikan kolom 'category' berisi nama Model atau konteks yang diperlukan
-            $formatter = MetaDataFormatterFactory::create($this->activity_category);
+            if (!empty($metaData['formatter'])) {
+                $formatter = MetaDataFormatterFactory::create($metaData['formatter']);
+                return $formatter->format($metaData);
+            }
 
-            // 3. Delegasikan pemformatan ke Strategy class yang sesuai
-            return $formatter->format($metaData);
+            return [];
         } catch (InvalidArgumentException $e) {
-            // Tangani kasus di mana tidak ada formatter yang ditemukan (misalnya, log baru)
             return [
-                ['type' => 'simple', 'label' => 'Perhatian!', 'value' => 'Tidak ada formatter ditemukan untuk kategori ini.'],
-                ['type' => 'simple', 'label' => 'Kategori Log', 'value' => $this->activity_category],
-                ['type' => 'simple', 'label' => 'Data Mentah (JSON)', 'value' => json_encode($metaData, JSON_PRETTY_PRINT)],
+                ['type' => 'plain', 'label' => 'Data Mentah (JSON)', 'value' => json_encode($metaData, JSON_PRETTY_PRINT)],
             ];
         } catch (\Throwable $e) {
-            // Tangani error lain (misal, error saat memproses format)
             return [
                 ['type' => 'simple', 'label' => 'Error Pemformatan', 'value' => $e->getMessage()],
                 ['type' => 'simple', 'label' => 'Kategori Log', 'value' => $this->activity_category],

@@ -18,7 +18,7 @@ return new class extends Migration
     {
         Schema::create('user_activity_logs', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id')->nullable()->index(); // gak butuh relationship
+            $table->unsignedBigInteger('user_id')->nullable()->index();
             $table->string('username', 100)->index();
             $table->timestamp('logged_at')->useCurrent()->index();
             $table->string('activity_category', 50)->index();

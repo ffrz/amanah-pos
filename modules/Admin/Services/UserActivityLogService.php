@@ -22,7 +22,7 @@ class UserActivityLogService
         string $category,
         string $name,
         string $description,
-        array $metadata = []
+        array $metadata = [],
     ): UserActivityLog {
         /** @var \App\Models\User $user */
         $user = Auth::user();

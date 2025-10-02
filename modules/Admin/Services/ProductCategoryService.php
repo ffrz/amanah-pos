@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\ProductCategoryFormatter;
 use Throwable; // Tambahkan import Throwable untuk PHPDoc
 
 /**
@@ -105,19 +106,23 @@ class ProductCategoryService
             // Logging Aktivitas
             if ($isCreating) {
                 $this->userActivityLogService->log(
-                    UserActivityLog::Category_Product,
+                    UserActivityLog::Category_ProductCategory,
                     UserActivityLog::Name_ProductCategory_Create,
                     "Kategori $item->name telah ditambahkan.",
-                    $item->getAttributes(), // Log data lengkap yang baru
+                    [
+                        'formatter' => ProductCategoryFormatter::class,
+                        'data' => $item->getAttributes(),
+                    ]
                 );
             } else {
                 $this->userActivityLogService->log(
-                    UserActivityLog::Category_Product,
+                    UserActivityLog::Category_ProductCategory,
                     UserActivityLog::Name_ProductCategory_Update,
                     "Kategori $item->name telah diperbarui.",
                     [
-                        'new_data' => $item->getChanges(), // Log hanya perubahan yang terjadi
+                        'formatter' => ProductCategoryFormatter::class,
                         'old_data' => $oldData,
+                        'new_data' => $item->getAttributes(),
                     ]
                 );
             }
@@ -144,10 +149,13 @@ class ProductCategoryService
 
             // Logging Aktivitas
             $this->userActivityLogService->log(
-                UserActivityLog::Category_Product,
+                UserActivityLog::Category_ProductCategory,
                 UserActivityLog::Name_ProductCategory_Delete,
                 "Kategori $itemName telah dihapus.",
-                $oldData // Log data lengkap sebelum dihapus
+                [
+                    'formatter' => ProductCategoryFormatter::class,
+                    'data' => $item->getAttributes(),
+                ]
             );
         });
 
