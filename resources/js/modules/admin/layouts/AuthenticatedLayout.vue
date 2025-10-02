@@ -561,40 +561,6 @@ defineExpose({
             :default-opened="$page.url.startsWith('/admin/settings')"
           >
             <q-item
-              v-if="$can('admin.pos-settings.edit')"
-              class="subnav"
-              clickable
-              v-ripple
-              :active="$page.url.startsWith('/admin/settings/pos')"
-              @click="router.get(route('admin.pos-settings.edit'))"
-            >
-              <q-item-section avatar>
-                <q-icon name="point_of_sale" />
-              </q-item-section>
-              <q-item-section>
-                <q-item-label>Point of Sales</q-item-label>
-              </q-item-section>
-            </q-item>
-
-            <q-item
-              v-if="$can('admin.user.index')"
-              class="subnav"
-              clickable
-              v-ripple
-              :active="
-                $page.url.startsWith('/admin/settings/user-activity-log')
-              "
-              @click="router.get(route('admin.user-activity-log.index'))"
-            >
-              <q-item-section avatar>
-                <q-icon name="article" />
-              </q-item-section>
-              <q-item-section>
-                <q-item-label>Log Aktivitas Pengguna</q-item-label>
-              </q-item-section>
-            </q-item>
-
-            <q-item
               v-if="$can('admin.user.index')"
               class="subnav"
               clickable
@@ -624,20 +590,23 @@ defineExpose({
                 <q-item-label>Role Pengguna</q-item-label>
               </q-item-section>
             </q-item>
+
             <q-item
+              v-if="$can('admin.pos-settings.edit')"
               class="subnav"
               clickable
               v-ripple
-              :active="$page.url.startsWith('/admin/settings/profile')"
-              @click="router.get(route('admin.user-profile.edit'))"
+              :active="$page.url.startsWith('/admin/settings/pos')"
+              @click="router.get(route('admin.pos-settings.edit'))"
             >
               <q-item-section avatar>
-                <q-icon name="manage_accounts" />
+                <q-icon name="point_of_sale" />
               </q-item-section>
               <q-item-section>
-                <q-item-label>Profil Saya</q-item-label>
+                <q-item-label>Point of Sales</q-item-label>
               </q-item-section>
             </q-item>
+
             <q-item
               v-if="$can('admin.company-profile.edit')"
               class="subnav"
@@ -651,6 +620,24 @@ defineExpose({
               </q-item-section>
               <q-item-section>
                 <q-item-label>Profil Perusahaan</q-item-label>
+              </q-item-section>
+            </q-item>
+
+            <q-item
+              v-if="$can('admin.user.index')"
+              class="subnav"
+              clickable
+              v-ripple
+              :active="
+                $page.url.startsWith('/admin/settings/user-activity-log')
+              "
+              @click="router.get(route('admin.user-activity-log.index'))"
+            >
+              <q-item-section avatar>
+                <q-icon name="article" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Log Aktivitas</q-item-label>
               </q-item-section>
             </q-item>
 
@@ -670,6 +657,21 @@ defineExpose({
               </q-item-section>
             </q-item>
           </q-expansion-item>
+
+          <q-item
+            class="subnav"
+            clickable
+            v-ripple
+            :active="$page.url.startsWith('/admin/settings/profile')"
+            @click="router.get(route('admin.user-profile.edit'))"
+          >
+            <q-item-section avatar>
+              <q-icon name="manage_accounts" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Profil Saya</q-item-label>
+            </q-item-section>
+          </q-item>
 
           <q-item
             clickable

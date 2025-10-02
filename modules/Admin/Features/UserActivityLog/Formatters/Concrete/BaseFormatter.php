@@ -68,6 +68,7 @@ class BaseFormatter implements MetaDataFormatterInterface
 
         // Perulangan menggunakan $mappedKeys untuk menjamin urutan sesuai $mapping
         foreach ($mappedKeys as $key) {
+
             // Pastikan kunci (field) ada di data baru (new)
             if (!isset($new[$key])) continue;
 

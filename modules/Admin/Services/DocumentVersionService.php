@@ -10,6 +10,19 @@ use Illuminate\Support\Facades\Auth;
 class DocumentVersionService
 {
     /**
+     * Membuat versi (snapshot) dokumen yang dihapus dengan flag is_deleted untuk model yang diberikan.
+     *
+     * @param Model $document Model Eloquent yang akan di-versi
+     * @param string $changelog Deskripsi singkat perubahan
+     * @param User|null $user Pengguna yang membuat perubahan (default: pengguna yang sedang login)
+     * @return DocumentVersion
+     */
+    public function createDeletedVersion(Model $model, string $changelog = null, ?User $user = null): DocumentVersion
+    {
+        return $this->createVersionImpl($model, $changelog, $user, true);
+    }
+
+    /**
      * Membuat versi baru (snapshot) untuk dokumen yang diberikan.
      *
      * @param Model $document Model Eloquent yang akan di-versi
@@ -17,40 +30,9 @@ class DocumentVersionService
      * @param User|null $user Pengguna yang membuat perubahan (default: pengguna yang sedang login)
      * @return DocumentVersion
      */
-    public function createVersion(Model $document, string $changelog = null, ?User $user = null): DocumentVersion
+    public function createVersion(Model $model, string $changelog = null, ?User $user = null): DocumentVersion
     {
-        // Tentukan pengguna yang bertanggung jawab
-        $responsibleUser = $user ?? (Auth::check() ? Auth::user() : null);
-
-        // Dapatkan nomor versi berikutnya
-        $latestVersion = $document->versions()->max('version') ?? 0;
-        $nextVersion = $latestVersion + 1;
-
-        // Persiapan Data Snapshot
-        // Ambil semua atribut dokumen, kecuali timestamps dan kolom yang tidak relevan
-        $snapshotData = $document->getAttributes();
-
-        // Hapus kolom yang tidak perlu disimpan dalam versi (misal: updated_at, created_at)
-        unset($snapshotData['updated_at']);
-        // Biarkan created_at jika itu adalah bagian dari data yang di-versi
-
-        // Simpan Versi Baru
-        $version = new DocumentVersion([
-            // Relasi Polimorfik
-            'document_type' => $document->getMorphClass(),
-            'document_id' => $document->getKey(),
-            'version' => $nextVersion,
-
-            // Data & Audit
-            'data' => $snapshotData,
-            'changelog' => $changelog,
-            'created_by' => $responsibleUser?->id, // Asumsi kolom created_by
-            // created_at akan terisi otomatis oleh macro createdTimestamps()
-        ]);
-
-        $version->save();
-
-        return $version;
+        return $this->createVersionImpl($model, $changelog, $user, false);
     }
 
     /**
@@ -80,5 +62,41 @@ class DocumentVersionService
         $document->save();
 
         return $document;
+    }
+
+    public function createVersionImpl(Model $document, string $changelog = null, ?User $user = null, $is_deleted = false)
+    {
+        // Tentukan pengguna yang bertanggung jawab
+        $responsibleUser = $user ?? (Auth::check() ? Auth::user() : null);
+
+        // Dapatkan nomor versi berikutnya
+        $latestVersion = $document->versions()->max('version') ?? 0;
+        $nextVersion = $latestVersion + 1;
+
+        // Persiapan Data Snapshot
+        // Ambil semua atribut dokumen, kecuali timestamps dan kolom yang tidak relevan
+        $snapshotData = $document->getAttributes();
+
+        // Hapus kolom yang tidak perlu disimpan dalam versi (misal: updated_at, created_at)
+        unset($snapshotData['updated_at']);
+        // Biarkan created_at jika itu adalah bagian dari data yang di-versi
+
+        // Simpan Versi Baru
+        $version = new DocumentVersion([
+            // Relasi Polimorfik
+            'document_type' => $document->getMorphClass(),
+            'document_id' => $document->getKey(),
+            'version' => $nextVersion,
+            'is_deleted' => $is_deleted,
+            // Data & Audit
+            'data' => $snapshotData,
+            'changelog' => $changelog,
+            'created_by' => $responsibleUser?->id, // Asumsi kolom created_by
+            // created_at akan terisi otomatis oleh macro createdTimestamps()
+        ]);
+
+        $version->save();
+
+        return $version;
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Policies;
+namespace Modules\Admin\Policies;
 
 use App\Models\ProductCategory;
 use App\Models\User;

@@ -16,11 +16,13 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasDocumentVersions;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class OperationalCost extends BaseModel
 {
-    use HasFactory;
+    use HasFactory,
+        HasDocumentVersions;
 
     protected $fillable = [
         'category_id',

@@ -2,10 +2,14 @@
 
 namespace App\Providers;
 
-use App\Models\OperationalCostCategory;
-use App\Policies\OperationalCostCategoryPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
-use Illuminate\Support\Facades\Gate;
+
+use App\Models\OperationalCost;
+use App\Models\OperationalCostCategory;
+use App\Models\ProductCategory;
+use Modules\Admin\Policies\OperationalCostCategoryPolicy;
+use Modules\Admin\Policies\OperationalCostPolicy;
+use Modules\Admin\Policies\ProductCategoryPolicy;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -15,8 +19,9 @@ class AuthServiceProvider extends ServiceProvider
      * @var array<class-string, class-string>
      */
     protected $policies = [
-        // Mengarahkan model OperationalCostCategory ke Policy-nya
+        ProductCategory::class => ProductCategoryPolicy::class,
         OperationalCostCategory::class => OperationalCostCategoryPolicy::class,
+        OperationalCost::class => OperationalCostPolicy::class,
     ];
 
     /**

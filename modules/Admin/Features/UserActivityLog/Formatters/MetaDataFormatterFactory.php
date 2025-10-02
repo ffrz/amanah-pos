@@ -6,6 +6,7 @@ use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\DefaultFormatter;
 use Modules\Admin\Features\UserActivityLog\Contracts\MetaDataFormatterInterface;
 use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\CompanyProfileFormatter;
 use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\OperationalCostCategoryFormatter;
+use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\OperationalCostFormatter;
 use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\PosSettingsFormatter;
 use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\ProductCategoryFormatter;
 use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\UserFormatter;
@@ -22,6 +23,7 @@ class MetaDataFormatterFactory
         'user-profile' => UserProfileFormatter::class,
         'user-role' => UserRoleFormatter::class,
         'user' => UserFormatter::class,
+        'operational-cost' => OperationalCostFormatter::class,
         'operational-cost-category' => OperationalCostCategoryFormatter::class,
     ];
 
