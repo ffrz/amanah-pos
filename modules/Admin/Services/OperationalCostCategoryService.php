@@ -29,12 +29,12 @@ class OperationalCostCategoryService
      */
     public function getData(array $options)
     {
-        $filters = $options['filters'];
+        $filter = $options['filter'];
 
         $query = OperationalCostCategory::query();
 
-        if (isset($filters['search'])) {
-            $query->where('name', 'like', '%' . $filters['search'] . '%');
+        if (!empty($filter['search'])) {
+            $query->where('name', 'like', '%' . $filter['search'] . '%');
         }
 
         $query->orderBy($options['order_by'], $options['order_type']);
@@ -82,7 +82,7 @@ class OperationalCostCategoryService
 
         $item->fill($validatedData);
 
-        if (!$isCreating && empty($item->getDirty())) {
+        if (empty($item->getDirty())) {
             return $item;
         }
 
@@ -94,7 +94,7 @@ class OperationalCostCategoryService
                 $this->userActivityLogService->log(
                     UserActivityLog::Category_OperationalCost,
                     UserActivityLog::Name_OperationalCostCategory_Create,
-                    "Kategori biaya ID: $item->id telah disimpan.",
+                    "Kategori biaya ID: $item->id telah dibuat.",
                     [
                         'formatter' => 'operational-cost-category',
                         'new_data'  => $item->getAttributes(),
@@ -103,8 +103,8 @@ class OperationalCostCategoryService
             } else {
                 $this->userActivityLogService->log(
                     UserActivityLog::Category_OperationalCost,
-                    UserActivityLog::Name_OperationalCostCategory_Create,
-                    "Kategori biaya ID: $item->id telah disimpan.",
+                    UserActivityLog::Name_OperationalCostCategory_Update,
+                    "Kategori biaya ID: $item->id telah diperbarui.",
                     [
                         'formatter' => 'operational-cost-category',
                         'new_data'  => $item->getAttributes(),

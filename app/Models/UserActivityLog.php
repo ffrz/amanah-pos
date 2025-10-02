@@ -203,6 +203,11 @@ class UserActivityLog extends Model
         self::Name_SalesOrder_AddPayment    => 'Menamabah Pembayaran Order Penjualan',
         self::Name_SalesOrder_DeletePayment => 'Menghapus Pembayaran Order Penjualan',
 
+
+        self::Name_OperationalCostCategory_Create => 'Menambah Kategori Biaya Operasional',
+        self::Name_OperationalCostCategory_Update => 'Memperbarui Kategori Biaya Operasional',
+        self::Name_OperationalCostCategory_Delete => 'Menghapus Kategori Biaya Operasional',
+
     ];
 
     // Kolom yang dapat diisi massal
