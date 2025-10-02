@@ -88,9 +88,12 @@ class OperationalCostService
             $newlyUploadedImagePath = null;
 
             $oldData = [];
+            $oldLogData = [];
+
             // 2. Tentukan item dan ambil data lama jika mode edit
             if (!empty($validated['id'])) {
-                $oldItem = $this->find($validated['id']);
+                $oldLogData = $this->generateActivityLogData($item);
+                $oldItem = clone $item;
             }
 
             // 3. PENANGANAN GAMBAR (IMAGE)
@@ -147,8 +150,12 @@ class OperationalCostService
 
             $this->documentVersionService->createVersion($item);
 
-            // Log activity
-            $item = $this->find($item->id); // refresh
+            $item->load([
+                'financeAccount',
+                'category',
+                'creator',
+                'updater'
+            ]);
 
             if (empty($validated['id'])) {
                 $this->userActivityLogService->log(
@@ -167,7 +174,7 @@ class OperationalCostService
                     "Biaya operasional ID: $item->id telah diperbarui.",
                     [
                         'formatter' => 'operational-cost',
-                        'old_data' => $this->generateActivityLogData($oldItem),
+                        'old_data' => $oldLogData,
                         'new_data' => $this->generateActivityLogData($item),
                     ]
                 );
