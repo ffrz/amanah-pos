@@ -659,7 +659,6 @@ defineExpose({
           </q-expansion-item>
 
           <q-item
-            class="subnav"
             clickable
             v-ripple
             :active="$page.url.startsWith('/admin/settings/profile')"

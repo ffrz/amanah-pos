@@ -51,10 +51,11 @@ const accounts = [
 
 const filter = reactive({
   search: "",
+  finance_account_id: "all",
   category_id: "all",
   year: currentYear,
   month: currentMonth,
-  ...getQueryParams(),
+...getQueryParams(),
 });
 const pagination = ref({
   page: 1,

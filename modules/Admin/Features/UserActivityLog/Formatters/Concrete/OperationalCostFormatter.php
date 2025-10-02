@@ -14,7 +14,7 @@ class OperationalCostFormatter extends BaseFormatter
         'image_path'  => 'Attachment',
         'notes'       => 'Catatan',
         'created_at'  => 'Waktu Dibuat',
-        'updated_at'  => 'Waktu Dibuat',
+        'updated_at'  => 'Waktu Diperbarui',
         'created_by_username'  => 'Dibuat Oleh',
     ];
 

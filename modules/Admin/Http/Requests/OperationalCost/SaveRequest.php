@@ -27,7 +27,7 @@ class SaveRequest extends FormRequest
             'category_id'        => 'nullable',
             'description'        => 'required|max:255',
             'amount'             => 'required|numeric|gt:0',
-            'notes'              => 'nullable|max:1000',
+            'notes'              => 'nullable|max:200',
             'image_path'         => 'nullable|string',
             'image'              => 'nullable|image|max:15120',
         ];
@@ -40,7 +40,7 @@ class SaveRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'notes'   => $this->input('notes', ''),
+            'notes'   => $this->input('notes') ?? '',
         ]);
     }
 }

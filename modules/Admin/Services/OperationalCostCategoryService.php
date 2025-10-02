@@ -35,6 +35,7 @@ class OperationalCostCategoryService
 
         if (!empty($filter['search'])) {
             $query->where('name', 'like', '%' . $filter['search'] . '%');
+            $query->orWhere('description', 'like', '%' . $filter['search'] . '%');
         }
 
         $query->orderBy($options['order_by'], $options['order_type']);
