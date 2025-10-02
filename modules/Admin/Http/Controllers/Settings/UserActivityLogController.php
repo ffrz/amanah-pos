@@ -134,17 +134,17 @@ class UserActivityLogController extends Controller
     {
         $user = Auth::user();
         try {
-            DB::beginTransaction();
+
             UserActivityLog::truncate();
+
             $this->userActivityLogService->log(
                 UserActivityLog::Category_UserActivityLog,
                 UserActivityLog::Name_UserActivityLog_Clear,
                 "Pengguna '$user->username' telah membersihkan riwayat aktifitas pengguna.",
             );
-            DB::commit();
+
             return JsonResponseHelper::success(null, "Semua log aktifitas telah dibersihkan!");
         } catch (\Exception $e) {
-            DB::rollBack();
             return JsonResponseHelper::error("Gagal membersihkan log: " . $e->getMessage(), 500);
         }
     }
