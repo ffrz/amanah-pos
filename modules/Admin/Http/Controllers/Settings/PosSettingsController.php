@@ -17,81 +17,46 @@
 namespace Modules\Admin\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
-use App\Models\Setting;
-use App\Models\UserActivityLog;
-use Modules\Admin\Services\UserActivityLogService;
+use Modules\Admin\Services\PosSettingsService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
+use Modules\Admin\Http\Requests\Settings\PosSettings\SaveRequest;
 
 class PosSettingsController extends Controller
 {
-    /**
-     * @var UserActivityLogService
-     */
-    protected $userActivityLogService;
-
-    public function __construct(UserActivityLogService $userActivityLogService)
-    {
-        $this->userActivityLogService = $userActivityLogService;
-    }
+    public function __construct(protected PosSettingsService $posSettingsService) {}
 
     /**
-     * Tampilkan halaman indeks pengguna.
+     * Tampilkan halaman indeks pengguna atau proses pembaruan.
      *
-     * @return \Inertia\Response
+     * @param SaveRequest $request
+     * @return \Inertia\Response|\Illuminate\Http\RedirectResponse
      */
-    public function edit(Request $request)
+    public function edit(SaveRequest $request)
     {
         if ($request->getMethod() === Request::METHOD_POST) {
-            $rules = [
-                'default_payment_mode' => 'required|string',
-                'default_print_size' => 'required|string',
-                'after_payment_action' => 'required|string',
-                'foot_note' => 'nullable|string|max:200',
-            ];
+            $validated = $request->validated();
 
-            $validated = $request->validate($rules);
-            $oldData = $this->getData();
+            $oldData = $this->posSettingsService->getCurrentSettingsData();
 
             if ($validated == $oldData) {
-                return redirect()->back()->with('success', 'Tidak terdeteksi perubahan data.');
+                return redirect()->back()
+                    ->with('warning', 'Tidak terdeteksi perubahan data.');
             }
 
-            DB::beginTransaction();
-
-            Setting::setValue('pos.default_payment_mode', $validated['default_payment_mode']);
-            Setting::setValue('pos.default_print_size', $validated['default_print_size']);
-            Setting::setValue('pos.foot_note', $validated['foot_note'] ?? '');
-            Setting::setValue('pos.after_payment_action', $validated['after_payment_action']);
-
-            Setting::refreshAll();
-
-            $this->userActivityLogService->log(
-                UserActivityLog::Category_Settings,
-                UserActivityLog::Name_UpdatePosSettings,
-                'Pengaturan pos telah diperbarui.',
-                [
-                    'new_data' => $this->getData(),
-                    'old_data' => $oldData,
-                ]
-            );
-            DB::commit();
-
-            return redirect()->back()->with('success', 'Pengaturan POS berhasil diperbarui.');
+            try {
+                $this->posSettingsService->save($validated, $oldData);
+                return redirect()->back()->with('success', 'Pengaturan POS berhasil diperbarui.');
+            } catch (\Exception $e) {
+                Log::error("Gagal memperbarui pengaturan POS.");
+                return redirect()->back()->withInput()
+                    ->with('error', $e->getMessage());
+            }
         }
 
-        $data = $this->getData();
-
-        return inertia('settings/pos/Edit', compact('data'));
-    }
-
-    protected function getData()
-    {
-        return [
-            'default_payment_mode' => Setting::value('pos.default_payment_mode', 'cash'),
-            'default_print_size' => Setting::value('pos.default_print_size', '58mm'),
-            'after_payment_action' => Setting::value('pos.after_payment_action', 'print'),
-            'foot_note' => Setting::value('pos.foot_note', ''),
-        ];
+        return inertia('settings/pos/Edit', [
+            'data' => $this->posSettingsService->getCurrentSettingsData()
+        ]);
     }
 }

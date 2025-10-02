@@ -327,6 +327,7 @@ const deleteItem = () =>
   padding: 0px 5px;
   border: 1px solid #ccc;
   color: #666;
+  vertical-align: top;
 }
 
 .metadata-label {
