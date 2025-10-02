@@ -318,14 +318,14 @@ const deleteItem = () =>
   background-color: #f9f9f9;
   font-weight: bold;
   padding: 0px 5px;
-  border: 1px solid #eee;
+  border: 1px solid #ccc;
   color: #666;
 }
 
 .metadata-label,
 .metadata-value {
   padding: 0px 5px;
-  border: 1px solid #eee;
+  border: 1px solid #ccc;
   color: #666;
 }
 
