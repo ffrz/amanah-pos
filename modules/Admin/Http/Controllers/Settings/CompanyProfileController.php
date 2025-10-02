@@ -34,7 +34,7 @@ class CompanyProfileController extends Controller
 
             if (!$updated) {
                 return redirect()->back()
-                    ->with('success', 'Tidak terdeteksi perubahan data.');
+                    ->with('warning', 'Tidak terdeteksi perubahan data.');
             }
 
             return redirect()->back()

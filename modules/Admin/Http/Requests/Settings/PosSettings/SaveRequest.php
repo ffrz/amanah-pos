@@ -7,17 +7,6 @@ use Illuminate\Foundation\Http\FormRequest;
 class SaveRequest extends FormRequest
 {
     /**
-     * Tentukan apakah pengguna diizinkan untuk membuat request ini.
-     *
-     * @return bool
-     */
-    public function authorize(): bool
-    {
-        // Sesuaikan otorisasi jika diperlukan, saat ini diizinkan untuk semua
-        return true;
-    }
-
-    /**
      * Dapatkan aturan validasi yang berlaku untuk request.
      *
      * @return array<string, mixed>

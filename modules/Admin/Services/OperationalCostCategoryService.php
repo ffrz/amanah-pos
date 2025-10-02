@@ -3,95 +3,152 @@
 namespace Modules\Admin\Services;
 
 use App\Models\OperationalCostCategory;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Models\UserActivityLog;
 
-/**
- * File ini berisi semua logika bisnis untuk manajemen Kategori Biaya Operasional.
- * Kontroler akan memanggil metode dari kelas ini.
- */
+use Illuminate\Support\Facades\DB;
+use Modules\Admin\Services\UserActivityLogService;
+
 class OperationalCostCategoryService
 {
     /**
-     * Mengambil daftar kategori biaya operasional dengan paginasi dan filter.
-     *
-     * @param array $data Parameter yang berisi filter, urutan, dan paginasi.
-     * @return LengthAwarePaginator
+     * @var UserActivityLogService
      */
-    public function getData(array $data): LengthAwarePaginator
+    protected UserActivityLogService $userActivityLogService;
+
+    public function __construct(UserActivityLogService $userActivityLogService)
     {
-        // Hindari extract() untuk keamanan dan kejelasan scope variabel
-        $filter = $data['filter'] ?? [];
-        $orderBy = $data['order_by'] ?? 'id';
-        $orderType = $data['order_type'] ?? 'asc';
-        $perPage = $data['per_page'] ?? 10;
-
-        $query = OperationalCostCategory::query();
-
-        if (!empty($filter['search'])) {
-            $query->where(function (Builder $q) use ($filter) {
-                $searchTerm = '%' . $filter['search'] . '%';
-                $q->where('name', 'like', $searchTerm)
-                    ->orWhere('description', 'like', $searchTerm);
-            });
-        }
-
-        return $query->orderBy($orderBy, $orderType)->paginate($perPage);
+        $this->userActivityLogService = $userActivityLogService;
     }
 
     /**
-     * Mencari kategori biaya operasional berdasarkan ID.
+     * Mengambil data kategori biaya operasional dengan paginasi dan filter.
+     * Logika utama untuk query getData() tetap berada di sini.
      *
-     * @param int|null $id
-     * @return OperationalCostCategory
-     * @throws ModelNotFoundException
+     * @param array $options
+     * @return \Illuminate\Pagination\LengthAwarePaginator
      */
-    public function find(?int $id): OperationalCostCategory
+    public function getData(array $options)
+    {
+        $filters = $options['filters'];
+
+        $query = OperationalCostCategory::query();
+
+        if (isset($filters['search'])) {
+            $query->where('name', 'like', '%' . $filters['search'] . '%');
+        }
+
+        $query->orderBy($options['order_by'], $options['order_type']);
+
+        return $query->paginate($options['per_page'] ?? 10);
+    }
+
+    /**
+     * Mencari kategori berdasarkan ID.
+     *
+     * @param int $id
+     * @return OperationalCostCategory|null
+     */
+    public function find(int $id): ?OperationalCostCategory
     {
         return OperationalCostCategory::findOrFail($id);
     }
 
     /**
-     * Menyimpan (membuat atau memperbarui) kategori biaya operasional.
+     * Membuat model duplikat (menggunakan instance yang sudah ada di service).
      *
-     * @param OperationalCostCategory $item Model yang sudah diisi datanya.
-     * @return bool
-     */
-    public function save(OperationalCostCategory $item): bool
-    {
-        return $item->save();
-    }
-
-    /**
-     * Menghapus kategori biaya operasional.
-     *
-     * @param OperationalCostCategory $item Model kategori yang akan dihapus.
-     * @return bool
-     */
-    public function delete(OperationalCostCategory $item): bool
-    {
-        return $item->delete();
-    }
-
-    /**
-     * Menduplikasi kategori biaya operasional yang sudah ada.
-     *
-     * @param int $id ID kategori yang akan diduplikasi.
-     * @return OperationalCostCategory Model kategori baru yang sudah diduplikasi.
-     * @throws ModelNotFoundException
+     * @param int $id
+     * @return OperationalCostCategory
      */
     public function duplicate(int $id): OperationalCostCategory
     {
-        $original = OperationalCostCategory::findOrFail($id);
-        $duplicate = $original->replicate();
-        $duplicate->exists = false;
-        $duplicate->id = null;
-        $duplicate->name = $original->name . ' (COPY)';
-        $duplicate->created_at = null;
-        $duplicate->created_by = null;
-        $duplicate->updated_at = null;
-        $duplicate->updated_by = null;
+        $item = $this->find($id);
+        $duplicate = $item->replicate();
+        $duplicate->name = $item->name;
         return $duplicate;
+    }
+
+    /**
+     * Menyimpan kategori biaya operasional baru atau yang sudah ada (termasuk fill, transaksi, dan logging).
+     *
+     * @param OperationalCostCategory $item Model yang akan disimpan.
+     * @param array $validatedData Data yang divalidasi dari request.
+     * @return OperationalCostCategory Model yang telah disimpan.
+     * @throws \Exception Jika terjadi kesalahan saat transaksi DB.
+     */
+    public function save(OperationalCostCategory $item, array $validatedData): OperationalCostCategory
+    {
+        $isCreating = $item->exists === false;
+        $oldData = $item->toArray();
+
+        $item->fill($validatedData);
+
+        if (!$isCreating && empty($item->getDirty())) {
+            return $item;
+        }
+
+        DB::beginTransaction();
+        try {
+            $item->save();
+
+            if ($isCreating) {
+                $this->userActivityLogService->log(
+                    UserActivityLog::Category_OperationalCost,
+                    UserActivityLog::Name_OperationalCostCategory_Create,
+                    "Kategori biaya ID: $item->id telah disimpan.",
+                    [
+                        'formatter' => 'operational-cost-category',
+                        'new_data'  => $item->getAttributes(),
+                    ]
+                );
+            } else {
+                $this->userActivityLogService->log(
+                    UserActivityLog::Category_OperationalCost,
+                    UserActivityLog::Name_OperationalCostCategory_Create,
+                    "Kategori biaya ID: $item->id telah disimpan.",
+                    [
+                        'formatter' => 'operational-cost-category',
+                        'new_data'  => $item->getAttributes(),
+                        'old_data'  => $oldData,
+                    ]
+                );
+            }
+            DB::commit();
+            return $item;
+        } catch (\Throwable $ex) {
+            DB::rollBack();
+            throw new \Exception("Gagal saat menyimpan kategori biaya operasional ID: " . ($item->id ?? 'baru') . ". " . $ex->getMessage());
+        }
+    }
+
+    /**
+     * Menghapus kategori biaya operasional dan mencatat aktivitas.
+     *
+     * @param OperationalCostCategory $item
+     * @return void
+     * @throws \Exception Jika terjadi kesalahan saat transaksi DB.
+     */
+    public function delete(OperationalCostCategory $item): void
+    {
+        DB::beginTransaction();
+        try {
+            $deletedData = $item->toArray();
+
+            $item->delete();
+
+            $this->userActivityLogService->log(
+                UserActivityLog::Category_OperationalCost,
+                UserActivityLog::Name_OperationalCostCategory_Delete,
+                "Kategori biaya ID: $item->id telah dihapus.",
+                [
+                    'formatter' => 'operational-cost-category',
+                    'new_data'  => $deletedData,
+                ]
+            );
+
+            DB::commit();
+        } catch (\Throwable $ex) {
+            DB::rollBack();
+            throw new \Exception("Gagal menghapus kategori biaya operasional ID: $item->id. " . $ex->getMessage());
+        }
     }
 }

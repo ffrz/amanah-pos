@@ -8,17 +8,6 @@ use Illuminate\Validation\Rule;
 class GetDataRequest extends FormRequest
 {
     /**
-     * Tentukan apakah pengguna diizinkan untuk membuat request ini.
-     *
-     * @return bool
-     */
-    public function authorize(): bool
-    {
-        // Pengguna harus sudah login dan memiliki izin untuk melihat daftar pengguna (asumsi middleware sudah menangani izin ini)
-        return true;
-    }
-
-    /**
      * Dapatkan aturan validasi yang berlaku untuk request.
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array|string>

@@ -7,15 +7,6 @@ use Illuminate\Foundation\Http\FormRequest;
 class GetDataRequest extends FormRequest
 {
     /**
-     * Tentukan apakah pengguna diizinkan membuat permintaan ini.
-     */
-    public function authorize(): bool
-    {
-        // Sesuaikan dengan logic otorisasi Anda. Untuk contoh, kita buat true.
-        return true;
-    }
-
-    /**
      * Dapatkan aturan validasi yang berlaku untuk permintaan.
      */
     public function rules(): array

@@ -9,17 +9,6 @@ use Illuminate\Validation\Rule;
 class SaveRequest extends FormRequest
 {
     /**
-     * Tentukan apakah pengguna diizinkan untuk membuat request ini.
-     *
-     * @return bool
-     */
-    public function authorize(): bool
-    {
-        // Pengguna harus sudah login dan memiliki izin untuk mengelola pengguna
-        return true;
-    }
-
-    /**
      * Dapatkan aturan validasi yang berlaku untuk request.
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array|string>
@@ -42,8 +31,6 @@ class SaveRequest extends FormRequest
             'type'       => ['required', Rule::in(array_keys(User::Types))],
             'roles'      => 'sometimes|array',
             'roles.*' => 'sometimes|integer|exists:acl_roles,id',
-
-            // 'roles.*.id' => 'sometimes|integer|exists:acl_roles,id',
             'active'     => 'required|boolean',
         ];
 

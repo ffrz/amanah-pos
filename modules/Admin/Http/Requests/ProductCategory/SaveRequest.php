@@ -13,17 +13,6 @@ use Illuminate\Validation\Rule;
 class SaveRequest extends FormRequest
 {
     /**
-     * Tentukan apakah pengguna diizinkan untuk membuat permintaan ini.
-     * Karena otorisasi akan ditangani di level controller, kita kembalikan true.
-     *
-     * @return bool
-     */
-    public function authorize(): bool
-    {
-        return true;
-    }
-
-    /**
      * Dapatkan aturan validasi yang berlaku untuk permintaan.
      * Aturan unik di sini menggunakan ID dari permintaan untuk mengabaikan
      * item saat pembaruan.

@@ -8,17 +8,6 @@ use Illuminate\Support\Facades\Auth;
 class UpdateProfileRequest extends FormRequest
 {
     /**
-     * Tentukan apakah pengguna diizinkan untuk membuat request ini.
-     *
-     * @return bool
-     */
-    public function authorize(): bool
-    {
-        // Hanya pengguna yang sudah diautentikasi yang dapat memperbarui profilnya sendiri
-        return Auth::check();
-    }
-
-    /**
      * Dapatkan aturan validasi yang berlaku untuk request.
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array|string>

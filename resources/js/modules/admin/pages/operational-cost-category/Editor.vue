@@ -8,7 +8,7 @@ const title =
   (!!page.props.data.id ? "Edit" : "Tambah") + " Kategori Operasional";
 
 const form = useForm({
-  id: page.props.data.id,
+  id: page.props.data.id ?? null,
   name: page.props.data.name,
   description: page.props.data.description,
 });

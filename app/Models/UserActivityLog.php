@@ -31,6 +31,7 @@ class UserActivityLog extends Model
     public const Category_SalesOrder = 'sales-order';
     public const Category_PurchaseOrder = 'purchase-order';
     public const Category_OperationalCost = 'operational-cost';
+    public const Category_OperationalCostCategory = 'operational-cost-category';
     public const Category_Cashier = 'cashier';
     public const Category_CustomerWallet = 'customer-wallet';
 
@@ -53,6 +54,7 @@ class UserActivityLog extends Model
         self::Category_SalesOrder => 'Manajemen Order Penjualan',
         self::Category_PurchaseOrder => 'Manajemen Order Pembelian',
         self::Category_OperationalCost => 'Manajemen Biaya Operasional',
+        self::Category_OperationalCostCategory => 'Manajemen Kategori Biaya Operasional',
         self::Category_Cashier => 'Manajemen Terminal dan Sesi Kasir',
         self::Category_CustomerWallet => 'Manajemen Walet Pelanggan',
     ];

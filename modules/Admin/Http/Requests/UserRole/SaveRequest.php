@@ -13,14 +13,6 @@ use Illuminate\Validation\Rule;
 class SaveRequest extends FormRequest
 {
     /**
-     * Tentukan apakah pengguna diizinkan membuat permintaan ini.
-     */
-    public function authorize(): bool
-    {
-        return true;
-    }
-
-    /**
      * Dapatkan aturan validasi yang berlaku untuk permintaan.
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array|string>
