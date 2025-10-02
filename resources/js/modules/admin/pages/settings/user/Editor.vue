@@ -46,6 +46,21 @@ const submit = () => handleSubmit({ form, url: route("admin.user.save") });
             <q-card-section class="q-pt-none">
               <input type="hidden" name="id" v-model="form.id" />
               <q-input
+                autofocus
+                v-model.trim="form.username"
+                type="text"
+                label="Username"
+                lazy-rules
+                :disable="form.processing"
+                :error="!!form.errors.username"
+                :error-message="form.errors.username"
+                :rules="[
+                  (val) => (val && val.length > 0) || 'Username harus diisi.',
+                  (val) => validateUsername(val) || 'Username tidak valid.',
+                ]"
+                hide-bottom-space
+              />
+              <q-input
                 v-model.trim="form.name"
                 label="Nama"
                 :error="!!form.errors.name"
@@ -54,23 +69,7 @@ const submit = () => handleSubmit({ form, url: route("admin.user.save") });
                 :rules="[
                   (val) => (val && val.length > 0) || 'Nama harus diisi.',
                 ]"
-                autofocus
                 lazy-rules
-                hide-bottom-space
-              />
-              <q-input
-                v-model.trim="form.username"
-                type="text"
-                label="ID Pengguna"
-                lazy-rules
-                :disable="form.processing"
-                :error="!!form.errors.username"
-                :error-message="form.errors.username"
-                :rules="[
-                  (val) =>
-                    (val && val.length > 0) || 'ID Pengguna harus diisi.',
-                  (val) => validateUsername(val) || 'ID Pengguna tidak valid.',
-                ]"
                 hide-bottom-space
               />
               <q-input
@@ -98,6 +97,7 @@ const submit = () => handleSubmit({ form, url: route("admin.user.save") });
                 hide-bottom-space
               />
               <q-select
+                v-if="form.type == 'standard_user'"
                 v-model="form.roles"
                 label="Peran"
                 :options="roles"

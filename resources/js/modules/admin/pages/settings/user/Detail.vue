@@ -70,14 +70,23 @@ const title = "Rincian Pengguna";
                     <td>Peran Pengguna</td>
                     <td>:</td>
                     <td>
-                      <div v-for="role in page.props.data.roles" :key="role.id">
+                      <div
+                        v-for="(role, index) in page.props.data.roles"
+                        :key="role.id"
+                        class="inline"
+                      >
+                        <!-- Link Peran -->
                         <i-link
                           :href="
                             route('admin.user-role.detail', { id: role.id })
                           "
                         >
-                          {{ role.name }} </i-link
-                        >,
+                          {{ role.name }}
+                        </i-link>
+
+                        <span v-if="index < page.props.data.roles.length - 1"
+                          >,
+                        </span>
                       </div>
                     </td>
                   </tr>
