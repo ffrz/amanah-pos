@@ -28,7 +28,7 @@ const props = defineProps({
                 <template v-if="props.data.supplier">
                   <i-link
                     :href="
-                      route('admin.customer.detail', {
+                      route('admin.supplier.detail', {
                         id: props.data.supplier_id,
                       })
                     "

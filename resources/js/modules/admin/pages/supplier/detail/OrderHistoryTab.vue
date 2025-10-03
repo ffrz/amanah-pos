@@ -43,10 +43,10 @@ const fetchItems = (props = null) =>
     filter,
     props,
     rows,
-    url: route("admin.sales-order.data", {
+    url: route("admin.purchase-order.data", {
       filter: {
         status: ["closed", "canceled"],
-        customer_id: page.props.data.id,
+        supplier_id: page.props.data.id,
       },
     }),
     loading,
@@ -95,7 +95,7 @@ const computedColumns = computed(() => {
         class="cursor-pointer"
         @click.stop="
           router.get(
-            route('admin.sales-order.detail', {
+            route('admin.purchase-order.detail', {
               id: props.row.id,
             })
           )

@@ -58,18 +58,18 @@ class GetDataRequest extends FormRequest
         ];
     }
 
-    /**
-     * Get custom messages for validation errors.
-     *
-     * @return array
-     */
-    public function messages(): array
-    {
-        return [
-            'filter.category_id.exists' => 'The selected category does not exist.', // Perubahan di sini
-            'filter.supplier_id.exists' => 'The selected supplier does not exist.', // Perubahan di sini
-            'order_by.in' => 'The selected sort by option is invalid.',
-            'order_type.in' => 'The selected order type is invalid.',
-        ];
-    }
+    // /**
+    //  * Get custom messages for validation errors.
+    //  *
+    //  * @return array
+    //  */
+    // public function messages(): array
+    // {
+    //     return [
+    //         'filter.category_id.exists' => 'The selected category does not exist.', // Perubahan di sini
+    //         'filter.supplier_id.exists' => 'The selected supplier does not exist.', // Perubahan di sini
+    //         'order_by.in' => 'The selected sort by option is invalid.',
+    //         'order_type.in' => 'The selected order type is invalid.',
+    //     ];
+    // }
 }

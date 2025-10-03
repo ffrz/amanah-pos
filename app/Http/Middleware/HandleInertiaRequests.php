@@ -58,7 +58,7 @@ class HandleInertiaRequests extends Middleware
                 'type' => $user->type,
                 'roles' => $request->user()->getRoleNames()->toArray(),
             ];
-        } else {
+        } else if ($module === 'customer') {
             $customer = Auth::guard('customer')->user();
             $auth['customer'] = [
                 'id' => $customer->id,

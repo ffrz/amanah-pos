@@ -28,8 +28,7 @@ class SupplierController extends Controller
     {
         $q = Supplier::where('active', '=', true);
         if ($query = $request->query('q', '')) {
-            $q->where('name', 'like', '%' . $query . '%')
-                ->orWhere('phone', 'like', '%' . $query . '%');
+            $q->where('name', 'like', '%' . $query . '%');
         }
         $suppliers = $q->get();
         return JsonResponseHelper::success($suppliers);

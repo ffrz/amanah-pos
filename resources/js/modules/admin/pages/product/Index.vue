@@ -17,10 +17,7 @@ const filterToolbarRef = ref(null);
 const tableHeight = useTableHeight(filterToolbarRef);
 const showCostColumn = ref(false);
 
-const types = [
-  { value: "all", label: "Semua" },
-  ...createOptions(window.CONSTANTS.PRODUCT_TYPES),
-];
+const types = [...createOptions(window.CONSTANTS.PRODUCT_TYPES)];
 
 const statuses = [
   { value: "all", label: "Semua" },
@@ -42,10 +39,10 @@ const showFilter = ref(false);
 const rows = ref([]);
 const loading = ref(true);
 const filter = reactive({
-  type: "all",
-  category_id: "all",
-  supplier_id: "all",
-  status: "active",
+  type: [],
+  category_id: [],
+  supplier_id: [],
+  status: "all",
   stock_status: "all",
   search: "",
   ...getQueryParams(),
@@ -124,12 +121,10 @@ const onFilterChange = () => {
 };
 
 const { filteredCategories, filterCategories } = useProductCategoryFilter(
-  page.props.categories,
-  true
+  page.props.categories
 );
 const { filteredSuppliers, filterSupplierFn } = useSupplierFilter(
-  page.props.suppliers,
-  true
+  page.props.suppliers
 );
 
 const computedColumns = computed(() => {
@@ -146,7 +141,6 @@ const computedColumns = computed(() => {
 });
 
 const goToDetail = (props) => {
-  console.log(window.location.href);
   router.get(route("admin.product.detail", props.row.id));
 };
 </script>
@@ -237,12 +231,14 @@ const goToDetail = (props) => {
             emit-value
             outlined
             @update:model-value="onFilterChange"
+            multiple
+            use-chips
           />
           <q-select
-            v-model="filter.status"
+            v-model="filter.stock_status"
             class="custom-select col-xs-4 col-sm-2"
-            :options="statuses"
-            label="Status"
+            :options="stock_statuses"
+            label="Status Stok"
             dense
             map-options
             emit-value
@@ -250,10 +246,10 @@ const goToDetail = (props) => {
             @update:model-value="onFilterChange"
           />
           <q-select
-            v-model="filter.stock_status"
+            v-model="filter.status"
             class="custom-select col-xs-4 col-sm-2"
-            :options="stock_statuses"
-            label="Status Stok"
+            :options="statuses"
+            label="Status"
             dense
             map-options
             emit-value
@@ -275,6 +271,8 @@ const goToDetail = (props) => {
             @filter="filterCategories"
             style="min-width: 150px"
             @update:model-value="onFilterChange"
+            multiple
+            use-chips
           />
           <q-select
             v-if="$can('admin.product:view-supplier')"
@@ -292,6 +290,8 @@ const goToDetail = (props) => {
             @filter="filterSupplierFn"
             style="min-width: 150px"
             @update:model-value="onFilterChange"
+            multiple
+            use-chips
           />
           <q-input
             class="col"

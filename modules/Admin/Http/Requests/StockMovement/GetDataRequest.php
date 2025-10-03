@@ -15,11 +15,12 @@ class GetDataRequest extends FormRequest
             'order_by' => ['sometimes', 'string', 'in:created_at,product_id'], // Tambahkan kolom yang valid
             'order_type' => ['sometimes', 'string', 'in:asc,desc'],
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
-            'product_id' => ['sometimes', 'integer', 'min:0'],
-            'filter.search' => ['nullable', 'string', 'max:100'],
-            'filter.ref_type' => ['nullable', 'string', 'max:50'],
-            'filter.year' => ['nullable', 'string', 'max:4'],
-            'filter.month' => ['nullable', 'string', 'max:2'],
+            'product_id' => ['nullable', 'integer', 'min:0'],
+            'filter' => ['nullable', 'array'],
+            // 'filter.search' => ['nullable', 'string', 'max:100'],
+            // 'filter.ref_type' => ['nullable', 'string', 'max:50'],
+            // 'filter.year' => ['nullable', 'string', 'max:4'],
+            // 'filter.month' => ['nullable', 'string', 'max:2'],
         ];
     }
 

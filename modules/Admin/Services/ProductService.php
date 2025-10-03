@@ -53,8 +53,13 @@ class ProductService
             });
         }
 
-        if (isset($filter['type']) && $filter['type'] != 'all') {
-            $query->where('type', '=', $filter['type']);
+        if (isset($filter['type']) && is_array($filter['type'])) {
+            $types = $filter['type'];
+            $query->where(function ($q) use ($types) {
+                foreach ($types as $type) {
+                    $q->orWhere('type', '=', $type);
+                }
+            });
         }
 
         if (isset($filter['stock_status']) && $filter['stock_status'] != 'all') {
@@ -70,21 +75,23 @@ class ProductService
         }
 
         // Filter by category
-        if (isset($filter['category_id']) && $filter['category_id'] != 'all') {
-            if ($filter['category_id'] == 'null') {
-                $query->whereNull('category_id');
-            } else {
-                $query->where('category_id', '=', $filter['category_id']);
-            }
+        if (isset($filter['category_id']) && is_array($filter['category_id'])) {
+            $categories = $filter['category_id'];
+            $query->where(function ($q) use ($categories) {
+                foreach ($categories as $category) {
+                    $q->orWhere('category_id', '=', $category);
+                }
+            });
         }
 
         // Filter by supplier
         if (isset($filter['supplier_id']) && $filter['supplier_id'] != 'all') {
-            if ($filter['supplier_id'] == 'null') {
-                $query->whereNull('supplier_id');
-            } else {
-                $query->where('supplier_id', '=', $filter['supplier_id']);
-            }
+            $suppliers = $filter['supplier_id'];
+            $query->where(function ($q) use ($suppliers) {
+                foreach ($suppliers as $supplier) {
+                    $q->orWhere('supplier_id', '=', $supplier);
+                }
+            });
         }
 
         // Filter by active status
