@@ -130,4 +130,15 @@ abstract class BaseModel extends Model
     {
         return $this->belongsTo(User::class, 'deleted_by');
     }
+
+    public function replicate(?array $except = null)
+    {
+        $defaults = [
+            'created_by',
+            'updated_by',
+            'deleted_at',
+            'deleted_by',
+        ];
+        return parent::replicate($except ? array_unique(array_merge($except, $defaults)) : $defaults);
+    }
 }
