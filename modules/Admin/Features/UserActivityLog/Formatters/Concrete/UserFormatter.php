@@ -8,9 +8,10 @@ class UserFormatter extends BaseFormatter
         'id'        => 'ID',
         'username'  => 'Username',
         'name'      => 'Nama Pengguna',
-        'active'    => 'Status',
+        'active'    => 'Aktif',
         'type'      => 'Jenis Akun',
-        'roles'     => 'Peran'
+        'roles'     => 'Peran',
+        'password'  => 'Kata Sandi',
     ];
 
     protected function formatValue(string $key, $value)

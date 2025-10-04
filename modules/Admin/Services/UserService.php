@@ -26,19 +26,19 @@ class UserService
         protected DocumentVersionService $documentVersionService
     ) {}
 
-    public function find($id)
+    public function find($id): User
     {
         return User::with(['roles'])->findOrFail($id);
     }
 
-    public function findOrCreate($id)
+    public function findOrCreate($id): User
     {
         return $id ? $this->find($id) : new User([
             'active' => true,
         ]);
     }
 
-    public function duplicate($id)
+    public function duplicate($id): User
     {
         return $this->find($id)->replicate();
     }
@@ -98,23 +98,21 @@ class UserService
     {
         $isNew = empty($data['id']);
         $roles = $data['roles'];
-        $user = $this->findOrCreate($data['id']);
+        $user  = $this->findOrCreate($data['id']);
         $oldData = $user->toArray();
+
         $user->fill($data);
 
-        $dirtyAttributes = $user->getDirty();
-
-        if (!empty($data['password'])) {
-            $user->password = Hash::make($data['password']);
-            $dirtyAttributes['password'] = '********'; // Catat sebagai dirty untuk log
-        }
-
-        if (!$isNew && empty($dirtyAttributes) && empty(array_diff($user->roles->pluck('id')->toArray(), $roles)) && empty(array_diff($roles, $user->roles->pluck('id')->toArray()))) {
+        if (empty($user->getDirty())) {
             throw new ModelNotModifiedException();
         }
 
-        try {
-            DB::beginTransaction();
+        if (!empty($data['password'])) {
+            $user->password = Hash::make($data['password']);
+            $oldData['password'] = '*****';
+        }
+
+        return DB::transaction(function () use ($user, $isNew, $roles, $oldData) {
             $user->save();
 
             if ($user->type === User::Type_SuperUser) {
@@ -127,6 +125,12 @@ class UserService
 
             $this->documentVersionService->createVersion($user);
 
+            $newData = $user->toArray();
+
+            if (!empty($oldData['password'])) {
+                $newData['password'] = '******';
+            }
+
             if ($isNew) {
                 $this->userActivityLogService->log(
                     UserActivityLog::Category_User,
@@ -134,7 +138,7 @@ class UserService
                     "Pengguna '{$user->username}' telah ditambahkan.",
                     [
                         'formatter' => 'user',
-                        'new_data' => $user->toArray(),
+                        'new_data'  => $newData,
                     ]
                 );
             } else {
@@ -144,18 +148,14 @@ class UserService
                     "Pengguna '{$user->username}' telah diperbarui.",
                     [
                         'formatter' => 'user',
-                        'new_data' => $user->toArray(),
-                        'old_data' => $oldData,
+                        'new_data'  => $newData,
+                        'old_data'  => $oldData,
                     ]
                 );
             }
 
-            DB::commit();
             return $user;
-        } catch (Exception $e) {
-            DB::rollBack();
-            throw $e;
-        }
+        });
     }
 
     /**
@@ -171,14 +171,11 @@ class UserService
             throw new BusinessRuleViolationException('Tidak dapat menghapus akun sendiri!', 409);
         }
 
-        try {
-            DB::beginTransaction();
-
+        return DB::transaction(function () use ($user) {
             $oldData = $user->toArray();
 
             $user->delete();
 
-            // Catat log
             $this->userActivityLogService->log(
                 UserActivityLog::Category_User,
                 UserActivityLog::Name_User_Delete,
@@ -192,11 +189,7 @@ class UserService
 
             $this->documentVersionService->createDeletedVersion($user);
 
-            DB::commit();
             return $user;
-        } catch (Exception $e) {
-            DB::rollBack();
-            throw $e;
-        }
+        });
     }
 }
