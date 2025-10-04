@@ -5,6 +5,7 @@ namespace Modules\Admin\Services;
 use App\Models\User;
 use App\Models\UserActivityLog;
 use Exception;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -29,21 +30,19 @@ class UserProfileService
      * @throws InvalidArgumentException Jika tidak ada perubahan yang terdeteksi.
      * @throws Exception Jika terjadi kegagalan saat menyimpan atau transaksi database.
      */
-    public function updateProfile(User $user, array $data): Bool|User
+    public function updateProfile(User $user, array $data): User
     {
         $oldData = $user->toArray();
 
         $user->fill($data);
 
         if (empty($user->getDirty())) {
-            throw new InvalidArgumentException('Tidak terdeteksi perubahan data.');
+            throw new ModelNotFoundException();
         }
 
-        DB::beginTransaction();
-        try {
+        return DB::transaction(function () use ($user, $oldData) {
             $user->save();
 
-            // Log Aktivitas
             $this->userActivityLogService->log(
                 UserActivityLog::Category_UserProfile,
                 UserActivityLog::Name_UserProfile_UpdateProfile,
@@ -55,12 +54,8 @@ class UserProfileService
                 ]
             );
 
-            DB::commit();
             return $user;
-        } catch (Exception $e) {
-            DB::rollBack();
-            throw new Exception("Gagal memperbarui profil pengguna: " . $e->getMessage(), 0, $e);
-        }
+        });
     }
 
     /**
@@ -79,24 +74,18 @@ class UserProfileService
             throw new InvalidArgumentException('Password saat ini salah.');
         }
 
-        DB::beginTransaction();
-        try {
+        return DB::transaction(function () use ($newPassword, $user) {
             $user->update([
                 'password' => Hash::make($newPassword),
             ]);
 
-            // Log Aktivitas
             $this->userActivityLogService->log(
                 UserActivityLog::Category_UserProfile,
                 UserActivityLog::Name_UserProfile_ChangePassword,
                 'Kata sandi telah diperbarui.'
             );
 
-            DB::commit();
             return $user;
-        } catch (Exception $e) {
-            DB::rollBack();
-            throw new Exception("Gagal memperbarui kata sandi: " . $e->getMessage(), 0, $e);
-        }
+        });
     }
 }

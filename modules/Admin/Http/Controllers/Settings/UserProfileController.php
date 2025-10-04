@@ -36,20 +36,11 @@ use Inertia\Response;
 class UserProfileController extends Controller
 {
     /**
-     * @var UserProfileService
-     */
-    protected UserProfileService $userProfileService;
-
-    /**
      * Menggunakan Dependency Injection untuk UserProfileService.
      *
      * @param UserProfileService $userProfileService
      */
-    public function __construct(UserProfileService $userProfileService)
-    {
-        // Injeksi Service baru
-        $this->userProfileService = $userProfileService;
-    }
+    public function __construct(protected UserProfileService $userProfileService) {}
 
     /**
      * Menampilkan formulir profil pengguna.
@@ -69,19 +60,8 @@ class UserProfileController extends Controller
      */
     public function update(UpdateProfileRequest $request): RedirectResponse
     {
-        /** @var \App\Models\User */
-        $user = Auth::user();
-
-        try {
-            $this->userProfileService->updateProfile($user, $request->validated());
-
-            return back()->with('success', 'Profil berhasil diperbarui');
-        } catch (InvalidArgumentException $e) {
-            return back()->with('warning', $e->getMessage());
-        } catch (Exception $ex) {
-            Log::error("Gagal memperbarui profil pengguna ID: {$user->id}. Exception: " . $ex->getMessage(), ['exception' => $ex]);
-            return back()->with('error', 'Gagal memperbarui profil. Terjadi kesalahan sistem.');
-        }
+        $this->userProfileService->updateProfile(Auth::user(), $request->validated());
+        return back()->with('success', 'Profil berhasil diperbarui');
     }
 
     /**
@@ -94,22 +74,15 @@ class UserProfileController extends Controller
      */
     public function updatePassword(UpdatePasswordRequest $request): RedirectResponse
     {
-        /** @var \App\Models\User */
-        $user = Auth::user();
-
         try {
             $this->userProfileService->updatePassword(
-                $user,
+                Auth::user(),
                 $request->input('current_password'),
                 $request->input('password')
             );
-
-            return back()->with('success', 'Password berhasil diperbarui');
+            return back()->with('success', 'Kata sandi berhasil diperbarui');
         } catch (InvalidArgumentException $e) {
             return back()->withErrors(['current_password' => $e->getMessage()]);
-        } catch (Exception $ex) {
-            Log::error("Gagal memperbarui password pengguna ID: {$user->id}. Exception: " . $ex->getMessage(), ['exception' => $ex]);
-            return back()->with('error', 'Gagal memperbarui password. Terjadi kesalahan sistem.');
         }
     }
 }
