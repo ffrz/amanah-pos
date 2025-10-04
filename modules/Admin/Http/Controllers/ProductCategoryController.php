@@ -2,9 +2,12 @@
 
 namespace Modules\Admin\Http\Controllers;
 
+use App\Exceptions\ModelNotModifiedException;
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\ProductCategory;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Modules\Admin\Services\ProductCategoryService;
 use Modules\Admin\Http\Requests\ProductCategory\GetDataRequest;
 use Modules\Admin\Http\Requests\ProductCategory\SaveRequest;
@@ -76,7 +79,9 @@ class ProductCategoryController extends Controller
     public function duplicate(int $id): Response
     {
         $this->authorize('create', ProductCategory::class);
+
         $item = $this->productCategoryService->duplicate($id);
+
         return Inertia::render('product-category/Editor', [
             'data' => $item
         ]);
@@ -110,26 +115,20 @@ class ProductCategoryController extends Controller
      */
     public function save(SaveRequest $request): RedirectResponse
     {
-        $validated = $request->validated();
-
-        // Persiapan model dan otorisasi
-        $item = $request->id ? $this->productCategoryService->find($request->id) : new ProductCategory();
-        $this->authorize($request->id ? 'update' : 'create', $item);
-
-        // Pengecekan 'no change' (logika Controller)
-        $tempItem = $item->replicate()->fill($validated);
-        if ($item->exists && empty($tempItem->getDirty())) {
-            return redirect(route('admin.product-category.index'))
-                ->with('success', "Tidak terdeteksi perubahan pada rekaman.");
-        }
-
         try {
-            // Mendelegasikan SELURUH proses (DB, Transaksi, Logging) ke Service
-            $item = $this->productCategoryService->save($item, $validated);
+            $item = $this->productCategoryService->findOrCreate($request->id);
+
+            $this->authorize($request->id ? 'update' : 'create', $item);
+
+            $item = $this->productCategoryService->save($item, $request->validated());
 
             return redirect(route('admin.product-category.index'))
                 ->with('success', "Kategori $item->name telah disimpan.");
-        } catch (Throwable $ex) { // Catch Throwable untuk semua jenis error (termasuk error DB)
+        } catch (ModelNotModifiedException $e) {
+            return redirect()->back()->with('warning', $e->getMessage());
+        } catch (ModelNotFoundException $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        } catch (Throwable $ex) {
             Log::error("Gagal menyimpan kategori produk", ['exception' => $ex]);
         }
 
@@ -153,10 +152,13 @@ class ProductCategoryController extends Controller
             $item = $this->productCategoryService->find($id);
             $this->authorize('delete', $item);
 
-            // Mendelegasikan SELURUH proses (DB, Transaksi, Logging) ke Service
             $this->productCategoryService->delete($item);
 
             return JsonResponseHelper::success($item, "Kategori $item->name telah dihapus");
+        } catch (AuthorizationException $e) {
+            return JsonResponseHelper::error("Anda tidak memiliki akses untuk menghapus rekaman ini.", 403, $e);
+        } catch (ModelNotFoundException $e) {
+            return JsonResponseHelper::error("Kategori tidak ditemukan, ID: $id.", 404);
         } catch (Throwable $ex) {
             Log::error("Gagal menghapus kategori produk ID: $id", ['exception' => $ex]);
         }

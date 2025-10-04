@@ -2,6 +2,7 @@
 
 namespace Modules\Admin\Services;
 
+use App\Exceptions\ModelNotModifiedException;
 use App\Helpers\ImageUploaderHelper;
 use App\Models\FinanceTransaction;
 use App\Models\OperationalCost;
@@ -21,9 +22,7 @@ class OperationalCostService
 
     public function duplicate($id)
     {
-        $item = $this->find($id);
-        $item->id = null;
-        return $item;
+        return $this->find($id)->replicate();
     }
 
     public function find($id)
@@ -123,7 +122,8 @@ class OperationalCostService
             $item->fill($validated);
 
             if ($oldData === $item->getAttributes()) {
-                return false;
+                DB::rollBack();
+                throw new ModelNotModifiedException();
             }
 
             $item->save();

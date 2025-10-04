@@ -62,10 +62,7 @@ class OperationalCostCategoryService
      */
     public function duplicate(int $id): OperationalCostCategory
     {
-        $item = $this->find($id);
-        $duplicate = $item->replicate();
-        $duplicate->name = $item->name;
-        return $duplicate;
+        return $this->find($id)->replicate();
     }
 
     /**

@@ -27,9 +27,7 @@ class FinanceAccountService
 
     public function duplicate($id): FinanceAccount
     {
-        $item = $this->find($id);
-        $item->id = null;
-        return $item;
+        return $this->find($id)->replicate();
     }
 
     public function findOrCreate($id): FinanceAccount

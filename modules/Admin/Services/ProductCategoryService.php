@@ -2,6 +2,7 @@
 
 namespace Modules\Admin\Services;
 
+use App\Exceptions\ModelNotModifiedException;
 use App\Models\ProductCategory;
 use App\Models\UserActivityLog;
 
@@ -68,6 +69,18 @@ class ProductCategoryService
     }
 
     /**
+     * Mencari kategori produk berdasarkan ID.
+     *
+     * @param int $id ID Kategori Produk.
+     * @return ProductCategory
+     * @throws ModelNotFoundException
+     */
+    public function findOrCreate($id = null): ProductCategory
+    {
+        return $id ? $this->find($id) : new ProductCategory();
+    }
+
+    /**
      * Menduplikasi kategori produk yang sudah ada.
      *
      * @param int $id ID kategori yang akan diduplikasi.
@@ -76,14 +89,7 @@ class ProductCategoryService
      */
     public function duplicate(int $id): ProductCategory
     {
-        $duplicate = $this->find($id)->replicate();
-        $duplicate->exists = false;
-        $duplicate->id = null;
-        $duplicate->created_at = null;
-        $duplicate->created_by = null;
-        $duplicate->updated_at = null;
-        $duplicate->updated_by = null;
-        return $duplicate;
+        return $this->find($id)->replicate();
     }
 
     /**
@@ -97,8 +103,13 @@ class ProductCategoryService
     public function save(ProductCategory $item, array $data): ProductCategory
     {
         $oldData = $item->getAttributes();
-        $isCreating = !$item->exists;
+        $isCreating = !$item->id;
+
         $item->fill($data);
+
+        if (empty($item->getDirty())) {
+            throw new ModelNotModifiedException();
+        }
 
         DB::transaction(function () use ($item, $oldData, $isCreating) {
             $item->save();
@@ -140,18 +151,13 @@ class ProductCategoryService
      */
     public function delete(ProductCategory $item): ProductCategory
     {
-        $oldData = $item->toArray();
-        $itemName = $item->name;
-
-        // Transaksi sebagai Unit of Work
-        DB::transaction(function () use ($item, $oldData, $itemName) {
+        DB::transaction(function () use ($item) {
             $item->delete();
 
-            // Logging Aktivitas
             $this->userActivityLogService->log(
                 UserActivityLog::Category_ProductCategory,
                 UserActivityLog::Name_ProductCategory_Delete,
-                "Kategori $itemName telah dihapus.",
+                "Kategori $item->name telah dihapus.",
                 [
                     'formatter' => 'product-category',
                     'data' => $item->getAttributes(),

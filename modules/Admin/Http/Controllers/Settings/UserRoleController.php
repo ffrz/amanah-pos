@@ -97,6 +97,7 @@ class UserRoleController extends Controller
     public function duplicate(int $id): Response
     {
         $item = $this->userRoleService->duplicate($id);
+
         $permissions = $this->commonDataService->getAclPermissions();
 
         return inertia('settings/user-role/Editor', [

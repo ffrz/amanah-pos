@@ -48,7 +48,9 @@ class OperationalCostController extends Controller
     public function detail($id)
     {
         $item = $this->operationalCostService->find($id);
+
         $this->authorize('view', $item);
+
         return inertia('operational-cost/Detail', [
             'data' => $item
         ]);
@@ -57,20 +59,25 @@ class OperationalCostController extends Controller
     public function data(GetDataRequest $request)
     {
         $items = $this->operationalCostService->getData($request->validated());
+
         return JsonResponseHelper::success($items);
     }
 
     public function duplicate($id)
     {
+        $this->authorize("create", OperationalCost::class);
+
         $item = $this->operationalCostService->duplicate($id);
-        $this->authorize("create", $item);
+
         return $this->renderEditor($item);
     }
 
     public function editor($id = 0)
     {
         $item = $this->operationalCostService->findOrCreate($id);
+
         $this->authorize($id ? "update" : "create", $id ? $item : OperationalCost::class);
+
         return $this->renderEditor($item);
     }
 
