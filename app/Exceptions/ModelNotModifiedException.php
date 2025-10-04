@@ -6,7 +6,7 @@ use Exception;
 
 class ModelNotModifiedException extends Exception
 {
-    public function __construct(string $message = "Tidak ada perubahan pada model.")
+    public function __construct(string $message = "Tidak ada perubahan data.")
     {
         parent::__construct($message, 422);
     }

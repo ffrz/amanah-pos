@@ -38,6 +38,11 @@ class UserService
         ]);
     }
 
+    public function duplicate($id)
+    {
+        return $this->find($id)->replicate();
+    }
+
     /**
      * Mengambil data pengguna dengan paginasi dan filter yang kompleks.
      *
@@ -51,18 +56,24 @@ class UserService
         $q = User::with(['roles']);
 
         // Filter berdasarkan peran dari Spatie
-        if (!empty($filter['role']) && $filter['role'] != 'all') {
+        if (!empty($filter['roles'])) {
             $q->whereHas('roles', function ($query) use ($filter) {
-                $query->where('id', $filter['role']);
+                $query->where(function ($q) use ($filter) {
+                    foreach ($filter['roles'] as $role) {
+                        $q->orWhere('id', $role);
+                    }
+                });
             });
         }
 
-        // Filter berdasarkan status
-        if (isset($filter['status']) && ($filter['status'] === 'active' || $filter['status'] === 'inactive')) {
+        if (isset($filter['status']) && $filter['status'] != 'all') {
             $q->where('active', '=', $filter['status'] === 'active');
         }
 
-        // Filter berdasarkan pencarian nama atau username
+        if (isset($filter['type']) && $filter['type'] != 'all') {
+            $q->where('type', '=', $filter['type']);
+        }
+
         if (!empty($filter['search'])) {
             $q->where(function ($query) use ($filter) {
                 $query->where('name', 'like', '%' . $filter['search'] . '%')

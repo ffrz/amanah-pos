@@ -20,20 +20,15 @@ use App\Exceptions\BusinessRuleViolationException;
 use App\Exceptions\ModelNotModifiedException;
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use Modules\Admin\Services\UserService;
 use Modules\Admin\Http\Requests\User\GetDataRequest;
 use Modules\Admin\Http\Requests\User\SaveRequest;
 use Modules\Admin\Services\CommonDataService;
-use Spatie\Permission\Models\Role;
 use Inertia\Response;
-use Exception;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
@@ -52,7 +47,9 @@ class UserController extends Controller
      */
     public function index(): Response
     {
-        return inertia('settings/user/Index');
+        return inertia('settings/user/Index', [
+            'roles' => $this->commonDataService->getRoles()
+        ]);
     }
 
     /**
@@ -64,6 +61,7 @@ class UserController extends Controller
     public function detail(int $id): Response
     {
         $user = $this->userService->find($id);
+
         return inertia('settings/user/Detail', [
             'data' => $user,
         ]);
@@ -79,13 +77,8 @@ class UserController extends Controller
      */
     public function data(GetDataRequest $request): JsonResponse
     {
-        try {
-            $users = $this->userService->getData($request->validated());
-            return JsonResponseHelper::success($users);
-        } catch (Exception $e) {
-            Log::error("Gagal mengambil data pengguna: " . $e->getMessage(), ['exception' => $e]);
-            return JsonResponseHelper::error('Gagal mengambil data pengguna.', 500, $e);
-        }
+        $users = $this->userService->getData($request->validated());
+        return JsonResponseHelper::success($users);
     }
 
     /**
@@ -96,8 +89,7 @@ class UserController extends Controller
      */
     public function duplicate(int $id): Response
     {
-        $user = $this->userService->find($id);
-        $user->id = null;
+        $user = $this->userService->duplicate($id);
 
         return inertia('settings/user/Editor', [
             'data' => $user,
@@ -148,16 +140,6 @@ class UserController extends Controller
             return redirect()->back()->with('success', $e->getMessage());
         } catch (BusinessRuleViolationException $e) {
             return redirect()->back()->with('warning', $e->getMessage());
-        } catch (Exception $e) {
-            // Pengecualian khusus untuk "Tidak dapat mengubah akun sendiri" (kode 403)
-            if ($e->getCode() === 403) {
-                return abort(403, $e->getMessage());
-            }
-
-            // Logging untuk kegagalan penyimpanan umum
-            Log::error("Gagal menyimpan pengguna ID: {$request->id}. Exception: " . $e->getMessage(), ['request_data' => $request->all(), 'exception' => $e]);
-
-            return redirect(route('admin.user.index'))->with('error', 'Terjadi kesalahan. Gagal menyimpan pengguna. Silakan coba lagi.');
         }
     }
 
@@ -174,15 +156,10 @@ class UserController extends Controller
             $this->authorize('delete', $user);
             $user = $this->userService->delete($user);
             return JsonResponseHelper::success($user, "Pengguna {$user->username} telah dihapus!");
-        } catch (AuthorizationException $e) {
-            return JsonResponseHelper::error("Anda tidak memiliki hak untuk menghapus akun ini.", 403);
         } catch (ModelNotFoundException $e) {
             return JsonResponseHelper::error($e->getMessage(), 404);
         } catch (BusinessRuleViolationException $e) {
             return JsonResponseHelper::error($e->getMessage(), 409);
-        } catch (Exception $e) {
-            Log::error("Gagal menghapus pengguna ID: {$user->id}. Exception: " . $e->getMessage(), ['exception' => $e]);
-            return JsonResponseHelper::error("Gagal menghapus pengguna. Silakan coba lagi.", 500, $e);
         }
     }
 }

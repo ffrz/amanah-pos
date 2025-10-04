@@ -24,20 +24,22 @@ class SaveRequest extends FormRequest
             'username' => [
                 'required',
                 'alpha_num',
-                'max:255',
+                'min:3',
+                'max:100',
                 Rule::unique('users', 'username')->ignore($userId),
             ],
-            'name'     => 'required|string|max:255',
-            'type'       => ['required', Rule::in(array_keys(User::Types))],
-            'roles'      => 'sometimes|array',
+            'name'    => 'required|string|max:100',
+            'type'    => ['required', Rule::in(array_keys(User::Types))],
+            'roles'   => 'sometimes|array',
             'roles.*' => 'sometimes|integer|exists:acl_roles,id',
-            'active'     => 'required|boolean',
+            'active'  => 'required|boolean',
         ];
 
         // Aturan kondisional untuk password
         if ($isNew || $passwordProvided) {
             $rules['password'] = 'required|string|min:5|max:40';
         }
+
         return $rules;
     }
 
@@ -51,8 +53,10 @@ class SaveRequest extends FormRequest
         return [
             'username.unique' => 'Username ini sudah digunakan.',
             'roles.*.exists' => 'Salah satu Role yang dipilih tidak valid.',
-            'password.required' => 'Password wajib diisi saat membuat pengguna atau saat mengubah password.',
-            'password.min' => 'Password minimal harus :min karakter.',
+            'password.required' => 'Kata sandi wajib diisi saat membuat pengguna atau saat mengubah password.',
+            'password.min' => 'Kata sandi minimal harus :min karakter.',
+            'name.min' => 'Nama minimal harus :min karakter.',
+            'name.max' => 'Nama maksimal :max karakter.',
         ];
     }
 

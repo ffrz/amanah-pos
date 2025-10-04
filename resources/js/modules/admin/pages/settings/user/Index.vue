@@ -25,9 +25,17 @@ const rows = ref([]);
 const loading = ref(true);
 const showFilter = ref(false);
 const filter = reactive({
-  role: "all",
+  type: "all",
+  roles: [],
   status: "active",
   search: "",
+});
+
+const roles = page.props.roles.map((data) => {
+  return {
+    value: data.id,
+    label: data.name,
+  };
 });
 
 const pagination = ref({
@@ -154,6 +162,21 @@ const tableHeight = useTableHeight(filterToolbarRef);
             outlined
             style="min-width: 150px"
             @update:model-value="onFilterChange"
+          />
+          <q-select
+            v-model="filter.roles"
+            class="custom-select col-xs-12 col-sm-2"
+            :options="roles"
+            label="Peran"
+            dense
+            map-options
+            emit-value
+            outlined
+            style="min-width: 150px"
+            @update:model-value="onFilterChange"
+            use-chips
+            multiple
+            clearable
           />
           <q-input
             class="col"
