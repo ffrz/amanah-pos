@@ -2,8 +2,8 @@
 
 namespace Modules\Admin\Policies;
 
-use App\Models\BaseModel;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Model;
 
 class DefaultPolicy
 {
@@ -18,7 +18,7 @@ class DefaultPolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, BaseModel $model): bool
+    public function view(User $user, Model $model): bool
     {
         return true;
     }
@@ -34,7 +34,7 @@ class DefaultPolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, BaseModel $model): bool
+    public function update(User $user, Model $model): bool
     {
         return true;
     }
@@ -42,7 +42,7 @@ class DefaultPolicy
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, BaseModel $model): bool
+    public function delete(User $user, Model $model): bool
     {
         return true;
     }

@@ -16,19 +16,16 @@
 
 namespace Modules\Admin\Http\Controllers\Settings;
 
-use App\Exceptions\BusinessRuleViolationException;
-use App\Exceptions\ModelNotModifiedException;
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Modules\Admin\Services\UserService;
 use Modules\Admin\Http\Requests\User\GetDataRequest;
 use Modules\Admin\Http\Requests\User\SaveRequest;
 use Modules\Admin\Services\CommonDataService;
 use Inertia\Response;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -47,6 +44,7 @@ class UserController extends Controller
      */
     public function index(): Response
     {
+        $this->authorize('viewAny', User::class);
         return inertia('settings/user/Index', [
             'roles' => $this->commonDataService->getRoles()
         ]);
@@ -61,7 +59,7 @@ class UserController extends Controller
     public function detail(int $id): Response
     {
         $user = $this->userService->find($id);
-
+        $this->authorize('view', $user);
         return inertia('settings/user/Detail', [
             'data' => $user,
         ]);
@@ -77,6 +75,7 @@ class UserController extends Controller
      */
     public function data(GetDataRequest $request): JsonResponse
     {
+        $this->authorize('viewAny', User::class);
         $users = $this->userService->getData($request->validated());
         return JsonResponseHelper::success($users);
     }
@@ -89,8 +88,8 @@ class UserController extends Controller
      */
     public function duplicate(int $id): Response
     {
+        $this->authorize('create', User::class);
         $user = $this->userService->duplicate($id);
-
         return inertia('settings/user/Editor', [
             'data' => $user,
             'roles' => $this->commonDataService->getRoles()
@@ -101,16 +100,11 @@ class UserController extends Controller
      * Tampilkan halaman editor untuk pengguna (Create/Edit).
      *
      * @param int $id
-     * @return Response
      */
-    public function editor(int $id = 0): Response
+    public function editor(int $id = 0)
     {
-        if ($id === Auth::user()->id) {
-            return abort(403, 'Tidak dapat mengubah akun sendiri!');
-        }
-
         $user = $this->userService->findOrCreate($id);
-
+        $this->authorize(!$user->id ? 'create' : 'update', $user);
         return inertia('settings/user/Editor', [
             'data' => $user,
             'roles' => $this->commonDataService->getRoles(),
@@ -127,20 +121,11 @@ class UserController extends Controller
      */
     public function save(SaveRequest $request): RedirectResponse
     {
-        if ($request->id == Auth::id()) {
-            return redirect(route('admin.user.index'))
-                ->with('error', 'Tidak dapat mengubah akun sendiri.');
-        }
-
-        try {
-            $user = $this->userService->save($request->validated());
-            return redirect(route('admin.user.index'))
-                ->with('success', "Pengguna $user->username telah disimpan.");
-        } catch (ModelNotModifiedException $e) {
-            return redirect()->back()->with('success', $e->getMessage());
-        } catch (BusinessRuleViolationException $e) {
-            return redirect()->back()->with('warning', $e->getMessage());
-        }
+        $user = $this->userService->findOrCreate($request->id);
+        $this->authorize(!$user->id ? 'create' : 'update', $user);
+        $user = $this->userService->save($user, $request->validated());
+        return redirect(route('admin.user.index'))
+            ->with('success', "Pengguna $user->username telah disimpan.");
     }
 
     /**
@@ -151,15 +136,9 @@ class UserController extends Controller
      */
     public function delete(int $id): JsonResponse
     {
-        try {
-            $user = $this->userService->find($id);
-            $this->authorize('delete', $user);
-            $user = $this->userService->delete($user);
-            return JsonResponseHelper::success($user, "Pengguna {$user->username} telah dihapus!");
-        } catch (ModelNotFoundException $e) {
-            return JsonResponseHelper::error($e->getMessage(), 404);
-        } catch (BusinessRuleViolationException $e) {
-            return JsonResponseHelper::error($e->getMessage(), 409);
-        }
+        $user = $this->userService->find($id);
+        $this->authorize('delete', $user);
+        $user = $this->userService->delete($user);
+        return JsonResponseHelper::success($user, "Pengguna {$user->username} telah dihapus!");
     }
 }

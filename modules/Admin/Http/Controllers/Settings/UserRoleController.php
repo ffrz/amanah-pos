@@ -25,12 +25,10 @@ use Modules\Admin\Http\Requests\UserRole\SaveRequest;
 use Modules\Admin\Services\UserRoleService;
 use Modules\Admin\Services\CommonDataService;
 
-use Exception;
-use Inertia\Inertia;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Log;
 use Inertia\Response;
+use Spatie\Permission\Models\Role;
 
 /**
  * Controller untuk mengelola Peran Pengguna (User Roles) dalam pengaturan (Settings).
@@ -55,6 +53,7 @@ class UserRoleController extends Controller
      */
     public function index(): Response
     {
+        $this->authorize('viewAny', Role::class);
         return inertia('settings/user-role/Index');
     }
 
@@ -67,11 +66,10 @@ class UserRoleController extends Controller
      */
     public function data(GetDataRequest $request): JsonResponse
     {
-        $items = $this->userRoleService->getPaginatedData($request->validated());
-
+        $this->authorize('viewAny', Role::class);
+        $items = $this->userRoleService->getData($request->validated());
         return JsonResponseHelper::success($items);
     }
-
 
     /**
      * Tampilkan detail peran.
@@ -82,7 +80,7 @@ class UserRoleController extends Controller
     public function detail(int $id): Response
     {
         $role = $this->userRoleService->find($id);
-
+        $this->authorize('view', $role);
         return inertia('settings/user-role/Detail', [
             'data' => $role,
         ]);
@@ -96,13 +94,11 @@ class UserRoleController extends Controller
      */
     public function duplicate(int $id): Response
     {
+        $this->authorize('create', Role::class);
         $item = $this->userRoleService->duplicate($id);
-
-        $permissions = $this->commonDataService->getAclPermissions();
-
         return inertia('settings/user-role/Editor', [
             'data' => $item,
-            'permissions' => $permissions
+            'permissions' => $this->commonDataService->getAclPermissions()
         ]);
     }
 
@@ -114,13 +110,11 @@ class UserRoleController extends Controller
      */
     public function editor(int $id = 0): Response
     {
-        $item = $this->userRoleService->findOrCreate($id);
-
-        $permissions = $this->commonDataService->getAclPermissions();
-
+        $role = $this->userRoleService->findOrCreate($id);
+        $this->authorize(!$id ? 'create' : 'update', $role);
         return inertia('settings/user-role/Editor', [
-            'data' => $item,
-            'permissions' => $permissions
+            'data' => $role,
+            'permissions' => $this->commonDataService->getAclPermissions()
         ]);
     }
 
@@ -133,15 +127,12 @@ class UserRoleController extends Controller
      */
     public function save(SaveRequest $request): RedirectResponse
     {
-        try {
-            $role = $this->userRoleService->save($request->validated());
-            $message = "Peran pengguna '{$role->name}' telah berhasil disimpan.";
-            return redirect()->route('admin.user-role.index')
-                ->with('success', $message);
-        } catch (Exception $ex) {
-            Log::error("Gagal menyimpan atau memperbarui role. ID: " . ($request->id ?? 'new') . ": " . $ex->getMessage(), ['exception' => $ex]);
-            return back()->with('error', 'Terjadi kesalahan: ' . $ex->getMessage());
-        }
+
+        $role = $this->userRoleService->findOrCreate($request->id);
+        $this->authorize(!$role->id ? 'create' : 'update', $role);
+        $role = $this->userRoleService->save($role, $request->validated());
+        return redirect()->route('admin.user-role.index')
+            ->with('success', "Peran pengguna '{$role->name}' telah berhasil disimpan.");
     }
 
     /**
@@ -152,12 +143,10 @@ class UserRoleController extends Controller
      */
     public function delete(int $id): JsonResponse
     {
-        try {
-            $role = $this->userRoleService->delete($id);
-            return JsonResponseHelper::success($role, "Role '{$role->name}' telah berhasil dihapus.");
-        } catch (Exception $ex) {
-            Log::error("Gagal menghapus role. ID: $id. Exception: " . $ex->getMessage(), ['exception' => $ex]);
-            return JsonResponseHelper::error("Gagal menghapus role: " . $ex->getMessage(), 500);
-        }
+
+        $role = $this->userRoleService->find($id);
+        $this->authorize('delete', $role);
+        $role = $this->userRoleService->delete($role);
+        return JsonResponseHelper::success($role, "Role '{$role->name}' telah berhasil dihapus.");
     }
 }

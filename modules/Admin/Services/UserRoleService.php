@@ -25,7 +25,10 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class UserRoleService
 {
-    public function __construct(protected UserActivityLogService $userActivityLogService) {}
+    public function __construct(
+        protected UserActivityLogService $userActivityLogService,
+        // protected DocumentVersionService $documentVersionService
+    ) {}
 
     /**
      * Dapatkan data peran dalam format paginasi.
@@ -33,7 +36,7 @@ class UserRoleService
      * @param array $data
      * @return LengthAwarePaginator
      */
-    public function getPaginatedData(array $options): LengthAwarePaginator
+    public function getData(array $options): LengthAwarePaginator
     {
         $q = Role::query();
 
@@ -65,7 +68,7 @@ class UserRoleService
      */
     public function duplicate(int $id): Role
     {
-        $item = Role::with('permissions')->findOrFail($id);
+        $item = $this->find($id);
         $item->id = null;
         return $item;
     }
@@ -88,27 +91,26 @@ class UserRoleService
      * @param int|null $roleId ID peran, null jika membuat baru.
      * @return Role
      */
-    public function save(array $data): Role
+    public function save(Role $role, array $data): Role
     {
         $permissions = collect($data['permissions'] ?? [])->map(function ($permission) {
             return is_array($permission) ? $permission['id'] : $permission;
         })->toArray();
 
-        $isUpdate = (bool)$data['id'];
+        $oldData = $data['id'] ? $role->toArray() : null;
 
-        DB::beginTransaction();
-        try {
-            $role = $isUpdate ? Role::with(['permissions'])->findOrFail($data['id']) : new Role();
-            $oldData = $isUpdate ? $role->toArray() : null;
+        $role->fill($data);
 
-            $role->name = $data['name'];
-            $role->description = $data['description'] ?? null;
+        return DB::transaction(function () use ($role, $oldData, $permissions) {
+            $isNew = !$role->id;
 
             $role->save();
             $role->syncPermissions($permissions);
+            $role->load('permissions');
 
-            $role->permissions; // untuk save ke log harus fetch permissions lagi
-            if (!$isUpdate) {
+            // $this->documentVersionService->createVersion($role);
+
+            if ($isNew) {
                 $this->userActivityLogService->log(
                     UserActivityLog::Category_UserRole,
                     UserActivityLog::Name_UserRole_Create,
@@ -131,13 +133,8 @@ class UserRoleService
                 );
             }
 
-            DB::commit();
-
             return $role;
-        } catch (Exception $e) {
-            DB::rollBack();
-            throw $e;
-        }
+        });
     }
 
     /**
@@ -146,31 +143,24 @@ class UserRoleService
      * @param int $id ID peran yang akan dihapus.
      * @return Role
      */
-    public function delete(int $id): Role
+    public function delete(Role $role): Role
     {
-        DB::beginTransaction();
-        try {
-            $role = Role::with(['permissions'])->findOrFail($id);
-            $roleName = $role->name;
+        return DB::transaction(function () use ($role) {
             $role->delete();
+
+            // $this->documentVersionService->createDeletedVersion($role);
 
             $this->userActivityLogService->log(
                 UserActivityLog::Category_UserRole,
                 UserActivityLog::Name_UserRole_Delete,
-                "Role $roleName telah dihapus.",
+                "Role $role->name telah dihapus.",
                 [
                     'formatter' => 'user-role',
                     'data' => $role->toArray(),
                 ]
             );
 
-            DB::commit();
-
-            $role->name = $roleName;
             return $role;
-        } catch (Exception $e) {
-            DB::rollBack();
-            throw $e;
-        }
+        });
     }
 }

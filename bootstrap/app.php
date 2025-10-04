@@ -14,20 +14,14 @@
  * Email: fahmifauzirahman@gmail.com
  */
 
+use App\Helpers\JsonResponseHelper;
 use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Session\Middleware\StartSession; // Import ini
-use Illuminate\Cookie\Middleware\EncryptCookies; // Import ini
-use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse; // Import ini
-use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken; // Import ini
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
-use Illuminate\Routing\Middleware\SubstituteBindings; // Import ini
-use Illuminate\Validation\ValidationException;
-use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful; // Import ini
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpFoundation\Response;
 
 require_once __DIR__ . '/../app/helper.php';
 
@@ -67,6 +61,47 @@ return Application::configure(basePath: dirname(__DIR__))
         // });
     })
     ->withExceptions(function (Exceptions $exceptions) {
+        $exceptions->renderable(function (Throwable $e, Request $request) {
+            $customExceptions = [
+                \App\Exceptions\ModelNotModifiedException::class,
+                \App\Exceptions\BusinessRuleViolationException::class,
+                \App\Exceptions\ModelInUseException::class,
+                \App\Exceptions\OperationFailedException::class,
+            ];
+
+            $message = null;
+            $statusCode = null;
+            $type = 'error';
+
+            if (in_array(get_class($e), $customExceptions)) {
+                $statusCode = $e->getCode();
+                $message = $e->getMessage();
+            } elseif ($e->getPrevious() instanceof ModelNotFoundException) {
+                $statusCode = Response::HTTP_NOT_FOUND;
+                $message = "Rekaman tidak ditemukan.";
+            } elseif ($e->getPrevious() instanceof AuthorizationException) {
+                $statusCode = Response::HTTP_FORBIDDEN;
+                $message = "Akses ditolak. Anda tidak diizinkan melakukan aksi ini.";
+            }
+
+            if ($statusCode !== null) {
+                if ($request->inertia()) {
+                    return back()->with($type, $message);
+                }
+
+                if ($request->expectsJson() || $request->isJson()) {
+                    return JsonResponseHelper::error(
+                        $message,
+                        $statusCode
+                    );
+                }
+
+                abort($statusCode, $message);
+            }
+
+            return null;
+        });
+
         // $exceptions->renderable(function (Throwable $e, $request) {
         //     // Periksa jika request adalah untuk API dan/atau mengharapkan JSON
         //     if ($request->is('api/*') || $request->is('web-api/*') || $request->expectsJson()) {

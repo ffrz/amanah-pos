@@ -8,10 +8,12 @@ use App\Models\OperationalCost;
 use App\Models\OperationalCostCategory;
 use App\Models\ProductCategory;
 use App\Models\User;
+use Modules\Admin\Policies\DefaultPolicy;
 use Modules\Admin\Policies\OperationalCostCategoryPolicy;
 use Modules\Admin\Policies\OperationalCostPolicy;
 use Modules\Admin\Policies\ProductCategoryPolicy;
 use Modules\Admin\Policies\UserPolicy;
+use Spatie\Permission\Models\Role;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -25,6 +27,7 @@ class AuthServiceProvider extends ServiceProvider
         OperationalCostCategory::class => OperationalCostCategoryPolicy::class,
         OperationalCost::class => OperationalCostPolicy::class,
         User::class => UserPolicy::class,
+        Role::class => DefaultPolicy::class,
     ];
 
     /**

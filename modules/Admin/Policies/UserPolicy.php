@@ -2,17 +2,17 @@
 
 namespace Modules\Admin\Policies;
 
-use App\Models\BaseModel;
+use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
 
 class UserPolicy extends DefaultPolicy
 {
-    public function update(User $user, BaseModel $model): bool
+    public function update(User $user, Model $model): bool
     {
         return $user->id !== $model->id;
     }
 
-    public function delete(User $user, BaseModel $model): bool
+    public function delete(User $user, Model $model): bool
     {
         return $model->username !== 'admin' && $user->id !== $model->id;
     }

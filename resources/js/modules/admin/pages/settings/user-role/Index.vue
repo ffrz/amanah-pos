@@ -36,7 +36,13 @@ const columns = [
     align: "left",
     sortable: true,
   },
-
+  {
+    name: "description",
+    label: "Deskripsi",
+    field: "description",
+    align: "left",
+    sortable: true,
+  },
   {
     name: "action",
     align: "right",
@@ -161,6 +167,9 @@ const computedColumns = computed(() => {
                 <q-icon name="person" v-if="$q.screen.lt.md" />
                 {{ props.row.name }}
               </div>
+            </q-td>
+            <q-td key="description" :props="props" class="wrap-column">
+              {{ props.row.description }}
             </q-td>
 
             <q-td key="action" :props="props">

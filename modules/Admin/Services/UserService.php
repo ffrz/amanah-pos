@@ -2,13 +2,11 @@
 
 namespace Modules\Admin\Services;
 
-use App\Exceptions\BusinessRuleViolationException;
 use App\Exceptions\ModelNotModifiedException;
 use App\Models\User;
 use App\Models\UserActivityLog;
 use Exception;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
@@ -55,7 +53,6 @@ class UserService
 
         $q = User::with(['roles']);
 
-        // Filter berdasarkan peran dari Spatie
         if (!empty($filter['roles'])) {
             $q->whereHas('roles', function ($query) use ($filter) {
                 $query->where(function ($q) use ($filter) {
@@ -94,11 +91,10 @@ class UserService
      * @return User
      * @throws Exception
      */
-    public function save(array $data): User
+    public function save(User $user, array $data): User
     {
         $isNew = empty($data['id']);
         $roles = $data['roles'];
-        $user  = $this->findOrCreate($data['id']);
         $oldData = $user->toArray();
 
         $user->fill($data);
@@ -167,14 +163,10 @@ class UserService
      */
     public function delete(User $user): User
     {
-        if ($user->id === Auth::id()) {
-            throw new BusinessRuleViolationException('Tidak dapat menghapus akun sendiri!', 409);
-        }
-
         return DB::transaction(function () use ($user) {
-            $oldData = $user->toArray();
-
             $user->delete();
+
+            $this->documentVersionService->createDeletedVersion($user);
 
             $this->userActivityLogService->log(
                 UserActivityLog::Category_User,
@@ -182,12 +174,10 @@ class UserService
                 "Pengguna '{$user->username}' telah dihapus.",
                 [
                     'formatter' => 'user',
-                    'data' => $oldData,
+                    'data' => $user->toArray(),
                 ]
 
             );
-
-            $this->documentVersionService->createDeletedVersion($user);
 
             return $user;
         });
