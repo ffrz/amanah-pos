@@ -3,6 +3,7 @@
 namespace Modules\Admin\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
+use App\Models\UserActivityLog;
 use Modules\Admin\Http\Requests\Settings\CompanyProfile\EditorRequest;
 use Modules\Admin\Services\CompanyProfileService;
 
@@ -32,5 +33,17 @@ class CompanyProfileController extends Controller
 
         return redirect()->back()
             ->with('success', 'Profil perusahaan berhasil diperbarui.');
+    }
+
+    public function delete($id): UserActivityLog
+    {
+        $item = $this->find($id);
+        $item->delete();
+        return $item;
+    }
+
+    public function find($id): UserActivityLog
+    {
+        return UserActivityLog::findOrFail($id);
     }
 }

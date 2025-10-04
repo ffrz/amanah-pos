@@ -21,21 +21,15 @@ use App\Http\Controllers\Controller;
 use App\Models\UserActivityLog;
 use Modules\Admin\Services\UserActivityLogService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\ProductCategoryFormatter;
+use Modules\Admin\Http\Requests\UserActivityLog\GetDataRequest;
+use Modules\Admin\Services\CommonDataService;
 
 class UserActivityLogController extends Controller
 {
-    /**
-     * @var UserActivityLogService
-     */
-    protected $userActivityLogService;
-
-    public function __construct(UserActivityLogService $userActivityLogService)
-    {
-        $this->userActivityLogService = $userActivityLogService;
-    }
+    public function __construct(
+        protected UserActivityLogService $userActivityLogService,
+        protected CommonDataService $commonDataService
+    ) {}
 
     /**
      * Tampilkan halaman indeks log aktifitas pengguna.
@@ -47,6 +41,7 @@ class UserActivityLogController extends Controller
         return inertia('settings/user-activity-log/Index', [
             'activity_categories' => UserActivityLog::Categories,
             'activity_names' => UserActivityLog::Names,
+            'users' => $this->commonDataService->getAllUsers(['id', 'name', 'username']),
         ]);
     }
 
@@ -58,7 +53,7 @@ class UserActivityLogController extends Controller
      */
     public function detail($id = 0)
     {
-        $item = UserActivityLog::with('user')->findOrFail($id);
+        $item = $this->userActivityLogService->find($id);
         return inertia('settings/user-activity-log/Detail', [
             'data' => $item,
             'formatted_metadata' => $item->formatted_metadata,
@@ -71,38 +66,10 @@ class UserActivityLogController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function data(Request $request)
+    public function data(GetDataRequest $request)
     {
-        $orderBy = $request->get('order_by', 'id');
-        $orderType = $request->get('order_type', 'desc');
-        $filter = $request->get('filter', []);
-
-        $q = UserActivityLog::query();
-
-        if (!empty($filter['user_id']) && $filter['user_id'] != 'all') {
-            $q->where('user_id', $filter['user_id']);
-        }
-
-        if (!empty($filter['activity_category']) && $filter['activity_category'] != 'all') {
-            $q->where('activity_category', $filter['activity_category']);
-        }
-
-        if (!empty($filter['activity_name']) && $filter['activity_name'] != 'all') {
-            $q->where('activity_name', $filter['activity_name']);
-        }
-
-        if (!empty($filter['search'])) {
-            $q->where(function ($query) use ($filter) {
-                $query->where('description', 'like', '%' . $filter['search'] . '%');
-                $query->where('username', 'like', '%' . $filter['search'] . '%');
-            });
-        }
-
-        $q->orderBy($orderBy, $orderType);
-        $q->select(['id', 'logged_at', 'activity_name', 'activity_category', 'description', 'user_id', 'username']);
-        $users = $q->paginate($request->get('per_page', 10))->withQueryString();
-
-        return JsonResponseHelper::success($users);
+        $items = $this->userActivityLogService->getData($request->validated());
+        return JsonResponseHelper::success($items);
     }
 
     /**
@@ -113,16 +80,8 @@ class UserActivityLogController extends Controller
      */
     public function delete($id)
     {
-        $item = UserActivityLog::findOrFail($id);
-        try {
-            DB::beginTransaction();
-            $item->delete();
-            DB::commit();
-            return JsonResponseHelper::success($item, "Log aktifitas #$item->id telah dihapus!");
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return JsonResponseHelper::error("Log aktifitas #$item->id tidak dapat dihapus!", 500, $e);
-        }
+        $item = $this->userActivityLogService->delete($id);
+        return JsonResponseHelper::success($item, "Log aktifitas #$item->id telah dihapus!");
     }
 
     /**
@@ -132,20 +91,8 @@ class UserActivityLogController extends Controller
      */
     public function clear()
     {
-        $user = Auth::user();
-        try {
+        $this->userActivityLogService->clear();
 
-            UserActivityLog::truncate();
-
-            $this->userActivityLogService->log(
-                UserActivityLog::Category_UserActivityLog,
-                UserActivityLog::Name_UserActivityLog_Clear,
-                "Pengguna '$user->username' telah membersihkan riwayat aktifitas pengguna.",
-            );
-
-            return JsonResponseHelper::success(null, "Semua log aktifitas telah dibersihkan!");
-        } catch (\Exception $e) {
-            return JsonResponseHelper::error("Gagal membersihkan log: " . $e->getMessage(), 500);
-        }
+        return JsonResponseHelper::success(null, "Semua log aktifitas telah dibersihkan!");
     }
 }

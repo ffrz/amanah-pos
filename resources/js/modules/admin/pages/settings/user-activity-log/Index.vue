@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from "vue";
-import { router } from "@inertiajs/vue3";
+import { router, usePage } from "@inertiajs/vue3";
 import { handleDelete, handleFetchItems } from "@/helpers/client-req-handler";
 import { getQueryParams } from "@/helpers/utils";
 import { Dialog, useQuasar } from "quasar";
@@ -9,6 +9,7 @@ import { showError, showInfo } from "@/composables/useNotify";
 import { formatDateTime } from "@/helpers/formatter";
 import { useTableClickProtection } from "@/composables/useTableClickProtection";
 
+const page = usePage();
 const title = "Log Aktifitas Pengguna";
 const $q = useQuasar();
 const showFilter = ref(false);
@@ -20,6 +21,9 @@ const tableHeight = useTableHeight(filterToolbarRef);
 const { protectClick } = useTableClickProtection();
 
 const filter = reactive({
+  user_id: "all",
+  activity_category: "all",
+  activity_name: "all",
   search: "",
   ...getQueryParams(),
 });
@@ -31,6 +35,93 @@ const pagination = ref({
   sortBy: "id",
   descending: true,
 });
+
+const users = [
+  {
+    value: "all",
+    label: "Semua",
+  },
+  ...page.props.users.map((user) => ({
+    value: user.id,
+    label: user.username + " - " + user.name,
+  })),
+];
+
+// --- Fungsionalitas Autocomplete Baru Dimulai ---
+
+// Data sumber asli untuk Kategori Aktifitas
+const originalCategories = [
+  {
+    value: "all",
+    label: "Semua",
+  },
+  ...Object.entries(page.props.activity_categories).map(([key, value]) => ({
+    value: key,
+    label: value,
+  })),
+];
+
+// Data sumber asli untuk Nama Aktifitas
+const originalActivityNames = [
+  {
+    value: "all",
+    label: "Semua",
+  },
+  ...Object.entries(page.props.activity_names).map(([key, value]) => ({
+    value: key,
+    label: value,
+  })),
+];
+
+// Variabel reaktif yang akan digunakan oleh Q-Select dan diperbarui saat memfilter
+const filteredCategories = ref(originalCategories);
+const filteredActivityNames = ref(originalActivityNames);
+
+/**
+ * Fungsi filter untuk activity_category.
+ * @param {string} val Nilai yang diketik oleh pengguna.
+ * @param {Function} update Callback untuk memperbarui opsi.
+ */
+const filterCategories = (val, update) => {
+  if (val === "") {
+    // Tampilkan semua opsi jika input kosong
+    update(() => {
+      filteredCategories.value = originalCategories;
+    });
+    return;
+  }
+
+  update(() => {
+    const needle = val.toLowerCase();
+    filteredCategories.value = originalCategories.filter(
+      (v) => v.label.toLowerCase().indexOf(needle) > -1
+    );
+  });
+};
+
+/**
+ * Fungsi filter untuk activity_name.
+ * @param {string} val Nilai yang diketik oleh pengguna.
+ * @param {Function} update Callback untuk memperbarui opsi.
+ */
+const filterActivityNames = (val, update) => {
+  if (val === "") {
+    // Tampilkan semua opsi jika input kosong
+    update(() => {
+      filteredActivityNames.value = originalActivityNames;
+    });
+    return;
+  }
+
+  update(() => {
+    const needle = val.toLowerCase();
+    filteredActivityNames.value = originalActivityNames.filter(
+      (v) => v.label.toLowerCase().indexOf(needle) > -1
+    );
+  });
+};
+
+// --- Fungsionalitas Autocomplete Baru Selesai ---
 
 const columns = [
   {
@@ -105,6 +196,8 @@ const fetchItems = (props = null) => {
   });
 };
 
+const onFilterChange = () => fetchItems();
+
 const onRowClicked = (row) =>
   router.get(route("admin.user-activity-log.detail", { id: row.id }));
 
@@ -176,6 +269,48 @@ const confirmClear = () => {
     <template #header v-if="showFilter">
       <q-toolbar class="filter-bar" ref="filterToolbarRef">
         <div class="row q-col-gutter-xs items-center q-pa-sm full-width">
+          <q-select
+            v-model="filter.user_id"
+            class="custom-select col-xs-12 col-sm-2"
+            :options="users"
+            label="Pengguna"
+            dense
+            map-options
+            emit-value
+            outlined
+            style="min-width: 150px"
+            @update:model-value="onFilterChange"
+          />
+          <q-select
+            v-model="filter.activity_category"
+            class="custom-select col-xs-12 col-sm-2"
+            :options="filteredCategories"
+            label="Kategori"
+            dense
+            map-options
+            emit-value
+            outlined
+            style="min-width: 150px"
+            @update:model-value="onFilterChange"
+            use-input
+            @filter="filterCategories"
+            clearable
+          />
+          <q-select
+            v-model="filter.activity_name"
+            class="custom-select col-xs-12 col-sm-2"
+            :options="filteredActivityNames"
+            label="Aktifitas"
+            dense
+            map-options
+            emit-value
+            outlined
+            style="min-width: 150px"
+            @update:model-value="onFilterChange"
+            use-input
+            clearable
+            @filter="filterActivityNames"
+          />
           <q-input
             class="col"
             outlined

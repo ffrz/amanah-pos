@@ -21,7 +21,7 @@ use App\Models\FinanceAccount;
 use App\Models\OperationalCostCategory;
 use App\Models\ProductCategory;
 use App\Models\Supplier;
-
+use App\Models\User;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -113,5 +113,10 @@ class CommonDataService
     public function getRoles()
     {
         return Role::orderBy('name', 'asc')->get();
+    }
+
+    public function getAllUsers($cols = ['*'])
+    {
+        return User::query()->select($cols)->orderBy('name', 'asc')->get();
     }
 }
