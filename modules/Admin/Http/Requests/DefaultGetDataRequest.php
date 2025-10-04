@@ -34,7 +34,7 @@ class DefaultGetDataRequest extends FormRequest
     {
         $this->merge([
             'order_by'   => $this->order_by ?? 'id',
-            'order_type' => $this->inputorder_type ?? 'asc',
+            'order_type' => $this->order_type ?? 'desc',
             'per_page'   => $this->per_page ?? 10,
             'filter'     => $this->filter ?? [],
         ]);
