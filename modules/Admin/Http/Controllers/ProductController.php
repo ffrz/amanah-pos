@@ -96,9 +96,7 @@ class ProductController extends Controller
     public function duplicate(int $id): Response|RedirectResponse
     {
         try {
-            $item = $this->productService->find($id);
-            // Menghilangkan ID agar dianggap sebagai entitas baru saat disave
-            $item->id = null;
+            $item = $this->productService->duplicate($id);
 
             return Inertia::render('product/Editor', [
                 'data' => $item,
@@ -143,14 +141,11 @@ class ProductController extends Controller
      */
     public function save(SaveRequest $request): RedirectResponse
     {
-        $validated = $request->validated();
         try {
-            $item = $this->productService->save($validated);
+            $item = $this->productService->save($request->validated());
             return redirect(route('admin.product.index'))
                 ->with('success', "Produk $item->name telah disimpan.");
         } catch (\Exception $e) {
-            // Rollback dan logging jika terjadi kesalahan di service (misal, DB error)
-            DB::rollBack();
             Log::error("Gagal menyimpan produk $request->id", ['exception' => $e]);
         }
 
@@ -167,12 +162,13 @@ class ProductController extends Controller
     {
         try {
             $item = $this->productService->find($id);
+
             $this->productService->delete($item);
+
             return JsonResponseHelper::success("Produk $item->name telah dihapus.");
         } catch (ModelNotFoundException $e) {
             return JsonResponseHelper::error($e->getMessage(), 404);
         } catch (ModelInUseException $e) {
-            // Error khusus jika produk tidak dapat dihapus karena sudah digunakan dalam transaksi
             return JsonResponseHelper::error($e->getMessage(), 409);
         } catch (\Exception $e) {
             Log::error("Gagal menghapus produk $id.", ['exception' => $e]);

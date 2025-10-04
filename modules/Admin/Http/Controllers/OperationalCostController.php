@@ -19,6 +19,8 @@ namespace Modules\Admin\Http\Controllers;
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\OperationalCost;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Modules\Admin\Services\CommonDataService;
 use Modules\Admin\Services\FinanceTransactionService;
 use Modules\Admin\Http\Requests\OperationalCost\SaveRequest;
@@ -127,17 +129,21 @@ class OperationalCostController extends Controller
 
     public function delete($id)
     {
-        $item = $this->operationalCostService->find($id);
-
-        $this->authorize('delete', $item);
-
         try {
+            $item = $this->operationalCostService->find($id);
+
+            $this->authorize('delete', $item);
+
             $this->operationalCostService->delete($item);
 
             return JsonResponseHelper::success(
                 $item,
                 "Biaya operasional $item->description telah dihapus."
             );
+        } catch (ModelNotFoundException $e) {
+            JsonResponseHelper::error("Biaya operasional ID: $id tidak ditemukan", $e->getCode());
+        } catch (AuthorizationException $e) {
+            JsonResponseHelper::error("Anda tidak dapat menghapus biaya ini.", $e->getCode());
         } catch (\Throwable $ex) {
             Log::error("Gagal menghapus Biaya Operasional ID: $id. $ex->getMessage()", ['exception' => $ex]);
         }

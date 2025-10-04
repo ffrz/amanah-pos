@@ -16,6 +16,8 @@
 
 namespace Modules\Admin\Http\Controllers\Settings;
 
+use App\Exceptions\BusinessRuleViolationException;
+use App\Exceptions\ModelNotModifiedException;
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -26,6 +28,8 @@ use Modules\Admin\Services\CommonDataService;
 use Spatie\Permission\Models\Role;
 use Inertia\Response;
 use Exception;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -131,7 +135,6 @@ class UserController extends Controller
      */
     public function save(SaveRequest $request): RedirectResponse
     {
-
         if ($request->id == Auth::id()) {
             return redirect(route('admin.user.index'))
                 ->with('error', 'Tidak dapat mengubah akun sendiri.');
@@ -141,12 +144,11 @@ class UserController extends Controller
             $user = $this->userService->save($request->validated());
             return redirect(route('admin.user.index'))
                 ->with('success', "Pengguna $user->username telah disimpan.");
+        } catch (ModelNotModifiedException $e) {
+            return redirect()->back()->with('success', $e->getMessage());
+        } catch (BusinessRuleViolationException $e) {
+            return redirect()->back()->with('warning', $e->getMessage());
         } catch (Exception $e) {
-            // Pengecualian khusus untuk "Tidak ada perubahan terdeteksi" (kode 200)
-            if ($e->getCode() === 200) {
-                return redirect(route('admin.user.index'))->with('warning', $e->getMessage());
-            }
-
             // Pengecualian khusus untuk "Tidak dapat mengubah akun sendiri" (kode 403)
             if ($e->getCode() === 403) {
                 return abort(403, $e->getMessage());
@@ -167,22 +169,19 @@ class UserController extends Controller
      */
     public function delete(int $id): JsonResponse
     {
-        $authUserId = Auth::id();
-
         try {
-            // Delegasikan logika penghapusan ke Service
-            $user = $this->userService->delete($id, $authUserId);
-
+            $user = $this->userService->find($id);
+            $this->authorize('delete', $user);
+            $user = $this->userService->delete($user);
             return JsonResponseHelper::success($user, "Pengguna {$user->username} telah dihapus!");
+        } catch (AuthorizationException $e) {
+            return JsonResponseHelper::error("Anda tidak memiliki hak untuk menghapus akun ini.", 403);
+        } catch (ModelNotFoundException $e) {
+            return JsonResponseHelper::error($e->getMessage(), 404);
+        } catch (BusinessRuleViolationException $e) {
+            return JsonResponseHelper::error($e->getMessage(), 409);
         } catch (Exception $e) {
-            // Pengecualian khusus untuk "Tidak dapat menghapus akun sendiri" (kode 409)
-            if ($e->getCode() === 409) {
-                return JsonResponseHelper::error($e->getMessage(), 409);
-            }
-
-            // Logging untuk kegagalan penghapusan umum
-            Log::error("Gagal menghapus pengguna ID: {$id}. Exception: " . $e->getMessage(), ['exception' => $e]);
-
+            Log::error("Gagal menghapus pengguna ID: {$user->id}. Exception: " . $e->getMessage(), ['exception' => $e]);
             return JsonResponseHelper::error("Gagal menghapus pengguna. Silakan coba lagi.", 500, $e);
         }
     }

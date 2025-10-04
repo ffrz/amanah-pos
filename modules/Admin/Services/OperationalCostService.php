@@ -38,8 +38,6 @@ class OperationalCostService
 
     public function getData(array $options): LengthAwarePaginator
     {
-        $orderBy = $options['order_by'];
-        $orderType = $options['order_type'];
         $filter = $options['filter'];
 
         $q = OperationalCost::with(['category', 'financeAccount']);
@@ -63,7 +61,6 @@ class OperationalCostService
             $q->where('finance_account_id', '=', $filter['finance_account_id']);
         }
 
-        // Tambahan filter tahun
         if (!empty($filter['year']) && $filter['year'] !== 'null') {
             $q->whereYear('date', $filter['year']);
 
@@ -72,30 +69,27 @@ class OperationalCostService
             }
         }
 
-        $q->orderBy($orderBy, $orderType);
+        $q->orderBy($options['order_by'], $options['order_type']);
 
         return  $q->paginate($options['per_page'])->withQueryString();
     }
 
-    public function save(OperationalCost $item, array $validated, $newImage)
+    public function save(array $validated, $newImage)
     {
         try {
+            $item = $this->findOrCreate($validated['id']);
+
             DB::beginTransaction();
 
-            // Inisialisasi variabel untuk rollback
-            $oldItem = null;
             $newlyUploadedImagePath = null;
-
-            $oldData = [];
+            $oldItem = null;
             $oldLogData = [];
 
-            // 2. Tentukan item dan ambil data lama jika mode edit
             if (!empty($validated['id'])) {
                 $oldLogData = $this->generateActivityLogData($item);
                 $oldItem = clone $item;
             }
 
-            // 3. PENANGANAN GAMBAR (IMAGE)
             $oldImagePath = $oldItem ? $oldItem->image_path : null;
 
             if ($newImage) {
@@ -118,10 +112,9 @@ class OperationalCostService
 
             unset($validated['image']);
 
-            // 4. SIMPAN DATA OPERASIONAL
             $item->fill($validated);
 
-            if ($oldData === $item->getAttributes()) {
+            if (empty($item->getDirty())) {
                 DB::rollBack();
                 throw new ModelNotModifiedException();
             }
@@ -186,7 +179,6 @@ class OperationalCostService
         } catch (\Throwable $e) {
             DB::rollBack();
 
-            // Hapus gambar baru jika ada error
             if ($newlyUploadedImagePath) {
                 ImageUploaderHelper::deleteImage($newlyUploadedImagePath);
             }
@@ -202,10 +194,8 @@ class OperationalCostService
         try {
             DB::beginTransaction();
 
-            // hapus item
             $item->delete();
 
-            // hapus transaksi jika
             $this->financeTransactionService->reverseTransaction(
                 $item->id,
                 FinanceTransaction::RefType_OperationalCost
@@ -213,7 +203,6 @@ class OperationalCostService
 
             $this->documentVersionService->createDeletedVersion($item);
 
-            // log aktivitas
             $this->userActivityLogService->log(
                 UserActivityLog::Category_OperationalCost,
                 UserActivityLog::Name_OperationalCost_Delete,

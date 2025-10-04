@@ -2,10 +2,13 @@
 
 namespace Modules\Admin\Services;
 
+use App\Exceptions\BusinessRuleViolationException;
+use App\Exceptions\ModelNotModifiedException;
 use App\Models\User;
 use App\Models\UserActivityLog;
 use Exception;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
@@ -18,7 +21,10 @@ class UserService
     /**
      * @param UserActivityLogService $userActivityLogService Layanan untuk mencatat aktivitas pengguna.
      */
-    public function __construct(protected UserActivityLogService $userActivityLogService) {}
+    public function __construct(
+        protected UserActivityLogService $userActivityLogService,
+        protected DocumentVersionService $documentVersionService
+    ) {}
 
     public function find($id)
     {
@@ -35,15 +41,12 @@ class UserService
     /**
      * Mengambil data pengguna dengan paginasi dan filter yang kompleks.
      *
-     * @param array $validatedData Data request yang telah divalidasi (termasuk filter, sort, dan per_page).
+     * @param array $options Data request yang telah divalidasi (termasuk filter, sort, dan per_page).
      * @return LengthAwarePaginator
      */
-    public function getData(array $data): LengthAwarePaginator
+    public function getData(array $options): LengthAwarePaginator
     {
-        $orderBy = $data['order_by'] ?? 'name';
-        $orderType = $data['order_type'] ?? 'asc';
-        $filter = $data['filter'] ?? [];
-        $perPage = $data['per_page'] ?? 10;
+        $filter = $options['filter'];
 
         $q = User::with(['roles']);
 
@@ -67,9 +70,9 @@ class UserService
             });
         }
 
-        $q->orderBy($orderBy, $orderType);
+        $q->orderBy($options['order_by'], $options['order_type']);
 
-        return $q->paginate($perPage)->withQueryString();
+        return $q->paginate($options['per_page'])->withQueryString();
     }
 
     /**
@@ -83,59 +86,51 @@ class UserService
     public function save(array $data): User
     {
         $isNew = empty($data['id']);
-        $password = $data['password'] ?? null;
-        $roles = $data['roles'] ?? [];
-
-        $user = $isNew ? new User() : User::findOrFail($data['id']);
-
+        $roles = $data['roles'];
+        $user = $this->findOrCreate($data['id']);
         $oldData = $user->toArray();
         $user->fill($data);
 
-        // Hapus password agar tidak disimpan dari fill(), karena kita hash secara manual
-        unset($user->password);
-
         $dirtyAttributes = $user->getDirty();
 
-        if (!empty($password)) {
-            $user->password = Hash::make($password);
+        if (!empty($data['password'])) {
+            $user->password = Hash::make($data['password']);
             $dirtyAttributes['password'] = '********'; // Catat sebagai dirty untuk log
         }
 
         if (!$isNew && empty($dirtyAttributes) && empty(array_diff($user->roles->pluck('id')->toArray(), $roles)) && empty(array_diff($roles, $user->roles->pluck('id')->toArray()))) {
-            // Tidak ada perubahan di data User dan Role
-            throw new Exception("Tidak ada perubahan terdeteksi.", 200);
+            throw new ModelNotModifiedException();
         }
 
-        DB::beginTransaction();
         try {
+            DB::beginTransaction();
             $user->save();
 
-            // Sinkronisasi peran
             if ($user->type === User::Type_SuperUser) {
-                $user->syncRoles([]); // Hapus peran untuk SuperUser
+                $user->syncRoles([]);
             } else {
                 $user->syncRoles($roles);
             }
 
-            // Catat log aktivitas
-            $user->load('roles'); // Muat ulang roles untuk log
+            $user->load('roles');
+
+            $this->documentVersionService->createVersion($user);
+
             if ($isNew) {
-                $message = "Pengguna '{$user->username}' telah ditambahkan.";
                 $this->userActivityLogService->log(
                     UserActivityLog::Category_User,
                     UserActivityLog::Name_User_Create,
-                    $message,
+                    "Pengguna '{$user->username}' telah ditambahkan.",
                     [
                         'formatter' => 'user',
                         'new_data' => $user->toArray(),
                     ]
                 );
             } else {
-                $message = "Pengguna '{$user->username}' telah diperbarui.";
                 $this->userActivityLogService->log(
                     UserActivityLog::Category_User,
                     UserActivityLog::Name_User_Update,
-                    $message,
+                    "Pengguna '{$user->username}' telah diperbarui.",
                     [
                         'formatter' => 'user',
                         'new_data' => $user->toArray(),
@@ -148,29 +143,28 @@ class UserService
             return $user;
         } catch (Exception $e) {
             DB::rollBack();
-            throw $e; // Lempar ulang exception untuk ditangani Controller
+            throw $e;
         }
     }
 
     /**
      * Menghapus pengguna dan mencatat aktivitas.
      *
-     * @param int $userId ID pengguna yang akan dihapus.
-     * @param int|null $authUserId ID pengguna yang sedang diautentikasi.
+     * @param user $user pengguna yang akan dihapus.
      * @return User
      * @throws Exception
      */
-    public function delete(int $userId, ?int $authUserId): User
+    public function delete(User $user): User
     {
-        $user = $this->find($userId);
-
-        if ($user->id === $authUserId) {
-            throw new Exception('Tidak dapat menghapus akun sendiri!', 409);
+        if ($user->id === Auth::id()) {
+            throw new BusinessRuleViolationException('Tidak dapat menghapus akun sendiri!', 409);
         }
 
-        DB::beginTransaction();
         try {
+            DB::beginTransaction();
+
             $oldData = $user->toArray();
+
             $user->delete();
 
             // Catat log
@@ -184,6 +178,8 @@ class UserService
                 ]
 
             );
+
+            $this->documentVersionService->createDeletedVersion($user);
 
             DB::commit();
             return $user;

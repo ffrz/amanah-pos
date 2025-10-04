@@ -7,9 +7,11 @@ use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvid
 use App\Models\OperationalCost;
 use App\Models\OperationalCostCategory;
 use App\Models\ProductCategory;
+use App\Models\User;
 use Modules\Admin\Policies\OperationalCostCategoryPolicy;
 use Modules\Admin\Policies\OperationalCostPolicy;
 use Modules\Admin\Policies\ProductCategoryPolicy;
+use Modules\Admin\Policies\UserPolicy;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -22,6 +24,7 @@ class AuthServiceProvider extends ServiceProvider
         ProductCategory::class => ProductCategoryPolicy::class,
         OperationalCostCategory::class => OperationalCostCategoryPolicy::class,
         OperationalCost::class => OperationalCostPolicy::class,
+        User::class => UserPolicy::class,
     ];
 
     /**

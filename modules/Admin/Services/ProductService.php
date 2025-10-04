@@ -104,6 +104,11 @@ class ProductService
         return $query->paginate($options['per_page'])->withQueryString();
     }
 
+    public function duplicate($id): Product
+    {
+        return $this->find($id)->replicate();
+    }
+
     /**
      * Find a product by its ID.
      *

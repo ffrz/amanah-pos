@@ -6,6 +6,7 @@ use App\Exceptions\ModelNotModifiedException;
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\ProductCategory;
+use Exception;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Modules\Admin\Services\ProductCategoryService;
@@ -44,6 +45,7 @@ class ProductCategoryController extends Controller
     public function index(): Response
     {
         $this->authorize('viewAny', ProductCategory::class);
+
         return Inertia::render('product-category/Index');
     }
 
@@ -58,13 +60,9 @@ class ProductCategoryController extends Controller
     public function data(GetDataRequest $request): JsonResponse
     {
         $this->authorize('viewAny', ProductCategory::class);
-        $validated = $request->validated();
-        $items = $this->productCategoryService->getData(
-            $validated['filter'],
-            $validated['order_by'],
-            $validated['order_type'],
-            $validated['per_page']
-        );
+
+        $items = $this->productCategoryService->getData($request->validated());
+
         return JsonResponseHelper::success($items);
     }
 
@@ -91,17 +89,26 @@ class ProductCategoryController extends Controller
      * Menampilkan formulir editor untuk membuat (id=0) atau mengedit kategori.
      *
      * @param int $id ID Kategori Produk (0 untuk membuat baru).
-     * @return Response
      * @throws \Illuminate\Auth\Access\AuthorizationException
      * @throws \Illuminate\Database\Eloquent\ModelNotFoundException Jika ID ditemukan tetapi tidak ada.
      */
-    public function editor(int $id = 0): Response
+    public function editor(int $id = 0)
     {
-        $item = $id ? $this->productCategoryService->find($id) : new ProductCategory();
-        $this->authorize($id ? 'update' : 'create', $item);
-        return Inertia::render('product-category/Editor', [
-            'data' => $item,
-        ]);
+        try {
+            $item = $this->productCategoryService->findOrCreate($id);
+
+            $this->authorize($id ? 'update' : 'create', $item);
+
+            return Inertia::render('product-category/Editor', [
+                'data' => $item,
+            ]);
+        } catch (ModelNotFoundException $e) {
+            return redirect()->back()->with('error', "Kategori $id tidak ditemukan");
+        } catch (AuthorizationException $e) {
+            return redirect()->back()->with('error', "Anda tidak memiliki akses untuk membuat rekaman.");
+        } catch (Exception $e) {
+            throw $e;
+        }
     }
 
     /**
@@ -128,6 +135,8 @@ class ProductCategoryController extends Controller
             return redirect()->back()->with('warning', $e->getMessage());
         } catch (ModelNotFoundException $e) {
             return redirect()->back()->with('error', $e->getMessage());
+        } catch (AuthorizationException $e) {
+            return redirect()->back()->with('error', "Anda tidak memiliki akses untuk memperbarui rekaman ini.");
         } catch (Throwable $ex) {
             Log::error("Gagal menyimpan kategori produk", ['exception' => $ex]);
         }
@@ -150,6 +159,7 @@ class ProductCategoryController extends Controller
     {
         try {
             $item = $this->productCategoryService->find($id);
+
             $this->authorize('delete', $item);
 
             $this->productCategoryService->delete($item);

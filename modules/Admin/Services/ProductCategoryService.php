@@ -40,9 +40,11 @@ class ProductCategoryService
      * @param int $perPage Jumlah item per halaman untuk paginasi.
      * @return LengthAwarePaginator
      */
-    public function getData($filter, $orderBy, $orderType, $perPage): LengthAwarePaginator
+    public function getData($data): LengthAwarePaginator
     {
         $q = ProductCategory::query();
+        
+        $filter = $data['filter'];
 
         if (!empty($filter['search'])) {
             $q->where(function (Builder $q) use ($filter) {
@@ -51,9 +53,9 @@ class ProductCategoryService
             });
         }
 
-        $q->orderBy($orderBy, $orderType);
+        $q->orderBy($filter['order_by'], $filter['order_type']);
 
-        return $q->paginate($perPage)->withQueryString();
+        return $q->paginate($filter['per_page'])->withQueryString();
     }
 
     /**
