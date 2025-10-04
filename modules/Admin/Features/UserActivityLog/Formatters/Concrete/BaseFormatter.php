@@ -25,11 +25,12 @@ class BaseFormatter implements MetaDataFormatterInterface
             ];
         } else if (isset($metaData['data']) || isset($metaData['new_data'])) {
             $data = isset($metaData['data']) ? $metaData['data'] : $metaData['new_data'];
-
             // Perulangan menggunakan $mappedKeys untuk menjamin urutan sesuai $mapping
             foreach ($mappedKeys as $key) {
                 // Pastikan kunci (field) ada di data yang sedang diproses
-                if (!isset($data[$key])) continue;
+                if (!isset($data[$key])) {
+                    continue;
+                }
 
                 $value = $data[$key];
 
@@ -68,14 +69,12 @@ class BaseFormatter implements MetaDataFormatterInterface
 
         // Perulangan menggunakan $mappedKeys untuk menjamin urutan sesuai $mapping
         foreach ($mappedKeys as $key) {
-
-            // Pastikan kunci (field) ada di data baru (new)
-            if (!isset($new[$key])) continue;
+            if (!isset($old[$key]) && !isset($new[$key])) {
+                continue;
+            }
 
             $oldValue = $old[$key] ?? null;
-            $newValue = $new[$key];
-
-            // if ($oldValue === $newValue) continue; // Baris ini sengaja dikomentari, tidak diubah
+            $newValue = $new[$key] ?? null;
 
             $changes[] = [
                 'field' => $mapping[$key],
