@@ -51,20 +51,24 @@ class HandleInertiaRequests extends Middleware
         $module = $request->attributes->get('module_root_view', null);
         if ($module === 'admin') {
             $user = $request->user();
-            $auth['user'] = [
-                'id' => $user->id,
-                'name' => $user->name,
-                'username' => $user->username,
-                'type' => $user->type,
-                'roles' => $request->user()->getRoleNames()->toArray(),
-            ];
+            if ($user) {
+                $auth['user'] = [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'username' => $user->username,
+                    'type' => $user->type,
+                    'roles' => $request->user()->getRoleNames()->toArray(),
+                ];
+            }
         } else if ($module === 'customer') {
             $customer = Auth::guard('customer')->user();
-            $auth['customer'] = [
-                'id' => $customer->id,
-                'code' => $customer->code,
-                'name' => $customer->name,
-            ];
+            if ($customer) {
+                $auth['customer'] = [
+                    'id' => $customer->id,
+                    'code' => $customer->code,
+                    'name' => $customer->name,
+                ];
+            }
         }
 
         return [
