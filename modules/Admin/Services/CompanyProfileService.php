@@ -2,6 +2,7 @@
 
 namespace Modules\Admin\Services;
 
+use App\Exceptions\ModelNotModifiedException;
 use App\Helpers\ImageUploaderHelper;
 use App\Models\Setting;
 use App\Models\UserActivityLog;
@@ -33,13 +34,12 @@ class CompanyProfileService
      * @param UploadedFile|null $logoFile File logo baru yang diunggah.
      * @return bool
      */
-    public function updateProfile(array $validatedData, ?UploadedFile $logoFile): bool
+    public function updateProfile(array $validatedData, ?UploadedFile $logoFile)
     {
         $oldData = $this->getCurrentProfileData();
         $existingLogoPath = $oldData['logo_path'];
         $newLogoPath = $validatedData['logo_path'] ?? null;
 
-        // 1. Penanganan Logo
         if ($logoFile) {
             $newLogoPath = ImageUploaderHelper::uploadAndResize(
                 $logoFile,
@@ -51,12 +51,11 @@ class CompanyProfileService
         } elseif (empty($newLogoPath) && $existingLogoPath) {
             // Jika logo_path kosong (dihapus oleh user) dan sebelumnya ada logo
             ImageUploaderHelper::deleteImage($existingLogoPath);
-            $newLogoPath = ''; // Set path ke string kosong
+            $newLogoPath = '';
         }
 
         $validatedData['logo_path'] = $newLogoPath ?? '';
 
-        // 2. Data yang Akan Disimpan
         $newData = [
             'name'      => $validatedData['name'],
             'headline'  => $validatedData['headline'] ?? '',
@@ -65,16 +64,11 @@ class CompanyProfileService
             'logo_path' => $validatedData['logo_path'],
         ];
 
-        // 3. Cek Perbedaan (Logika Bisnis)
-        $isDifferent = $this->checkIfDataChanged($oldData, $newData);
-
-        if (!$isDifferent) {
-            return false; // Tidak ada perubahan
+        if (!$this->checkIfDataChanged($oldData, $newData)) {
+            throw new ModelNotModifiedException();
         }
 
-        // 4. Transaksi DB dan Penyimpanan
-        DB::beginTransaction();
-        try {
+        return DB::transaction(function () use ($newData, $oldData) {
             Setting::setValue('company.name', $newData['name']);
             Setting::setValue('company.phone', $newData['phone']);
             Setting::setValue('company.address', $newData['address']);
@@ -93,13 +87,7 @@ class CompanyProfileService
                     'old_data'  => $oldData
                 ]
             );
-
-            DB::commit();
-            return true;
-        } catch (\Exception $e) {
-            DB::rollBack();
-            throw $e;
-        }
+        });
     }
 
     /**

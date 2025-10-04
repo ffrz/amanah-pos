@@ -4,7 +4,7 @@ namespace Modules\Admin\Http\Requests\Settings\CompanyProfile;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class SaveRequest extends FormRequest
+class EditorRequest extends FormRequest
 {
 
     /**
