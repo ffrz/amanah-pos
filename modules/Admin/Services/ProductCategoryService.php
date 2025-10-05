@@ -40,11 +40,11 @@ class ProductCategoryService
      * @param int $perPage Jumlah item per halaman untuk paginasi.
      * @return LengthAwarePaginator
      */
-    public function getData($data): LengthAwarePaginator
+    public function getData($options): LengthAwarePaginator
     {
         $q = ProductCategory::query();
-        
-        $filter = $data['filter'];
+
+        $filter = $options['filter'];
 
         if (!empty($filter['search'])) {
             $q->where(function (Builder $q) use ($filter) {
@@ -53,9 +53,9 @@ class ProductCategoryService
             });
         }
 
-        $q->orderBy($filter['order_by'], $filter['order_type']);
+        $q->orderBy($options['order_by'], $options['order_type']);
 
-        return $q->paginate($filter['per_page'])->withQueryString();
+        return $q->paginate($options['per_page'])->withQueryString();
     }
 
     /**
@@ -77,7 +77,7 @@ class ProductCategoryService
      * @return ProductCategory
      * @throws ModelNotFoundException
      */
-    public function findOrCreate($id = null): ProductCategory
+    public function findOrCreate($id): ProductCategory
     {
         return $id ? $this->find($id) : new ProductCategory();
     }
@@ -99,13 +99,13 @@ class ProductCategoryService
      *
      * @param ProductCategory $item Model ProductCategory yang sudah diinisialisasi atau dicari.
      * @param array $data Data tervalidasi dari SaveRequest untuk mengisi model.
-     * @return ProductCategory Model yang telah disimpan (dengan ID jika baru).
+     * @return mixed
      * @throws Throwable Jika transaksi database gagal.
      */
-    public function save(ProductCategory $item, array $data): ProductCategory
+    public function save(ProductCategory $item, array $data): mixed
     {
         $oldData = $item->getAttributes();
-        $isCreating = !$item->id;
+        $isNew   = !$item->id;
 
         $item->fill($data);
 
@@ -113,11 +113,10 @@ class ProductCategoryService
             throw new ModelNotModifiedException();
         }
 
-        DB::transaction(function () use ($item, $oldData, $isCreating) {
+        return DB::transaction(function () use ($item, $oldData, $isNew) {
             $item->save();
 
-            // Logging Aktivitas
-            if ($isCreating) {
+            if ($isNew) {
                 $this->userActivityLogService->log(
                     UserActivityLog::Category_ProductCategory,
                     UserActivityLog::Name_ProductCategory_Create,
@@ -139,21 +138,21 @@ class ProductCategoryService
                     ]
                 );
             }
-        });
 
-        return $item;
+            return $item;
+        });
     }
 
     /**
      * Menghapus kategori produk.
      *
      * @param ProductCategory $item Model ProductCategory yang akan dihapus.
-     * @return ProductCategory Model yang telah dihapus (sebelum di-soft delete).
+     * @return mixed 
      * @throws Throwable Jika transaksi database gagal.
      */
-    public function delete(ProductCategory $item): ProductCategory
+    public function delete(ProductCategory $item)
     {
-        DB::transaction(function () use ($item) {
+        return DB::transaction(function () use ($item) {
             $item->delete();
 
             $this->userActivityLogService->log(
@@ -165,8 +164,8 @@ class ProductCategoryService
                     'data' => $item->getAttributes(),
                 ]
             );
-        });
 
-        return $item;
+            return $item;
+        });
     }
 }

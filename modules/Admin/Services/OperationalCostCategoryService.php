@@ -33,16 +33,18 @@ class OperationalCostCategoryService
     {
         $filter = $options['filter'];
 
-        $query = OperationalCostCategory::query();
+        $q = OperationalCostCategory::query();
 
         if (!empty($filter['search'])) {
-            $query->where('name', 'like', '%' . $filter['search'] . '%');
-            $query->orWhere('description', 'like', '%' . $filter['search'] . '%');
+            $q->where(function ($q) use ($filter) {
+                $q->where('name', 'like', '%' . $filter['search'] . '%')
+                    ->orWhere('description', 'like', '%' . $filter['search'] . '%');
+            });
         }
 
-        $query->orderBy($options['order_by'], $options['order_type']);
+        $q->orderBy($options['order_by'], $options['order_type']);
 
-        return $query->paginate($options['per_page'] ?? 10);
+        return $q->paginate($options['per_page'] ?? 10);
     }
 
     /**

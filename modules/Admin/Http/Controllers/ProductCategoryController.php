@@ -29,7 +29,7 @@ class ProductCategoryController extends Controller
 {
     /**
      * Buat instance kontroler baru.
-     * * @param ProductCategoryService $productCategoryService
+     * @param ProductCategoryService $productCategoryService
      */
     public function __construct(
         protected ProductCategoryService $productCategoryService,
@@ -37,7 +37,6 @@ class ProductCategoryController extends Controller
 
     /**
      * Menampilkan halaman indeks kategori produk.
-     * * Menerapkan otorisasi 'viewAny'.
      *
      * @return Response
      * @throws \Illuminate\Auth\Access\AuthorizationException
@@ -51,7 +50,6 @@ class ProductCategoryController extends Controller
 
     /**
      * Mengambil data kategori produk dengan paginasi dan filter.
-     * * Semua logika query didelegasikan ke Service, hanya menerima data yang sudah divalidasi.
      *
      * @param GetDataRequest $request Request yang sudah tervalidasi dan ternormalisasi.
      * @return JsonResponse
@@ -94,27 +92,17 @@ class ProductCategoryController extends Controller
      */
     public function editor(int $id = 0)
     {
-        try {
-            $item = $this->productCategoryService->findOrCreate($id);
+        $item = $this->productCategoryService->findOrCreate($id);
 
-            $this->authorize($id ? 'update' : 'create', $item);
+        $this->authorize($id ? 'update' : 'create', $item);
 
-            return Inertia::render('product-category/Editor', [
-                'data' => $item,
-            ]);
-        } catch (ModelNotFoundException $e) {
-            return redirect()->back()->with('error', "Kategori $id tidak ditemukan");
-        } catch (AuthorizationException $e) {
-            return redirect()->back()->with('error', "Anda tidak memiliki akses untuk membuat rekaman.");
-        } catch (Exception $e) {
-            throw $e;
-        }
+        return Inertia::render('product-category/Editor', [
+            'data' => $item,
+        ]);
     }
 
     /**
      * Menyimpan (membuat atau memperbarui) kategori produk.
-     * * Controller menangani otorisasi dan pengecekan 'no change',
-     * lalu mendelegasikan transaksi dan logging ke Service.
      *
      * @param SaveRequest $request Request yang berisi data yang divalidasi.
      * @return RedirectResponse
@@ -122,33 +110,18 @@ class ProductCategoryController extends Controller
      */
     public function save(SaveRequest $request): RedirectResponse
     {
-        try {
-            $item = $this->productCategoryService->findOrCreate($request->id);
+        $item = $this->productCategoryService->findOrCreate($request->id);
 
-            $this->authorize($request->id ? 'update' : 'create', $item);
+        $this->authorize($request->id ? 'update' : 'create', $item);
 
-            $item = $this->productCategoryService->save($item, $request->validated());
+        $item = $this->productCategoryService->save($item, $request->validated());
 
-            return redirect(route('admin.product-category.index'))
-                ->with('success', "Kategori $item->name telah disimpan.");
-        } catch (ModelNotModifiedException $e) {
-            return redirect()->back()->with('warning', $e->getMessage());
-        } catch (ModelNotFoundException $e) {
-            return redirect()->back()->with('error', $e->getMessage());
-        } catch (AuthorizationException $e) {
-            return redirect()->back()->with('error', "Anda tidak memiliki akses untuk memperbarui rekaman ini.");
-        } catch (Throwable $ex) {
-            Log::error("Gagal menyimpan kategori produk", ['exception' => $ex]);
-        }
-
-        return redirect()->back()->withInput()
-            ->with('error', "Gagal menyimpan kategori produk $item->name.");
+        return redirect(route('admin.product-category.index'))
+            ->with('success', "Kategori $item->name telah disimpan.");
     }
 
     /**
      * Menghapus kategori produk berdasarkan ID.
-     * * Controller menangani otorisasi dan penanganan error.
-     * Logika penghapusan dan transaksional didelegasikan ke Service.
      *
      * @param int $id ID Kategori Produk yang akan dihapus.
      * @return JsonResponse
@@ -157,22 +130,12 @@ class ProductCategoryController extends Controller
      */
     public function delete(int $id): JsonResponse
     {
-        try {
-            $item = $this->productCategoryService->find($id);
+        $item = $this->productCategoryService->find($id);
 
-            $this->authorize('delete', $item);
+        $this->authorize('delete', $item);
 
-            $this->productCategoryService->delete($item);
+        $this->productCategoryService->delete($item);
 
-            return JsonResponseHelper::success($item, "Kategori $item->name telah dihapus");
-        } catch (AuthorizationException $e) {
-            return JsonResponseHelper::error("Anda tidak memiliki akses untuk menghapus rekaman ini.", 403, $e);
-        } catch (ModelNotFoundException $e) {
-            return JsonResponseHelper::error("Kategori tidak ditemukan, ID: $id.", 404);
-        } catch (Throwable $ex) {
-            Log::error("Gagal menghapus kategori produk ID: $id", ['exception' => $ex]);
-        }
-
-        return JsonResponseHelper::error("Gagal menghapus kategori produk ID: $id");
+        return JsonResponseHelper::success($item, "Kategori $item->name telah dihapus");
     }
 }
