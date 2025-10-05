@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\Auth;
 
 class CashierSessionService
 {
-    public static function getActiveSession()
+    public function getActiveSession()
     {
         return CashierSession::with(['cashierTerminal', 'cashierTerminal.financeAccount'])
             ->where('user_id', Auth::user()->id)

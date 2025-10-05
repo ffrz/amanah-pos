@@ -21,7 +21,6 @@ class SaveRequest extends FormRequest
      */
     public function rules(): array
     {
-        // Mendapatkan ID dari permintaan untuk kasus pembaruan.
         $itemId = $this->route('id') ?? $this->id;
 
         return [
@@ -38,7 +37,7 @@ class SaveRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'id'          => $this->id ?? null,
+            'id' => $this->id ?? null,
         ]);
     }
 }

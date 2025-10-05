@@ -40,12 +40,10 @@ use Illuminate\Support\Facades\DB;
 
 class SalesOrderController extends Controller
 {
-    protected $financeTransactionService;
     public function __construct(
-        FinanceTransactionService $financeTransactionService,
-    ) {
-        $this->financeTransactionService = $financeTransactionService;
-    }
+        protected FinanceTransactionService $financeTransactionService,
+        protected CashierSessionService $cashierSessionService,
+    ) {}
 
     public function index()
     {
@@ -320,7 +318,7 @@ class SalesOrderController extends Controller
                 'item' => $item,
                 'pdf'  => true,
             ])
-                ->setPaper($paper, 'portrait')
+                ->setPaper($size, 'portrait')
                 ->setOption('isHtml5ParserEnabled', true)
                 ->setOption('isPhpEnabled', true);
             return $pdf->download(env('APP_NAME') . '_' . $item->formatted_id . '.pdf');
@@ -540,7 +538,7 @@ class SalesOrderController extends Controller
 
                 if ($inputPayment['id'] === 'cash') {
                     $type = SalesOrderPayment::Type_Cash;
-                    $session = CashierSessionService::getActiveSession();
+                    $session = $this->cashierSessionService->getActiveSession();
                     if (!$session) {
                         DB::rollBack();
                         return JsonResponseHelper::error("Anda belum memulai sesi kasir.", 402);
@@ -601,7 +599,7 @@ class SalesOrderController extends Controller
                 $order->payment_status = SalesOrder::PaymentStatus_Unpaid;
             }
 
-            $cashierSession = CashierSessionService::getActiveSession();
+            $cashierSession = $this->cashierSessionService->getActiveSession();
 
             // FIXME: status langsung diambil tanpa harus seting di order
             $order->delivery_status = SalesOrder::DeliveryStatus_PickedUp;
@@ -699,7 +697,7 @@ class SalesOrderController extends Controller
 
                 if ($inputPayment['id'] === 'cash') {
                     $type = SalesOrderPayment::Type_Cash;
-                    $session = CashierSessionService::getActiveSession();
+                    $session = $this->cashierSessionService->getActiveSession();
 
                     if (!$session) {
                         throw new Exception("Anda belum memulai sesi kasir.");

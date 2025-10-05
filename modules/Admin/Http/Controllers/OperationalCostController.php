@@ -94,36 +94,19 @@ class OperationalCostController extends Controller
 
     public function save(SaveRequest $request)
     {
-        $validated = $request->validated();
-
         $item = $this->operationalCostService->findOrCreate($request->id);
 
-        if ($request->id) {
-            $this->authorize('update', $item);
-        } else {
-            $this->authorize('create', OperationalCost::class);
-        }
+        $this->authorize(!$request->id ? 'create' : 'update', $item);
 
-        try {
-            $item = $this->operationalCostService->save(
-                $item,
-                $validated,
-                $request->hasFile('image') ? $request->file('image') : null
-            );
+        $item = $this->operationalCostService->save(
+            $item,
+            $request->validated(),
+            $request->hasFile('image') ? $request->file('image') : null
+        );
 
-            if (!$item) {
-                return redirect()->back()
-                    ->with('info', "Tidak terdeteksi perubahan data.");
-            }
-
-            return redirect()
-                ->route('admin.operational-cost.index')
-                ->with("success", "Biaya operasional $item->description telah disimpan");
-        } catch (\Exception $ex) {
-            Log::error("Gagal menyimpan biaya operasional ID: $request->id, {$ex->getMessage()}", ['exception' => $ex]);
-        }
-
-        return redirect()->back()->withInput()->with('error', "Gagal menyimpan biaya operasional.");
+        return redirect()
+            ->route('admin.operational-cost.index')
+            ->with("success", "Biaya operasional $item->description telah disimpan");
     }
 
 

@@ -95,7 +95,7 @@ class OperationalCostCategoryController extends Controller
      */
     public function editor(int $id = 0): Response
     {
-        $item = $id ? $this->operationalCostCategoryService->find($id) : new OperationalCostCategory();
+        $item = $this->operationalCostCategoryService->findOrCreate($id);
 
         $this->authorize($id ? 'update' : 'create', $item);
 
@@ -112,26 +112,14 @@ class OperationalCostCategoryController extends Controller
      */
     public function save(SaveRequest $request): RedirectResponse
     {
-        try {
-            $item = $request->id ? $this->operationalCostCategoryService->find($request->id) : new OperationalCostCategory();
+        $item = $this->operationalCostCategoryService->findOrCreate($request->id);
 
-            $this->authorize($request->id ? 'update' : 'create', $item);
+        $this->authorize($request->id ? 'update' : 'create', $item);
 
-            $item = $this->operationalCostCategoryService->save($item, $request->validated());
+        $item = $this->operationalCostCategoryService->save($item, $request->validated());
 
-            if (!$request->id && empty($item->getChanges())) {
-                return redirect(route('admin.operational-cost-category.index'))
-                    ->with('warning', "Tidak ada perubahan data.");
-            }
-
-            return redirect(route('admin.operational-cost-category.index'))
-                ->with('success', "Kategori $item->name telah disimpan.");
-        } catch (\Throwable $ex) {
-            Log::error("Gagal menyimpan kategori biaya operasional. ID Request: " . ($request->id ?? 'baru'), ['exception' => $ex]);
-        }
-
-        return redirect()->back()->withInput()
-            ->with('error', "Kategori biaya operasional gagal disimpan.");
+        return redirect(route('admin.operational-cost-category.index'))
+            ->with('success', "Kategori $item->name telah disimpan.");
     }
 
     /**
@@ -142,24 +130,12 @@ class OperationalCostCategoryController extends Controller
      */
     public function delete(int $id): JsonResponse
     {
-        try {
-            $item = $this->operationalCostCategoryService->find($id);
+        $item = $this->operationalCostCategoryService->find($id);
 
-            if (!$item) {
-                return JsonResponseHelper::error("Kategori biaya operasional tidak ditemukan.");
-            }
+        $this->authorize('delete', $item);
 
-            $this->authorize('delete', $item);
+        $this->operationalCostCategoryService->delete($item);
 
-            $itemName = $item->name;
-
-            $this->operationalCostCategoryService->delete($item);
-
-            return JsonResponseHelper::success(null, "Kategori $itemName telah dihapus");
-        } catch (\Throwable $ex) {
-            Log::error("Gagal menghapus kategori biaya operasional ID: $id", ['exception' => $ex]);
-        }
-
-        return JsonResponseHelper::error("Gagal saat menghapus kategori biaya operasional.");
+        return JsonResponseHelper::success(null, "Kategori $item->name telah dihapus");
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Modules\Admin\Services;
 
+use App\Exceptions\ModelNotModifiedException;
 use App\Models\Setting;
 use App\Models\UserActivityLog;
 use Illuminate\Support\Facades\DB;
@@ -30,23 +31,26 @@ class PosSettingsService
     /**
      * Memperbarui pengaturan POS dan mencatat aktivitas pengguna.
      *
-     * @param array $validatedData Data yang telah divalidasi dari request.
+     * @param array $data Data yang telah divalidasi dari request.
      * @param array $oldData Data pengaturan POS sebelum pembaruan.
      * @return void
      */
-    public function save(array $validatedData, array $oldData): void
+    public function save(array $data): void
     {
-        DB::beginTransaction();
+        $oldData = $this->getCurrentSettingsData();
 
-        try {
-            Setting::setValue('pos.default_payment_mode', $validatedData['default_payment_mode']);
-            Setting::setValue('pos.default_print_size', $validatedData['default_print_size']);
-            Setting::setValue('pos.foot_note', $validatedData['foot_note'] ?? '');
-            Setting::setValue('pos.after_payment_action', $validatedData['after_payment_action']);
+        if ($data == $oldData) {
+            throw new ModelNotModifiedException();
+        }
+
+        DB::transaction(function () use ($data, $oldData) {
+            Setting::setValue('pos.default_payment_mode', $data['default_payment_mode']);
+            Setting::setValue('pos.default_print_size', $data['default_print_size']);
+            Setting::setValue('pos.foot_note', $data['foot_note'] ?? '');
+            Setting::setValue('pos.after_payment_action', $data['after_payment_action']);
 
             Setting::refreshAll();
 
-            // Log aktivitas
             $this->userActivityLogService->log(
                 UserActivityLog::Category_Settings,
                 UserActivityLog::Name_UpdatePosSettings,
@@ -57,12 +61,6 @@ class PosSettingsService
                     'old_data'  => $oldData,
                 ]
             );
-
-            DB::commit();
-        } catch (\Exception $e) {
-            DB::rollBack();
-            // Penting: Service harus melempar exception agar controller tahu bahwa operasi gagal
-            throw new \Exception('Gagal memperbarui pengaturan POS: ' . $e->getMessage());
-        }
+        });
     }
 }

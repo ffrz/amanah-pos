@@ -74,26 +74,24 @@ class OperationalCostService
         return  $q->paginate($options['per_page'])->withQueryString();
     }
 
-    public function save(array $validated, $newImage)
+    public function save(OperationalCost $item, array $validated, $newImage)
     {
-        try {
-            $item = $this->findOrCreate($validated['id']);
+        $newlyUploadedImagePath = null;
+        $oldItem = null;
+        $oldLogData = [];
 
+        if (!empty($validated['id'])) {
+            $oldLogData = $this->generateActivityLogData($item);
+            $oldItem = clone $item;
+        }
+
+        $oldImagePath = $oldItem ? $oldItem->image_path : null;
+
+        try {
             DB::beginTransaction();
 
-            $newlyUploadedImagePath = null;
-            $oldItem = null;
-            $oldLogData = [];
-
-            if (!empty($validated['id'])) {
-                $oldLogData = $this->generateActivityLogData($item);
-                $oldItem = clone $item;
-            }
-
-            $oldImagePath = $oldItem ? $oldItem->image_path : null;
-
             if ($newImage) {
-                // Upload file baru dan hapus yang lama (helper yang tangani)
+                // Upload file baru dan hapus yang lama
                 $newlyUploadedImagePath = ImageUploaderHelper::uploadAndResize(
                     $newImage,
                     'operational-costs',

@@ -36,23 +36,8 @@ class PosSettingsController extends Controller
     public function edit(SaveRequest $request)
     {
         if ($request->getMethod() === Request::METHOD_POST) {
-            $validated = $request->validated();
-
-            $oldData = $this->posSettingsService->getCurrentSettingsData();
-
-            if ($validated == $oldData) {
-                return redirect()->back()
-                    ->with('warning', 'Tidak terdeteksi perubahan data.');
-            }
-
-            try {
-                $this->posSettingsService->save($validated, $oldData);
-                return redirect()->back()->with('success', 'Pengaturan POS berhasil diperbarui.');
-            } catch (\Exception $e) {
-                Log::error("Gagal memperbarui pengaturan POS.");
-                return redirect()->back()->withInput()
-                    ->with('error', $e->getMessage());
-            }
+            $this->posSettingsService->save($request->validated());
+            return redirect()->back()->with('success', 'Pengaturan POS berhasil diperbarui.');
         }
 
         return inertia('settings/pos/Edit', [

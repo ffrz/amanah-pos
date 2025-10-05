@@ -2,6 +2,8 @@
 
 namespace Modules\Admin\Services;
 
+use App\Exceptions\ModelNotModifiedException;
+use App\Models\OperationalCost;
 use App\Models\OperationalCostCategory;
 use App\Models\UserActivityLog;
 
@@ -49,9 +51,14 @@ class OperationalCostCategoryService
      * @param int $id
      * @return OperationalCostCategory|null
      */
-    public function find(int $id): ?OperationalCostCategory
+    public function find($id): ?OperationalCostCategory
     {
         return OperationalCostCategory::findOrFail($id);
+    }
+
+    public function findOrCreate($id): OperationalCostCategory
+    {
+        return $id ? $this->find($id) : new OperationalCostCategory();
     }
 
     /**
@@ -60,7 +67,7 @@ class OperationalCostCategoryService
      * @param int $id
      * @return OperationalCostCategory
      */
-    public function duplicate(int $id): OperationalCostCategory
+    public function duplicate($id): OperationalCostCategory
     {
         return $this->find($id)->replicate();
     }
@@ -70,27 +77,27 @@ class OperationalCostCategoryService
      *
      * @param OperationalCostCategory $item Model yang akan disimpan.
      * @param array $validatedData Data yang divalidasi dari request.
-     * @return OperationalCostCategory Model yang telah disimpan.
+     * @return mixed
      * @throws \Exception Jika terjadi kesalahan saat transaksi DB.
      */
-    public function save(OperationalCostCategory $item, array $validatedData): OperationalCostCategory
+    public function save(OperationalCostCategory $item, array $data): OperationalCostCategory
     {
-        $isCreating = $item->exists === false;
+        $isNew = empty($data['id']);
+
         $oldData = $item->toArray();
 
-        $item->fill($validatedData);
+        $item->fill($data);
 
         if (empty($item->getDirty())) {
-            return $item;
+            throw new ModelNotModifiedException();
         }
 
-        DB::beginTransaction();
-        try {
+        return DB::transaction(function () use ($isNew, $oldData, $item) {
             $item->save();
 
-            if ($isCreating) {
+            if ($isNew) {
                 $this->userActivityLogService->log(
-                    UserActivityLog::Category_OperationalCost,
+                    UserActivityLog::Category_OperationalCostCategory,
                     UserActivityLog::Name_OperationalCostCategory_Create,
                     "Kategori biaya ID: $item->id telah dibuat.",
                     [
@@ -100,7 +107,7 @@ class OperationalCostCategoryService
                 );
             } else {
                 $this->userActivityLogService->log(
-                    UserActivityLog::Category_OperationalCost,
+                    UserActivityLog::Category_OperationalCostCategory,
                     UserActivityLog::Name_OperationalCostCategory_Update,
                     "Kategori biaya ID: $item->id telah diperbarui.",
                     [
@@ -110,43 +117,34 @@ class OperationalCostCategoryService
                     ]
                 );
             }
-            DB::commit();
+
             return $item;
-        } catch (\Throwable $ex) {
-            DB::rollBack();
-            throw new \Exception("Gagal saat menyimpan kategori biaya operasional ID: " . ($item->id ?? 'baru') . ". " . $ex->getMessage());
-        }
+        });
     }
 
     /**
      * Menghapus kategori biaya operasional dan mencatat aktivitas.
      *
      * @param OperationalCostCategory $item
-     * @return void
+     * @return mixed
      * @throws \Exception Jika terjadi kesalahan saat transaksi DB.
      */
-    public function delete(OperationalCostCategory $item): void
+    public function delete(OperationalCostCategory $item)
     {
-        DB::beginTransaction();
-        try {
-            $deletedData = $item->toArray();
-
-            $item->delete();
+        return DB::transaction(function () use ($item) {
+            $deleted = $item->delete();
 
             $this->userActivityLogService->log(
-                UserActivityLog::Category_OperationalCost,
+                UserActivityLog::Category_OperationalCostCategory,
                 UserActivityLog::Name_OperationalCostCategory_Delete,
                 "Kategori biaya ID: $item->id telah dihapus.",
                 [
                     'formatter' => 'operational-cost-category',
-                    'new_data'  => $deletedData,
+                    'new_data'  => $item->toArray(),
                 ]
             );
 
-            DB::commit();
-        } catch (\Throwable $ex) {
-            DB::rollBack();
-            throw new \Exception("Gagal menghapus kategori biaya operasional ID: $item->id. " . $ex->getMessage());
-        }
+            return $deleted;
+        });
     }
 }

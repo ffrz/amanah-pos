@@ -21,7 +21,6 @@ class SaveRequest extends FormRequest
      */
     public function rules(): array
     {
-        // Mendapatkan ID dari permintaan untuk kasus pembaruan.
         $itemId = $this->route('id') ?? $this->id;
 
         return [
