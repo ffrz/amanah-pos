@@ -6,15 +6,11 @@ use App\Exceptions\ModelNotModifiedException;
 use App\Models\ProductCategory;
 use App\Models\UserActivityLog;
 
-use Modules\Admin\Http\Requests\ProductCategory\GetDataRequest;
-use Modules\Admin\Http\Requests\ProductCategory\SaveRequest;
-
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
-use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\ProductCategoryFormatter;
-use Throwable; // Tambahkan import Throwable untuk PHPDoc
+use Throwable;
 
 /**
  * Class ProductCategoryService

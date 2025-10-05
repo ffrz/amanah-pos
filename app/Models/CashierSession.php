@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasDocumentVersions;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class CashierSession extends BaseModel
 {
+    use HasDocumentVersions;
+
     /**
      * The table associated with the model.
      *

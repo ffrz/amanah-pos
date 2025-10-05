@@ -2,22 +2,16 @@
 
 namespace Modules\Admin\Http\Controllers;
 
-use App\Exceptions\ModelNotModifiedException;
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\ProductCategory;
-use Exception;
-use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Modules\Admin\Services\ProductCategoryService;
 use Modules\Admin\Http\Requests\ProductCategory\GetDataRequest;
 use Modules\Admin\Http\Requests\ProductCategory\SaveRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
-use Throwable; // Import Throwable untuk penanganan error yang lebih baik
 
 /**
  * Class ProductCategoryController

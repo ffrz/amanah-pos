@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\CashierSession;
+use App\Models\CashierTerminal;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
 use App\Models\OperationalCost;
@@ -9,6 +11,7 @@ use App\Models\OperationalCostCategory;
 use App\Models\ProductCategory;
 use App\Models\User;
 use Modules\Admin\Policies\DefaultPolicy;
+use Modules\Admin\Policies\OnlyAuthorPolicy;
 use Modules\Admin\Policies\OperationalCostCategoryPolicy;
 use Modules\Admin\Policies\OperationalCostPolicy;
 use Modules\Admin\Policies\ProductCategoryPolicy;
@@ -23,11 +26,13 @@ class AuthServiceProvider extends ServiceProvider
      * @var array<class-string, class-string>
      */
     protected $policies = [
+        User::class => UserPolicy::class,
+        Role::class => DefaultPolicy::class,
         ProductCategory::class => ProductCategoryPolicy::class,
         OperationalCostCategory::class => OperationalCostCategoryPolicy::class,
         OperationalCost::class => OperationalCostPolicy::class,
-        User::class => UserPolicy::class,
-        Role::class => DefaultPolicy::class,
+        CashierSession::class => OnlyAuthorPolicy::class,
+        CashierTerminal::class => DefaultPolicy::class,
     ];
 
     /**

@@ -26,7 +26,6 @@ use Modules\Admin\Http\Requests\Product\SaveRequest;
 use Modules\Admin\Services\CommonDataService;
 use Modules\Admin\Services\ProductService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;

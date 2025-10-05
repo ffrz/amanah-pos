@@ -28,7 +28,6 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Log;
 
 class OperationalCostCategoryController extends Controller
 {

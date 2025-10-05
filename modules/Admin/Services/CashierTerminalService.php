@@ -125,4 +125,18 @@ class CashierTerminalService
 
         return $query->orderBy('name', 'asc')->get();
     }
+
+    public function getAvailableCashierTerminals(): Collection
+    {
+        return CashierTerminal::with(['financeAccount'])
+            ->where('active', '=', true)
+            ->whereDoesntHave('activeSession')
+            ->orderBy('name')
+            ->get();
+    }
+
+    public function find($id): CashierTerminal
+    {
+        return CashierTerminal::with(['financeAccount'])->find($id);
+    }
 }

@@ -19,125 +19,86 @@ namespace Modules\Admin\Http\Controllers;
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\CashierSession;
-use App\Models\CashierTerminal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
+use Modules\Admin\Http\Requests\CashierSession\GetDataRequest;
+use Modules\Admin\Http\Requests\CashierSession\CloseRequest;
+use Modules\Admin\Http\Requests\CashierSession\OpenRequest;
+use Modules\Admin\Services\CashierSessionService;
+use Modules\Admin\Services\CashierTerminalService;
 
 class CashierSessionController extends Controller
 {
+    public function __construct(
+        protected CashierSessionService $cashierSessionService,
+        protected CashierTerminalService $cashierTerminalService,
+    ) {}
+
     public function index()
     {
+        $this->authorize('viewAny', CashierSession::class);
+
         return inertia('cashier-session/Index');
     }
 
     public function detail($id = 0)
     {
+        $item = $this->cashierSessionService->find($id);
+
+        $this->authorize('view', $item);
+
         return inertia('cashier-session/Detail', [
-            'data' => CashierSession::with(
-                ['cashierTerminal', 'user', 'creator', 'updater']
-            )->findOrFail($id),
+            'data' => $item,
         ]);
     }
 
-    public function data(Request $request)
+    public function data(GetDataRequest $request)
     {
-        $orderBy = $request->get('order_by', 'id');
-        $orderType = $request->get('order_type', 'desc');
-        $filter = $request->get('filter', []);
+        $this->authorize('viewAny', CashierSession::class);
 
-        $q = CashierSession::with(['cashierTerminal', 'user']);
-
-        if (!empty($filter['search'])) {
-            $q->where(function ($q) use ($filter) {
-                $q->orWhere('notes', 'like', '%' . $filter['search'] . '%');
-            });
-        }
-
-        if (!empty($filter['status']) && $filter['status'] !== 'all') {
-            $q->where('is_closed', '=', $filter['status'] == 'closed' ? true : false);
-        }
-
-        $q->orderBy($orderBy, $orderType);
-
-        $items = $q->paginate($request->get('per_page', 10))->withQueryString();
+        $items = $this->cashierSessionService->getData($request->validated());
 
         return JsonResponseHelper::success($items);
     }
 
-    public function open(Request $request)
+    public function open(OpenRequest $request)
     {
-        // Cek apakah user sudah punya sesi aktif
-        $activeSession = CashierSession::where('user_id', Auth::user()->id)
-            ->where('is_closed', false)
-            ->first();
+        $activeSession = $this->cashierSessionService->getActiveSession();
 
-        // Redirect jika sudah ada sesi aktif
         if ($activeSession) {
             return redirect(route('admin.cashier-session.detail', $activeSession->id))
                 ->with('warning', 'Anda sudah memiliki sesi kasir aktif.');
         }
 
+        $this->authorize('create', CashierSession::class);
+
         if ($request->method() == Request::METHOD_POST) {
-            $validated = $request->validate([
-                'cashier_terminal_id' => [
-                    'required',
-                    'exists:cashier_terminals,id',
-                    // Pastikan cash register tidak sedang memiliki sesi aktif
-                    Rule::unique('cashier_sessions', 'cashier_terminal_id')->where(function ($query) {
-                        return $query->where('is_closed', false);
-                    }),
-                ],
-                'opening_notes' => 'nullable|string|max:200',
-            ]);
+            $session = $this->cashierSessionService->open($request->validated(), Auth::user());
 
-            $cashierTerminal = CashierTerminal::with(['financeAccount'])
-                ->findOrFail($validated['cashier_terminal_id']);
-
-            $item = new CashierSession();
-            $item->cashier_terminal_id = $validated['cashier_terminal_id'];
-            $item->user_id = Auth::user()->id;
-            $item->opening_balance = $cashierTerminal->financeAccount->balance;
-            $item->opening_notes = $validated['opening_notes'] ?? '';
-            $item->is_closed = false;
-            $item->opened_at = now();
-            $item->save();
-
-            return redirect(route('admin.cashier-session.detail', $item->id))
-                ->with('success', "Sesi kasir {$cashierTerminal->name} telah dimulai.");
+            return redirect(route('admin.cashier-session.detail', $session->id))
+                ->with('success', "Sesi kasir telah dimulai.");
         }
-
-        // Ambil cash register yang tidak sedang memiliki sesi aktif
-        $availableCashierTerminals = CashierTerminal::with(['financeAccount'])
-            ->where('active', '=', true)
-            ->whereDoesntHave('activeSession')
-            ->orderBy('name')
-            ->get();
 
         return inertia('cashier-session/Open', [
             'data' => new CashierSession(),
-            'cashier_terminals' => $availableCashierTerminals,
+            'cashier_terminals' => $this->cashierTerminalService->getAvailableCashierTerminals(),
         ]);
     }
 
-    public function close(Request $request, $id)
+    public function close(CloseRequest $request, $id)
     {
-        $item = CashierSession::with(['user', 'cashierTerminal', 'cashierTerminal.financeAccount'])->findOrFail($id);
-        $item->closing_balance = $item->cashierTerminal->financeAccount->balance;
+        $item = $this->cashierSessionService->find($id);
 
         if ($item->is_closed) {
             return redirect()->back()->with('warning', 'Sesi yang telah selesai tidak bisa ditutup!');
         }
 
-        if ($request->method() == Request::METHOD_POST) {
-            $validated = $request->validate([
-                'closing_notes' => 'nullable|string|max:200',
-            ]);
+        $this->authorize('update', $item);
 
-            $item->closing_notes = $validated['opening_notes'] ?? '';
-            $item->is_closed = true;
-            $item->closed_at = now();
-            $item->save();
+        $item->closing_balance = $item->cashierTerminal->financeAccount->balance;
+
+        if ($request->method() == Request::METHOD_POST) {
+            $this->cashierSessionService->close($item, $request->validated());
 
             return redirect(route('admin.cashier-session.detail', $item->id))
                 ->with('success', "Sesi kasir {$item->id} telah ditutup.");
@@ -150,12 +111,12 @@ class CashierSessionController extends Controller
 
     public function delete($id)
     {
-        $item = CashierSession::findOrFail($id);
-        try {
-            $item->delete();
-            return JsonResponseHelper::success($item, "Sesi kasir #$item->id telah dihapus.");
-        } catch (\Throwable $ex) {
-            return JsonResponseHelper::error("Sesi kasir #$item->id tidak dapat dihapus.", 500, $ex);
-        }
+        $item = $this->cashierSessionService->find($id);
+
+        $this->authorize('delete', $item);
+
+        $item = $this->cashierSessionService->delete($item);
+
+        return JsonResponseHelper::success($item, "Sesi kasir #$item->id telah dihapus.");
     }
 }

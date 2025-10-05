@@ -33,7 +33,8 @@ class UserActivityLog extends Model
     public const Category_PurchaseOrder = 'purchase-order';
     public const Category_OperationalCost = 'operational-cost';
     public const Category_OperationalCostCategory = 'operational-cost-category';
-    public const Category_Cashier = 'cashier';
+    public const Category_CashierTerminal = 'cashier-terminal';
+    public const Category_CashierSession = 'cashier-session';
     public const Category_CustomerWallet = 'customer-wallet';
 
     /**
@@ -57,7 +58,8 @@ class UserActivityLog extends Model
         self::Category_PurchaseOrder => 'Manajemen Order Pembelian',
         self::Category_OperationalCost => 'Manajemen Biaya Operasional',
         self::Category_OperationalCostCategory => 'Manajemen Kategori Biaya Operasional',
-        self::Category_Cashier => 'Manajemen Terminal dan Sesi Kasir',
+        self::Category_CashierTerminal => 'Manajemen Terminal Kasir',
+        self::Category_CashierSession => 'Manajemen Sesi Kasir',
         self::Category_CustomerWallet => 'Manajemen Walet Pelanggan',
     ];
 
@@ -215,6 +217,10 @@ class UserActivityLog extends Model
         self::Name_FinanceAccount_Create => 'Membuat Akun Keuangan',
         self::Name_FinanceAccount_Update => 'Memperbarui Akun Keuangan',
         self::Name_FinanceAccount_Delete => 'Menghapus Akun Keuangan',
+
+        self::Name_CashierSession_Open => 'Membuka Sesi Kasir',
+        self::Name_CashierSession_Close => 'Menutup Sesi Kasir',
+        self::Name_CashierSession_Delete => 'Menghapus Sesi Kasir',
     ];
 
     // Kolom yang dapat diisi massal

@@ -2,8 +2,8 @@
 
 namespace Modules\Admin\Features\UserActivityLog\Formatters;
 
-use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\DefaultFormatter;
 use Modules\Admin\Features\UserActivityLog\Contracts\MetaDataFormatterInterface;
+use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\CashierSessionFormatter;
 use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\CompanyProfileFormatter;
 use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\FinanceAccountFormatter;
 use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\OperationalCostCategoryFormatter;
@@ -27,6 +27,7 @@ class MetaDataFormatterFactory
         'operational-cost' => OperationalCostFormatter::class,
         'operational-cost-category' => OperationalCostCategoryFormatter::class,
         'finance-account' => FinanceAccountFormatter::class,
+        'cashier-session' => CashierSessionFormatter::class,
     ];
 
     /**
