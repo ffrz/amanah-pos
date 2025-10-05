@@ -11,23 +11,33 @@
 
 namespace Modules\Admin\Services;
 
+use App\Exceptions\ModelNotModifiedException;
 use App\Models\CashierTerminal;
 use App\Models\FinanceAccount;
+use App\Models\UserActivityLog;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 
 class CashierTerminalService
 {
+    public function __construct(
+        protected DocumentVersionService $documentVersionService,
+        protected UserActivityLogService $userActivityLogService
+    ) {}
+
     /**
      * Mengambil daftar Terminal Kasir dengan pagination dan filter.
      */
-    public function getData(array $filters, string $orderBy = 'name', string $orderType = 'asc', int $perPage = 10): LengthAwarePaginator
+    public function getData(array $options): LengthAwarePaginator
     {
+        $filter = $options['filter'];
+
         $q = CashierTerminal::with(['financeAccount']);
 
-        if (!empty($filters['search'])) {
-            $searchTerm = $filters['search'];
+        if (!empty($filter['search'])) {
+            $searchTerm = $filter['search'];
             $q->where(function ($q) use ($searchTerm) {
                 $q->where('name', 'like', '%' . $searchTerm . '%')
                     ->orWhere('location', 'like', '%' . $searchTerm . '%')
@@ -35,19 +45,19 @@ class CashierTerminalService
             });
         }
 
-        if (isset($filters['status']) && ($filters['status'] === 'active' || $filters['status'] === 'inactive')) {
-            $q->where('active', '=', $filters['status'] === 'active');
+        if (isset($filter['status']) && ($filter['status'] === 'active' || $filter['status'] === 'inactive')) {
+            $q->where('active', '=', $filter['status'] === 'active');
         }
 
-        $q->orderBy($orderBy, $orderType);
+        $q->orderBy($options['order_by'], $options['order_type']);
 
-        return $q->paginate($perPage);
+        return $q->paginate($options['per_page']);
     }
 
     /**
      * Mengambil Cashier Terminal berdasarkan ID dengan relasi detail.
      */
-    public function getTerminal(int $id): CashierTerminal
+    public function find(int $id): CashierTerminal
     {
         return CashierTerminal::with(['financeAccount', 'creator', 'updater'])->findOrFail($id);
     }
@@ -55,22 +65,52 @@ class CashierTerminalService
     /**
      * Menyimpan (membuat atau memperbarui) Terminal Kasir.
      */
-    public function save(array $data, ?int $id = null): CashierTerminal
+    public function save(CashierTerminal $item, array $data): CashierTerminal
     {
-        $validated = Arr::except($data, ['finance_account_id']);
+        $isNew = empty($data['id']);
 
-        if (Arr::get($data, 'finance_account_id') === 'new') {
-            $financeAccount = $this->createAutoCashierAccount($validated['name']);
-            $validated['finance_account_id'] = $financeAccount->id;
-        } else {
-            $validated['finance_account_id'] = Arr::get($data, 'finance_account_id');
+        if ($data['finance_account_id'] === 'new') {
+            $financeAccount = $this->createAutoCashierAccount($data['name']);
+            $data['finance_account_id'] = $financeAccount->id;
         }
 
-        $terminal = $id ? CashierTerminal::findOrFail($id) : new CashierTerminal();
-        $terminal->fill($validated);
-        $terminal->save();
+        $oldData = $item->toArray();
+        $item->fill($data);
 
-        return $terminal;
+        if (empty($item->getDirty())) {
+            throw new ModelNotModifiedException();
+        }
+
+        return DB::transaction(function () use ($isNew, $oldData, $item) {
+            $item->save();
+
+            $this->documentVersionService->createVersion($item);
+
+            if ($isNew) {
+                $this->userActivityLogService->log(
+                    UserActivityLog::Category_CashierTerminal,
+                    UserActivityLog::Name_CashierTerminal_Create,
+                    "Terminal kasir $item->name telah dibuat.",
+                    [
+                        'formatter' => 'cashier-terminal',
+                        'data' => $item->toArray(),
+                    ],
+                );
+            } else {
+                $this->userActivityLogService->log(
+                    UserActivityLog::Category_CashierTerminal,
+                    UserActivityLog::Name_CashierTerminal_Delete,
+                    "Terminal kasir $item->name telah diperbarui.",
+                    [
+                        'formatter' => 'cashier-terminal',
+                        'new_data' => $item->toArray(),
+                        'old_data' => $oldData,
+                    ],
+                );
+            }
+
+            return $item;
+        });
     }
 
     /**
@@ -102,7 +142,19 @@ class CashierTerminalService
      */
     public function delete($item): CashierTerminal
     {
-        $item->delete();
+        return DB::transaction(function () use ($item) {
+            $item = $item->delete();
+
+            $this->userActivityLogService->log(
+                UserActivityLog::Category_CashierTerminal,
+                UserActivityLog::Name_CashierTerminal_Delete,
+                "Terminal kasir $item->name telah dihapus.",
+                $item->getAttributes(),
+            );
+
+            $this->documentVersionService->createDeletedVersion($item);
+        });
+
         return $item;
     }
 
@@ -135,8 +187,13 @@ class CashierTerminalService
             ->get();
     }
 
-    public function find($id): CashierTerminal
+    public function findOrCreate($id): CashierTerminal
     {
-        return CashierTerminal::with(['financeAccount'])->find($id);
+        return $id ? $this->find($id) : new CashierTerminal();
+    }
+
+    public function duplicate(int $id): CashierTerminal
+    {
+        return $this->find($id)->replicate();
     }
 }

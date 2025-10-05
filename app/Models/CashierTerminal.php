@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasDocumentVersions;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class CashierTerminal extends BaseModel
 {
+    use HasDocumentVersions;
+
     /**
      * The table associated with the model.
      *

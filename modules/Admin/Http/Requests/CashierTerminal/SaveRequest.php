@@ -28,9 +28,8 @@ class SaveRequest extends FormRequest
             'location' => 'nullable|max:255',
             'notes'    => 'nullable|max:255',
             'active'   => 'required|boolean',
-
-            // Gunakan required_unless untuk menangani kasus 'new'
-            'finance_account_id' => 'required_unless:finance_account_id,new|nullable|exists:finance_accounts,id',
+            'finance_account_id' => 'nullable|string',
+            // 'finance_account_id' => 'required_unless:finance_account_id,new|nullable|exists:finance_accounts,id',
         ];
 
         return $rules;
@@ -40,6 +39,7 @@ class SaveRequest extends FormRequest
     {
         $this->merge([
             'id' => $this->input('id') ?? null,
+            'finance_account_id' => $this->finance_account_id ?? null,
         ]);
     }
 }

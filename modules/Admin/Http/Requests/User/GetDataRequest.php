@@ -2,7 +2,6 @@
 
 namespace Modules\Admin\Http\Requests\User;
 
-use App\Models\User;
 use Illuminate\Validation\Rule;
 use Modules\Admin\Http\Requests\DefaultGetDataRequest;
 
