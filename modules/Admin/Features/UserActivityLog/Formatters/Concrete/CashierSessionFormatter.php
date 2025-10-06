@@ -18,7 +18,7 @@ class CashierSessionFormatter extends BaseFormatter
         'created_by' => 'Dibuat Oleh',
     ];
 
-    protected function formatValue(string $key, $value)
+    protected function formatValue(string $key, $value, $data)
     {
         if ($key === 'opened_at' || $key == 'created_at') {
             return format_datetime(($value));
@@ -32,6 +32,6 @@ class CashierSessionFormatter extends BaseFormatter
             return 'Rp. ' . format_number($value);
         }
 
-        return parent::formatValue($key, $value);
+        return parent::formatValue($key, $value, $data);
     }
 }

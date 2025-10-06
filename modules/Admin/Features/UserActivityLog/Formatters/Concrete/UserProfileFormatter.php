@@ -10,12 +10,12 @@ class UserProfileFormatter extends BaseFormatter
         'active'    => 'Status'
     ];
 
-    protected function formatValue(string $key, $value)
+    protected function formatValue(string $key, $value, $data = [])
     {
         if ($key == 'active') {
             return $value ? 'Ya' : 'Tidak';
         }
 
-        return parent::formatValue($key, $value);
+        return parent::formatValue($key, $value, $data);
     }
 }

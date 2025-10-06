@@ -10,7 +10,7 @@ class UserRoleFormatter extends BaseFormatter
         'permissions' => 'Hak Akses'
     ];
 
-    protected function formatValue(string $key, $value)
+    protected function formatValue(string $key, $value, $data = [])
     {
         if ($key == 'permissions') {
             $result = [];
@@ -24,6 +24,6 @@ class UserRoleFormatter extends BaseFormatter
             return join(', ', $result);
         }
 
-        return parent::formatValue($key, $value);
+        return parent::formatValue($key, $value, $data);
     }
 }

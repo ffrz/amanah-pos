@@ -23,7 +23,7 @@ class FinanceAccountFormatter extends BaseFormatter
         "created_by" => 'ID User',
     ];
 
-    protected function formatValue(string $key, $value)
+    protected function formatValue(string $key, $value, $data)
     {
         if (in_array($key, ['active', 'has_wallet_access', 'show_in_pos_payment', 'show_in_purchasing_payment'])) {
             return $value ? 'Ya' : 'Tidak';
@@ -37,6 +37,6 @@ class FinanceAccountFormatter extends BaseFormatter
             return 'Rp.' . format_number($value);
         }
 
-        return parent::formatValue($key, $value);
+        return parent::formatValue($key, $value, $data);
     }
 }

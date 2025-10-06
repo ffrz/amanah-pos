@@ -4,6 +4,7 @@ namespace Modules\Admin\Features\UserActivityLog\Formatters;
 
 use Modules\Admin\Features\UserActivityLog\Contracts\MetaDataFormatterInterface;
 use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\CashierSessionFormatter;
+use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\CashierTerminalFormatter;
 use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\CompanyProfileFormatter;
 use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\DefaultFormatter;
 use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\FinanceAccountFormatter;
@@ -11,6 +12,7 @@ use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\OperationalCostCa
 use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\OperationalCostFormatter;
 use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\PosSettingsFormatter;
 use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\ProductCategoryFormatter;
+use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\SupplierFormatter;
 use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\UserFormatter;
 use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\UserProfileFormatter;
 use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\UserRoleFormatter;
@@ -29,7 +31,8 @@ class MetaDataFormatterFactory
         'operational-cost-category' => OperationalCostCategoryFormatter::class,
         'finance-account' => FinanceAccountFormatter::class,
         'cashier-session' => CashierSessionFormatter::class,
-        'cashier-terminal' => DefaultFormatter::class,
+        'cashier-terminal' => CashierTerminalFormatter::class,
+        'supplier' => SupplierFormatter::class,
     ];
 
     /**

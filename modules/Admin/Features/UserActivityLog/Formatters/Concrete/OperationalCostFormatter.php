@@ -22,7 +22,7 @@ class OperationalCostFormatter extends BaseFormatter
         'updated_by_username' => 'Diperbarui Oleh',
     ];
 
-    protected function formatValue(string $key, $value)
+    protected function formatValue(string $key, $value, $data = [])
     {
         if ($key === 'date') {
             return format_date(($value));
@@ -32,6 +32,6 @@ class OperationalCostFormatter extends BaseFormatter
             return 'Rp. ' . format_number($value);
         }
 
-        return parent::formatValue($key, $value);
+        return parent::formatValue($key, $value, $data);
     }
 }

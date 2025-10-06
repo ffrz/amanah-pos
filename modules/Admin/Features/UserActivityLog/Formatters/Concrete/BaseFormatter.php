@@ -8,9 +8,11 @@ use Carbon\Carbon;
 class BaseFormatter implements MetaDataFormatterInterface
 {
     protected $mapping = [];
+    protected $data = [];
 
     public function format(array $metaData): array
     {
+        $this->data = $metaData;
         $mapping = $this->mapping;
         $output = [];
 
@@ -28,8 +30,9 @@ class BaseFormatter implements MetaDataFormatterInterface
             // Perulangan menggunakan $mappedKeys untuk menjamin urutan sesuai $mapping
             foreach ($mappedKeys as $key) {
                 // Pastikan kunci (field) ada di data yang sedang diproses
+                $value = null;
                 if (!isset($data[$key])) {
-                    continue;
+                    $data[$key] = null;
                 }
 
                 $value = $data[$key];
@@ -38,7 +41,7 @@ class BaseFormatter implements MetaDataFormatterInterface
 
                 $output[] = [
                     'label' => $mapping[$key],
-                    'value' => $this->formatValue($key, $value),
+                    'value' => $this->formatValue($key, $value, $data),
                     'type' => 'simple'
                 ];
             }
@@ -47,7 +50,7 @@ class BaseFormatter implements MetaDataFormatterInterface
         return $output;
     }
 
-    protected function formatValue(string $key, $value)
+    protected function formatValue(string $key, $value, $data)
     {
         if (in_array($key, ['created_at', 'updated_at']) && $value) {
             return Carbon::parse($value)->format('d/m/Y H:i:s');
@@ -70,7 +73,7 @@ class BaseFormatter implements MetaDataFormatterInterface
         // Perulangan menggunakan $mappedKeys untuk menjamin urutan sesuai $mapping
         foreach ($mappedKeys as $key) {
             if (!isset($old[$key]) && !isset($new[$key])) {
-                continue;
+                $data[$key] = null;
             }
 
             $oldValue = $old[$key] ?? null;
@@ -78,8 +81,8 @@ class BaseFormatter implements MetaDataFormatterInterface
 
             $changes[] = [
                 'field' => $mapping[$key],
-                'old_value' => $this->formatValue($key, $oldValue),
-                'new_value' => $this->formatValue($key, $newValue),
+                'old_value' => $this->formatValue($key, $oldValue, $old),
+                'new_value' => $this->formatValue($key, $newValue, $new),
             ];
         }
 

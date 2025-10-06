@@ -22,7 +22,7 @@ class DefaultFormatter extends BaseFormatter
             foreach ($metaData['data'] as $key => $value) {
                 $output[] = [
                     'label' => $key,
-                    'value' => $this->formatValue($key, $value),
+                    'value' => $this->formatValue($key, $value, $metaData['data']),
                     'type' => 'simple'
                 ];
             }
@@ -41,8 +41,8 @@ class DefaultFormatter extends BaseFormatter
 
             $changes[] = [
                 'field' => $key,
-                'old_value' => $this->formatValue($key, $oldValue),
-                'new_value' => $this->formatValue($key, $newValue),
+                'old_value' => $this->formatValue($key, $oldValue, $old),
+                'new_value' => $this->formatValue($key, $newValue, $new),
             ];
         }
 

@@ -11,7 +11,7 @@ class PosSettingsFormatter extends BaseFormatter
         'foot_note'            => 'Foot Note',
     ];
 
-    protected function formatValue(string $key, $value)
+    protected function formatValue(string $key, $value, $data = [])
     {
         if ($key === 'default_payment_mode') {
             return $value == 'cash' ? 'Tunai' : ($value == 'wallet' ? 'Wallet' : '');
@@ -25,6 +25,6 @@ class PosSettingsFormatter extends BaseFormatter
             return $value == 'new-order' ? 'Pesanan Baru' : ($value == 'print' ? 'Cetak' : 'Rincian');
         }
 
-        return parent::formatValue($key, $value);
+        return parent::formatValue($key, $value, $data);
     }
 }

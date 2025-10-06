@@ -14,7 +14,7 @@ class UserFormatter extends BaseFormatter
         'password'  => 'Kata Sandi',
     ];
 
-    protected function formatValue(string $key, $value)
+    protected function formatValue(string $key, $value, $data = [])
     {
         if ($key == 'active') {
             return $value ? 'Ya' : 'Tidak';
@@ -37,6 +37,6 @@ class UserFormatter extends BaseFormatter
             return join(',', $roles);
         }
 
-        return parent::formatValue($key, $value);
+        return parent::formatValue($key, $value, $data);
     }
 }
