@@ -14,11 +14,8 @@ class GetDataRequest extends DefaultGetDataRequest
 
     public function rules(): array
     {
-        return [
-            'order_by'  => 'nullable|string|in:id,date,description,amount',
-            'order_type'  => 'nullable|string|in:asc,desc',
-            'per_page'  => 'nullable|integer|min:1|max:100',
-            'filter.search' => 'nullable|string|max:100',
-        ];
+        $rules = parent::rules();
+
+        return array_merge($rules, []);
     }
 }

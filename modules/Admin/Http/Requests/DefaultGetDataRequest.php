@@ -23,15 +23,16 @@ class DefaultGetDataRequest extends FormRequest
             'order_type' => ['nullable', 'string', Rule::in(['asc', 'desc'])],
             'per_page' => ['nullable', 'integer', Rule::in([10, 25, 50, 100])],
             'filter' => ['nullable', 'array'],
-            'filter.*' => ['nullable'],
+
         ];
     }
 
     /**
-     * Prepare data for validation, including the default values.
+     * Prepare data for validation, including the default values and cleaning filters.
      */
     protected function prepareForValidation(): void
     {
+
         $this->merge([
             'order_by'   => $this->order_by ?? 'id',
             'order_type' => $this->order_type ?? 'desc',

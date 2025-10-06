@@ -15,14 +15,13 @@ class GetDataRequest extends DefaultGetDataRequest
      */
     public function rules(): array
     {
-        return [
+        $rules = parent::rules();
+
+        return array_merge($rules, [
             'order_by'  => 'nullable|string|in:name,type,balance',
-            'order_type'  => 'nullable|string|in:asc,desc',
-            'per_page'  => 'nullable|integer|min:1|max:100',
             'filter.search' => 'nullable|string|max:100',
             'filter.status' => 'nullable|string|in:all,active,inactive',
             'filter.type' => 'nullable|string|in:' . join(',', ['all', ...array_keys(FinanceAccount::Types)]),
-        ];
+        ]);
     }
-
 }
