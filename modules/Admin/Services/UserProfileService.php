@@ -2,6 +2,7 @@
 
 namespace Modules\Admin\Services;
 
+use App\Exceptions\ModelNotModifiedException;
 use App\Models\User;
 use App\Models\UserActivityLog;
 use Exception;
@@ -37,7 +38,7 @@ class UserProfileService
         $user->fill($data);
 
         if (empty($user->getDirty())) {
-            throw new ModelNotFoundException();
+            throw new ModelNotModifiedException();
         }
 
         return DB::transaction(function () use ($user, $oldData) {
