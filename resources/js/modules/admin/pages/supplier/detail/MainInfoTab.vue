@@ -1,4 +1,8 @@
 <script setup>
+import {
+  formatMoneyWithSymbol,
+  formatNumberWithSymbol,
+} from "@/helpers/formatter";
 import { usePage } from "@inertiajs/vue3";
 
 const page = usePage();
@@ -34,6 +38,19 @@ const page = usePage();
         <td style="width: 120px">Nama</td>
         <td style="width: 1px">:</td>
         <td>{{ page.props.data.name }}</td>
+      </tr>
+      <tr>
+        <td>
+          {{ page.props.data.actual_balance < 0 ? "Utang" : "Utang / Piutang" }}
+        </td>
+        <td>:</td>
+        <td
+          :class="
+            page.props.data.actual_balance < 0 ? 'text-red' : 'text-green'
+          "
+        >
+          {{ formatMoneyWithSymbol(page.props.data.actual_balance) }}
+        </td>
       </tr>
       <tr v-if="page.props.data.phone_1">
         <td>No Telepon</td>

@@ -2,43 +2,112 @@
 
 namespace Modules\Admin\Services;
 
+use App\Exceptions\ModelNotModifiedException;
 use App\Models\Supplier;
+use App\Models\UserActivityLog;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class SupplierService
 {
+    public function __construct(
+        protected UserActivityLogService $userActivityLogService,
+        protected DocumentVersionService $documentVersionService
+    ) {}
+
+    public function find(int $id): Supplier
+    {
+        return Supplier::findOrFail($id);
+    }
+
+    public function findOrCreate($id): Supplier
+    {
+        return $id ? $this->find($id) : new Supplier(['active' => true]);
+    }
+
+    public function duplicate(int $id): Supplier
+    {
+        return $this->find($id)->replicate();
+    }
+
     /**
      * Menyimpan (membuat atau memperbarui) data Pemasok.
-     * Tidak ada transaksi, versioning, atau logging di sini.
      */
-    public function save(array $validatedData, ?Supplier $supplier = null): Supplier
+    public function save(Supplier $item, array $data): Supplier
     {
-        $item = $supplier ?? new Supplier();
+        $oldData = $item->toArray();
 
-        $item->fill($this->normalizeData($validatedData));
+        $item->fill($data);
 
-        $item->save();
+        if (empty($item->getDirty())) {
+            throw new ModelNotModifiedException();
+        }
 
-        return $item;
+        return DB::transaction(function () use ($item, $oldData) {
+            $isNew = !$item->id;
+
+            $item->save();
+
+            $this->documentVersionService->createVersion($item);
+
+            if ($isNew) {
+                $this->userActivityLogService->log(
+                    UserActivityLog::Category_Supplier,
+                    UserActivityLog::Name_Supplier_Create,
+                    "Pemasok ID: $item->id, $item->name telah dibuat.",
+                    [
+                        'formatter' => 'supplier',
+                        'data' => $item->toArray()
+                    ]
+                );
+            } else {
+                $this->userActivityLogService->log(
+                    UserActivityLog::Category_Supplier,
+                    UserActivityLog::Name_Supplier_Update,
+                    "Pemasok ID: $item->id, $item->name telah diperbarui.",
+                    [
+                        'formatter' => 'supplier',
+                        'new_data' => $item->toArray(),
+                        'old_data' => $oldData
+                    ]
+                );
+            }
+
+            return $item;
+        });
     }
 
     /**
      * Menghapus Pemasok.
      */
-    public function delete(Supplier $supplier): void
+    public function delete(Supplier $item)
     {
-        $supplier->delete();
+        return DB::transaction(function () use ($item) {
+
+            $item->delete();
+
+            $this->documentVersionService->createDeletedVersion($item);
+
+            $this->userActivityLogService->log(
+                UserActivityLog::Category_Supplier,
+                UserActivityLog::Name_Supplier_Delete,
+                "Pemasok ID: $item->id, $item->name telah dihapus.",
+                [
+                    'formatter' => 'supplier',
+                    'data' => $item->toArray(),
+                ]
+            );
+
+            return $item;
+        });
     }
 
     /**
      * Logika untuk mem-filter dan mengambil data Supplier.
      */
-    public function getData(Request $request)
+    public function getData(array $options)
     {
-        $orderBy = $request->get('order_by', 'name');
-        $orderType = $request->get('order_type', 'asc');
-        $filter = $request->get('filter', []);
+        $filter = $options['filter'];
 
         $q = Supplier::query();
 
@@ -54,12 +123,13 @@ class SupplierService
             $q->where('active', '=', $filter['status'] == 'active' ? true : false);
         }
 
-        $q->orderBy($orderBy, $orderType);
+        $q->orderBy($options['order_by'], $options['order_type']);
 
-        return $q->paginate($request->get('per_page', 10))->withQueryString();
+        return $q->paginate($options['per_page'])->withQueryString();
     }
 
     /**
+     * TODO: Pindahkan ke SaveRequest
      * Normalisasi data dari request (Memindahkan logika pengisian nilai default).
      */
     protected function normalizeData(array $data): array

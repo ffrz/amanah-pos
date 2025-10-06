@@ -30,14 +30,14 @@ class SupplierFormatter extends BaseFormatter
             $value = $data['bank_account_name_1'];
             return $data['bank_account_name_1'] . ' a.n. ' .
                 $data['bank_account_holder_1'] . ' ' .
-                $data['bank_account_name_1'];
+                $data['bank_account_number_1'];
         }
 
         if ($key == 'bank_account_2') {
             $value = $data['bank_account_name_2'];
             return $data['bank_account_name_2'] . ' a.n. ' .
                 $data['bank_account_holder_2'] . ' ' .
-                $data['bank_account_name_2'];
+                $data['bank_account_number_2'];
         }
 
         return parent::formatValue($key, $value, $data);

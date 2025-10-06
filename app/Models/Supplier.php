@@ -52,6 +52,11 @@ class Supplier extends BaseModel
         'notes',
     ];
 
+
+    protected $appends = [
+        'actual_balance',
+    ];
+
     protected function casts(): array
     {
         return [
@@ -62,6 +67,7 @@ class Supplier extends BaseModel
             'address' => 'string',
             'active'  => 'boolean',
             'balance' => 'decimal:2',
+            'actual_balance' => 'decimal:2',
             'bank_account_number' => 'string',
             'return_address' => 'string',
             'created_by'     => 'integer',
@@ -76,5 +82,13 @@ class Supplier extends BaseModel
         return DB::select(
             'select count(0) as count from suppliers where active = 1'
         )[0]->count;
+    }
+
+    public function getActualBalanceAttribute()
+    {
+        return -DB::table('purchase_orders')
+            ->where('supplier_id', $this->id)
+            ->where('status', 'closed')
+            ->sum(DB::raw('grand_total - total_paid'));
     }
 }
