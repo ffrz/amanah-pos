@@ -31,6 +31,7 @@ class MetaDataFormatterFactory
         'operational-cost' => OperationalCostFormatter::class,
         'operational-cost-category' => OperationalCostCategoryFormatter::class,
         'finance-account' => FinanceAccountFormatter::class,
+        'finance-transaction' => DefaultFormatter::class,
         'cashier-session' => CashierSessionFormatter::class,
         'cashier-terminal' => CashierTerminalFormatter::class,
         'supplier' => SupplierFormatter::class,

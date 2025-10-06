@@ -218,6 +218,10 @@ class UserActivityLog extends Model
         self::Name_FinanceAccount_Update => 'Memperbarui Akun Keuangan',
         self::Name_FinanceAccount_Delete => 'Menghapus Akun Keuangan',
 
+        self::Name_FinanceTransaction_Create => 'Membuat Transaksi Keuangan',
+        self::Name_FinanceTransaction_Update => 'Memperbarui Transaksi Keuangan',
+        self::Name_FinanceTransaction_Delete => 'Menghapus Transaksi Keuangan',
+
         self::Name_CashierSession_Open => 'Membuka Sesi Kasir',
         self::Name_CashierSession_Close => 'Menutup Sesi Kasir',
         self::Name_CashierSession_Delete => 'Menghapus Sesi Kasir',

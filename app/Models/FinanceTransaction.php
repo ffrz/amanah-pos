@@ -16,13 +16,14 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasDocumentVersions;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class FinanceTransaction extends BaseModel
 {
-    use HasFactory;
+    use HasFactory, HasDocumentVersions;
 
     protected $fillable = [
         'account_id',

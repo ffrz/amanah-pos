@@ -16,10 +16,15 @@
 
 namespace Modules\Admin\Services;
 
+use App\Exceptions\BusinessRuleViolationException;
+use App\Helpers\ImageUploaderHelper;
 use App\Models\FinanceAccount;
 use App\Models\FinanceTransaction;
+use App\Models\UserActivityLog;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 
 class FinanceTransactionService
 {
@@ -36,7 +41,7 @@ class FinanceTransactionService
 
     public function findOrCreate($id): FinanceTransaction
     {
-        return $id ? $this->find($id) : new FinanceTransaction();
+        return $id ? $this->find($id) : new FinanceTransaction(['datetime' => Carbon::now()]);
     }
 
     public function addToBalance(FinanceAccount $account, $amount): void
@@ -142,5 +147,190 @@ class FinanceTransactionService
         $q->orderBy($options['order_by'], $options['order_type']);
 
         return $q->paginate($options['per_page'])->withQueryString();
+    }
+
+    public function delete(FinanceTransaction $item): FinanceTransaction
+    {
+        if ($item->ref_type && $item->ref_type != FinanceTransaction::RefType_FinanceTransaction) {
+            throw new BusinessRuleViolationException("
+                Transaksi #$item->id tidak dapat dihapus karena berkaitan dengan transaksi lainnya.
+                Ref type: $item->ref_type. Ref ID: $item->ref_id", 403);
+        }
+
+        return DB::transaction(function () use ($item) {
+            if ($item->type === FinanceTransaction::Type_Transfer && $item->ref_type === FinanceTransaction::RefType_FinanceTransaction && $item->ref_id) {
+                $pair = FinanceTransaction::find($item->ref_id);
+                if ($pair) {
+                    $this->deleteTransaction($pair);
+
+                    $this->documentVersionService->createDeletedVersion($item);
+
+                    $this->userActivityLogService->log(
+                        UserActivityLog::Category_FinanceTransaction,
+                        UserActivityLog::Name_FinanceTransaction_Delete,
+                        "Transaksi $pair->formatted_id telah dihapus",
+                        [
+                            "data" => $pair->toArray(),
+                            "formatter" => "finance-transaction",
+                        ]
+                    );
+                }
+            }
+
+            $this->deleteTransaction($item);
+
+            $this->documentVersionService->createDeletedVersion($item);
+
+            $this->userActivityLogService->log(
+                UserActivityLog::Category_FinanceTransaction,
+                UserActivityLog::Name_FinanceTransaction_Delete,
+                "Transaksi $item->formatted_id telah dihapus",
+                [
+                    "data" => $item->toArray(),
+                    "formatter" => "finance-transaction",
+                ]
+            );
+
+            return $item;
+        });
+    }
+
+    private function deleteTransaction($trx)
+    {
+        $this->addToBalance($trx->account, -$trx->amount);
+        $trx->delete();
+        ImageUploaderHelper::deleteImage($trx->image_path);
+    }
+
+    public function save(array $validated, $imageFile)
+    {
+        $item = null;
+        $newlyUploadedImagePath = null;
+
+        try {
+            DB::beginTransaction();
+
+            if ($imageFile) {
+                $newlyUploadedImagePath = ImageUploaderHelper::uploadAndResize(
+                    $imageFile,
+                    'finance-transactions'
+                );
+                $validated['image_path'] = $newlyUploadedImagePath;
+                unset($validated['image']);
+            }
+
+            if ($validated['type'] === FinanceTransaction::Type_Transfer && !empty($validated['to_account_id'])) {
+                $items = $this->createTransferTransactions($validated); // pair
+
+                foreach ($items as $item) {
+                    $this->documentVersionService->createVersion($item);
+
+                    $formatted_id = $item->formatted_id;
+
+                    $this->userActivityLogService->log(
+                        UserActivityLog::Category_FinanceTransaction,
+                        UserActivityLog::Name_FinanceTransaction_Create,
+                        "Transaksi $formatted_id telah dibuat",
+                        [
+                            "data" => $item->toArray(),
+                            "formatter" => "finance-transaction",
+                        ]
+                    );
+                }
+            } else {
+                $item = $this->createSingleTransaction($validated);
+
+                $this->documentVersionService->createVersion($item);
+
+                $this->userActivityLogService->log(
+                    UserActivityLog::Category_FinanceTransaction,
+                    UserActivityLog::Name_FinanceTransaction_Create,
+                    "Transaksi $item->formatted_id telah dibuat",
+                    [
+                        "data" => $item->toArray(),
+                        "formatter" => "finance-transaction",
+                    ]
+                );
+            }
+
+            DB::commit();
+
+            return $item;
+        } catch (Exception $ex) {
+            DB::rollBack();
+
+            if ($newlyUploadedImagePath) {
+                ImageUploaderHelper::deleteImage($newlyUploadedImagePath);
+            }
+
+            throw $ex;
+        }
+    }
+
+    private function createSingleTransaction(array $validated): FinanceTransaction
+    {
+        // Handle transaksi biasa (income / expense)
+        $amount = $validated['amount'];
+        if ($validated['type'] === FinanceTransaction::Type_Expense) {
+            $amount = -$amount;
+        }
+
+        $transaction = new FinanceTransaction();
+        $transaction->fill([
+            'account_id'  => $validated['account_id'],
+            'datetime'    => $validated['datetime'],
+            'type'        => $validated['type'],
+            'amount'      => $amount,
+            'notes'       => $validated['notes'],
+            'image_path'  => $validated['image_path'],
+        ]);
+        $transaction->save();
+
+        $this->addToBalance($transaction->account, $transaction->amount);
+
+        return $transaction;
+    }
+
+    private function createTransferTransactions(array $validated): array
+    {
+        $fromTransaction = new FinanceTransaction();
+        $fromTransaction->fill([
+            'account_id' => $validated['account_id'],
+            'datetime'   => $validated['datetime'],
+            'type'       => FinanceTransaction::Type_Transfer,
+            'amount'     => -$validated['amount'],
+            'notes'      => 'Transfer ke akun #' . $validated['to_account_id'] . '. ' . $validated['notes'],
+            'image_path' => $validated['image_path'],
+        ]);
+        $fromTransaction->save();
+
+        // Update saldo akun asal
+        $this->addToBalance($fromTransaction->account, $fromTransaction->amount);
+
+        // Transaksi masuk ke akun tujuan
+        $toTransaction = new FinanceTransaction();
+        $toTransaction->fill([
+            'account_id' => $validated['to_account_id'],
+            'datetime'   => $validated['datetime'],
+            'type'       => FinanceTransaction::Type_Transfer,
+            'amount'     => $validated['amount'], // masuk
+            'notes'      => 'Transfer dari akun #' . $validated['account_id'] . '. ' . $validated['notes'],
+            'image_path' => $validated['image_path'],
+        ]);
+        $toTransaction->save();
+
+        // Update saldo akun tujuan
+        $this->addToBalance($toTransaction->account, $toTransaction->amount);
+
+        // Link untuk keperluan delete
+        $fromTransaction->ref_type = FinanceTransaction::RefType_FinanceTransaction;
+        $fromTransaction->ref_id = $toTransaction->id;
+        $fromTransaction->save();
+
+        $toTransaction->ref_type = FinanceTransaction::RefType_FinanceTransaction;
+        $toTransaction->ref_id = $fromTransaction->id;
+        $toTransaction->save();
+
+        return [$fromTransaction, $toTransaction];
     }
 }

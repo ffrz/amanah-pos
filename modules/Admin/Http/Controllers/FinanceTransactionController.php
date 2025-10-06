@@ -67,158 +67,35 @@ class FinanceTransactionController extends Controller
 
     public function editor($id = 0)
     {
-        $item = $id ? FinanceTransaction::findOrFail($id) : new FinanceTransaction(['datetime' => Carbon::now()]);
+        $item = $this->financeTransactionService->findOrCreate($id);
+
+        $this->authorize($id ? 'update' : 'create', $item);
+
         return inertia('finance-transaction/Editor', [
             'data' => $item,
             'accounts' => $this->commonDataService->getFinanceAccounts()
         ]);
     }
 
-    public function save(Request $request)
+    public function save(SaveRequest $request)
     {
-        $route = 'admin.finance-transaction.index';
-        $validated = $request->validate([
-            'account_id'    => 'required|exists:finance_accounts,id',
-            'to_account_id' => 'nullable|exists:finance_accounts,id|different:account_id',
-            'datetime'      => 'required|date',
-            'type'          => 'required|in:' . implode(',', array_keys(FinanceTransaction::Types)),
-            'amount'        => 'required|numeric|min:0.01',
-            'notes'         => 'nullable|string|max:255',
-            'image_path'    => 'nullable|string',
-            'image'         => 'nullable|image|max:15120',
-        ]);
 
-        $validated['notes'] ?? '';
-        $newlyUploadedImagePath = null;
+        $this->authorize('create', FinanceTransaction::class);
 
-        try {
-            DB::beginTransaction();
+        $item = $this->financeTransactionService->save($request->validated(), $request->file('image'));
 
-            if ($request->hasFile('image')) {
-                $newlyUploadedImagePath = ImageUploaderHelper::uploadAndResize(
-                    $request->file('image'),
-                    'finance-transactions'
-                );
-                $validated['image_path'] = $newlyUploadedImagePath;
-                unset($validated['image']);
-            }
-
-            if ($validated['type'] === FinanceTransaction::Type_Transfer && !empty($validated['to_account_id'])) {
-                // Transaksi keluar dari akun asal
-                $fromTransaction = new FinanceTransaction();
-                $fromTransaction->fill([
-                    'account_id' => $validated['account_id'],
-                    'datetime'   => $validated['datetime'],
-                    'type'       => FinanceTransaction::Type_Transfer,
-                    'amount'     => -$validated['amount'], // keluar
-                    'notes'      => 'Transfer ke akun #' . $validated['to_account_id'] . '. ' . $validated['notes'],
-                    'image_path' => $validated['image_path'],
-                ]);
-                $fromTransaction->save();
-
-                // Update saldo akun asal
-                $this->financeTransactionService->addToBalance($fromTransaction->account, $fromTransaction->amount);
-
-                // Transaksi masuk ke akun tujuan
-                $toTransaction = new FinanceTransaction();
-                $toTransaction->fill([
-                    'account_id' => $validated['to_account_id'],
-                    'datetime'   => $validated['datetime'],
-                    'type'       => FinanceTransaction::Type_Transfer,
-                    'amount'     => $validated['amount'], // masuk
-                    'notes'      => 'Transfer dari akun #' . $validated['account_id'] . '. ' . $validated['notes'],
-                    'image_path' => $validated['image_path'],
-                ]);
-                $toTransaction->save();
-
-                // Update saldo akun tujuan
-                $this->financeTransactionService->addToBalance($toTransaction->account, $toTransaction->amount);
-
-                // Link untuk keperluan delete
-                $fromTransaction->ref_type = FinanceTransaction::RefType_FinanceTransaction;
-                $fromTransaction->ref_id = $toTransaction->id;
-                $fromTransaction->save();
-
-                $toTransaction->ref_type = FinanceTransaction::RefType_FinanceTransaction;
-                $toTransaction->ref_id = $fromTransaction->id;
-                $toTransaction->save();
-
-                DB::commit();
-
-                return redirect(route($route))
-                    ->with('success', "Transfer antar akun berhasil disimpan.");
-            } else {
-                // Handle transaksi biasa (income / expense)
-                $amount = $validated['amount'];
-                if ($validated['type'] === FinanceTransaction::Type_Expense) {
-                    $amount = -$amount;
-                }
-
-                $transaction = new FinanceTransaction();
-                $transaction->fill([
-                    'account_id'  => $validated['account_id'],
-                    'datetime'    => $validated['datetime'],
-                    'type'        => $validated['type'],
-                    'amount'      => $amount,
-                    'notes'       => $validated['notes'],
-                    'image_path'  => $validated['image_path'],
-                ]);
-                $transaction->save();
-
-                // update saldo
-                $this->financeTransactionService->addToBalance($transaction->account, $transaction->amount);
-
-                DB::commit();
-
-                return redirect(route($route))
-                    ->with('success', "Transaksi $transaction->formatted_id telah disimpan.");
-            }
-        } catch (Exception $ex) {
-            DB::rollBack();
-
-            // Hapus gambar baru jika ada error
-            if ($newlyUploadedImagePath) {
-                ImageUploaderHelper::deleteImage($newlyUploadedImagePath);
-            }
-
-            throw $ex;
-        }
+        return redirect(route('admin.finance-transaction.index'))
+            ->with('success', "Transaksi $item->formatted_id telah disimpan.");
     }
 
     public function delete($id)
     {
 
-        try {
-            $item = FinanceTransaction::findOrFail($id);
-            if ($item->ref_type && $item->ref_type != FinanceTransaction::RefType_FinanceTransaction) {
-                return JsonResponseHelper::error("
-                Transaksi #$item->id tidak dapat dihapus karena berkaitan dengan transaksi lainnya.
-                Ref type: $item->ref_type. Ref ID: $item->ref_id", 403);
-            }
+        $item = $this->financeTransactionService->find($id);
 
-            DB::beginTransaction();
+        $this->authorize('delete', $item);
 
-            $this->financeTransactionService->addToBalance($item->account, -$item->amount);
-
-            if ($item->type === FinanceTransaction::Type_Transfer && $item->ref_type === FinanceTransaction::RefType_FinanceTransaction && $item->ref_id) {
-                $pair = FinanceTransaction::find($item->ref_id);
-                if ($pair) {
-                    // Kembalikan saldo akun tujuan
-                    $this->financeTransactionService->addToBalance($pair->account, -$pair->amount);
-
-                    // Hapus pasangan
-                    $pair->delete();
-                    ImageUploaderHelper::deleteImage($pair->image_path);
-                }
-            }
-
-            $item->delete();
-            ImageUploaderHelper::deleteImage($item->image_path);
-
-            DB::commit();
-        } catch (Exception $ex) {
-            return JsonResponseHelper::error("Terdapat kesalahan saat menghapus transaksi $item->formatted_id", 500, $ex);
-        }
+        $this->financeTransactionService->delete($item);
 
         return JsonResponseHelper::success($item, "Transaksi #$item->formatted_id telah dihapus.");
     }
