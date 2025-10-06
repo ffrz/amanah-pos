@@ -6,6 +6,7 @@ use Modules\Admin\Features\UserActivityLog\Contracts\MetaDataFormatterInterface;
 use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\CashierSessionFormatter;
 use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\CashierTerminalFormatter;
 use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\CompanyProfileFormatter;
+use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\CustomerFormatter;
 use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\DefaultFormatter;
 use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\FinanceAccountFormatter;
 use Modules\Admin\Features\UserActivityLog\Formatters\Concrete\OperationalCostCategoryFormatter;
@@ -33,6 +34,7 @@ class MetaDataFormatterFactory
         'cashier-session' => CashierSessionFormatter::class,
         'cashier-terminal' => CashierTerminalFormatter::class,
         'supplier' => SupplierFormatter::class,
+        'customer' => CustomerFormatter::class,
     ];
 
     /**

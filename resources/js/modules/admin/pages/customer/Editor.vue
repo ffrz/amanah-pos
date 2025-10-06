@@ -23,7 +23,7 @@ const types = createOptions(window.CONSTANTS.CUSTOMER_TYPES);
 const submit = () =>
   handleSubmit({
     form,
-    url: route("admin.customer." + (!page.props.data.id ? "add" : "edit"), {
+    url: route("admin.customer.save", {
       id: form.id,
     }),
   });

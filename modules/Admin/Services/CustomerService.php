@@ -2,4 +2,131 @@
 
 namespace Modules\Admin\Services;
 
-class CustomerService {}
+use App\Exceptions\ModelNotModifiedException;
+use App\Models\Customer;
+use App\Models\UserActivityLog;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+
+class CustomerService
+{
+
+    public function __construct(
+        protected UserActivityLogService $userActivityLogService,
+        protected DocumentVersionService $documentVersionService
+    ) {}
+
+    public function find(int $id): Customer
+    {
+        return Customer::with(['creator', 'updater'])->findOrFail($id);
+    }
+
+    public function findOrCreate($id): Customer
+    {
+        return $id ? $this->find($id) : new Customer(['active' => true]);
+    }
+
+    public function duplicate(int $id): Customer
+    {
+        return $this->find($id)->replicate([
+            'wallet_balance',
+            'password',
+            'last_login_datetime',
+            'last_activity_description',
+            'last_activity_datetime'
+        ]);
+    }
+
+    public function getData(array $options): LengthAwarePaginator
+    {
+        $filter = $options['filter'];
+
+        $q = Customer::query();
+
+        if (!empty($filter['search'])) {
+            $q->where(function ($q) use ($filter) {
+                $q->where('name', 'like', '%' . $filter['search'] . '%');
+                $q->orWhere('code', 'like', '%' . $filter['search'] . '%');
+                $q->orWhere('phone', 'like', '%' . $filter['search'] . '%');
+                $q->orWhere('address', 'like', '%' . $filter['search'] . '%');
+            });
+        }
+
+        if (!empty($filter['status']) && ($filter['status'] == 'active' || $filter['status'] == 'inactive')) {
+            $q->where('active', '=', $filter['status'] == 'active' ? true : false);
+        }
+
+        $q->orderBy($options['order_by'], $options['order_type']);
+
+        return $q->paginate($options['per_page'])->withQueryString();
+    }
+
+    public function save(Customer $item, array $data): Customer
+    {
+        if (!empty($data['password'])) {
+            $data['password'] = Hash::make($data['password']);
+        }
+
+        $oldData = $item->toArray();
+
+        $item->fill($data);
+
+        if (empty($item->getDirty())) {
+            throw new ModelNotModifiedException();
+        }
+
+        return DB::transaction(function () use ($item, $oldData) {
+            $isNew = !$item->id;
+
+            $item->save();
+
+            $this->documentVersionService->createVersion($item);
+
+            if ($isNew) {
+                $this->userActivityLogService->log(
+                    UserActivityLog::Category_Customer,
+                    UserActivityLog::Name_Customer_Create,
+                    "Pelanggan ID: $item->id, $item->name telah dibuat.",
+                    [
+                        'formatter' => 'customer',
+                        'data' => $item->toArray()
+                    ]
+                );
+            } else {
+                $this->userActivityLogService->log(
+                    UserActivityLog::Category_Customer,
+                    UserActivityLog::Name_Customer_Update,
+                    "Pelanggan ID: $item->id, $item->name telah diperbarui.",
+                    [
+                        'formatter' => 'customer',
+                        'new_data' => $item->toArray(),
+                        'old_data' => $oldData
+                    ]
+                );
+            }
+
+            return $item;
+        });
+    }
+
+    public function delete(Customer $item): Customer
+    {
+        return DB::transaction(function () use ($item) {
+            $item->delete();
+
+            $this->documentVersionService->createDeletedVersion($item);
+
+            $this->userActivityLogService->log(
+                UserActivityLog::Category_Customer,
+                UserActivityLog::Name_Customer_Delete,
+                "Pelanggan ID: $item->id, $item->name telah dihapus.",
+                [
+                    'formatter' => 'customer',
+                    'data' => $item->toArray()
+                ]
+            );
+            return $item;
+        });
+    }
+}

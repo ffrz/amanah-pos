@@ -21,9 +21,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Supplier;
 use Modules\Admin\Http\Requests\Supplier\SaveRequest;
 use Modules\Admin\Http\Requests\Supplier\GetDataRequest;
-use Modules\Admin\Services\DocumentVersionService;
 use Modules\Admin\Services\SupplierService;
-use Modules\Admin\Services\UserActivityLogService;
 
 class SupplierController extends Controller
 {

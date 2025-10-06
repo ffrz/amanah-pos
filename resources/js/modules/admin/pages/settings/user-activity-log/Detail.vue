@@ -165,7 +165,7 @@ const deleteItem = () =>
                           </tr>
 
                           <tr v-if="item.type === 'simple'">
-                            <td class="metadata-label">
+                            <td class="metadata-label" style="width: 100px">
                               {{ item.label }}
                             </td>
 
@@ -189,7 +189,12 @@ const deleteItem = () =>
                               <table class="table-metadata">
                                 <thead>
                                   <tr>
-                                    <td class="metadata-header">Bidang</td>
+                                    <td
+                                      class="metadata-header"
+                                      style="width: 100px"
+                                    >
+                                      Bidang
+                                    </td>
 
                                     <td class="metadata-header">Nilai Lama</td>
 

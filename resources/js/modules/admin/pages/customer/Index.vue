@@ -286,6 +286,22 @@ const computedColumns = computed(() => {
                   >
                     <q-list style="width: 200px">
                       <q-item
+                        v-if="$can('admin.customer.add')"
+                        clickable
+                        v-ripple
+                        v-close-popup
+                        @click.stop="
+                          router.get(
+                            route('admin.customer.duplicate', props.row.id)
+                          )
+                        "
+                      >
+                        <q-item-section avatar>
+                          <q-icon name="file_copy" />
+                        </q-item-section>
+                        <q-item-section> Duplikat </q-item-section>
+                      </q-item>
+                      <q-item
                         v-if="$can('admin.customer.edit')"
                         clickable
                         v-ripple
