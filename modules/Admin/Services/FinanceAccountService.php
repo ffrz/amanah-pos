@@ -2,6 +2,7 @@
 
 namespace Modules\Admin\Services;
 
+use App\Exceptions\BusinessRuleViolationException;
 use App\Models\FinanceAccount;
 use App\Models\FinanceTransaction;
 use App\Models\UserActivityLog;
@@ -20,12 +21,12 @@ class FinanceAccountService
         return FinanceAccount::where('active', true)->sum('balance');
     }
 
-    public function find($id): FinanceAccount
+    public function find(int $id): FinanceAccount
     {
         return FinanceAccount::findOrFail($id);
     }
 
-    public function duplicate($id): FinanceAccount
+    public function duplicate(int $id): FinanceAccount
     {
         return $this->find($id)->replicate();
     }
@@ -42,18 +43,18 @@ class FinanceAccountService
      * @param array $validatedData Data yang sudah divalidasi dari request.
      * @return FinanceAccount
      */
-    public function save(FinanceAccount $item, array $validatedData): FinanceAccount
+    public function save(FinanceAccount $item, array $data): FinanceAccount
     {
-        DB::beginTransaction();
+        $isNew = !$item->id;
+        $oldBalance = $item->balance ?? 0;
+        $oldData = $item->toArray();
 
-        try {
-            $isNew = !$item->exists;
+        $item->fill($data);
+
+        return DB::transaction(function () use ($item, $oldData, $isNew, $oldBalance) {
             $now = Carbon::now();
-            $oldBalance = $item->balance ?? 0;
-            $oldData = $item->toArray();
 
-            $item->fill($validatedData);
-            $item->save(); // 1. UPDATE/INSERT FinanceAccount
+            $item->save();
 
             $newBalance = $item->balance;
             $balanceDiff = $newBalance - $oldBalance;
@@ -67,7 +68,7 @@ class FinanceAccountService
                     'type'       => FinanceTransaction::Type_Adjustment,
                     'amount'     => $newBalance,
                     'notes'      => 'Saldo awal akun',
-                ]); // 2. INSERT FinanceTransaction
+                ]);
             } elseif (!$isNew && abs($balanceDiff) > 0.001) { // Gunakan toleransi float
                 // Penyesuaian saldo untuk akun yang sudah ada
                 FinanceTransaction::create([
@@ -76,8 +77,10 @@ class FinanceAccountService
                     'type'       => FinanceTransaction::Type_Adjustment,
                     'amount'     => $balanceDiff,
                     'notes'      => 'Penyesuaian saldo akun (dari ' . format_number($oldBalance) . ' ke ' . format_number($newBalance) . ')',
-                ]); // 2. INSERT FinanceTransaction
+                ]);
             }
+
+            $this->documentVersionService->createVersion($item);
 
             if ($isNew) {
                 $this->userActivityLogService->log(
@@ -102,14 +105,8 @@ class FinanceAccountService
                 );
             }
 
-            $this->documentVersionService->createVersion($item);
-
-            DB::commit();
             return $item;
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            throw $e;
-        }
+        });
     }
 
     /**
@@ -122,13 +119,13 @@ class FinanceAccountService
     public function delete(FinanceAccount $item): FinanceAccount
     {
         if ($item->isUsedInTransaction()) {
-            throw new \Exception('Akun tidak dapat dihapus karena sudah digunakan di transaksi!');
+            throw new BusinessRuleViolationException('Akun tidak dapat dihapus karena sudah digunakan di transaksi!');
         }
 
-        try {
-            DB::beginTransaction();
-
+        return DB::transaction(function () use ($item) {
             $item->delete();
+
+            $this->documentVersionService->createDeletedVersion($item);
 
             $this->userActivityLogService->log(
                 UserActivityLog::Category_FinanceAccount,
@@ -140,31 +137,24 @@ class FinanceAccountService
                 ]
             );
 
-            $this->documentVersionService->createDeletedVersion($item);
-
-            DB::commit();
-
             return $item;
-        } catch (\Exception $ex) {
-            DB::rollBack();
-            throw $ex;
-        }
+        });
     }
 
     /**
      * Mengambil daftar akun keuangan dengan fitur pencarian dan paginasi.
      *
-     * @param array $validatedData Data request yang sudah divalidasi.
+     * @param array $options Data request yang sudah divalidasi.
      * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
      */
-    public function getData(array $validatedData)
+    public function getData(array $options)
     {
         $q = FinanceAccount::query();
 
-        $filter = $validatedData['filter'];
-        $orderBy = $validatedData['order_by'];
-        $orderType = $validatedData['order_type'];
-        $perPage = $validatedData['per_page'];
+        $filter    = $options['filter'];
+        $orderBy   = $options['order_by'];
+        $orderType = $options['order_type'];
+        $perPage   = $options['per_page'];
 
         // Pencarian (Search)
         if (!empty($filter['search'])) {
