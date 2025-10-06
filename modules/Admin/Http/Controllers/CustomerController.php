@@ -25,7 +25,6 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rule;
 use Modules\Admin\Http\Requests\Customer\GetDataRequest;
 use Modules\Admin\Http\Requests\Customer\SaveRequest;
 use Modules\Admin\Services\CustomerService;
