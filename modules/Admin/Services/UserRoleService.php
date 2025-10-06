@@ -79,7 +79,7 @@ class UserRoleService
      * @param int $id
      * @return Role
      */
-    public function findOrCreate(int $id): Role
+    public function findOrCreate($id): Role
     {
         return $id ? Role::with('permissions')->findOrFail($id) : new Role();
     }
