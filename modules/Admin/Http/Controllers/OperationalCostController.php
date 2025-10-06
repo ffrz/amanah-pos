@@ -60,6 +60,8 @@ class OperationalCostController extends Controller
 
     public function data(GetDataRequest $request)
     {
+        $this->authorize('viewAny', OperationalCost::class);
+
         $items = $this->operationalCostService->getData($request->validated());
 
         return JsonResponseHelper::success($items);
@@ -71,7 +73,7 @@ class OperationalCostController extends Controller
 
         $item = $this->operationalCostService->duplicate($id);
 
-        return $this->renderEditor($item);
+        return $this->getEditorResponse($item);
     }
 
     public function editor($id = 0)
@@ -80,10 +82,10 @@ class OperationalCostController extends Controller
 
         $this->authorize($id ? "update" : "create", $id ? $item : OperationalCost::class);
 
-        return $this->renderEditor($item);
+        return $this->getEditorResponse($item);
     }
 
-    private function renderEditor($item)
+    private function getEditorResponse($item)
     {
         return inertia('operational-cost/Editor', [
             'data' => $item,
@@ -112,25 +114,15 @@ class OperationalCostController extends Controller
 
     public function delete($id)
     {
-        try {
-            $item = $this->operationalCostService->find($id);
+        $item = $this->operationalCostService->find($id);
 
-            $this->authorize('delete', $item);
+        $this->authorize('delete', $item);
 
-            $this->operationalCostService->delete($item);
+        $this->operationalCostService->delete($item);
 
-            return JsonResponseHelper::success(
-                $item,
-                "Biaya operasional $item->description telah dihapus."
-            );
-        } catch (ModelNotFoundException $e) {
-            JsonResponseHelper::error("Biaya operasional ID: $id tidak ditemukan", $e->getCode());
-        } catch (AuthorizationException $e) {
-            JsonResponseHelper::error("Anda tidak dapat menghapus biaya ini.", $e->getCode());
-        } catch (\Throwable $ex) {
-            Log::error("Gagal menghapus Biaya Operasional ID: $id. $ex->getMessage()", ['exception' => $ex]);
-        }
-
-        return JsonResponseHelper::error("Gagal menghapus rekaman.", 500, $ex);
+        return JsonResponseHelper::success(
+            $item,
+            "Biaya operasional $item->description telah dihapus."
+        );
     }
 }

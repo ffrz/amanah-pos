@@ -38,7 +38,7 @@ class SaveRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'id' => $this->input('id') ?? null,
+            'id' => $this->id ?? null,
             'finance_account_id' => $this->finance_account_id ?? null,
         ]);
     }

@@ -41,7 +41,7 @@ class SaveRequest extends FormRequest
     {
         $this->merge([
             'id'      => $this->id ?? null,
-            'notes'   => $this->input('notes') ?? '',
+            'notes'   => $this->notes ?? '',
         ]);
     }
 }

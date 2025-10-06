@@ -189,9 +189,7 @@ class OperationalCostService
 
     public function delete(OperationalCost $item)
     {
-        try {
-            DB::beginTransaction();
-
+        DB::transaction(function () use ($item) {
             $item->delete();
 
             $this->financeTransactionService->reverseTransaction(
@@ -212,13 +210,8 @@ class OperationalCostService
             );
 
             ImageUploaderHelper::deleteImage($item->image_path);
-
-            DB::commit();
-        } catch (Exception $ex) {
-            DB::rollBack();
-
-            throw $ex;
-        }
+            return $item;
+        });
     }
 
     private function generateActivityLogData(OperationalCost $item)
