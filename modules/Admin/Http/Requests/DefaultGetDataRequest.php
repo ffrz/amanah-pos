@@ -23,7 +23,6 @@ class DefaultGetDataRequest extends FormRequest
             'order_type' => ['nullable', 'string', Rule::in(['asc', 'desc'])],
             'per_page' => ['nullable', 'integer', Rule::in([10, 25, 50, 100])],
             'filter' => ['nullable', 'array'],
-            'filter.search' => 'nullable|string|max:255',
         ];
     }
 
