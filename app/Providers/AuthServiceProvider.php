@@ -4,11 +4,14 @@ namespace App\Providers;
 
 use App\Models\CashierSession;
 use App\Models\CashierTerminal;
+use App\Models\Customer;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
 use App\Models\OperationalCost;
 use App\Models\OperationalCostCategory;
+use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Models\Supplier;
 use App\Models\User;
 use Modules\Admin\Policies\DefaultPolicy;
 use Modules\Admin\Policies\OnlyAuthorPolicy;
@@ -33,6 +36,9 @@ class AuthServiceProvider extends ServiceProvider
         OperationalCost::class => OperationalCostPolicy::class,
         CashierSession::class => OnlyAuthorPolicy::class,
         CashierTerminal::class => DefaultPolicy::class,
+        Product::class => DefaultPolicy::class,
+        Supplier::class => DefaultPolicy::class,
+        Customer::class => DefaultPolicy::class,
     ];
 
     /**
