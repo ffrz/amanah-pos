@@ -37,7 +37,7 @@ class DefaultFormatter extends BaseFormatter
         foreach ($new as $key => $newValue) {
             $oldValue = $old[$key] ?? null;
 
-            if ($oldValue === $newValue) continue;
+            // if ($oldValue === $newValue) continue;
 
             $changes[] = [
                 'field' => $key,

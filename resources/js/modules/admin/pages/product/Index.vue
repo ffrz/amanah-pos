@@ -56,6 +56,13 @@ const pagination = ref({
 });
 let columns = [
   {
+    name: "id",
+    label: "ID",
+    field: "id",
+    align: "center",
+    sortable: true,
+  },
+  {
     name: "name",
     label: "Nama",
     field: "name",
@@ -136,7 +143,7 @@ const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return computedColumns;
 
   return computedColumns.filter(
-    (col) => col.name === "name" || col.name === "action"
+    (col) => col.name === "id" || col.name === "name" || col.name === "action"
   );
 });
 
@@ -359,6 +366,9 @@ const goToDetail = (props) => {
                   props.expand ? 'keyboard_arrow_up' : 'keyboard_arrow_down'
                 "
               />
+            </q-td>
+            <q-td>
+              {{ props.row.id }}
             </q-td>
             <q-td
               key="name"

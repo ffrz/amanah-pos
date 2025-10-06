@@ -19,6 +19,7 @@ namespace Modules\Admin\Http\Controllers;
 use App\Exceptions\ModelInUseException;
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
+use App\Models\Product;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Modules\Admin\Http\Requests\Product\GetDataRequest;
@@ -49,6 +50,7 @@ class ProductController extends Controller
      */
     public function index(): Response
     {
+        $this->authorize('viewAny', Product::class);
         return Inertia::render('product/Index', [
             'categories' => $this->commonDataService->getProductCategories(),
             'suppliers' => $this->commonDataService->getSuppliers(),
@@ -62,74 +64,57 @@ class ProductController extends Controller
      */
     public function detail(int $id = 0): Response|RedirectResponse
     {
-        try {
-            $item = $this->productService->find($id);
-
-            return Inertia::render('product/Detail', [
-                'data' => $item,
-            ]);
-        } catch (ModelNotFoundException $e) {
-            return redirect()->back()->with('error', $e->getMessage());
-        } catch (Exception $e) {
-            throw $e;
-        }
+        $item = $this->productService->find($id);
+        $this->authorize('view', $item);
+        return Inertia::render('product/Detail', [
+            'data' => $item,
+        ]);
     }
 
     /**
      * Mengambil data produk berpaginasi untuk tabel Inertia.
      *
      * @param GetDataRequest $request Permintaan yang divalidasi.
-     * @return LengthAwarePaginator
      */
-    public function data(GetDataRequest $request): LengthAwarePaginator
+    public function data(GetDataRequest $request)
     {
-        return $this->productService->getData($request->validated());
+        $this->authorize('viewAny', Product::class);
+        $items = $this->productService->getData($request->validated());
+        return JsonResponseHelper::success($items);
     }
 
     /**
      * Memuat produk yang sudah ada ke dalam form editor untuk diduplikasi.
      *
      * @param int $id ID Produk yang akan diduplikasi.
-     * @return Response|RedirectResponse
+     * @return Response
      */
-    public function duplicate(int $id): Response|RedirectResponse
+    public function duplicate(int $id): Response
     {
-        try {
-            $item = $this->productService->duplicate($id);
-
-            return Inertia::render('product/Editor', [
-                'data' => $item,
-                'categories' => $this->commonDataService->getProductCategories(),
-                'suppliers' => $this->commonDataService->getSuppliers(),
-            ]);
-        } catch (ModelNotFoundException $e) {
-            return redirect()->back()->with('error', $e->getMessage());
-        } catch (Exception $e) {
-            throw $e;
-        }
+        $this->authorize('create', Product::class);
+        $item = $this->productService->duplicate($id);
+        return Inertia::render('product/Editor', [
+            'data' => $item,
+            'categories' => $this->commonDataService->getProductCategories(),
+            'suppliers' => $this->commonDataService->getSuppliers(),
+        ]);
     }
 
     /**
      * Menampilkan form editor untuk membuat atau mengedit produk.
      *
      * @param int $id ID Produk, atau 0 untuk produk baru.
-     * @return Response|RedirectResponse
+     * @return Response
      */
-    public function editor(int $id = 0): Response|RedirectResponse
+    public function editor(int $id = 0): Response
     {
-        try {
-            $item = $this->productService->findOrCreate($id);
-
-            return Inertia::render('product/Editor', [
-                'data' => $item,
-                'categories' => $this->commonDataService->getProductCategories(),
-                'suppliers' => $this->commonDataService->getSuppliers(),
-            ]);
-        } catch (ModelNotFoundException $e) {
-            return redirect()->back()->with('error', $e->getMessage());
-        } catch (Exception $e) {
-            throw $e;
-        }
+        $item = $this->productService->findOrCreate($id);
+        $this->authorize($id ? 'update' : 'create', $item);
+        return Inertia::render('product/Editor', [
+            'data' => $item,
+            'categories' => $this->commonDataService->getProductCategories(),
+            'suppliers' => $this->commonDataService->getSuppliers(),
+        ]);
     }
 
     /**
@@ -140,16 +125,11 @@ class ProductController extends Controller
      */
     public function save(SaveRequest $request): RedirectResponse
     {
-        try {
-            $item = $this->productService->save($request->validated());
-            return redirect(route('admin.product.index'))
-                ->with('success', "Produk $item->name telah disimpan.");
-        } catch (\Exception $e) {
-            Log::error("Gagal menyimpan produk $request->id", ['exception' => $e]);
-        }
-
-        return redirect()->back()->withInput()
-            ->with('error', 'Gagal menyimpan produk.');
+        $item = $this->productService->findOrCreate($request->id);
+        $this->authorize($request->id ? 'update' : 'create', $item);
+        $item = $this->productService->save($item, $request->validated());
+        return redirect(route('admin.product.index'))
+            ->with('success', "Produk $item->name telah disimpan.");
     }
 
     /**
@@ -159,20 +139,10 @@ class ProductController extends Controller
      */
     public function delete(int $id): \Illuminate\Http\JsonResponse
     {
-        try {
-            $item = $this->productService->find($id);
-
-            $this->productService->delete($item);
-
-            return JsonResponseHelper::success("Produk $item->name telah dihapus.");
-        } catch (ModelNotFoundException $e) {
-            return JsonResponseHelper::error($e->getMessage(), 404);
-        } catch (ModelInUseException $e) {
-            return JsonResponseHelper::error($e->getMessage(), 409);
-        } catch (\Exception $e) {
-            Log::error("Gagal menghapus produk $id.", ['exception' => $e]);
-            return JsonResponseHelper::error("Terdapat kesalahan saat menhapus produk.", 500, $e);
-        }
+        $item = $this->productService->find($id);
+        $this->authorize('delete', $item);
+        $this->productService->delete($item);
+        return JsonResponseHelper::success("Produk $item->name telah dihapus.");
     }
 
     /**

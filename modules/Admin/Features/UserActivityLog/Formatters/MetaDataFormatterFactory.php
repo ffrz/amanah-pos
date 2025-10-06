@@ -36,6 +36,7 @@ class MetaDataFormatterFactory
         'cashier-terminal' => CashierTerminalFormatter::class,
         'supplier' => SupplierFormatter::class,
         'customer' => CustomerFormatter::class,
+        'product' => DefaultFormatter::class,
     ];
 
     /**

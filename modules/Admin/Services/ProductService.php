@@ -17,6 +17,7 @@
 namespace Modules\Admin\Services;
 
 use App\Exceptions\ModelInUseException;
+use App\Exceptions\ModelNotModifiedException;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\StockMovement;
@@ -122,9 +123,10 @@ class ProductService
 
     public function findOrCreate($id = null)
     {
-        return $id ? $this->find($id) : new Product(
-            ['active' => 1, 'type' => Product::Type_Stocked]
-        );
+        return $id ? $this->find($id) : new Product([
+            'active' => 1,
+            'type' => Product::Type_Stocked
+        ]);
     }
 
     /**
@@ -147,9 +149,8 @@ class ProductService
      * @param array $data Data for the product.
      * @return Product
      */
-    public function save(array $data): bool|Product
+    public function save(Product $item, array $data): Product
     {
-        $item = $this->findOrCreate($data['id']);
         $isNew = !$item->id;
         $oldStock = $item->stock;
         $oldData = $isNew ? [] : $item->toArray();
@@ -157,80 +158,81 @@ class ProductService
         $item->fill($data);
 
         if (empty($item->getDirty())) {
-            return false;
+            throw new ModelNotModifiedException();
         }
 
-        $item->save();
+        return DB::transaction(function () use ($item, $oldStock, $oldData, $isNew) {
+            $item->save();
 
-        $newStock = $item->stock;
+            $newStock = $item->stock;
 
-        if (isset($data['stock']) && $item->type === Product::Type_Stocked) {
-            $refType = $isNew ? StockMovement::RefType_InitialStock : StockMovement::RefType_ManualAdjustment;
-            $quantityBefore = $isNew ? 0 : $oldStock;
-            $quantity = $isNew ? $newStock : $newStock - $oldStock;
+            if (isset($data['stock']) && $item->type === Product::Type_Stocked) {
+                $refType = $isNew ? StockMovement::RefType_InitialStock : StockMovement::RefType_ManualAdjustment;
+                $quantityBefore = $isNew ? 0 : $oldStock;
+                $quantity = $isNew ? $newStock : $newStock - $oldStock;
 
-            if ($quantityBefore != $newStock) {
-                StockMovement::create([
-                    'ref_type' => $refType,
-                    'product_id' => $item->id,
-                    'product_name' => $item->name,
-                    'uom' => $item->uom,
-                    'quantity_before' => $quantityBefore,
-                    'quantity_after' => $newStock,
-                    'quantity' => $quantity,
-                    'notes' => $isNew ? 'Stok awal' : 'Edit stok manual',
-                ]);
+                if ($quantityBefore != $newStock) {
+                    StockMovement::create([
+                        'ref_type' => $refType,
+                        'product_id' => $item->id,
+                        'product_name' => $item->name,
+                        'uom' => $item->uom,
+                        'quantity_before' => $quantityBefore,
+                        'quantity_after' => $newStock,
+                        'quantity' => $quantity,
+                        'notes' => $isNew ? 'Stok awal' : 'Edit stok manual',
+                    ]);
+                }
             }
-        }
 
-        $this->documentVersionService->createVersion($item);
+            $this->documentVersionService->createVersion($item);
 
-        if ($isNew) {
-            $this->userActivityLogService->log(
-                UserActivityLog::Category_Product,
-                UserActivityLog::Name_Product_Create,
-                "Produk $item->name berhasil dibuat.",
-                [
-                    'formatter' => 'product',
-                    'data' => $item->toArray(),
-                ],
-            );
-        } else {
-            $this->userActivityLogService->log(
-                UserActivityLog::Category_Product,
-                UserActivityLog::Name_Product_Update,
-                "Produk $item->name berhasil diperbarui.",
-                [
-                    'formatter' => 'product',
-                    'new_data' => $item->toArray(),
-                    'old_data' => $oldData,
-                ],
-            );
-        }
+            if ($isNew) {
+                $this->userActivityLogService->log(
+                    UserActivityLog::Category_Product,
+                    UserActivityLog::Name_Product_Create,
+                    "Produk $item->name berhasil dibuat.",
+                    [
+                        'formatter' => 'product',
+                        'data' => $item->toArray(),
+                    ],
+                );
+            } else {
+                $this->userActivityLogService->log(
+                    UserActivityLog::Category_Product,
+                    UserActivityLog::Name_Product_Update,
+                    "Produk $item->name berhasil diperbarui.",
+                    [
+                        'formatter' => 'product',
+                        'new_data' => $item->toArray(),
+                        'old_data' => $oldData,
+                    ],
+                );
+            }
 
-        return $item;
+            return $item;
+        });
     }
 
     /**
      * Delete a product.
      *
      * @param \App\Models\Product $item
-     * @return bool|null
+     * @return Product
      * @throws \Exception
      */
-    public function delete(Product $item): ?bool
+    public function delete(Product $item): Product
     {
         if ($item->isUsedInTransactions()) {
             throw new ModelInUseException("Produk tidak dapat dihapus karena sudah digunakan di transaksi.");
         }
 
-        try {
-            DB::beginTransaction();
+        return DB::transaction(function () use ($item) {
 
             // Opsional: Hapus juga StockMovement terkait jika diperlukan
             // StockMovement::where('product_id', $item->id)->delete();
 
-            $result = $item->delete();
+            $item->delete();
 
             $this->documentVersionService->createDeletedVersion($item);
 
@@ -244,27 +246,21 @@ class ProductService
                 ],
             );
 
-            DB::commit();
-
-            return $result;
-        } catch (\Exception $e) {
-            DB::rollBack();
-            throw $e;
-        }
+            return $item;
+        });
     }
 
     public function import($file)
     {
-        try {
-            if (($handle = fopen($file->getRealPath(), 'r')) === false) {
-                return false;
-            }
+        if (($handle = fopen($file->getRealPath(), 'r')) === false) {
+            return false;
+        }
 
-            $header = fgetcsv($handle, 1000, ',');
+        $header = fgetcsv($handle, 5000, ',');
 
-            DB::beginTransaction();
+        return DB::transaction(function () use ($handle, $header) {
 
-            while (($data = fgetcsv($handle, 1000, ',')) !== false) {
+            while (($data = fgetcsv($handle, 5000, ',')) !== false) {
                 if (empty(array_filter($data, 'strlen'))) {
                     continue;
                 }
@@ -306,16 +302,7 @@ class ProductService
                 "Produk berhasil diimport."
             );
 
-            DB::commit();
             fclose($handle);
-            Log::info('Import produk berhasil.');
-            return true;
-        } catch (\Exception $e) {
-            DB::rollBack();
-            fclose($handle);
-            Log::error('Gagal mengimpor data produk.', $e);
-        }
-
-        return false;
+        });
     }
 }
