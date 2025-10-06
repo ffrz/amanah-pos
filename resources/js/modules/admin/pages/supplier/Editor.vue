@@ -11,6 +11,7 @@ const form = useForm({
   name: page.props.data.name,
   phone_1: page.props.data.phone_1,
   phone_2: page.props.data.phone_2,
+  phone_3: page.props.data.phone_3,
   url_1: page.props.data.url_1,
   url_2: page.props.data.url_2,
   bank_account_name_1: page.props.data.bank_account_name_1,
@@ -93,6 +94,18 @@ const submit = () => handleSubmit({ form, url: route("admin.supplier.save") });
                   hide-bottom-space
                   class="col"
                 />
+                <q-input
+                  v-if="!simpleMode"
+                  v-model.trim="form.phone_3"
+                  type="text"
+                  label="No Telp 3"
+                  lazy-rules
+                  :disable="form.processing"
+                  :error="!!form.errors.phone_3"
+                  :error-message="form.errors.phone_3"
+                  hide-bottom-space
+                  class="col"
+                />
               </div>
               <q-input
                 v-model.trim="form.address"
@@ -148,6 +161,7 @@ const submit = () => handleSubmit({ form, url: route("admin.supplier.save") });
                   :error="!!form.errors.bank_account_number_1"
                   :error-message="form.errors.bank_account_number_1"
                   hide-bottom-space
+                  class="col-3"
                 />
                 <q-input
                   v-model.trim="form.bank_account_holder_1"
