@@ -27,6 +27,8 @@ class FinanceAccountController extends Controller
 
     public function index()
     {
+        $this->authorize('viewAny', FinanceAccount::class);
+
         $balance = $this->financeAccountService->getTotalActiveAccountBalance();
 
         return inertia('finance-account/Index', [
@@ -37,6 +39,9 @@ class FinanceAccountController extends Controller
     public function detail($id = 0)
     {
         $item = $this->financeAccountService->find($id);
+
+        $this->authorize('view', $item);
+
         return inertia('finance-account/Detail', [
             'data' => $item,
         ]);
@@ -47,7 +52,8 @@ class FinanceAccountController extends Controller
      */
     public function data(GetDataRequest $request)
     {
-        // Hanya memanggil Service untuk menjalankan query paginasi
+        $this->authorize('viewAny', FinanceAccount::class);
+
         $items = $this->financeAccountService->getData(
             $request->validated()
         );
@@ -57,7 +63,10 @@ class FinanceAccountController extends Controller
 
     public function duplicate($id)
     {
+        $this->authorize('create', FinanceAccount::class);
+
         $item = $this->financeAccountService->duplicate($id);
+
         return inertia('finance-account/Editor', [
             'data' => $item,
         ]);
@@ -66,6 +75,9 @@ class FinanceAccountController extends Controller
     public function editor($id = 0)
     {
         $item = $this->financeAccountService->findOrCreate($id);
+
+        $this->authorize($id ? 'update' : 'create', $item);
+
         return inertia('finance-account/Editor', [
             'data' => $item,
         ]);
@@ -76,36 +88,30 @@ class FinanceAccountController extends Controller
      */
     public function save(SaveRequest $request)
     {
-        try {
-            $item = $this->financeAccountService->findOrCreate($request->id);
-            $item = $this->financeAccountService->save(
-                $item,
-                $request->validated()
-            );
+        $item = $this->financeAccountService->findOrCreate($request->id);
 
-            return redirect(route('admin.finance-account.index'))
-                ->with('success', "Akun $item->name telah disimpan.");
-        } catch (\Throwable $e) {
-            Log::error("Gagal menyimpan akun ID: $request->id", ['exception' => $e]);
-        }
-        return redirect()->back()->withInput()
-            ->with('error', $e->getMessage());
+        $this->authorize($request->id ? 'update' : 'create', $item);
+
+        $item = $this->financeAccountService->save(
+            $item,
+            $request->validated()
+        );
+
+        return redirect(route('admin.finance-account.index'))
+            ->with('success', "Akun $item->name telah disimpan.");
     }
 
     public function delete($id)
     {
-        try {
-            $item = $this->financeAccountService->findOrCreate($id);
+        $item = $this->financeAccountService->find($id);
 
-            $item = $this->financeAccountService->delete($item);
+        $this->authorize('delete', $item);
 
-            return JsonResponseHelper::success(
-                $item,
-                "Akun kas $item->name telah dihapus."
-            );
-        } catch (\Exception $e) {
-            Log::error("Gagal menghapus akun ID: $id", ['execption' => $e]);
-            return JsonResponseHelper::error("Gagal menghapus akun ", 403);
-        }
+        $item = $this->financeAccountService->delete($item);
+
+        return JsonResponseHelper::success(
+            $item,
+            "Akun kas $item->name telah dihapus."
+        );
     }
 }

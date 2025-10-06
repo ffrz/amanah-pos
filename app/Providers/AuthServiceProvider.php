@@ -5,6 +5,8 @@ namespace App\Providers;
 use App\Models\CashierSession;
 use App\Models\CashierTerminal;
 use App\Models\Customer;
+use App\Models\FinanceAccount;
+use App\Models\FinanceTransaction;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
 use App\Models\OperationalCost;
@@ -39,6 +41,8 @@ class AuthServiceProvider extends ServiceProvider
         Product::class => DefaultPolicy::class,
         Supplier::class => DefaultPolicy::class,
         Customer::class => DefaultPolicy::class,
+        FinanceAccount::class => DefaultPolicy::class,
+        FinanceTransaction::class => DefaultPolicy::class,
     ];
 
     /**

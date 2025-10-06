@@ -26,21 +26,20 @@ use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Modules\Admin\Http\Requests\FinanceTransaction\GetDataRequest;
+use Modules\Admin\Http\Requests\FinanceTransaction\SaveRequest;
 
 class FinanceTransactionController extends Controller
 {
-    protected $commonDataService;
-    protected $financeTransactionService;
-
     public function __construct(
-        CommonDataService $commonDataService,
-        FinanceTransactionService $financeTransactionService
-    ) {
-        $this->commonDataService = $commonDataService;
-        $this->financeTransactionService = $financeTransactionService;
-    }
+        protected CommonDataService $commonDataService,
+        protected FinanceTransactionService $financeTransactionService
+    ) {}
+
     public function index()
     {
+        $this->authorize('viewAny', FinanceTransaction::class);
+
         return inertia('finance-transaction/Index', [
             'accounts' => $this->commonDataService->getFinanceAccounts()
         ]);
@@ -48,60 +47,22 @@ class FinanceTransactionController extends Controller
 
     public function detail($id)
     {
-        $item = FinanceTransaction::with(['account', 'creator', 'updater'])
-            ->findOrFail($id);
+        $item = $this->financeTransactionService->find($id);
+
+        $this->authorize('view', $item);
 
         return inertia('finance-transaction/Detail', [
             'data' => $item
         ]);
     }
 
-    public function data(Request $request)
+    public function data(GetDataRequest $request)
     {
-        $orderBy = $request->get('order_by', 'id');
-        $orderType = $request->get('order_type', 'desc');
-        $filter = $request->get('filter', []);
+        $this->authorize('viewAny', FinanceTransaction::class);
 
-        $q = FinanceTransaction::with('account');
+        $items = $this->financeTransactionService->getData($request->validated());
 
-        if (!empty($filter['search'])) {
-            $q->where(function ($q) use ($filter) {
-                $q->orWhere('notes', 'like', '%' . $filter['search'] . '%');
-            });
-        }
-
-        if (!empty($filter['year']) && $filter['year'] !== 'all') {
-            $q->whereYear('datetime', $filter['year']);
-
-            if (!empty($filter['month']) && $filter['month'] !== 'all') {
-                $q->whereMonth('datetime', $filter['month']);
-            }
-        }
-
-        if (!empty($filter['type']) && $filter['type'] !== 'all') {
-            $q->where('type', $filter['type']);
-        }
-
-        if (!empty($filter['account_id']) && $filter['account_id'] !== 'all') {
-            $q->where('account_id', $filter['account_id']);
-        }
-
-        if (!empty($filter['user_id']) && $filter['user_id'] !== 'all') {
-            $q->where('created_by', $filter['user_id']);
-        }
-
-        if (!empty($filter['from_datetime'])) {
-            $start = Carbon::parse($filter['from_datetime']);
-            $end = empty($filter['to_datetime']) ? Carbon::now() : Carbon::parse($filter['to_datetime']);
-            $q->whereBetween('created_at', [$start, $end]);
-        }
-
-
-        $q->orderBy($orderBy, $orderType);
-
-        $items = $q->paginate($request->get('per_page', 10))->withQueryString();
-
-        return response()->json($items);
+        return JsonResponseHelper::success($items);
     }
 
     public function editor($id = 0)

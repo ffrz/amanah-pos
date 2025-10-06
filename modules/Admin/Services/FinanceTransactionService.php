@@ -18,9 +18,26 @@ namespace Modules\Admin\Services;
 
 use App\Models\FinanceAccount;
 use App\Models\FinanceTransaction;
+use Carbon\Carbon;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class FinanceTransactionService
 {
+    public function __construct(
+        protected UserActivityLogService $userActivityLogService,
+        protected DocumentVersionService $documentVersionService,
+    ) {}
+
+    public function find(int $id): FinanceTransaction
+    {
+        return FinanceTransaction::with(['account', 'creator', 'updater'])
+            ->findOrFail($id);
+    }
+
+    public function findOrCreate($id): FinanceTransaction
+    {
+        return $id ? $this->find($id) : new FinanceTransaction();
+    }
 
     public function addToBalance(FinanceAccount $account, $amount): void
     {
@@ -82,5 +99,48 @@ class FinanceTransactionService
         }
 
         return $trx;
+    }
+
+    public function getData(array $options): LengthAwarePaginator
+    {
+        $filter = $options['filter'];
+
+        $q = FinanceTransaction::with('account');
+
+        if (!empty($filter['search'])) {
+            $q->where(function ($q) use ($filter) {
+                $q->orWhere('notes', 'like', '%' . $filter['search'] . '%');
+            });
+        }
+
+        if (!empty($filter['year']) && $filter['year'] !== 'all') {
+            $q->whereYear('datetime', $filter['year']);
+
+            if (!empty($filter['month']) && $filter['month'] !== 'all') {
+                $q->whereMonth('datetime', $filter['month']);
+            }
+        }
+
+        if (!empty($filter['type']) && $filter['type'] !== 'all') {
+            $q->where('type', $filter['type']);
+        }
+
+        if (!empty($filter['account_id']) && $filter['account_id'] !== 'all') {
+            $q->where('account_id', $filter['account_id']);
+        }
+
+        if (!empty($filter['user_id']) && $filter['user_id'] !== 'all') {
+            $q->where('created_by', $filter['user_id']);
+        }
+
+        if (!empty($filter['from_datetime'])) {
+            $start = Carbon::parse($filter['from_datetime']);
+            $end = empty($filter['to_datetime']) ? Carbon::now() : Carbon::parse($filter['to_datetime']);
+            $q->whereBetween('created_at', [$start, $end]);
+        }
+
+        $q->orderBy($options['order_by'], $options['order_type']);
+
+        return $q->paginate($options['per_page'])->withQueryString();
     }
 }
