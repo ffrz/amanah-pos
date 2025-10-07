@@ -203,6 +203,18 @@ const goToDetail = (props) => {
         >
           <q-list style="width: 200px">
             <q-item
+              v-if="$can('admin.product.send-price-list')"
+              clickable
+              v-ripple
+              v-close-popup
+              @click.stop="router.get(route('admin.product.send-price-list'))"
+            >
+              <q-item-section avatar>
+                <q-icon name="send" />
+              </q-item-section>
+              <q-item-section>Kirim Daftar Harga</q-item-section>
+            </q-item>
+            <q-item
               v-if="$can('admin.product.import')"
               clickable
               v-ripple

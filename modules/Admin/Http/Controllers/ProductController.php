@@ -169,4 +169,19 @@ class ProductController extends Controller
 
         return inertia('product/Import');
     }
+
+    public function sendPriceList(Request $request)
+    {
+        if ($request->getMethod() === Request::METHOD_POST) {
+
+            return inertia('product/SendPriceList', [
+                
+            ]);
+        }
+
+        return inertia('product/SendPriceList', [
+            'customers' => $this->commonDataService->getCustomers(['id', 'name', 'phone']),
+            'products'  => $this->commonDataService->getProducts(['id', 'name', 'price', 'price_2', 'price_3']),
+        ]);
+    }
 }

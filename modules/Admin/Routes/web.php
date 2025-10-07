@@ -81,6 +81,7 @@ Route::middleware([Auth::class])
                 Route::post('delete/{id}', [ProductController::class, 'delete'])->name('admin.product.delete');
                 Route::get('detail/{id}', [ProductController::class, 'detail'])->name('admin.product.detail');
                 Route::match(['get', 'post'], 'import', [ProductController::class, 'import'])->name('admin.product.import');
+                Route::match(['get', 'post'], 'send-price-list', [ProductController::class, 'sendPriceList'])->name('admin.product.send-price-list');
             });
 
             Route::prefix('stock-adjustments')->group(function () {

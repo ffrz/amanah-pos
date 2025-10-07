@@ -19,6 +19,7 @@ namespace Modules\Admin\Services;
 use App\Models\Customer;
 use App\Models\FinanceAccount;
 use App\Models\OperationalCostCategory;
+use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\Supplier;
 use App\Models\User;
@@ -118,5 +119,18 @@ class CommonDataService
     public function getAllUsers($cols = ['*'])
     {
         return User::query()->select($cols)->orderBy('name', 'asc')->get();
+    }
+
+    public function getProducts($fields = ['id', 'name', 'description'], $activeOnly = true)
+    {
+        $query = Product::query();
+
+        if ($activeOnly) {
+            $query->where('active', true);
+        }
+
+        $query->orderBy('name');
+
+        return $query->get($fields);
     }
 }
