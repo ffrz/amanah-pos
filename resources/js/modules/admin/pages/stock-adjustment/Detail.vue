@@ -1,5 +1,5 @@
 <script setup>
-import { formatNumber } from "@/helpers/formatter";
+import { formatMoneyWithSymbol, formatNumber } from "@/helpers/formatter";
 import { usePage } from "@inertiajs/vue3";
 import { useQuasar } from "quasar";
 import { computed } from "vue";
@@ -142,16 +142,16 @@ const computedColumns = computed(() => {
                     <td>Dibuat Oleh</td>
                     <td>:</td>
                     <td>
-                      <template v-if="page.props.data.created_by">
+                      <template v-if="page.props.data.creator">
                         <i-link
                           :href="
                             route('admin.user.detail', {
-                              id: page.props.data.created_by,
+                              id: page.props.data.creator,
                             })
                           "
                         >
-                          {{ page.props.data.created_by.username }} -
-                          {{ page.props.data.created_by.name }}
+                          {{ page.props.data.creator.username }} -
+                          {{ page.props.data.creator.name }}
                         </i-link>
                         -
                       </template>
@@ -162,20 +162,20 @@ const computedColumns = computed(() => {
                       }}
                     </td>
                   </tr>
-                  <tr v-if="!!page.props.data.updated_at">
+                  <tr v-if="!!page.props.data.updater">
                     <td>Diperbarui oleh</td>
                     <td>:</td>
                     <td>
-                      <template v-if="page.props.data.updated_by">
+                      <template v-if="page.props.data.updater">
                         <i-link
                           :href="
                             route('admin.user.detail', {
-                              id: page.props.data.updated_by,
+                              id: page.props.data.updater,
                             })
                           "
                         >
-                          {{ page.props.data.updated_by.username }} -
-                          {{ page.props.data.updated_by.name }}
+                          {{ page.props.data.updater.username }} -
+                          {{ page.props.data.updater.name }}
                         </i-link>
                         -
                       </template>
@@ -199,7 +199,7 @@ const computedColumns = computed(() => {
                             : ''
                         "
                       >
-                        Rp. {{ formatNumber(page.props.data.total_cost) }}
+                        {{ formatMoneyWithSymbol(page.props.data.total_cost) }}
                       </div>
                     </td>
                   </tr>
@@ -216,7 +216,7 @@ const computedColumns = computed(() => {
                             : ''
                         "
                       >
-                        Rp. {{ formatNumber(page.props.data.total_price) }}
+                        {{ formatMoneyWithSymbol(page.props.data.total_price) }}
                       </div>
                     </td>
                   </tr>

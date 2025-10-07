@@ -1,5 +1,5 @@
 <script setup>
-import { useForm, usePage } from "@inertiajs/vue3";
+import { router, useForm, usePage } from "@inertiajs/vue3";
 import { handleSubmit, transformPayload } from "@/helpers/client-req-handler";
 import { scrollToFirstErrorField } from "@/helpers/utils";
 import { Dialog, useQuasar } from "quasar";
@@ -9,6 +9,7 @@ import DateTimePicker from "@/components/DateTimePicker.vue";
 import { formatNumber } from "@/helpers/formatter";
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
 
+const $q = useQuasar();
 const page = usePage();
 const title = "Penyesuaian Stok";
 const form = useForm({
@@ -45,7 +46,10 @@ const submit = (action) => {
   if (action === "close" || action === "cancel") {
     Dialog.create({
       title: "Konfirmasi",
-      message: "Aksi ini tidak dapat dibatalkan, apakah Anda yakin?",
+      message:
+        action === "cancel"
+          ? "Apakah Anda yakin akan membatalkan seluruh stok opname sesi ini?"
+          : "Apakah Anda yakin data stok opname sudah diinput dengan benar?",
       cancel: true,
       persistent: true,
     })
@@ -98,7 +102,6 @@ const columns = [
   },
 ];
 
-const $q = useQuasar();
 const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return columns;
   return columns.filter(
@@ -115,6 +118,7 @@ const computedColumns = computed(() => {
     <template #left-button>
       <div class="q-gutter-sm">
         <q-btn
+          v-if="$q.screen.gt.sm"
           icon="arrow_back"
           dense
           color="grey-7"
@@ -123,6 +127,74 @@ const computedColumns = computed(() => {
           @click="$inertia.get(route('admin.stock-adjustment.index'))"
         />
       </div>
+    </template>
+    <template #right-button>
+      <q-btn
+        icon="save"
+        @click="submit('save')"
+        :disable="form.processing"
+        flat
+        dense
+        rounded
+        color="grey-8"
+      />
+      <q-btn
+        icon="check"
+        @click="submit('close')"
+        :disable="form.processing"
+        dense
+        rounded
+        class="q-ml-xs"
+        color="primary"
+      />
+      <q-btn
+        icon="more_vert"
+        dense
+        flat
+        rounded
+        @click.stop
+        class="q-ml-xs"
+        color="grey-8"
+        v-if="$can('admin.product.import') || $can('admin.product:view-cost')"
+      >
+        <q-menu
+          anchor="bottom right"
+          self="top right"
+          transition-show="scale"
+          transition-hide="scale"
+        >
+          <q-list style="width: 200px">
+            <q-item
+              clickable
+              v-ripple
+              v-close-popup
+              @click="
+                router.get(
+                  route('admin.stock-adjustment.print-stock-card', {
+                    id: form.id,
+                  })
+                )
+              "
+            >
+              <q-item-section avatar>
+                <q-icon name="print" />
+              </q-item-section>
+              <q-item-section> Cetak Kartu Stok</q-item-section>
+            </q-item>
+            <q-item
+              clickable
+              v-ripple
+              v-close-popup
+              @click.stop="submit('cancel')"
+            >
+              <q-item-section avatar>
+                <q-icon name="cancel" color="red" />
+              </q-item-section>
+              <q-item-section class="text-red">Batalkan</q-item-section>
+            </q-item>
+          </q-list>
+        </q-menu>
+      </q-btn>
     </template>
     <q-page class="row justify-center">
       <div class="col col-lg-6 q-pa-xs">
@@ -206,37 +278,13 @@ const computedColumns = computed(() => {
                   <q-td :props="props" class="text-center">
                     <LocaleNumberInput
                       v-model:modelValue="props.row[props.col.name]"
-                      input-class="text-right"
-                      dense
-                      style="width: 60px"
+                      input-class="text-right full-width"
                       hide-bottom-space
+                      dense
                     />
                   </q-td>
                 </template>
               </q-table>
-            </q-card-section>
-            <q-card-section class="q-gutter-sm">
-              <q-btn
-                icon="save"
-                @click="submit('save')"
-                label="Simpan"
-                color="primary"
-                :disable="form.processing"
-              />
-              <q-btn
-                icon="done_all"
-                @click="submit('close')"
-                label="Selesaikan"
-                color="green"
-                :disable="form.processing"
-              />
-              <q-btn
-                icon="close"
-                @click="submit('cancel')"
-                label="Batalkan"
-                color="red"
-                :disable="form.processing"
-              />
             </q-card-section>
           </q-card>
         </q-form>

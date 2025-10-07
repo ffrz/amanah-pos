@@ -29,7 +29,11 @@ const props = defineProps({
     required: false, // Jika bisa null, sebaiknya jangan required
     default: 0, // Opsional: Tetapkan 0 sebagai nilai default yang aman
   },
-  label: { type: String, default: "" },
+  label: {
+    type: [String, undefined],
+    required: false,
+    default: undefined,
+  },
   locale: { type: String, default: "id-ID" },
   outlined: { type: Boolean, default: false },
   allowNegative: { type: Boolean, default: false },

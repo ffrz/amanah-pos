@@ -102,7 +102,7 @@ onMounted(() => {
 
 const deleteItem = (row) =>
   handleDelete({
-    message: `Hapus Transaksi #${row.id}?`,
+    message: `Hapus Penyesuaian Stok #${row.formatted_id}?`,
     url: route("admin.stock-adjustment.delete", row.id),
     fetchItemsCallback: fetchItems,
     loading,
@@ -315,8 +315,11 @@ const computedColumns = computed(() => {
                       : ''
                   "
                 >
-                  <q-icon name="money" /> Rp.
-                  {{ formatNumber(props.row.total_cost) }} / Rp.
+                  <q-icon name="money" />
+                  <span v-if="$can('admin.product:view-cost')"
+                    >Rp. {{ formatNumber(props.row.total_cost) }} /
+                  </span>
+                  Rp.
                   {{ formatNumber(props.row.total_price) }}
                 </div>
               </template>
@@ -334,6 +337,7 @@ const computedColumns = computed(() => {
             </q-td>
             <q-td key="total_cost" :props="props">
               <div
+                v-if="$can('admin.product:view-cost')"
                 :class="
                   props.row.total_cost < 0
                     ? 'text-red-10'
