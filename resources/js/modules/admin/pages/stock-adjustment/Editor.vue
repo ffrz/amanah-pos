@@ -3,7 +3,7 @@ import { useForm, usePage } from "@inertiajs/vue3";
 import { handleSubmit, transformPayload } from "@/helpers/client-req-handler";
 import { scrollToFirstErrorField } from "@/helpers/utils";
 import { Dialog, useQuasar } from "quasar";
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { createOptions } from "@/helpers/options";
 import DateTimePicker from "@/components/DateTimePicker.vue";
 import { formatNumber } from "@/helpers/formatter";
@@ -20,12 +20,20 @@ const form = useForm({
   details: [],
 });
 const types = createOptions(window.CONSTANTS.STOCK_ADJUSTMENT_TYPES);
-const details = page.props.details;
+
+const details = ref(
+  page.props.details.map((item) => {
+    if (typeof item.new_quantity === "string") {
+      item.new_quantity = parseFloat(item.new_quantity);
+    }
+    return item;
+  })
+);
 
 const submit = (action) => {
   const proceed = () => {
     form.action = action;
-    form.details = details.map((d) => ({
+    form.details = details.value.map((d) => ({
       id: d.id,
       new_quantity: d.new_quantity,
     }));
@@ -197,7 +205,7 @@ const computedColumns = computed(() => {
                 <template v-slot:body-cell-new_quantity="props">
                   <q-td :props="props" class="text-center">
                     <LocaleNumberInput
-                      v-model.number="props.row[props.col.name]"
+                      v-model:modelValue="props.row[props.col.name]"
                       input-class="text-right"
                       dense
                       style="width: 60px"
