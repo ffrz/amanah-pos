@@ -3,6 +3,7 @@ import { router, usePage } from "@inertiajs/vue3";
 import { ref } from "vue";
 import MainInfoTab from "./detail/MainInfoTab.vue";
 import StockHistoryTab from "./detail/StockHistoryTab.vue";
+import DocumentVersionHistoryList from "../../../../components/DocumentVersionHistoryList.vue";
 
 const page = usePage();
 const title = `Rincian Produk #${page.props.data.id}`;
@@ -57,6 +58,7 @@ const tab = ref("main");
             >
               <q-tab name="main" label="Info Utama" />
               <q-tab name="history" label="Riwayat Stok" />
+              <q-tab name="version-history" label="Riwayat Dokumen" />
             </q-tabs>
             <q-tab-panels v-model="tab" animated>
               <q-tab-panel name="main">
@@ -65,6 +67,12 @@ const tab = ref("main");
 
               <q-tab-panel name="history" class="q-pa-xs">
                 <StockHistoryTab :product-id="page.props.data.id" />
+              </q-tab-panel>
+              <q-tab-panel name="version-history" class="q-pa-xs">
+                <DocumentVersionHistoryList
+                  :document-id="page.props.data.id"
+                  document-type="product"
+                />
               </q-tab-panel>
             </q-tab-panels>
           </q-card>

@@ -2,8 +2,11 @@
 
 namespace Modules\Admin\Services;
 
+use App\Models\Customer;
 use App\Models\User;
 use App\Models\DocumentVersion;
+use App\Models\Product;
+use App\Models\Supplier;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 
@@ -81,6 +84,13 @@ class DocumentVersionService
         unset($snapshotData['updated_at']);
         // Biarkan created_at jika itu adalah bagian dari data yang di-versi
 
+        if (
+            $document->getMorphClass() === Customer::class
+            || $document->getMorphClass() === User::class
+        ) {
+            $snapshotData['password'] = '******';
+        }
+
         // Simpan Versi Baru
         $version = new DocumentVersion([
             // Relasi Polimorfik
@@ -98,5 +108,29 @@ class DocumentVersionService
         $version->save();
 
         return $version;
+    }
+
+    public function getData(array $options)
+    {
+        $document_type_map = [
+            'product' => Product::class,
+            'supplier' => Supplier::class,
+            'customer' => Customer::class,
+        ];
+
+        $filter = $options['filter'];
+        $q = DocumentVersion::with(['creator']);
+
+        if (!empty($filter['document_type'])) {
+            $q->where('document_type', '=', $document_type_map[$filter['document_type']]);
+        }
+
+        if (!empty($filter['document_id'])) {
+            $q->where('document_id', '=', $filter['document_id']);
+        }
+
+        $q->orderBy($options['order_by'], $options['order_type']);
+
+        return $q->paginate($options['per_page'])->withQueryString();
     }
 }

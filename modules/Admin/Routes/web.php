@@ -25,6 +25,7 @@ use Modules\Admin\Http\Controllers\CustomerController;
 use Modules\Admin\Http\Controllers\CustomerWalletTransactionConfirmationController;
 use Modules\Admin\Http\Controllers\CustomerWalletTransactionController;
 use Modules\Admin\Http\Controllers\DashboardController;
+use Modules\Admin\Http\Controllers\DocumentVersionController;
 use Modules\Admin\Http\Controllers\FinanceAccountController;
 use Modules\Admin\Http\Controllers\FinanceTransactionController;
 use Modules\Admin\Http\Controllers\OperationalCostController;
@@ -251,6 +252,10 @@ Route::middleware([Auth::class])
                 Route::post('add-item', [SalesOrderController::class, 'addItem'])->name('admin.sales-order.add-item');
                 Route::post('remove-item', [SalesOrderController::class, 'removeItem'])->name('admin.sales-order.remove-item');
                 Route::post('update-item', [SalesOrderController::class, 'updateItem'])->name('admin.sales-order.update-item');
+            });
+
+            Route::prefix('document-versions')->group(function () {
+                Route::get('data', [DocumentVersionController::class, 'data'])->name('admin.document-version.data');
             });
 
             Route::prefix('settings')->group(function () {

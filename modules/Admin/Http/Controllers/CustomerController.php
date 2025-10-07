@@ -89,9 +89,11 @@ class CustomerController extends Controller
     {
         $item = $this->customerService->findOrCreate($request->id);
 
+        $this->authorize($request->id ? 'update' : 'create', $item);
+
         $this->customerService->save($item, $request->validated());
 
-        return redirect(route('admin.customer.index'))->with('success', "Pelanggan $item->name telah disimpan.");
+        return redirect(route('admin.customer.detail', $item->id))->with('success', "Pelanggan $item->name telah disimpan.");
     }
 
     public function delete($id)

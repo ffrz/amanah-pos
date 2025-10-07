@@ -128,7 +128,7 @@ class ProductController extends Controller
         $item = $this->productService->findOrCreate($request->id);
         $this->authorize($request->id ? 'update' : 'create', $item);
         $item = $this->productService->save($item, $request->validated());
-        return redirect(route('admin.product.index'))
+        return redirect(route('admin.product.detail', $item->id))
             ->with('success', "Produk $item->name telah disimpan.");
     }
 

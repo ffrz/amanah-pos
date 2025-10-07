@@ -87,7 +87,7 @@ class SupplierController extends Controller
         $this->supplierService->save($item, $request->validated());
 
         return redirect()
-            ->route('admin.supplier.index')
+            ->route('admin.supplier.detail', $item->id)
             ->with('success', "Pemasok $item->name telah disimpan.");
     }
 

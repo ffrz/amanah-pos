@@ -83,8 +83,20 @@ let columns = [
   },
   {
     name: "price",
-    label: "Harga",
+    label: "Harga Eceran",
     field: "price",
+    align: "right",
+  },
+  {
+    name: "price_2",
+    label: "Harga Partai",
+    field: "price_2",
+    align: "right",
+  },
+  {
+    name: "price_3",
+    label: "Harga Grosir",
+    field: "price_3",
     align: "right",
   },
   {
@@ -137,7 +149,7 @@ const { filteredSuppliers, filterSupplierFn } = useSupplierFilter(
 const computedColumns = computed(() => {
   let computedColumns = [...columns];
   if (!showCostColumn.value) {
-    computedColumns.splice(2, 1);
+    computedColumns.splice(3, 1);
   }
 
   if ($q.screen.gt.sm) return computedColumns;
@@ -354,14 +366,19 @@ const goToDetail = (props) => {
           </q-tr>
         </template>
         <template v-slot:body="props">
-          <q-tr :props="props" :class="{ inactive: !props.row.active }">
+          <q-tr
+            :props="props"
+            :class="{ inactive: !props.row.active }"
+            class="cursor-pointer"
+            @click="goToDetail(props)"
+          >
             <q-td auto-width>
               <q-btn
                 size="sm"
                 flat
                 round
                 dense
-                @click.prevent="props.expand = !props.expand"
+                @click.stop="props.expand = !props.expand"
                 :icon="
                   props.expand ? 'keyboard_arrow_up' : 'keyboard_arrow_down'
                 "
@@ -370,12 +387,7 @@ const goToDetail = (props) => {
             <q-td>
               {{ props.row.id }}
             </q-td>
-            <q-td
-              key="name"
-              :props="props"
-              class="wrap-column cursor-pointer"
-              @click="goToDetail(props)"
-            >
+            <q-td key="name" :props="props" class="wrap-column">
               {{ props.row.name }}
 
               <template v-if="!$q.screen.gt.sm">
@@ -388,8 +400,16 @@ const goToDetail = (props) => {
                   {{ formatNumber(props.row.cost) }}
                 </div>
                 <div>
-                  <q-icon name="sell" /> Harga: Rp.
+                  <q-icon name="sell" /> Eceran: Rp.
                   {{ formatNumber(props.row.price) }}
+                </div>
+                <div v-if="props.row.price_2 != 0">
+                  <q-icon name="sell" /> Partai: Rp.
+                  {{ formatNumber(props.row.price_2) }}
+                </div>
+                <div v-if="props.row.price_3 != 0">
+                  <q-icon name="sell" /> Grosir: Rp.
+                  {{ formatNumber(props.row.price_3) }}
                 </div>
               </template>
             </q-td>
@@ -419,6 +439,12 @@ const goToDetail = (props) => {
             </q-td>
             <q-td key="price" :props="props" class="wrap-column">
               {{ formatNumber(props.row.price) }}
+            </q-td>
+            <q-td key="price_2" :props="props" class="wrap-column">
+              {{ formatNumber(props.row.price_2) }}
+            </q-td>
+            <q-td key="price_3" :props="props" class="wrap-column">
+              {{ formatNumber(props.row.price_3) }}
             </q-td>
             <q-td key="action" :props="props">
               <div class="flex justify-end">
