@@ -89,7 +89,7 @@ class StockAdjustmentController extends Controller
 
         $this->authorize('update', $item);
 
-        $details = $this->stockAdjustmentService->getDetails($id);
+        $details = $item->details;
 
         return inertia('stock-adjustment/Editor', [
             'item' => $item,
@@ -156,7 +156,7 @@ class StockAdjustmentController extends Controller
                 ->setPaper('a4', 'portrait')
                 ->setOption('isHtml5ParserEnabled', true)
                 ->setOption('isPhpEnabled', true);
-            return $pdf->download(env('APP_NAME') . '_' . $item->formatted_id . '.pdf');
+            return $pdf->download(env('APP_NAME') . ' - KARTU STOK - ' . $item->formatted_id . '.pdf');
         }
 
         return view($template, [
@@ -165,15 +165,29 @@ class StockAdjustmentController extends Controller
         ]);
     }
 
-    public function print($id)
+    public function print(Request $request, $id)
     {
         $item = $this->stockAdjustmentService->find($id);
 
         $this->authorize('view', $item);
 
-        $details = $this->stockAdjustmentService->getDetails($id);
+        $details = $item->details;
 
-        return view('modules.admin.pages.stock-adjustment.print', [
+        $template = 'modules.admin.pages.stock-adjustment.print';
+
+        if ($request->get('output') == 'pdf') {
+            $pdf = Pdf::loadView($template, [
+                'item' => $item,
+                'details' => $details,
+                'pdf'  => true,
+            ])
+                ->setPaper('a4', 'portrait')
+                ->setOption('isHtml5ParserEnabled', true)
+                ->setOption('isPhpEnabled', true);
+            return $pdf->download(env('APP_NAME') . ' - PENYESUAIAN STOK - ' . $item->formatted_id . '.pdf');
+        }
+
+        return view($template, [
             'item' => $item,
             'details' => $details,
         ]);

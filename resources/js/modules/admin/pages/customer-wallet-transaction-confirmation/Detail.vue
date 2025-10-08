@@ -1,9 +1,52 @@
 <script setup>
+import { handlePost } from "@/helpers/client-req-handler";
 import { formatDateTime, formatNumber } from "@/helpers/formatter";
-import { usePage } from "@inertiajs/vue3";
+import { router, usePage } from "@inertiajs/vue3";
 
 const page = usePage();
 const title = "Rincian Konfirmasi Top Up";
+
+const acceptItem = () =>
+  handlePost({
+    message: `Setujui konfirmasi transaksi #${page.props.data.formatted_id}?`,
+    url: route(
+      "admin.customer-wallet-transaction-confirmation.save",
+      page.props.data.id
+    ),
+    data: {
+      id: page.props.data.id,
+      action: "accept",
+    },
+    onSuccess: () => {
+      router.get(
+        route(
+          "admin.customer-wallet-transaction-confirmation.detail",
+          page.props.data.id
+        )
+      );
+    },
+  });
+
+const rejectItem = () =>
+  handlePost({
+    message: `Tolak konfirmasi transaksi #${page.props.data.formatted_id}?`,
+    url: route(
+      "admin.customer-wallet-transaction-confirmation.save",
+      page.props.data.id
+    ),
+    data: {
+      id: page.props.data.id,
+      action: "reject",
+    },
+    onSuccess: () => {
+      router.get(
+        route(
+          "admin.customer-wallet-transaction-confirmation.detail",
+          page.props.data.id
+        )
+      );
+    },
+  });
 </script>
 
 <template>
@@ -24,6 +67,32 @@ const title = "Rincian Konfirmasi Top Up";
           "
         />
       </div>
+    </template>
+    <template #right-button>
+      <q-btn
+        v-if="
+          page.props.data.status == 'pending' &&
+          $can('admin.customer-wallet-transaction-confirmation:reject')
+        "
+        icon="cancel"
+        flat
+        dense
+        color="negative"
+        rounded
+        @click="rejectItem()"
+        class="q-mr-sm"
+      />
+      <q-btn
+        v-if="
+          page.props.data.status == 'pending' &&
+          $can('admin.customer-wallet-transaction-confirmation:accept')
+        "
+        icon="check"
+        dense
+        color="positive"
+        rounded
+        @click="acceptItem()"
+      />
     </template>
     <template #title>
       <span class="text-subtitle2">{{ title }}</span>
@@ -57,11 +126,11 @@ const title = "Rincian Konfirmasi Top Up";
                     <td>:</td>
                     <td>
                       <div>
-                        <q-icon name="person" class="inline-icon" />
+                        <q-icon name="person" class="inline-icon" /> Kode:
                         {{ page.props.data.customer.code }}
                       </div>
                       <div>
-                        <q-icon name="person" class="inline-icon" />
+                        <q-icon name="person" class="inline-icon" /> Nama:
                         {{ page.props.data.customer.name }}
                       </div>
                       <div v-if="page.props.data.customer.phone">

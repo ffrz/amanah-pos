@@ -51,7 +51,7 @@ class StockAdjustmentService
 
     public function find(int $id): StockAdjustment
     {
-        return StockAdjustment::with(['creator', 'updater'])->findOrFail($id);
+        return StockAdjustment::with(['creator', 'updater', 'details'])->findOrFail($id);
     }
 
     /**

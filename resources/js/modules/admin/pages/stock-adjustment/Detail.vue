@@ -77,6 +77,13 @@ const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return columns;
   return columns.filter((col) => col.name === "no");
 });
+
+const print = () => {
+  window.open(
+    route("admin.stock-adjustment.print", { id: page.props.data.id }),
+    "_blank"
+  );
+};
 </script>
 
 <template>
@@ -104,11 +111,7 @@ const computedColumns = computed(() => {
           color="grey-7"
           flat
           rounded
-          @click="
-            $inertia.get(
-              route('admin.stock-adjustment.print', { id: page.props.data.id })
-            )
-          "
+          @click="print()"
         />
       </div>
     </template>
