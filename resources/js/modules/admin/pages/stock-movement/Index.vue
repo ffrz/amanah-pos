@@ -48,6 +48,8 @@ const loading = ref(true);
 const filter = reactive({
   type: "all",
   search: "",
+  year: currentYear,
+  month: currentMonth,
   ...getQueryParams(),
 });
 const pagination = ref({
@@ -138,11 +140,8 @@ const onFilterChange = () => {
 };
 
 const computedColumns = computed(() => {
-  let computedColumns = [...columns];
-  if ($q.screen.gt.sm) return computedColumns;
-  return computedColumns.filter(
-    (col) => col.name === "id" || col.name === "quantity"
-  );
+  if (!$q.screen.lt.sm) return columns;
+  return columns.filter((col) => col.name === "id" || col.name === "quantity");
 });
 </script>
 

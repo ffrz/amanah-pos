@@ -4,9 +4,15 @@ import { router } from "@inertiajs/vue3";
 import { handleDelete, handleFetchItems } from "@/helpers/client-req-handler";
 import { getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
-import { formatNumber } from "@/helpers/formatter";
-import { createOptions } from "@/helpers/options";
+import { formatDateTime, formatNumber } from "@/helpers/formatter";
+import {
+  createMonthOptions,
+  createOptions,
+  createYearOptions,
+} from "@/helpers/options";
 import useTableHeight from "@/composables/useTableHeight";
+import { getCurrentMonth, getCurrentYear } from "@/helpers/datetime";
+import { useCan } from "@/composables/usePermission";
 
 const title = "Penyesuaian Stok";
 const rows = ref([]);
@@ -16,8 +22,24 @@ const tableRef = ref(null);
 const filterToolbarRef = ref(null);
 const tableHeight = useTableHeight(filterToolbarRef);
 
+const currentYear = getCurrentYear();
+const currentMonth = getCurrentMonth();
+
+const years = [
+  { label: "Semua Tahun", value: "all" },
+  { label: `${currentYear}`, value: currentYear },
+  ...createYearOptions(currentYear - 2, currentYear - 1).reverse(),
+];
+
+const months = [
+  { value: "all", label: "Semua Bulan" },
+  ...createMonthOptions(),
+];
+
 const filter = reactive({
   search: "",
+  year: currentYear,
+  month: currentMonth,
   status: "all",
   type: "all",
   ...getQueryParams(),
@@ -131,8 +153,15 @@ const onRowClicked = (row) => {
 
 const $q = useQuasar();
 const computedColumns = computed(() => {
-  if ($q.screen.gt.sm) return columns;
-  return columns.filter((col) => col.name === "id" || col.name === "action");
+  let cols = columns;
+
+  if (!useCan("admin.product:view-cost")) {
+    cols = cols.filter((col) => col.name !== "cost");
+  }
+
+  if ($q.screen.gt.sm) return cols;
+
+  return cols.filter((col) => col.name === "id" || col.name === "action");
 });
 </script>
 
@@ -162,6 +191,31 @@ const computedColumns = computed(() => {
     <template #header v-if="showFilter">
       <q-toolbar class="filter-bar" ref="filterToolbarRef">
         <div class="row q-col-gutter-xs items-center q-pa-sm full-width">
+          <q-select
+            v-model="filter.year"
+            :options="years"
+            label="Tahun"
+            dense
+            outlined
+            class="col-xs-6 col-sm-2"
+            emit-value
+            map-options
+            @update:model-value="onFilterChange"
+          />
+          <q-select
+            v-if="filter.year != 'all'"
+            v-model="filter.month"
+            :options="months"
+            label="Bulan"
+            dense
+            outlined
+            class="col-xs-6 col-sm-2"
+            emit-value
+            map-options
+            :disable="filter.year === null"
+            @update:model-value="onFilterChange"
+          />
+
           <q-select
             v-model="filter.status"
             :options="statuses"
@@ -250,11 +304,7 @@ const computedColumns = computed(() => {
                   <div>#{{ props.row.formatted_id }}</div>
                   <div>
                     <q-icon name="history" />
-                    {{
-                      $dayjs(new Date(props.row.datetime)).format(
-                        "DD/MM/YYYY HH:mm"
-                      )
-                    }}
+                    {{ formatDateTime(props.row.datetime) }}
                   </div>
                   <q-chip
                     dense
@@ -290,21 +340,13 @@ const computedColumns = computed(() => {
                   <q-icon name="person" /> Dibuat:
                   <b>{{ props.row.created_by.username }}</b>
                   <q-icon name="history" />
-                  {{
-                    $dayjs(new Date(props.row.created_at)).format(
-                      "DD/MM/YYYY HH:mm"
-                    )
-                  }}
+                  {{ formatDateTime(props.row.created_at) }}
                 </div>
                 <div v-if="props.row.updated_by">
                   <q-icon name="person" /> Diperbarui:
                   <b>{{ props.row.updated_by.username }}</b>
                   <q-icon name="history" />
-                  {{
-                    $dayjs(new Date(props.row.updated_at)).format(
-                      "DD/MM/YYYY HH:mm"
-                    )
-                  }}
+                  {{ formatDateTime(props.row.updated_at) }}
                 </div>
                 <div
                   :class="
@@ -325,9 +367,7 @@ const computedColumns = computed(() => {
               </template>
             </q-td>
             <q-td key="datetime" :props="props">
-              {{
-                $dayjs(new Date(props.row.datetime)).format("DD/MM/YYYY HH:mm")
-              }}
+              {{ formatDateTime(props.row.datetime) }}
             </q-td>
             <q-td key="status" :props="props" class="text-center">
               {{ $CONSTANTS.STOCK_ADJUSTMENT_STATUSES[props.row.status] }}

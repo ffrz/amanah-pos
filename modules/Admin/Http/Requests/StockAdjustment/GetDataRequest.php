@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Admin\Http\Requests\StockMovement;
+namespace Modules\Admin\Http\Requests\StockAdjustment;
 
 use Modules\Admin\Http\Requests\DefaultGetDataRequest;
 
@@ -12,7 +12,7 @@ class GetDataRequest extends DefaultGetDataRequest
     public function rules(): array
     {
         return array_merge(parent::rules(), [
-            'order_by' => 'sometimes|string|in:created_at,product_id'
+            'order_by' => 'sometimes|string|in:id'
         ]);
     }
 
@@ -26,11 +26,11 @@ class GetDataRequest extends DefaultGetDataRequest
 
         $this->merge([
             'filter' => [
-                'product_id' => $filter['product_id'] ?? null,
                 'search' => $filter['search'] ?? null,
-                'ref_type' => $filter['ref_type'] ?? 'all',
-                'year' => $filter['year'] ?? 'all',
-                'month' => $filter['month'] ?? 'all',
+                'year'   => $filter['year'] ?? 'all',
+                'month'  => $filter['month'] ?? 'all',
+                'type'   => $filter['type'] ?? 'all',
+                'status' => $filter['status'] ?? 'all',
             ],
         ]);
     }

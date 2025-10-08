@@ -13,6 +13,12 @@ use App\Models\OperationalCost;
 use App\Models\OperationalCostCategory;
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Models\PurchaseOrder;
+use App\Models\PurchaseOrderPayment;
+use App\Models\SalesOrder;
+use App\Models\SalesOrderPayment;
+use App\Models\StockAdjustment;
+use App\Models\StockMovement;
 use App\Models\Supplier;
 use App\Models\User;
 use Modules\Admin\Policies\DefaultPolicy;
@@ -43,6 +49,12 @@ class AuthServiceProvider extends ServiceProvider
         Customer::class => DefaultPolicy::class,
         FinanceAccount::class => DefaultPolicy::class,
         FinanceTransaction::class => DefaultPolicy::class,
+        StockAdjustment::class => DefaultPolicy::class,
+        StockMovement::class => DefaultPolicy::class,
+        SalesOrder::class => DefaultPolicy::class,
+        SalesOrderPayment::class => DefaultPolicy::class,
+        PurchaseOrder::class => DefaultPolicy::class,
+        PurchaseOrderPayment::class => DefaultPolicy::class,
     ];
 
     /**

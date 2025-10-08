@@ -316,3 +316,7 @@ table.detail tr:nth-child(even) td {
 .custom-dense {
   padding: 0.25em 0.75em !important;
 }
+
+.q-tabs__arrow {
+  background: #fff;
+}

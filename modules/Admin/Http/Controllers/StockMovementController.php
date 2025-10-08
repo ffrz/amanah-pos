@@ -35,7 +35,7 @@ class StockMovementController extends Controller
 
     public function data(GetDataRequest $request)
     {
-        $items = $this->stockMovementService->getPaginatedData($request);
+        $items = $this->stockMovementService->getData($request->validated())->withQueryString();
 
         return JsonResponseHelper::success($items);
     }

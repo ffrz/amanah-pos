@@ -92,6 +92,7 @@ Route::middleware([Auth::class])
                 Route::post('save', [StockAdjustmentController::class, 'save'])->name('admin.stock-adjustment.save');
                 Route::post('delete/{id}', [StockAdjustmentController::class, 'delete'])->name('admin.stock-adjustment.delete');
                 Route::get('detail/{id}', [StockAdjustmentController::class, 'detail'])->name('admin.stock-adjustment.detail');
+                Route::get('print/{id}', [StockAdjustmentController::class, 'print'])->name('admin.stock-adjustment.print');
             });
 
             Route::prefix('stock-movements')->group(function () {

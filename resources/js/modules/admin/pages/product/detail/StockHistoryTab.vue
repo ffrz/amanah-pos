@@ -85,12 +85,14 @@ const fetchItems = (tableProps = null) =>
     filter,
     props: tableProps,
     rows,
-    url: route("admin.stock-movement.data", { product_id: props.productId }),
+    url: route("admin.stock-movement.data", {
+      filter: { product_id: props.productId },
+    }),
     loading,
   });
 
 const computedColumns = computed(() => {
-  if ($q.screen.gt.sm) return columns;
+  if (!$q.screen.lt.sm) return columns;
   return columns.filter((col) => col.name === "id" || col.name === "quantity");
 });
 </script>

@@ -6,7 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 /**
- * File ini menangani validasi input untuk Operasi Kategori Biaya Operasional.
+ * File ini menangani validasi input untuk Kategori Biaya Operasional.
  * Ia memastikan bahwa data yang masuk memenuhi aturan yang diperlukan
  * sebelum diteruskan ke layanan atau model.
  */

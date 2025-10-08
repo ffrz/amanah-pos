@@ -1,11 +1,15 @@
 <script setup>
-import { formatMoneyWithSymbol, formatNumber } from "@/helpers/formatter";
+import {
+  formatDateTime,
+  formatMoneyWithSymbol,
+  formatNumber,
+} from "@/helpers/formatter";
 import { usePage } from "@inertiajs/vue3";
 import { useQuasar } from "quasar";
 import { computed } from "vue";
 
 const page = usePage();
-const title = `Rincian Penyesuaian Stok #${page.props.data.id}`;
+const title = `Rincian #${page.props.data.formatted_id}`;
 const rows = page.props.details;
 
 const columns = [
@@ -92,6 +96,22 @@ const computedColumns = computed(() => {
         />
       </div>
     </template>
+    <template #right-button>
+      <div class="q-gutter-sm">
+        <q-btn
+          icon="print"
+          dense
+          color="grey-7"
+          flat
+          rounded
+          @click="
+            $inertia.get(
+              route('admin.stock-adjustment.print', { id: page.props.data.id })
+            )
+          "
+        />
+      </div>
+    </template>
     <div class="row justify-center">
       <div class="col col-lg-8 q-pa-sm">
         <div class="row">
@@ -103,9 +123,9 @@ const computedColumns = computed(() => {
               <table class="detail">
                 <tbody>
                   <tr>
-                    <td style="width: 120px">ID</td>
+                    <td style="width: 120px">Kode</td>
                     <td style="width: 1px">:</td>
-                    <td># {{ page.props.data.id }}</td>
+                    <td>#{{ page.props.data.formatted_id }}</td>
                   </tr>
                   <tr>
                     <td>Jenis</td>
@@ -131,11 +151,7 @@ const computedColumns = computed(() => {
                     <td>Waktu</td>
                     <td>:</td>
                     <td>
-                      {{
-                        $dayjs(page.props.data.datetime).format(
-                          "dddd, D MMMM YYYY pukul HH:mm:ss"
-                        )
-                      }}
+                      {{ formatDateTime(page.props.data.datetime) }}
                     </td>
                   </tr>
                   <tr v-if="!!page.props.data.created_at">
@@ -155,11 +171,7 @@ const computedColumns = computed(() => {
                         </i-link>
                         -
                       </template>
-                      {{
-                        $dayjs(new Date(page.props.data.created_at)).format(
-                          "dddd, D MMMM YYYY pukul HH:mm:ss"
-                        )
-                      }}
+                      {{ formatDateTime(page.props.data.created_at) }}
                     </td>
                   </tr>
                   <tr v-if="!!page.props.data.updater">
@@ -179,11 +191,7 @@ const computedColumns = computed(() => {
                         </i-link>
                         -
                       </template>
-                      {{
-                        $dayjs(new Date(page.props.data.updated_at)).format(
-                          "dddd, D MMMM YYYY pukul HH:mm:ss"
-                        )
-                      }}
+                      {{ formatDateTime(page.props.data.updated_at) }}
                     </td>
                   </tr>
                   <tr>

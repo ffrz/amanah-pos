@@ -84,7 +84,7 @@ const fetchItems = (tableProps = null) =>
   });
 
 const computedColumns = computed(() => {
-  if ($q.screen.gt.sm) return columns;
+  if (!$q.screen.lt.sm) return columns;
   return columns.filter(
     (col) =>
       col.name === "version" ||

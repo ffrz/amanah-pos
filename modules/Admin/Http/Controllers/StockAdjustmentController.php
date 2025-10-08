@@ -16,57 +16,44 @@
 
 namespace Modules\Admin\Http\Controllers;
 
+use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
-use App\Models\Product;
-use App\Models\ProductCategory;
 use App\Models\StockAdjustment;
-use App\Models\StockAdjustmentDetail;
-use App\Models\StockMovement;
-use App\Models\Supplier;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Modules\Admin\Http\Requests\StockAdjustment\GetDataRequest;
+use Modules\Admin\Http\Requests\StockAdjustment\SaveRequest;
+use Modules\Admin\Services\CommonDataService;
+use Modules\Admin\Services\StockAdjustmentService;
 
 class StockAdjustmentController extends Controller
 {
-    //
+    public function __construct(
+        protected StockAdjustmentService $stockAdjustmentService,
+        protected CommonDataService $commonDataService
+    ) {}
+
     public function index()
     {
+        $this->authorize('viewAny', StockAdjustment::class);
+
         return inertia('stock-adjustment/Index');
     }
 
-    public function data(Request $request)
+    public function data(GetDataRequest $request)
     {
-        $orderBy = $request->get('order_by', 'id');
-        $orderType = $request->get('order_type', 'desc');
-        $filter = $request->get('filter', []);
+        $this->authorize('viewAny', StockAdjustment::class);
 
-        $q = StockAdjustment::with(['creator:id,username,name', 'updater:id,username,name']);
-        $q->orderBy($orderBy, $orderType);
+        $items = $this->stockAdjustmentService->getData($request->validated())->withQueryString();
 
-        if (!empty($filter['status']) && $filter['status'] != 'all') {
-            $q->where('status', '=', $filter['status']);
-        }
-
-        if (!empty($filter['type']) && $filter['type'] != 'all') {
-            $q->where('type', '=', $filter['type']);
-        }
-
-        if (!empty($filter['search'])) {
-            $search = $filter['search'];
-            $q->where(function ($q) use ($search) {
-                $q->where('notes', 'like', '%' . $search . '%');
-            });
-        }
-
-        $items = $q->paginate($request->get('per_page', 10))->withQueryString();
-
-        return response()->json($items);
+        return JsonResponseHelper::success($items);
     }
 
     public function detail($id = 0)
     {
-        $item = StockAdjustment::with(['creator', 'updater'])->findOrFail($id);
+        $item = $this->stockAdjustmentService->find($id);
+
+        $this->authorize('view', $item);
 
         return inertia('stock-adjustment/Detail', [
             'data' => $item,
@@ -76,38 +63,16 @@ class StockAdjustmentController extends Controller
 
     public function create(Request $request)
     {
-        if ($request->method() == 'POST') {
-            $product_ids = $request->post('product_ids', []);
-            $products = Product::whereIn('id', $product_ids)->get()->keyBy('id');
+        $this->authorize('create', StockAdjustment::class);
 
-            DB::beginTransaction();
-            $item = new StockAdjustment([
+        if ($request->method() == 'POST') {
+            // TODO: Validate Request, untuk amankan masalah security
+            $item = $this->stockAdjustmentService->create([
+                'product_ids' => $request->post('product_ids', []),
                 'datetime' => $request->post('datetime', date('Y-m-d H:i:s')),
-                'status' => StockAdjustment::Status_Draft,
                 'type' => $request->post('type', StockAdjustment::Type_StockCorrection),
                 'notes' => $request->post('notes', ''),
-                'total_cost' => 0,
-                'total_price' => 0,
             ]);
-            $item->save();
-
-            foreach ($product_ids as $product_id) {
-                $product = $products[$product_id];
-                $detail = new StockAdjustmentDetail([
-                    'parent_id' => $item->id,
-                    'product_id' => $product_id,
-                    'product_name' => $product->name,
-                    'old_quantity' => $product->stock,
-                    'new_quantity' => $product->stock,
-                    'balance' => 0,
-                    'uom' => $product->uom,
-                    'cost' => $product->cost,
-                    'price' => $product->price,
-                ]);
-                $detail->save();
-            }
-
-            DB::commit();
 
             return redirect(route('admin.stock-adjustment.editor', [
                 'id' => $item->id
@@ -117,37 +82,19 @@ class StockAdjustmentController extends Controller
         }
 
         return inertia('stock-adjustment/Create', [
-            'categories' => ProductCategory::all(),
-            'suppliers' => Supplier::where('active', true)
-                ->orderBy('name')->get(),
-            'products' => Product::with(['category'])
-                ->where(function ($q) {
-                    $q->where('type', Product::Type_Stocked);
-                })
-                ->where('active', 1)
-                ->orderBy('name', 'asc')
-                ->get(['id', 'name', 'description', 'barcode', 'category_id', 'supplier_id', 'type', 'stock', 'uom', 'cost', 'price']),
+            'categories' => $this->commonDataService->getProductCategories(),
+            'suppliers' => $this->commonDataService->getSuppliers(),
+            'products' => $this->stockAdjustmentService->getProducts(),
         ]);
     }
 
     public function editor($id)
     {
-        $item = StockAdjustment::findOrFail($id);
+        $item = $this->stockAdjustmentService->find($id);
 
-        $details = DB::table('stock_adjustment_details')
-            ->join('products', 'stock_adjustment_details.product_id', '=', 'products.id')
-            ->where('stock_adjustment_details.parent_id', $id)
-            ->orderBy('stock_adjustment_details.id', 'asc')
-            ->select(
-                'stock_adjustment_details.id',
-                'stock_adjustment_details.new_quantity',
-                'stock_adjustment_details.notes',
-                'products.id as product_id',
-                'products.name as product_name',
-                'products.stock as old_quantity',
-                'products.uom',
-            )
-            ->get();
+        $this->authorize('update', $item);
+
+        $details = $this->stockAdjustmentService->getDetails($id);
 
         return inertia('stock-adjustment/Editor', [
             'item' => $item,
@@ -155,115 +102,35 @@ class StockAdjustmentController extends Controller
         ]);
     }
 
-    public function save(Request $request)
+    public function save(SaveRequest $request)
     {
-        $validated = $request->validate([
-            'datetime' => ['required', 'date'], // atau gunakan: 'date_format:Y-m-d H:i:s'
-            'type' => [
-                'required',
-                Rule::in(array_keys(StockAdjustment::Types)),
-            ],
-            'notes' => 'nullable|string|max:1000',
-        ]);
+        $validated = $request->validated();
 
-        $item = StockAdjustment::findOrFail($request->id);
-        $item->fill($validated);
+        $item = $this->stockAdjustmentService->find($request->id);
 
-        $details = $request->post('details', []);
+        $this->authorize('update', $item);
 
-        DB::beginTransaction();
+        $this->stockAdjustmentService->save($item, $validated);
 
-        $total_cost = 0;
-        $total_price = 0;
-
-        $stored_details = StockAdjustmentDetail::where('parent_id', $item->id)->get()->keyBy('id');
-
-        foreach ($details as $d) {
-            $detail = $stored_details[$d['id']];
-            $detail->new_quantity = floatval($d['new_quantity']);
-            $detail->balance = $detail->new_quantity - $detail->old_quantity;
-            $detail->subtotal_cost = $detail->balance * $detail->cost;
-            $detail->subtotal_price = $detail->balance * $detail->price;
-            $detail->save();
-
-            if ($request->post('action') === 'close') {
-                // update stok
-                DB::update('UPDATE products SET stock=? where id=?', [$detail->new_quantity, $detail->product_id]);
-
-                // simpan riwayat perubahan stok
-                $stockMovement = new StockMovement([
-                    'product_id' => $detail->product_id,
-                    'product_name' => $detail->product_name,
-                    'uom' => $detail->uom,
-                    'ref_id' => $item->id,
-                    'ref_type' => StockMovement::RefType_StockAdjustmentDetail,
-                    'quantity' => $detail->balance,
-                    'quantity_before' => $detail->old_quantity,
-                    'quantity_after' => $detail->new_quantity,
-                    'notes' => "Penyesuaian stok #$item->formatted_id",
-                ]);
-                $stockMovement->save();
-            }
-
-            $total_cost += $detail->subtotal_cost;
-            $total_price += $detail->subtotal_price;
+        $route = route('admin.stock-adjustment.editor', ['id' => $item->id]);
+        if ($validated['action'] === 'cancel') {
+            $route = route('admin.stock-adjustment.index');
+        } else if ($validated['action'] === 'close') {
+            $route = route('admin.stock-adjustment.detail', ['id' => $item->id]);
         }
 
-        $next_url = 'admin.stock-adjustment.editor';
-
-        if ($request->post('action') === 'cancel') {
-            $item->status = StockAdjustment::Status_Cancelled;
-            $next_url = 'admin.stock-adjustment.index';
-        } else if ($request->post('action') === 'close') {
-            $item->status = StockAdjustment::Status_Closed;
-            $next_url = 'admin.stock-adjustment.index';
-        }
-
-        $item->total_cost = $total_cost;
-        $item->total_price = $total_price;
-        $item->save();
-        DB::commit();
-
-        return redirect(route($next_url, [
-            'id' => $item->id
-        ]),)->with([
-            'message' => 'Penyesuaian stok telah disimpan.',
-        ]);
+        return redirect($route)
+            ->with(['message' => 'Penyesuaian stok telah disimpan.']);
     }
 
     public function delete($id)
     {
-        $item = StockAdjustment::findOrFail($id);
+        $item = $this->stockAdjustmentService->find($id);
 
-        DB::beginTransaction();
+        $this->authorize('delete', $item);
 
-        if ($item->status == StockAdjustment::Status_Closed) {
-            $details = StockAdjustmentDetail::where('parent_id', $item->id)->get()->keyBy('product_id');
+        $item = $this->stockAdjustmentService->delete($item);
 
-            // Ambil produk terkait
-            $products = Product::whereIn('id', array_keys($details->all()))->get();
-
-            foreach ($products as $product) {
-                $detail = $details[$product->id];
-                $product->stock += (-$detail->balance); // refund stok
-                $product->save();
-
-                // Hapus stock movement terkait detail ini
-                DB::delete(
-                    'DELETE FROM stock_movements WHERE ref_type = ? AND ref_id = ?',
-                    [StockMovement::RefType_StockAdjustmentDetail, $detail->id]
-                );
-            }
-        }
-
-        DB::delete('delete from stock_adjustment_details where parent_id=?', [$item->id]);
-
-        $item->delete();
-
-        DB::commit();
-
-        return response()->json([
-            'message' => __('messages.stock-adjustment-deleted', ['id' => $item->id])
-        ]);
+        return JsonResponseHelper::success($item, "Penyesuaian stock $item->formatted_id telah dihapus.");
     }
 }
