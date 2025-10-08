@@ -23,7 +23,7 @@
                 }
 
                 .page {
-                    padding: 0.7cm;
+                    padding: 1cm;
                     background: #fff;
                     border: 1px solid #888;
                     box-shadow: #bbb 5px 5px 10px;
@@ -35,9 +35,11 @@
 </head>
 
 <body>
-    @yield('content')
+    <div class="page-container">
+        @yield('content')
+    </div>
     <script>
-        window.addEventListener("load", window.print());
+        // window.addEventListener("load", window.print());
     </script>
 </body>
 

@@ -108,6 +108,15 @@ const computedColumns = computed(() => {
     (col) => col.name === "product_name" || col.name === "new_quantity"
   );
 });
+
+const printStockCard = () => {
+  window.open(
+    route("admin.stock-adjustment.print-stock-card", {
+      id: form.id,
+    }),
+    "_blank"
+  );
+};
 </script>
 
 <template>
@@ -164,18 +173,7 @@ const computedColumns = computed(() => {
           transition-hide="scale"
         >
           <q-list style="width: 200px">
-            <q-item
-              clickable
-              v-ripple
-              v-close-popup
-              @click="
-                router.get(
-                  route('admin.stock-adjustment.print-stock-card', {
-                    id: form.id,
-                  })
-                )
-              "
-            >
+            <q-item clickable v-ripple v-close-popup @click="printStockCard()">
               <q-item-section avatar>
                 <q-icon name="print" />
               </q-item-section>

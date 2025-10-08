@@ -60,6 +60,7 @@ class StockAdjustment extends BaseModel
 
     protected $appends = [
         'formatted_id',
+        'type_label'
     ];
 
     protected function casts(): array
@@ -76,6 +77,11 @@ class StockAdjustment extends BaseModel
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
+    }
+
+    public function getTypeLabelAttribute()
+    {
+        return self::Types[$this->type];
     }
 
     public function details()

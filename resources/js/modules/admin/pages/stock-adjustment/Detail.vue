@@ -247,7 +247,6 @@ const computedColumns = computed(() => {
                 bordered
                 square
                 color="primary"
-                class="full-height-table"
                 row-key="id"
                 dense
                 :columns="computedColumns"

@@ -19,10 +19,11 @@ namespace Modules\Admin\Http\Controllers;
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\StockAdjustment;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Modules\Admin\Http\Requests\StockAdjustment\GetDataRequest;
 use Modules\Admin\Http\Requests\StockAdjustment\SaveRequest;
+use Modules\Admin\Http\Requests\StockAdjustment\CreateRequest;
 use Modules\Admin\Services\CommonDataService;
 use Modules\Admin\Services\StockAdjustmentService;
 
@@ -61,23 +62,17 @@ class StockAdjustmentController extends Controller
         ]);
     }
 
-    public function create(Request $request)
+    public function create(CreateRequest $request)
     {
         $this->authorize('create', StockAdjustment::class);
 
         if ($request->method() == 'POST') {
-            // TODO: Validate Request, untuk amankan masalah security
-            $item = $this->stockAdjustmentService->create([
-                'product_ids' => $request->post('product_ids', []),
-                'datetime' => $request->post('datetime', date('Y-m-d H:i:s')),
-                'type' => $request->post('type', StockAdjustment::Type_StockCorrection),
-                'notes' => $request->post('notes', ''),
-            ]);
+            $item = $this->stockAdjustmentService->create($request->validated());
 
             return redirect(route('admin.stock-adjustment.editor', [
                 'id' => $item->id
             ]))->with([
-                'message' => __('messages.stock-adjustment-created', ['id' => $item->id])
+                'message' => "Penyesuaian stok $item->formatted_id telah dibuat."
             ]);
         }
 
@@ -104,7 +99,15 @@ class StockAdjustmentController extends Controller
 
     public function save(SaveRequest $request)
     {
+        $action_status_map = [
+            'save' => StockAdjustment::Status_Draft,
+            'close' => StockAdjustment::Status_Closed,
+            'cancel' => StockAdjustment::Status_Cancelled,
+        ];
+
         $validated = $request->validated();
+
+        $validated['status'] = $action_status_map[$validated['action']];
 
         $item = $this->stockAdjustmentService->find($request->id);
 
@@ -132,5 +135,47 @@ class StockAdjustmentController extends Controller
         $item = $this->stockAdjustmentService->delete($item);
 
         return JsonResponseHelper::success($item, "Penyesuaian stock $item->formatted_id telah dihapus.");
+    }
+
+    public function printStockCard(Request $request, $id)
+    {
+        $item = $this->stockAdjustmentService->find($id);
+
+        $this->authorize('view', $item);
+
+        $details = $this->stockAdjustmentService->getDetails($id);
+
+        $template = 'modules.admin.pages.stock-adjustment.print-stock-card';
+
+        if ($request->get('output') == 'pdf') {
+            $pdf = Pdf::loadView($template, [
+                'item' => $item,
+                'details' => $details,
+                'pdf'  => true,
+            ])
+                ->setPaper('a4', 'portrait')
+                ->setOption('isHtml5ParserEnabled', true)
+                ->setOption('isPhpEnabled', true);
+            return $pdf->download(env('APP_NAME') . '_' . $item->formatted_id . '.pdf');
+        }
+
+        return view($template, [
+            'item' => $item,
+            'details' => $details,
+        ]);
+    }
+
+    public function print($id)
+    {
+        $item = $this->stockAdjustmentService->find($id);
+
+        $this->authorize('view', $item);
+
+        $details = $this->stockAdjustmentService->getDetails($id);
+
+        return view('modules.admin.pages.stock-adjustment.print', [
+            'item' => $item,
+            'details' => $details,
+        ]);
     }
 }

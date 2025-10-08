@@ -5,14 +5,14 @@ import { formatNumber } from "@/helpers/formatter";
 import { scrollToFirstErrorField } from "@/helpers/utils";
 import { createOptions } from "@/helpers/options";
 import DateTimePicker from "@/components/DateTimePicker.vue";
-import { useQuasar } from "quasar";
+import { Dialog, useQuasar } from "quasar";
 import { computed, ref } from "vue";
 import { useProductCategoryFilter } from "@/composables/useProductCategoryFilter";
 import { useSupplierFilter } from "@/composables/useSupplierFilter";
 
 const page = usePage();
 const title = "Buat Penyesuaian Stok";
-
+const showSelectedOnly = ref(false);
 // Data produk dan opsi filter dari props
 const allProducts = page.props.products;
 
@@ -75,6 +75,14 @@ const filteredProducts = computed(() => {
   return allProducts.filter((p) => {
     let matches = true;
 
+    if (showSelectedOnly.value) {
+      // Periksa apakah produk ini ada di array selectedProducts
+      // Jika tidak ada, kembalikan 'false' (jangan tampilkan)
+      if (!selectedProducts.value.find((sp) => sp.id === p.id)) {
+        return false;
+      }
+    }
+
     // Filter berdasarkan pencarian
     if (filter.value.search) {
       const searchTerm = filter.value.search.toLowerCase();
@@ -99,9 +107,20 @@ const filteredProducts = computed(() => {
 });
 
 const submit = () => {
-  form.product_ids = selectedProducts.value.map((p) => p.id);
-  transformPayload(form, { datetime: "YYYY-MM-DD HH:mm:ss" });
-  handleSubmit({ form, url: route("admin.stock-adjustment.create") });
+  Dialog.create({
+    title: "Konfirmasi",
+    message: "Apakah Anda yakin sudah memilih produk dengan benar?",
+    cancel: true,
+    persistent: true,
+  })
+    .onOk(() => {
+      form.product_ids = selectedProducts.value.map((p) => p.id);
+      transformPayload(form, { datetime: "YYYY-MM-DD HH:mm:ss" });
+      handleSubmit({ form, url: route("admin.stock-adjustment.create") });
+    })
+    .onCancel(() => {
+      // dibatalkan
+    });
 };
 
 const $q = useQuasar();
@@ -127,6 +146,27 @@ const computedColumns = computed(() => {
           @click="router.get(route('admin.stock-adjustment.index'))"
         />
       </div>
+    </template>
+    <template #right-button>
+      <q-btn
+        icon="cancel"
+        :disable="form.processing"
+        dense
+        flat
+        color="negative"
+        rounded
+        @click="router.get(route('admin.stock-adjustment.index'))"
+      />
+      <q-btn
+        icon="check"
+        type="submit"
+        color="primary"
+        dense
+        rounded
+        :disable="form.processing || selectedProducts.length == 0"
+        class="q-ml-sm"
+        @click="submit"
+      />
     </template>
     <q-page class="row justify-center">
       <div class="col col-lg-6 q-pa-xs">
@@ -171,10 +211,26 @@ const computedColumns = computed(() => {
                 :rules="[]"
                 hide-bottom-space
               />
-            </q-card-section>
-            <q-card-section>
+
+              <div
+                v-if="
+                  selectedProducts.length === 0 ||
+                  page.props.errors?.product_ids
+                "
+                class="bg-red-1 text-red-10 q-my-sm text-center q-py-sm"
+                style="border: 1px solid #eb8a8a"
+              >
+                <template v-if="selectedProducts.length === 0">
+                  Silahkan pilih produk yang akan disertakan ke dalam
+                  penyesuaian stok.
+                </template>
+                <template v-else-if="page.props.errors?.product_ids">
+                  {{ page.props.errors?.product_ids }}
+                </template>
+              </div>
+
               <div class="text-subtitle2"><b>Pilih Produk</b></div>
-              <!-- Tambahkan baris filter di sini -->
+
               <div class="row q-col-gutter-sm q-mb-md">
                 <q-input
                   v-model="filter.search"
@@ -216,6 +272,17 @@ const computedColumns = computed(() => {
                 />
               </div>
 
+              <div
+                @click="showSelectedOnly = !showSelectedOnly"
+                class="col-12 col-sm-3 q-mt-xs q-mb-xs text-grey-8 q-my-sm cursor-pointer"
+              >
+                {{
+                  showSelectedOnly
+                    ? "Tampilkan Semua"
+                    : "Tampilkan hanya yang Dipilih"
+                }}
+              </div>
+
               <q-table
                 flat
                 bordered
@@ -250,21 +317,6 @@ const computedColumns = computed(() => {
                   </q-td>
                 </template>
               </q-table>
-            </q-card-section>
-            <q-card-section class="q-gutter-sm">
-              <q-btn
-                icon="play_arrow"
-                type="submit"
-                label="Lanjutkan"
-                color="primary"
-                :disable="form.processing"
-              />
-              <q-btn
-                icon="cancel"
-                label="Batal"
-                :disable="form.processing"
-                @click="router.get(route('admin.stock-adjustment.index'))"
-              />
             </q-card-section>
           </q-card>
         </q-form>

@@ -23,47 +23,68 @@
     @endif
     <div class="page">
 
-        <x-admin.company-header :logo-path="$logo_path">
-            <h4 style="margin: 0 0 5px 0; text-align: Left;">SALES INVOICE</h4>
-            <table>
-                <tr>
-                    <td style="width: 2cm;">No. Invoice</td>
-                    <td>:</td>
-                    <td>{{ $item->formatted_id }}</td>
-                </tr>
-                <tr>
-                    <td>Status</td>
-                    <td>:</td>
-                    <td>{{ \App\Models\SalesOrder::Statuses[$item->status] }}</td>
-                </tr>
-                @if ($item->customer_id)
-                    <tr>
-                        <td style="vertical-align:top;">Pelanggan</td>
-                        <td>:</td>
-                        <td>
-                            {{ $item->customer_code }}<br />
-                            {{ $item->customer_name }}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>No. Telepon</td>
-                        <td>:</td>
-                        <td>{{ $item->customer_phone }}</td>
-                    </tr>
-                    <tr>
-                        <td style="vertical-align:top;">Alamat</td>
-                        <td>:</td>
-                        <td>{{ $item->customer_address }}</td>
-                    </tr>
-                @else
-                    <tr>
-                        <td>Pelanggan</td>
-                        <td>:</td>
-                        <td>[Umum]</td>
-                    </tr>
+        <table style="width:100%">
+            <tr>
+                @if ($logo_path)
+                    <td>
+                        <img src="{{ $logo_path }}" alt="" width="48" height="48">
+                    </td>
                 @endif
-            </table>
-        </x-admin.company-header>
+                <td>
+                    <h5 class="m-0 text-primary">{{ Setting::value('company.name') }}</h5>
+                    @if (!empty(Setting::value('company.headline')))
+                        <h6 class="m-0">{{ Setting::value('company.headline') }}</h6>
+                    @endif
+                    <i>
+                        @if (!empty(Setting::value('company.address')))
+                            {{ Setting::value('company.address') }}<br>
+                        @endif
+                        @if (!empty(Setting::value('company.phone')))
+                            Telp. {{ Setting::value('company.phone') }}
+                        @endif
+                        @if (!empty(Setting::value('company.website')))
+                            - {{ Setting::value('company.website') }}
+                        @endif
+                    </i>
+                    <br>
+                </td>
+                <td style="width:35%;;padding-left:10px;">
+                    <table>
+                        <tr>
+                            <td style="width: 2cm;">No. Invoice</td>
+                            <td>:</td>
+                            <td>{{ $item->formatted_id }}</td>
+                        </tr>
+                        @if ($item->customer_id)
+                            <tr>
+                                <td style="vertical-align:top;">Pelanggan</td>
+                                <td>:</td>
+                                <td>
+                                    {{ $item->customer_code }}<br />
+                                    {{ $item->customer_name }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>No. Telepon</td>
+                                <td>:</td>
+                                <td>{{ $item->customer_phone }}</td>
+                            </tr>
+                            <tr>
+                                <td style="vertical-align:top;">Alamat</td>
+                                <td>:</td>
+                                <td>{{ $item->customer_address }}</td>
+                            </tr>
+                        @else
+                            <tr>
+                                <td>Pelanggan</td>
+                                <td>:</td>
+                                <td>[Umum]</td>
+                            </tr>
+                        @endif
+                    </table>
+                </td>
+            </tr>
+        </table>
         <br>
         <table class="table table-bordered table-striped table-condensed center-th table-sm" style="width:100%">
             <thead>
