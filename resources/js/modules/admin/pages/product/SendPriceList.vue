@@ -39,7 +39,7 @@ const allProductsOptions = computed(
   () =>
     page.props.products?.map((p) => ({
       value: p.id,
-      label: `${p.name} (${p.sku || p.code || "ID: " + p.id})`,
+      label: `${p.name}`,
     })) || []
 );
 
@@ -68,9 +68,10 @@ const form = useForm({
 });
 
 form.transform((data) => ({
-  ...data,
-  products: data.products.map((product) => product.value),
+  // ...data,
+  // products: data.products.map((product) => product.value),
   customers: data.customers.map((customer) => customer.value),
+  message: generatedMessage.value,
 }));
 
 const formatRupiah = (number) => {
@@ -199,28 +200,28 @@ const filterCustomers = (val, update) => {
   });
 };
 
-// const submit = () => {
-//   if (
-//     form.price_types?.length === 0 ||
-//     form.products?.length === 0 ||
-//     form.customers?.length === 0
-//   ) {
-//     console.error("Harap lengkapi Produk, Pelanggan, dan Jenis Harga.");
-//     return;
-//   }
+const submit = () => {
+  if (
+    form.price_types?.length === 0 ||
+    form.products?.length === 0 ||
+    form.customers?.length === 0
+  ) {
+    console.error("Harap lengkapi Produk, Pelanggan, dan Jenis Harga.");
+    return;
+  }
 
-//   form.post(route("admin.product.send-price-list"), {
-//     onSuccess: () => {
-//       // Form tidak direset agar pesan yang sudah digenerate tetap terlihat
-//     },
-//     onError: () => {
-//       scrollToFirstErrorField();
-//     },
-//     onFinish: () => {
-//       form.clearErrors();
-//     },
-//   });
-// };
+  form.post(route("admin.product.send-price-list"), {
+    onSuccess: () => {
+      // Form tidak direset agar pesan yang sudah digenerate tetap terlihat
+    },
+    onError: () => {
+      scrollToFirstErrorField();
+    },
+    onFinish: () => {
+      form.clearErrors();
+    },
+  });
+};
 </script>
 
 <template>
@@ -241,12 +242,11 @@ const filterCustomers = (val, update) => {
     </template>
     <q-page class="row justify-center">
       <div class="col col-md-8 q-pa-xs">
-        <!-- <q-form
+        <q-form
           class="row q-col-gutter-xs"
           @submit.prevent="submit"
           @validation-error="scrollToFirstErrorField"
-        >         -->
-        <q-form class="row q-col-gutter-xs">
+        >
           <div class="col-12 col-md-6">
             <q-card square flat bordered class="col full-width">
               <q-card-section class="q-pt-none">
@@ -261,7 +261,7 @@ const filterCustomers = (val, update) => {
                   v-model="form.products"
                   :options="filteredProducts"
                   label="Pilih Produk"
-                  hint="Ketik nama atau SKU produk untuk mencari"
+                  hint="Ketik nama produk untuk mencari"
                   multiple
                   use-chips
                   clearable
@@ -333,11 +333,11 @@ const filterCustomers = (val, update) => {
                 </q-select>
               </q-card-section>
 
-              <!-- <q-card-section class="q-gutter-sm">
+              <q-card-section class="q-gutter-sm">
                 <q-btn
                   icon="send"
                   type="submit"
-                  label="Kirim ke Backend"
+                  label="Kirim via WA Gateway"
                   color="primary"
                   :disable="
                     form.processing ||
@@ -347,13 +347,13 @@ const filterCustomers = (val, update) => {
                   "
                   :loading="form.processing"
                 />
-                <q-btn
+                <!-- <q-btn
                   icon="cancel"
                   label="Batal"
                   :disable="form.processing"
                   @click="$goBack()"
-                />
-              </q-card-section> -->
+                /> -->
+              </q-card-section>
             </q-card>
           </div>
 

@@ -18,6 +18,7 @@ namespace Modules\Admin\Http\Controllers;
 
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
+use App\Models\StockMovement;
 use Modules\Admin\Http\Requests\StockMovement\GetDataRequest;
 use Modules\Admin\Services\StockMovementService;
 
@@ -30,11 +31,15 @@ class StockMovementController extends Controller
 
     public function index()
     {
+        $this->authorize('viewAny', StockMovement::class);
+
         return inertia('stock-movement/Index');
     }
 
     public function data(GetDataRequest $request)
     {
+        $this->authorize('viewAny', StockMovement::class);
+
         $items = $this->stockMovementService->getData($request->validated())->withQueryString();
 
         return JsonResponseHelper::success($items);

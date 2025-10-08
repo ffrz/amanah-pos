@@ -36,6 +36,7 @@ class UserActivityLog extends Model
     public const Category_CashierTerminal = 'cashier-terminal';
     public const Category_CashierSession = 'cashier-session';
     public const Category_CustomerWallet = 'customer-wallet';
+    public const Category_StockAdjustment = 'stock-adjustment';
 
     /**
      * Array pemetaan Kategori untuk tampilan (Opsional, tapi konsisten)
@@ -61,6 +62,7 @@ class UserActivityLog extends Model
         self::Category_CashierTerminal => 'Manajemen Terminal Kasir',
         self::Category_CashierSession => 'Manajemen Sesi Kasir',
         self::Category_CustomerWallet => 'Manajemen Walet Pelanggan',
+        self::Category_StockAdjustment => 'Manajemen Penyesuaian Stok',
     ];
 
     /**
@@ -154,6 +156,11 @@ class UserActivityLog extends Model
     public const Name_OperationalCostCategory_Update = 'operational-cost-category.update';
     public const Name_OperationalCostCategory_Delete = 'operational-cost-category.delete';
 
+    public const Name_StockAdjustment_Create = 'stock-adjustment.create';
+    public const Name_StockAdjustment_Close = 'stock-adjustment.close';
+    public const Name_StockAdjustment_Cancel = 'stock-adjustment.cancel';
+    public const Name_StockAdjustment_Delete = 'stock-adjustment.delete';
+
     /**
      * Array pemetaan Nama Aktivitas
      */
@@ -225,6 +232,11 @@ class UserActivityLog extends Model
         self::Name_CashierSession_Open => 'Membuka Sesi Kasir',
         self::Name_CashierSession_Close => 'Menutup Sesi Kasir',
         self::Name_CashierSession_Delete => 'Menghapus Sesi Kasir',
+
+        self::Name_StockAdjustment_Create => 'Membuat Penyesuaian Stok',
+        self::Name_StockAdjustment_Close  => 'Menutup Penyesuaian Stok',
+        self::Name_StockAdjustment_Cancel => 'Membatalkan Penyesuaian Stok',
+        self::Name_StockAdjustment_Delete => 'Menghapus Penyesuaian Stok',
     ];
 
     // Kolom yang dapat diisi massal

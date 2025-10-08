@@ -6,12 +6,17 @@ use App\Models\Product;
 use App\Models\StockAdjustment;
 use App\Models\StockAdjustmentDetail;
 use App\Models\StockMovement;
+use App\Models\UserActivityLog;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
 class StockAdjustmentService
 {
+    public function __construct(
+        protected DocumentVersionService $documentVersionService,
+        protected UserActivityLogService $userActivityLogService,
+    ) {}
     /**
      * Mengambil data pergerakan stok dengan pemfilteran dan paginasi.
      */
@@ -108,6 +113,14 @@ class StockAdjustmentService
             }
 
             // TODO: Log Activity and create document version
+            $this->userActivityLogService->log(
+                UserActivityLog::Category_StockAdjustment,
+                UserActivityLog::Name_StockAdjustment_Create,
+                "Penyesuaian stok $item->formatted_id telah dibuat.",
+                [
+                    'data' => $item->toArray(),
+                ]
+            );
 
             return $item;
         });
@@ -153,7 +166,7 @@ class StockAdjustmentService
                         'product_id' => $detail->product_id,
                         'product_name' => $detail->product_name,
                         'uom' => $detail->uom,
-                        'ref_id' => $item->id,
+                        'ref_id' => $detail->id,
                         'ref_type' => StockMovement::RefType_StockAdjustmentDetail,
                         'quantity' => $detail->balance,
                         'quantity_before' => $detail->old_quantity,
@@ -171,7 +184,29 @@ class StockAdjustmentService
             $item->total_price = $total_price;
             $item->save();
 
-            // TODO: Log Activity and create document version
+            if ($item->status === StockAdjustment::Status_Closed) {
+                $this->userActivityLogService->log(
+                    UserActivityLog::Category_StockAdjustment,
+                    UserActivityLog::Name_StockAdjustment_Close,
+                    "Penyesuaian stok $item->formatted_id telah selesai.",
+                    [
+                        'data' => $item->toArray(),
+                    ]
+                );
+
+                $this->documentVersionService->createVersion($item);
+            } else if ($item->status === StockAdjustment::Status_Cancelled) {
+                $this->userActivityLogService->log(
+                    UserActivityLog::Category_StockAdjustment,
+                    UserActivityLog::Name_StockAdjustment_Cancel,
+                    "Penyesuaian stok $item->formatted_id telah dibatalkan.",
+                    [
+                        'data' => $item->toArray(),
+                    ]
+                );
+
+                $this->documentVersionService->createVersion($item);
+            }
 
             return $item;
         });
@@ -183,7 +218,6 @@ class StockAdjustmentService
             if ($item->status == StockAdjustment::Status_Closed) {
                 $details = StockAdjustmentDetail::where('parent_id', $item->id)->get()->keyBy('product_id');
 
-                // Ambil produk terkait
                 $products = Product::whereIn('id', array_keys($details->all()))->get();
 
                 foreach ($products as $product) {
@@ -192,7 +226,7 @@ class StockAdjustmentService
                     $product->save();
 
                     // Hapus stock movement terkait detail ini
-                    DB::delete(
+                    $deleted = DB::delete(
                         'DELETE FROM stock_movements WHERE ref_type = ? AND ref_id = ?',
                         [StockMovement::RefType_StockAdjustmentDetail, $detail->id]
                     );
@@ -203,7 +237,16 @@ class StockAdjustmentService
 
             $item->delete();
 
-            // TODO: Log Activity and create document version
+            $this->userActivityLogService->log(
+                UserActivityLog::Category_StockAdjustment,
+                UserActivityLog::Name_StockAdjustment_Delete,
+                "Penyesuaian stok $item->formatted_id telah dihapus.",
+                [
+                    'data' => $item->toArray(),
+                ]
+            );
+
+            $this->documentVersionService->createVersion($item);
 
             return $item;
         });

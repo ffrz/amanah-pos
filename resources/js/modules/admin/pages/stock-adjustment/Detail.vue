@@ -265,7 +265,15 @@ const print = () => {
                     <template v-else>
                       <div class="text-grey-9">
                         <b>#{{ props.rowIndex + 1 }}</b> -
-                        {{ props.row.product_name }}
+                        <i-link
+                          :href="
+                            route('admin.product.detail', {
+                              id: props.row.product_id,
+                            })
+                          "
+                        >
+                          {{ props.row.product_name }}
+                        </i-link>
                       </div>
                       <div>
                         Stok Lama: {{ formatNumber(props.row.old_quantity) }}
@@ -295,6 +303,19 @@ const print = () => {
                         {{ props.row.notes }}
                       </div>
                     </template>
+                  </q-td>
+                </template>
+                <template v-slot:body-cell-product_name="props">
+                  <q-td :props="props">
+                    <i-link
+                      :href="
+                        route('admin.product.detail', {
+                          id: props.row.product_id,
+                        })
+                      "
+                    >
+                      {{ props.row.product_name }}
+                    </i-link>
                   </q-td>
                 </template>
                 <template v-slot:body-cell-balance="props">

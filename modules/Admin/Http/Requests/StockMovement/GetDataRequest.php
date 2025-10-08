@@ -12,7 +12,7 @@ class GetDataRequest extends DefaultGetDataRequest
     public function rules(): array
     {
         return array_merge(parent::rules(), [
-            'order_by' => 'sometimes|string|in:created_at,product_id'
+            'order_by' => 'sometimes|string|in:id,created_at,product_id'
         ]);
     }
 

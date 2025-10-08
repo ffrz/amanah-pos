@@ -18,11 +18,14 @@ namespace Modules\Admin\Services;
 
 use App\Exceptions\ModelInUseException;
 use App\Exceptions\ModelNotModifiedException;
+use App\Helpers\WhatsAppHelper;
+use App\Models\Customer;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\StockMovement;
 use App\Models\Supplier;
 use App\Models\UserActivityLog;
+use Exception;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -304,5 +307,49 @@ class ProductService
 
             fclose($handle);
         });
+    }
+
+    public function sendPriceList($customer_ids, string $message): array
+    {
+        $customers = Customer::whereIn('id', $customer_ids)->get(['id', 'name', 'phone']);
+
+        if ($customers->isEmpty()) {
+            throw new Exception("Tidak ada pelanggan yang valid untuk dikirimi pesan");
+        }
+
+        $results = [];
+
+        foreach ($customers as $customer) {
+            try {
+                $response = WhatsAppHelper::sendMessage($customer->phone, $message);
+
+                $results[] = [
+                    'customer_id' => $customer->id,
+                    'name'        => $customer->name,
+                    'phone'       => $customer->phone,
+                    'status'      => $response['status'] ? 'success' : 'failed',
+                    'provider'    => $response['data'] ?? $response['message'] ?? null,
+                ];
+
+                // bisa log ke database bila perlu (misal tabel wa_logs)
+            } catch (Exception $e) {
+                Log::error("Gagal kirim WA ke {$customer->phone}: " . $e->getMessage());
+
+                $results[] = [
+                    'customer_id' => $customer->id,
+                    'name'        => $customer->name,
+                    'phone'       => $customer->phone,
+                    'status'      => 'error',
+                    'error'       => $e->getMessage(),
+                ];
+            }
+        }
+
+        return [
+            'total' => count($results),
+            'success' => collect($results)->where('status', 'success')->count(),
+            'failed' => collect($results)->where('status', '!=', 'success')->count(),
+            'data' => $results,
+        ];
     }
 }

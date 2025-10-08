@@ -173,10 +173,13 @@ class ProductController extends Controller
     public function sendPriceList(Request $request)
     {
         if ($request->getMethod() === Request::METHOD_POST) {
+            $result = $this->productService->sendPriceList($request->post('customers', []), $request->post('message', ''));
 
-            return inertia('product/SendPriceList', [
-                
-            ]);
+            if ($result['failed'] > 0) {
+                return redirect()->back()->withInput()->with('error', $result['failed'] . " pesan gagal terkirim.");
+            }
+
+            return redirect()->back()->withInput()->with('success', $result['success'] . " telah terkirim.");
         }
 
         return inertia('product/SendPriceList', [

@@ -37,6 +37,7 @@ class MetaDataFormatterFactory
         'supplier' => SupplierFormatter::class,
         'customer' => CustomerFormatter::class,
         'product' => DefaultFormatter::class,
+        'stock-adjustment' => DefaultFormatter::class,
     ];
 
     /**

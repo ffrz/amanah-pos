@@ -56,7 +56,7 @@ const pagination = ref({
   page: 1,
   rowsPerPage: 10,
   rowsNumber: 10,
-  sortBy: "created_at",
+  sortBy: "id",
   descending: true,
 });
 let columns = [
@@ -79,7 +79,6 @@ let columns = [
     label: "Jenis",
     field: "type",
     align: "left",
-    sortable: true,
   },
   {
     name: "product",
