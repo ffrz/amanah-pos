@@ -16,12 +16,14 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasDocumentVersions;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class CustomerWalletTransactionConfirmation extends BaseModel
 {
-    use HasFactory;
+    use HasFactory,
+        HasDocumentVersions;
 
     protected $table = 'customer_wallet_trx_confirmations';
 
