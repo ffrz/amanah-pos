@@ -16,7 +16,6 @@
 
 namespace Modules\Admin\Http\Controllers;
 
-use App\Helpers\GeneratePdfHelper;
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\SalesOrder;
@@ -37,10 +36,12 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Modules\Admin\Services\SalesOrderService;
 
 class SalesOrderController extends Controller
 {
     public function __construct(
+        protected SalesOrderService $salesOrderService,
         protected FinanceTransactionService $financeTransactionService,
         protected CashierSessionService $cashierSessionService,
     ) {}
