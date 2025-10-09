@@ -65,7 +65,7 @@ const pagination = ref({
   rowsPerPage: 10,
   rowsNumber: 10,
   sortBy: "datetime",
-  descending: false,
+  descending: true,
 });
 
 const columns = [
@@ -139,8 +139,8 @@ watch(
 
 const acceptItem = (row) =>
   handlePost({
-    message: `Setujui konfirmasi transaksi #${row.id}?`,
-    url: route("admin.customer-wallet-transaction-confirmation.save", row.id),
+    message: `Setujui konfirmasi transaksi #${row.formatted_id}?`,
+    url: route("admin.customer-wallet-transaction-confirmation.save"),
     fetchItemsCallback: fetchItems,
     loading,
     data: {
@@ -152,7 +152,7 @@ const acceptItem = (row) =>
 const rejectItem = (row) =>
   handlePost({
     message: `Tolak konfirmasi transaksi #${row.id}?`,
-    url: route("admin.customer-wallet-transaction-confirmation.save", row.id),
+    url: route("admin.customer-wallet-transaction-confirmation.save"),
     fetchItemsCallback: fetchItems,
     loading,
     data: {

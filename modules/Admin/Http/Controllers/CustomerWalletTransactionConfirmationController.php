@@ -3,13 +3,13 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- *
+ * 
  * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- *
+ * 
  * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- *
+ * 
  * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
@@ -41,16 +41,12 @@ class CustomerWalletTransactionConfirmationController extends Controller
 
     public function index()
     {
-        $this->authorize('viewAny', CustomerWalletTransactionConfirmation::class);
-
         return inertia('customer-wallet-transaction-confirmation/Index', []);
     }
 
     public function detail($id)
     {
         $item = $this->service->find($id);
-
-        $this->authorize('view', $item);
 
         return inertia('customer-wallet-transaction-confirmation/Detail', [
             'data' => $item
@@ -59,8 +55,6 @@ class CustomerWalletTransactionConfirmationController extends Controller
 
     public function data(GetDataRequest $request)
     {
-        $this->authorize('viewAny', CustomerWalletTransactionConfirmation::class);
-
         $items = $this->service->getData($request->validated())->withQueryString();
 
         return JsonResponseHelper::success($items);
@@ -69,8 +63,6 @@ class CustomerWalletTransactionConfirmationController extends Controller
     public function save(SaveRequest $request)
     {
         $item = $this->service->find($request->id);
-
-        $this->authorize($request->action, $item);
 
         if ($item->status != CustomerWalletTransactionConfirmation::Status_Pending) {
             throw new BusinessRuleViolationException('Transaksi yang telah selesai tidak dapat diubah.');
@@ -89,8 +81,6 @@ class CustomerWalletTransactionConfirmationController extends Controller
     public function delete($id)
     {
         $item = $this->service->find($id);
-
-        $this->authorize('delete', $item);
 
         $item = $this->service->delete($item);
 

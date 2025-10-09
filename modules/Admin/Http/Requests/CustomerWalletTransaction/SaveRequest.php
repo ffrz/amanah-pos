@@ -14,8 +14,9 @@
  * Email: fahmifauzirahman@gmail.com
  */
 
-namespace Modules\Admin\Http\Requests\CustomerWalletTransactionConfirmation;
+namespace Modules\Admin\Http\Requests\CustomerWalletTransaction;
 
+use App\Models\CustomerWalletTransaction;
 use Illuminate\Foundation\Http\FormRequest;
 
 class SaveRequest extends FormRequest
@@ -27,11 +28,16 @@ class SaveRequest extends FormRequest
      */
     public function rules()
     {
-        $id = $this->route('id') ?? $this->input('id');
-
         return [
-            'id' => 'nullable|integer|exists:finance_accounts,id',
-            'action' => 'required|string|in:accept,reject'
+            'id' => 'nullable|integer|exists:customer_wallet_transactions,id',
+            'customer_id' => 'required|exists:customers,id',
+            'finance_account_id' => 'sometimes|nullable|exists:finance_accounts,id',
+            'datetime'   => 'required|date',
+            'type'       => 'required|in:' . implode(',', array_keys(CustomerWalletTransaction::Types)),
+            'amount'     => 'required|numeric|min:0.01',
+            'image_path' => 'nullable|string',
+            'image'      => 'nullable|image|max:15120',
+            'notes'      => 'nullable|string|max:255',
         ];
     }
 
@@ -42,6 +48,11 @@ class SaveRequest extends FormRequest
     {
         $this->merge([
             'id' => $this->id ?? null,
+            'customer_id' => $this->customer_id ?? null,
+            'finance_account_id' => $this->finance_account_id ?? null,
+            'image_path' => $this->image_path ?? '',
+            'image' => $this->image ?? null,
+            'notes' => $this->notes ?? '',
         ]);
     }
 }

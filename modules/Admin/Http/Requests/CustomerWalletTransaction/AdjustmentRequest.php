@@ -14,37 +14,38 @@
  * Email: fahmifauzirahman@gmail.com
  */
 
-namespace Modules\Admin\Http\Requests\User;
+namespace Modules\Admin\Http\Requests\CustomerWalletTransaction;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Auth;
 
-class UpdateProfileRequest extends FormRequest
+class AdjustmentRequest extends FormRequest
 {
     /**
-     * Dapatkan aturan validasi yang berlaku untuk request.
+     * Dapatkan aturan validasi yang berlaku untuk permintaan.
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array|string>
      */
-    public function rules(): array
+    public function rules()
     {
+        if ($this->isMethod('GET')) return [];
+
         return [
-            // Aturan untuk pembaruan nama profil
-            'name' => 'required|string|min:2|max:100',
+            'id' => 'nullable|integer|exists:customer_wallet_transactions,id',
+            'customer_id' => 'required|exists:customers,id',
+            'new_wallet_balance' => 'required|numeric',
+            'notes' => 'nullable|string|max:255',
         ];
     }
 
     /**
-     * Dapatkan pesan kesalahan yang disesuaikan untuk aturan validasi tertentu.
-     *
-     * @return array
+     * Siapkan data untuk validasi.
      */
-    public function messages(): array
+    protected function prepareForValidation()
     {
-        return [
-            'name.required' => 'Nama wajib diisi.',
-            'name.min' => 'Nama minimal harus terdiri dari :min karakter.',
-            'name.max' => 'Nama maksimal harus terdiri dari :max karakter.',
-        ];
+        $this->merge([
+            'id' => $this->id ?? null,
+            'customer_id' => $this->customer_id ?? null,
+            'notes' => $this->notes ?? '',
+        ]);
     }
 }

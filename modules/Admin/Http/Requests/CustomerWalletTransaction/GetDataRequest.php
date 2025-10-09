@@ -14,15 +14,24 @@
  * Email: fahmifauzirahman@gmail.com
  */
 
-namespace Modules\Admin\Features\UserActivityLog\Contracts;
+namespace Modules\Admin\Http\Requests\CustomerWalletTransaction;
 
-interface MetaDataFormatterInterface
+use Modules\Admin\Http\Requests\DefaultGetDataRequest;
+
+class GetDataRequest extends DefaultGetDataRequest
 {
+
     /**
-     * Memproses array metadata (dari JSON) menjadi format array [Label => Value] siap tampil.
+     * Dapatkan aturan validasi yang berlaku untuk permintaan.
      *
-     * @param array $metaData Data metadata yang sudah di-decode.
-     * @return array
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array|string>
      */
-    public function format(array $metaData): array;
+    public function rules(): array
+    {
+        $rules = parent::rules();
+
+        return array_merge($rules, [
+            'order_by'  => 'nullable|string|in:id,datetime',
+        ]);
+    }
 }
