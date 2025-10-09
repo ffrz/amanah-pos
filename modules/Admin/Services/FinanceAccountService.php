@@ -21,6 +21,7 @@ use App\Models\FinanceAccount;
 use App\Models\FinanceTransaction;
 use App\Models\UserActivityLog;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
 class FinanceAccountService
@@ -195,5 +196,18 @@ class FinanceAccountService
         $q->orderBy($orderBy, $orderType);
 
         return $q->paginate($perPage)->withQueryString();
+    }
+
+    public function getFinanceAccounts(): Collection
+    {
+        return FinanceAccount::where('active', '=', true)
+            ->where(function ($query) {
+                $query->where('type', '=', FinanceAccount::Type_Cash)
+                    ->orWhere('type', '=', FinanceAccount::Type_Bank)
+                    ->orWhere('type', '=', FinanceAccount::Type_PettyCash);
+            })
+            ->where('show_in_pos_payment', '=', true)
+            ->orderBy('name')
+            ->get();
     }
 }

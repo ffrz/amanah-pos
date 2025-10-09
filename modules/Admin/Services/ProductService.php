@@ -27,6 +27,7 @@ use App\Models\Supplier;
 use App\Models\UserActivityLog;
 use Exception;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -358,5 +359,30 @@ class ProductService
         $lockedProduct = Product::where('id', $product->id)->lockForUpdate()->firstOrFail();
         $lockedProduct->stock += $quantity;
         $lockedProduct->save();
+    }
+
+    public function findProductByCodeOrId(array $data)
+    {
+        $product = null;
+        $productCode = $data['product_code'] ?? null;
+        $productId = $data['product_id'] ?? null;
+
+        if ($productId) {
+            $product = Product::find($productId);
+        } elseif ($productCode) {
+            // cari berdasarkan barcode
+            $product = Product::where('barcode', '=', $productCode)->first();
+
+            // kalo belum ketemu cari berdasarkan nama produk
+            if (!$product) {
+                $product = Product::where('name', '=', $productCode)->first();
+            }
+        }
+
+        if (!$product) {
+            throw new ModelNotFoundException('Produk tidak ditemukan.');
+        }
+
+        return $product;
     }
 }

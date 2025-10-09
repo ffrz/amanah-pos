@@ -207,7 +207,5 @@ class PurchaseOrder extends BaseModel
         } else {
             $this->payment_status = self::PaymentStatus_Unpaid;
         }
-
-        $this->save();
     }
 }

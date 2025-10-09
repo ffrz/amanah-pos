@@ -21,12 +21,6 @@ use App\Models\FinanceAccount;
 use App\Models\FinanceTransaction;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderPayment;
-use App\Models\StockMovement;
-use App\Models\Supplier;
-use App\Models\UserActivityLog;
-use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
 class PurchaseOrderPaymentService
@@ -38,7 +32,7 @@ class PurchaseOrderPaymentService
         return PurchaseOrderPayment::with(['order', 'order.supplier'])->findOrFail($id);
     }
 
-    public function addPayment(PurchaseOrder $order, array $payments): void
+    public function addPayments(PurchaseOrder $order, array $payments): void
     {
         if ($order->remaining_debt <= 0) {
             throw new BusinessRuleViolationException('Pesanan ini sudah lunas.');
@@ -94,6 +88,7 @@ class PurchaseOrderPaymentService
             }
 
             $order->applyPaymentUpdate($totalPaidAmount);
+            $order->save();
         });
     }
 
