@@ -3,13 +3,13 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
+ *
  * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
+ *
  * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
+ *
  * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
@@ -351,5 +351,12 @@ class ProductService
             'failed' => collect($results)->where('status', '!=', 'success')->count(),
             'data' => $results,
         ];
+    }
+
+    public function addToStock(Product $product, $quantity)
+    {
+        $lockedProduct = Product::where('id', $product->id)->lockForUpdate()->firstOrFail();
+        $lockedProduct->stock += $quantity;
+        $lockedProduct->save();
     }
 }

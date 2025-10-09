@@ -103,7 +103,7 @@ const onBeforeShow = () => {
         />
         <LocaleNumberInput
           v-model="item.cost"
-          label="Harga"
+          label="Modal / Harga Beli"
           hide-bottom-space
           :disable="isProcessing"
         />

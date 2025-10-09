@@ -3,23 +3,26 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
+ *
  * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
+ *
  * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
+ *
  * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
 
 namespace App\Models;
 
+use App\Models\Traits\HasDocumentVersions;
 use Carbon\Carbon;
 
 class PurchaseOrder extends BaseModel
 {
+    use HasDocumentVersions;
+
     protected $fillable = [
         'supplier_id',
         'supplier_name',
@@ -183,5 +186,28 @@ class PurchaseOrder extends BaseModel
     public function supplier()
     {
         return $this->belongsTo(Supplier::class);
+    }
+
+    public function updateTotals(): void
+    {
+        $this->total = $this->details()->sum('subtotal_cost');
+        $this->grand_total = $this->total; // + pajak, - diskon, dll.
+    }
+
+    public function applyPaymentUpdate(float $amountDelta): void
+    {
+        $this->total_paid += $amountDelta;
+
+        $this->remaining_debt = max(0, $this->grand_total - $this->total_paid);
+
+        if ($this->total_paid >= $this->grand_total) {
+            $this->payment_status = self::PaymentStatus_FullyPaid;
+        } else if ($this->total_paid > 0) {
+            $this->payment_status = self::PaymentStatus_PartiallyPaid;
+        } else {
+            $this->payment_status = self::PaymentStatus_Unpaid;
+        }
+
+        $this->save();
     }
 }

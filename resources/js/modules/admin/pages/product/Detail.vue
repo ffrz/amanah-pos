@@ -39,6 +39,30 @@ const tab = ref("main");
           @click="
             router.get(route('admin.product.edit', { id: page.props.data.id }))
           "
+          title="Edit produk"
+        />
+        <q-btn
+          v-if="$can('admin.product.add')"
+          icon="content_copy"
+          size="sm"
+          dense
+          flat
+          rounded
+          color="grey"
+          @click="
+            router.get(route('admin.product.edit', { id: page.props.data.id }))
+          "
+          title="Duplikat produk"
+        />
+        <q-btn
+          v-if="$can('admin.product.add')"
+          icon="add"
+          size="sm"
+          dense
+          rounded
+          color="primary"
+          @click="router.get(route('admin.product.add'))"
+          title="Tambah produk baru"
         />
       </div>
     </template>

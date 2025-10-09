@@ -3,13 +3,13 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
+ *
  * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
+ *
  * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
+ *
  * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
@@ -41,6 +41,8 @@ use Modules\Admin\Policies\OnlyAuthorPolicy;
 use Modules\Admin\Policies\OperationalCostCategoryPolicy;
 use Modules\Admin\Policies\OperationalCostPolicy;
 use Modules\Admin\Policies\ProductCategoryPolicy;
+use Modules\Admin\Policies\PurchaseOrderPolicy;
+use Modules\Admin\Policies\SalesOrderPolicy;
 use Modules\Admin\Policies\UserPolicy;
 use Spatie\Permission\Models\Role;
 
@@ -66,9 +68,9 @@ class AuthServiceProvider extends ServiceProvider
         FinanceTransaction::class => DefaultPolicy::class,
         StockAdjustment::class => DefaultPolicy::class,
         StockMovement::class => DefaultPolicy::class,
-        SalesOrder::class => DefaultPolicy::class,
+        SalesOrder::class => SalesOrderPolicy::class,
         SalesOrderPayment::class => DefaultPolicy::class,
-        PurchaseOrder::class => DefaultPolicy::class,
+        PurchaseOrder::class => PurchaseOrderPolicy::class,
         PurchaseOrderPayment::class => DefaultPolicy::class,
         CustomerWalletTransactionConfirmation::class => DefaultPolicy::class,
     ];

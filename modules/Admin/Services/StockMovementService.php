@@ -3,13 +3,13 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
+ *
  * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
+ *
  * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
+ *
  * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
@@ -63,5 +63,25 @@ class StockMovementService
         $q->orderBy($options['order_by'], $options['order_type']);
 
         return $q->paginate($options['per_page']);
+    }
+
+    public function findByRef(int $ref_id, string $ref_type): StockMovement
+    {
+        $item = StockMovement::where('ref_id', $ref_id)
+            ->where('ref_type', $ref_type)
+            ->get();
+
+        return $item;
+    }
+
+    public function deleteByRef(int $ref_id, string $ref_type): StockMovement
+    {
+        $item = $this->findByRef($ref_id, $ref_type);
+
+        if ($item) {
+            $item->delete();
+        }
+
+        return $item;
     }
 }
