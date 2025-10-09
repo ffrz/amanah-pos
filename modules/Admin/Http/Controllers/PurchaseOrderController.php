@@ -121,6 +121,8 @@ class PurchaseOrderController extends Controller
 
     public function addItem(Request $request)
     {
+        // TODO: Pindahkan ke Request khusus agar ada validasi lanjutan
+
         $order = $this->service->findOrderOrFail($request->post('order_id'));
 
         $this->authorize('update', $order);
@@ -136,6 +138,8 @@ class PurchaseOrderController extends Controller
 
     public function updateItem(Request $request)
     {
+        // TODO: Pindahkan ke Request khusus agar ada validasi lanjutan
+
         $item = $this->service->findOrderDetailOrFail($request->id);
 
         $this->authorize('update', $item->parent);
@@ -169,6 +173,7 @@ class PurchaseOrderController extends Controller
 
     public function addPayment(Request $request)
     {
+        // TODO: Pindahkan ke Request khusus agar ada validasi lanjutan
         $order = $this->service->findOrderOrFail($request->post('order_id'));
 
         $this->authorize('update', $order);
