@@ -171,21 +171,20 @@ class PurchaseOrderService
                 continue;
             }
 
-            $quantity = $detail->quantity;
-            StockMovement::create([
+            $product = $detail->product;
+
+            $this->stockMovementService->processStockIn([
                 'product_id'      => $detail->product_id,
                 'product_name'    => $detail->product_name,
                 'uom'             => $detail->product_uom,
                 'ref_id'          => $detail->id,
                 'ref_type'        => StockMovement::RefType_PurchaseOrderDetail,
-                'quantity'        => $quantity,
-                'quantity_before' => $detail->product->stock,
-                'quantity_after'  => $detail->product->stock + $quantity,
+                'quantity'        => $detail->quantity,
+                'quantity_before' => $product->stock,
+                'quantity_after'  => $product->stock + $detail->quantity,
                 'notes'           => "Transaksi pembelian #$order->formatted_id",
             ]);
 
-            $product = Product::where('id', $detail->product_id)->lockForUpdate()->firstOrFail();
-            $product->stock += $quantity; // increment
             $product->cost = $detail->cost;
             $product->save();
         }
@@ -195,15 +194,19 @@ class PurchaseOrderService
     {
         DB::transaction(function () use ($order, $data) {
             $this->updateTotalAndValidateClientTotal($order, $data['total'] ?? 0);
-
-            $this->paymentService->addPayments($order, $data['payments'] ?? []);
-
-            // TODO: Perbarui jika dibutuhkan karena sat ini gak support delivery order,
-            // jadi status langsung diambil tanpa harus seting di order
             $order->delivery_status = PurchaseOrder::DeliveryStatus_PickedUp;
             $order->status = PurchaseOrder::Status_Closed;
             $order->due_date = $data['due_date'] ?? null;
             $order->save();
+
+            if ($order->supplier_id) {
+                // di awal kita catat sebagai utang dulu
+                // Utang ke supplier adalah nilai positif (menambah saldo utang)
+                $this->supplierService->addToBalance($order->supplier, abs($order->grand_total));
+            }
+
+            // saat payment, utang akan dikurangi otomatis
+            $this->paymentService->addPayments($order, $data['payments'] ?? []);
 
             $this->processPurchaseOrderStockIn($order);
 
@@ -221,52 +224,44 @@ class PurchaseOrderService
         });
     }
 
-    public function deleteOrder(PurchaseOrder $item): PurchaseOrder
+    public function deleteOrder(PurchaseOrder $order): PurchaseOrder
     {
-        return DB::transaction(function () use ($item) {
-            if ($item->status == PurchaseOrder::Status_Closed) {
-                // refund stok
-                foreach ($item->details as $detail) {
+        return DB::transaction(function () use ($order) {
+            if ($order->status == PurchaseOrder::Status_Closed) {
+                foreach ($order->details as $detail) {
                     $this->productService->addToStock($detail->product, -abs($detail->quantity));
                     $this->stockMovementService->deleteByRef($detail->id, StockMovement::RefType_PurchaseOrderDetail);
                 }
 
-                // refund saldo
-                foreach ($item->payments as $payment) {
-                    if (
-                        $payment->type == PurchaseOrderPayment::Type_Transfer
-                        || $payment->type == PurchaseOrderPayment::Type_Cash
-                    ) {
-                        $this->financeTransactionService->reverseTransaction(
-                            $payment->id,
-                            FinanceTransaction::RefType_PurchaseOrderPayment
-                        );
-                    }
-
-                    $payment->delete();
+                // TODO: pastikan delete order sesuai, membersihkan payment dan membuang utang
+                // pemanggilan fungsi ini belum teruji, apakah benar tidak double entry (dua kali potong saldo)
+                // masalahnya disini saldo malah dibuang, secara logika ini membuang utang, tapi di delete payment menambah utang
+                // maka hasilnya jadi seimbang lagi.
+                if ($order->supplier_id && $order->payment_status !== PurchaseOrder::PaymentStatus_FullyPaid) {
+                    $this->supplierService->addToBalance($order->supplier, -abs($order->grand_total));
                 }
 
-                // jika ada supplier kurangi utang di supplier
-                if ($item->remaining_debt > 0 && $item->supplier_id) {
-                    $this->supplierService->addToBalance($item->supplier, -abs($item->total_paid));
+                foreach ($order->payments as $payment) {
+                    // ketika payment dihapus, kalau supplier_id diset otomatis jadi utang
+                    $this->paymentService->deletePayment($payment);
                 }
             }
 
-            $item->delete();
+            $order->delete();
 
-            $this->documentVersionService->createDeletedVersion($item);
+            $this->documentVersionService->createDeletedVersion($order);
 
             $this->userActivityLogService->log(
                 UserActivityLog::Category_PurchaseOrder,
                 UserActivityLog::Name_PurchaseOrder_Delete,
-                "Order pembelian $item->formatted_id telah dihapus.",
+                "Order pembelian $order->formatted_id telah dihapus.",
                 [
-                    'data' => $item->toArray(),
+                    'data' => $order->toArray(),
                     'formatter' => 'puchase-order',
                 ]
             );
 
-            return $item;
+            return $order;
         });
     }
 

@@ -96,4 +96,9 @@ class FinanceAccount extends BaseModel
     {
         return $this->hasOne(CashierTerminal::class, 'finance_account_id');
     }
+
+    public static function incrementBalance($id, $amount)
+    {
+        FinanceAccount::where('id', $id)->increment('balance', abs($amount));
+    }
 }

@@ -16,6 +16,7 @@
 
 namespace Modules\Admin\Services;
 
+use App\Models\Product;
 use App\Models\StockMovement;
 
 use Modules\Admin\Http\Requests\StockMovement\GetDataRequest;
@@ -81,6 +82,17 @@ class StockMovementService
         if ($item) {
             $item->delete();
         }
+
+        return $item;
+    }
+
+    public function processStockIn(array $data)
+    {
+        $item = StockMovement::create($data);
+
+        $product = Product::where('id', $data['product_id'])->lockForUpdate()->firstOrFail();
+        $product->stock += $data['quantity'];
+        $product->save();
 
         return $item;
     }
