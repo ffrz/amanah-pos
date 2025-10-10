@@ -23,15 +23,15 @@ use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderPayment;
 use Illuminate\Support\Facades\DB;
 
-class PurchaseOrderPaymentService
+class SalesOrderPaymentService
 {
     public function __construct(
-        protected SupplierService $supplierService
+        protected CustomerService $customerService
     ) {}
 
     public function findOrFail(int $id)
     {
-        return PurchaseOrderPayment::with(['order', 'order.supplier'])->findOrFail($id);
+        return PurchaseOrderPayment::with(['order', 'order.customer'])->findOrFail($id);
     }
 
     public function addPayments(PurchaseOrder $order, array $payments): void
@@ -56,7 +56,7 @@ class PurchaseOrderPaymentService
 
                 $this->processFinancialRecords($payment);
 
-                $this->updateSupplierDebtOnPayment($payment);
+                $this->updateCustomerDebtOnPayment($payment);
             }
 
             $order->applyPaymentUpdate($totalPaidAmount);
@@ -68,9 +68,6 @@ class PurchaseOrderPaymentService
     public function deletePayment(PurchaseOrderPayment $payment): void
     {
         DB::transaction(function () use ($payment) {
-            /**
-             * @var PurchaseOrder
-             */
             $order = $payment->order;
 
             if ($order->status !== PurchaseOrder::Status_Closed) {
@@ -79,12 +76,11 @@ class PurchaseOrderPaymentService
 
             $this->reverseFinancialRecords($payment);
 
-            $this->reverseSupplierDebtOnPaymentDeletion($payment);
+            $this->reverseCustomerDebtOnPaymentDeletion($payment);
 
             $payment->delete();
 
             $order->applyPaymentUpdate(-$payment->amount);
-            $order->save();
         });
     }
 
@@ -100,7 +96,7 @@ class PurchaseOrderPaymentService
         $payment = new PurchaseOrderPayment([
             'order_id' => $order->id,
             'finance_account_id' => $accountId,
-            'supplier_id' => $order->supplier?->id,
+            'customer_id' => $order->customer?->id,
             'type' => $accountId ? PurchaseOrderPayment::Type_Transfer : PurchaseOrderPayment::Type_Cash,
             'amount' => $amount,
         ]);
@@ -135,14 +131,14 @@ class PurchaseOrderPaymentService
     }
 
     /**
-     * Memperbarui saldo utang supplier saat pembayaran diterima.
+     * Memperbarui saldo utang customer saat pembayaran diterima.
      */
-    private function updateSupplierDebtOnPayment(PurchaseOrderPayment $payment): void
+    private function updateCustomerDebtOnPayment(PurchaseOrderPayment $payment): void
     {
-        if (!$payment->order->supplier_id) return;
+        if (!$payment->order->customer_id) return;
 
-        // Pembayaran mengurangi utang, jadi nilainya positif
-        $this->supplierService->addToBalance($payment->order->supplier, abs($payment->amount));
+        // Pembayaran mengurangi utang, jadi nilainya negatif
+        $this->customerService->addToBalance($payment->order->customer, -abs($payment->amount));
     }
 
     /**
@@ -158,11 +154,12 @@ class PurchaseOrderPaymentService
     }
 
     /**
-     * Membalikkan utang supplier saat pembayaran dihapus.
+     * Membalikkan utang customer saat pembayaran dihapus.
      */
-    private function reverseSupplierDebtOnPaymentDeletion(PurchaseOrderPayment $payment): void
+    private function reverseCustomerDebtOnPaymentDeletion(PurchaseOrderPayment $payment): void
     {
-        if (!$payment->order->supplier_id) return;
-        $this->supplierService->addToBalance($payment->order->supplier, -abs($payment->amount));
+        if (!$payment->order->customer_id) return;
+
+        $this->customerService->addToBalance($payment->order->customer, abs($payment->amount));
     }
 }

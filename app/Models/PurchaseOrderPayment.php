@@ -37,7 +37,7 @@ class PurchaseOrderPayment extends BaseModel
     const Type_Cash = 'cash';
 
     const Types = [
-        self::Type_Transfer => 'Transfer',
+        self::Type_Transfer => 'Akun Kas',
         self::Type_Cash => 'Tunai',
     ];
 

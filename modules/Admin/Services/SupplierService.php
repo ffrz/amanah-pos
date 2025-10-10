@@ -31,9 +31,10 @@ class SupplierService
 
     public function addToBalance(Supplier $supplier, $balance)
     {
-        $supplier = Supplier::where('id', $supplier->id)->lockForUpdate()->firstOrFail();
-        $supplier->balance += $balance;
-        $supplier->save();
+        $lockedSupplier = Supplier::where('id', $supplier->id)->lockForUpdate()->firstOrFail();
+        $lockedSupplier->balance += $balance;
+        $lockedSupplier->save();
+        return $lockedSupplier;
     }
 
     public function find(int $id): Supplier

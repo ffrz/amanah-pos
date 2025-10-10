@@ -165,7 +165,7 @@ const deletePayment = (payment) => {
               </div>
               <div class="q-mt-xs">
                 <q-badge
-                  :label="$CONSTANTS.SALES_ORDER_PAYMENT_TYPES[item.type]"
+                  :label="$CONSTANTS.PURCHASE_ORDER_PAYMENT_TYPES[item.type]"
                   color="secondary"
                   class="q-py-xs"
                 />
@@ -182,7 +182,7 @@ const deletePayment = (payment) => {
               style="border-bottom: 1px solid #eee"
             >
               <q-btn
-                v-if="$can('admin.sales-order.delete-payment')"
+                v-if="$can('admin.purchase-order.delete-payment')"
                 icon="delete"
                 color="negative"
                 dense
@@ -202,7 +202,8 @@ const deletePayment = (payment) => {
             <td class="q-pa-sm">
               <q-btn
                 v-if="
-                  $can('admin.sales-order.add-payment') && remainingPayment > 0
+                  $can('admin.purchase-order.add-payment') &&
+                  remainingPayment > 0
                 "
                 label="Tambah"
                 color="primary"

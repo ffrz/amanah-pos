@@ -17,17 +17,14 @@
 namespace Modules\Admin\Services;
 
 use App\Exceptions\BusinessRuleViolationException;
-use App\Models\FinanceAccount;
-use App\Models\FinanceTransaction;
+
 use App\Models\Product;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderDetail;
-use App\Models\PurchaseOrderPayment;
 use App\Models\StockMovement;
 use App\Models\Supplier;
 use App\Models\UserActivityLog;
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
@@ -101,16 +98,18 @@ class PurchaseOrderService
     {
         $this->ensureOrderIsEditable($item);
 
-        $supplier = $data['supplier_id'] ? Supplier::findOrFail($data['supplier_id']) : null;
+        if (isset($data['supplier_id'])) {
+            $supplier = $data['supplier_id'] ? Supplier::findOrFail($data['supplier_id']) : null;
 
-        // WARNING: logika ini perlu diperbarui jika mendukung customization di frontend
-        // saat ini info supplier selalu diperbarui dari data supplier
-        // karena frontend tidak mendukung customization
-        if ($supplier) {
-            $item->supplier_id      = $supplier->id;
-            $item->supplier_name    = $supplier->name;
-            $item->supplier_phone   = $supplier->phone;
-            $item->supplier_address = $supplier->address;
+            // WARNING: logika ini perlu diperbarui jika mendukung customization di frontend
+            // saat ini info supplier selalu diperbarui dari data supplier
+            // karena frontend tidak mendukung customization
+            if ($supplier) {
+                $item->supplier_id      = $supplier->id;
+                $item->supplier_name    = $supplier->name;
+                $item->supplier_phone   = $supplier->phone;
+                $item->supplier_address = $supplier->address;
+            }
         }
 
         $item->notes = $data['notes'];
@@ -118,7 +117,8 @@ class PurchaseOrderService
 
         return DB::transaction(function () use ($item) {
             $item->save();
-            // kita tidak penyimpanan ini untuk menghemat ruang dan meminimalisir interaksi database
+            // kita tidak mencatat log dan lacak version di penyimpanan ini
+            // untuk menghemat ruang dan meminimalisir interaksi database
             return $item;
         });
     }
@@ -194,15 +194,17 @@ class PurchaseOrderService
     {
         DB::transaction(function () use ($order, $data) {
             $this->updateTotalAndValidateClientTotal($order, $data['total'] ?? 0);
+
+            $order->remaining_debt = $order->grand_total;
+            $order->due_date = $data['due_date'] ?? null;
             $order->delivery_status = PurchaseOrder::DeliveryStatus_PickedUp;
             $order->status = PurchaseOrder::Status_Closed;
-            $order->due_date = $data['due_date'] ?? null;
             $order->save();
 
             if ($order->supplier_id) {
                 // di awal kita catat sebagai utang dulu
-                // Utang ke supplier adalah nilai positif (menambah saldo utang)
-                $this->supplierService->addToBalance($order->supplier, abs($order->grand_total));
+                // Utang ke supplier adalah nilai negatif
+                $this->supplierService->addToBalance($order->supplier, -abs($order->grand_total));
             }
 
             // saat payment, utang akan dikurangi otomatis
@@ -230,6 +232,7 @@ class PurchaseOrderService
             if ($order->status == PurchaseOrder::Status_Closed) {
                 foreach ($order->details as $detail) {
                     $this->productService->addToStock($detail->product, -abs($detail->quantity));
+                    
                     $this->stockMovementService->deleteByRef($detail->id, StockMovement::RefType_PurchaseOrderDetail);
                 }
 
@@ -238,7 +241,7 @@ class PurchaseOrderService
                 // masalahnya disini saldo malah dibuang, secara logika ini membuang utang, tapi di delete payment menambah utang
                 // maka hasilnya jadi seimbang lagi.
                 if ($order->supplier_id && $order->payment_status !== PurchaseOrder::PaymentStatus_FullyPaid) {
-                    $this->supplierService->addToBalance($order->supplier, -abs($order->grand_total));
+                    $this->supplierService->addToBalance($order->supplier, abs($order->grand_total));
                 }
 
                 foreach ($order->payments as $payment) {

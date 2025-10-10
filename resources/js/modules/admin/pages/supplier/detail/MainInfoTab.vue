@@ -41,15 +41,11 @@ const page = usePage();
       </tr>
       <tr>
         <td>
-          {{ page.props.data.actual_balance < 0 ? "Utang" : "Utang / Piutang" }}
+          {{ page.props.data.balance < 0 ? "Utang" : "Utang / Piutang" }}
         </td>
         <td>:</td>
-        <td
-          :class="
-            page.props.data.actual_balance < 0 ? 'text-red' : 'text-green'
-          "
-        >
-          {{ formatMoneyWithSymbol(page.props.data.actual_balance) }}
+        <td :class="page.props.data.balance < 0 ? 'text-red' : 'text-green'">
+          {{ formatMoneyWithSymbol(page.props.data.balance) }}
         </td>
       </tr>
       <tr v-if="page.props.data.phone_1">

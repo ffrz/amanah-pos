@@ -31,183 +31,241 @@ use App\Models\StockMovement;
 use Modules\Admin\Services\CashierSessionService;
 use Modules\Admin\Services\FinanceTransactionService;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Modules\Admin\Http\Requests\SalesOrder\GetDataRequest;
+use Modules\Admin\Http\Requests\SalesOrder\SaveRequest;
+use Modules\Admin\Services\FinanceAccountService;
 use Modules\Admin\Services\SalesOrderService;
 
 class SalesOrderController extends Controller
 {
     public function __construct(
-        protected SalesOrderService $salesOrderService,
+        protected SalesOrderService $service,
         protected FinanceTransactionService $financeTransactionService,
         protected CashierSessionService $cashierSessionService,
+        protected FinanceAccountService $financeAccountService,
     ) {}
 
     public function index()
     {
+        $this->authorize("viewAny", SalesOrder::class);
         return inertia('sales-order/Index');
     }
 
-    public function data(Request $request)
+    public function data(GetDataRequest $request)
     {
-        $orderBy = $request->get('order_by', 'datetime');
-        $orderType = $request->get('order_type', 'desc');
-        $filter = $request->get('filter', []);
-
-        $q = SalesOrder::with(['customer', 'details', 'details.product', 'cashier', 'cashierSession.cashierTerminal']);
-
-        if (!empty($filter['search'])) {
-            $q->where(function ($q) use ($filter) {
-                $q->orWhere('notes', 'like', '%' . $filter['search'] . '%');
-                $q->orWhere('customer_code', 'like', '%' . $filter['search'] . '%');
-                $q->orWhere('customer_name', 'like', '%' . $filter['search'] . '%');
-                $q->orWhere('customer_phone', 'like', '%' . $filter['search'] . '%');
-                $q->orWhere('customer_address', 'like', '%' . $filter['search'] . '%');
-            });
-
-            $q->orWhereHas('details.product', function ($q) use ($filter) {
-                $q->where('name', 'like', "%" . $filter['search'] . "%")
-                    ->orWhere('barcode', 'like', "%" . $filter['search'] . "%");
-            });
-        }
-
-        if (!empty($filter['status']) && $filter['status'] != 'all') {
-            if (!is_array($filter['status'])) {
-                $filter['status'] = [$filter['status']];
-            }
-
-            $statuses = $filter['status'];
-            $q->where(function ($q) use ($statuses) {
-                foreach ($statuses as $status) {
-                    $q->orWhere('status', '=', $status);
-                }
-            });
-        }
-
-        if (!empty($filter['payment_status']) && $filter['payment_status'] != 'all') {
-            $q->where('payment_status', '=', $filter['payment_status']);
-        }
-
-        if (!empty($filter['delivery_status']) && $filter['delivery_status'] != 'all') {
-            $q->where('delivery_status', '=', $filter['delivery_status']);
-        }
-
-        if (!empty($filter['year']) && $filter['year'] !== 'all') {
-            $q->whereYear('datetime', $filter['year']);
-
-            if (!empty($filter['month']) && $filter['month'] !== 'all') {
-                $q->whereMonth('datetime', $filter['month']);
-            }
-        }
-
-        if (!empty($filter['customer_id']) && $filter['customer_id'] !== 'all') {
-            $q->where('customer_id', $filter['customer_id']);
-        }
-
-        if (!empty($filter['cashier_session_id']) && $filter['cashier_session_id'] !== 'all') {
-            $q->where('cashier_session_id', $filter['cashier_session_id']);
-        }
-
-        // $q->select(['id', 'total_price', 'datetime', 'status', 'payment_status', 'delivery_status'])
-        $q->orderBy($orderBy, $orderType);
-
-        $items = $q->paginate($request->get('per_page', 10))->withQueryString();
-
-        return response()->json($items);
+        $this->authorize("viewAny", SalesOrder::class);
+        $orders = $this->service->getData($request->validated())->withQueryString();
+        return JsonResponseHelper::success($orders);
     }
 
     public function editor($id = 0)
     {
         if (!$id) {
-            $item = new SalesOrder([
-                'type' => SalesOrder::Type_Pickup,
-                'datetime' => Carbon::now(),
-                'status' => SalesOrder::Status_Draft,
-                'payment_status' => SalesOrder::PaymentStatus_Unpaid,
-                'delivery_status' => SalesOrder::DeliveryStatus_ReadyForPickUp,
-            ]);
-            $item->cashier_id = Auth::user()->id;
-            $item->save();
-            return redirect(route('admin.sales-order.edit', $item->id));
+            $this->authorize("create", SalesOrder::class);
+            $order = $this->service->createOrder();
+            return redirect(route('admin.sales-order.edit', $order->id));
         }
 
-        $item = SalesOrder::with(['details', 'customer'])->findOrFail($id);
-
-
-        // FIX ME: Jika mau aktifkan reopen order, tangani bagian ini
-        if ($item->status !== SalesOrder::Status_Draft) {
-            // TODO: untuk reopen order, harusnya ada nilai yang dikirim client misal action=reopen
-            // agar lebih eksplisit, untuk MVP reopen tidak support
-            abort(403, 'Transaksi sudah tidak dapat diubah');
-            return;
-
-            // reopen order jika sudah bukan draft
-            if ($item->status === SalesOrder::Status_Closed) {
-                $item->status = SalesOrder::Status_Draft;
-                // TODO: kembalikan stok jika sudah ditutup, atau tolak kalau tidak boleh reopen
-                $item->save();
-            } else if ($item->status === SalesOrder::Status_Canceled) {
-                $item->status = SalesOrder::Status_Draft;
-                $item->save();
-            }
-        }
-
+        $order = $this->service->findOrderOrFail($id);
+        $this->authorize("update", $order);
+        $order = $this->service->editOrder($order);
         return inertia('sales-order/Editor', [
-            'data' => $item,
-            'accounts' => $this->getFinanceAccounts(),
+            'data' => $order,
+            'accounts' => $this->financeAccountService->getFinanceAccounts(),
             'settings' => [
                 'default_payment_mode' => Setting::value('pos.default_payment_mode', 'cash'),
-                'default_print_size' => Setting::value('pos.default_print_size', '58mm'),
+                'default_print_size'   => Setting::value('pos.default_print_size', '58mm'),
                 'after_payment_action' => Setting::value('pos.after_payment_action', 'new-order'),
             ]
         ]);
     }
 
-    public function update(Request $request)
+    public function update(SaveRequest $request)
     {
-        $item = SalesOrder::find($request->post('id'));
-
-        if ($item->status != SalesOrder::Status_Draft) {
-            return JsonResponseHelper::error('Order tidak dapat diubah.', 403);
-        }
-
-        $customer = Customer::find($request->post('customer_id'));
-
-        // Nilai awal customer info dari saat diganti customer
-        $item->customer_id = $customer ? $customer->id : null;
-        $item->customer_code = $customer?->code;
-        $item->customer_name = $customer?->name;
-        $item->customer_phone = $customer?->phone;
-        $item->customer_address = $customer?->address;
-
-        $item->notes = $request->post('notes', '');
-        $item->datetime = $request->post('datetime', Carbon::now());
-
-        // FIXME: Saat ini memang belum dibutuhkan karena gak bisa diubah dari client
-        // $item->status = $request->post('status', SalesOrder::Status_Draft);
-        // $item->payment_status = $request->post('payment_status', SalesOrder::PaymentStatus_Unpaid);
-        // $item->delivery_status = $request->post('delivery_status', SalesOrder::DeliveryStatus_ReadyForPickUp);
-
-        $item->save();
-
-        return JsonResponseHelper::success($item, 'Order telah diperbarui');
+        $order = $this->service->findOrderOrFail($request->post('id'));
+        $this->authorize('update', $order);
+        $this->service->updateOrder($order, $request->validated());
+        return JsonResponseHelper::success($order, 'Order telah diperbarui');
     }
 
     public function cancel($id)
     {
-        $item = SalesOrder::findOrFail($id);
-        if ($item->status == SalesOrder::Status_Draft) {
-            $item->status = SalesOrder::Status_Canceled;
-            $item->save();
-            return JsonResponseHelper::success(
-                ['id' => $item->id],
-                "Transaksi #$item->formatted_id telah dibatalkan."
-            );
+        $order = $this->service->findOrderOrFail($id);
+        $this->authorize('cancel', $order);
+        $this->service->cancelOrder($order);
+        return JsonResponseHelper::success(
+            ['id' => $order->id],
+            "Transaksi #$order->formatted_id telah dibatalkan."
+        );
+    }
+
+
+    public function close(Request $request)
+    {
+        $order = SalesOrder::with(['customer', 'details', 'details.product'])->find($request->post('id'));
+
+        if (!$order) {
+            return JsonResponseHelper::error('Item tidak ditemukan');
         }
-        return JsonResponseHelper::error('Status order ini tidak dapat diubah.');
+
+        if ($order->status !== SalesOrder::Status_Draft) {
+            return JsonResponseHelper::error('Order selesai tidak dapat diubah!');
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // 1. Hitung total biaya dan harga di server
+            // Anggap kita punya helper parseToInt untuk semua angka
+            $total_cost = $order->details->sum(function ($detail) {
+                return round($detail->cost * $detail->quantity);
+            });
+
+            // Lakukan hal yang sama untuk total_price
+            $total_price = $order->details->sum(function ($detail) {
+                return round($detail->price * $detail->quantity);
+            });
+
+            $order->total_cost = $total_cost;
+            $order->total_price = $total_price;
+            $order->grand_total = $order->total_price;
+
+            // 2. Validasi grand total dengan input dari klien
+            $clientTotal = intval($request->post('total', 0));
+            $serverTotal = intval($order->grand_total);
+            if ($serverTotal !== $clientTotal) {
+                DB::rollBack();
+                return JsonResponseHelper::error('Gagal menyimpan transaksi, coba refresh halaman!');
+            }
+
+            // 3. Simpan dan proses pembayaran
+            $payments = $request->post('payments', []);
+            $totalPaidAmount = 0;
+            foreach ($payments as $inputPayment) {
+                if (!isset($inputPayment['id'])) {
+                    DB::rollBack();
+                    throw new Exception('Invalid input payment format!');
+                }
+
+                $amount = intval($inputPayment['amount']);
+                $totalPaidAmount += $amount;
+
+                $accountId = null;
+                $type = null;
+
+                if ($inputPayment['id'] === 'cash') {
+                    $type = SalesOrderPayment::Type_Cash;
+                    $session = $this->cashierSessionService->getActiveSession();
+                    if (!$session) {
+                        DB::rollBack();
+                        return JsonResponseHelper::error("Anda belum memulai sesi kasir.", 402);
+                    }
+                    $accountId = $session->cashierTerminal->financeAccount->id;
+                } else if ($inputPayment['id'] === 'wallet') {
+                    $type = SalesOrderPayment::Type_Wallet;
+                } else if (intval($inputPayment['id'])) {
+                    $type = SalesOrderPayment::Type_Transfer;
+                    $accountId = (int)$inputPayment['id'];
+                }
+
+                $payment = new SalesOrderPayment([
+                    'order_id' => $order->id,
+                    'finance_account_id' => $accountId,
+                    'customer_id' => $order->customer?->id,
+                    'type' => $type,
+                    'amount' => $amount,
+                ]);
+                $payment->save();
+
+                // Catat transaksi keuangan dan perbarui saldo
+                if ($type === SalesOrderPayment::Type_Transfer || $type === SalesOrderPayment::Type_Cash) {
+                    FinanceTransaction::create([
+                        'account_id' => $accountId,
+                        'datetime' => now(),
+                        'type' => FinanceTransaction::Type_Income,
+                        'amount' => $amount,
+                        'ref_id' => $payment->id,
+                        'ref_type' => FinanceTransaction::RefType_SalesOrderPayment,
+                        'notes' => "Pembayaran transaksi #$order->formatted_id",
+                    ]);
+                    FinanceAccount::where('id', $accountId)->increment('balance', $amount);
+                } else if ($type === SalesOrderPayment::Type_Wallet) {
+                    CustomerWalletTransaction::create([
+                        'customer_id' => $order->customer->id,
+                        'datetime' => now(),
+                        'type' => CustomerWalletTransaction::Type_SalesOrderPayment,
+                        'amount' => -$amount,
+                        'ref_type' => CustomerWalletTransaction::RefType_SalesOrderPayment,
+                        'ref_id' => $payment->id,
+                        'notes' => "Pembayaran transaksi #$order->formatted_id",
+                    ]);
+                    Customer::where('id', $order->customer->id)->decrement('wallet_balance', $amount);
+                }
+            }
+
+            // 4. Update status pembayaran dan total yang dibayar
+            $order->total_paid = $totalPaidAmount;
+            $order->change = max(0, $order->total_paid - $order->grand_total);
+            $order->remaining_debt = max(0, $order->grand_total - $order->total_paid);
+
+            if ($order->total_paid >= $order->grand_total) {
+                $order->payment_status = SalesOrder::PaymentStatus_FullyPaid;
+            } else if ($order->total_paid > 0) {
+                $order->payment_status = SalesOrder::PaymentStatus_PartiallyPaid;
+            } else {
+                $order->payment_status = SalesOrder::PaymentStatus_Unpaid;
+            }
+
+            $cashierSession = $this->cashierSessionService->getActiveSession();
+
+            // FIXME: status langsung diambil tanpa harus seting di order
+            $order->delivery_status = SalesOrder::DeliveryStatus_PickedUp;
+            $order->status = SalesOrder::Status_Closed;
+            $order->due_date = $request->post('due_date', null);
+            $order->cashier_id = Auth::user()->id;
+            $order->cashier_session_id = $cashierSession ? $cashierSession->id : null;
+            $order->save();
+
+            // 5. Perbarui stok produk secara massal
+            foreach ($order->details as $detail) {
+                $productType = $detail->product->type;
+                // TODO: Skip tipe produk tertentu
+                if (
+                    $productType == Product::Type_NonStocked
+                    || $productType == Product::Type_Service
+                ) {
+                    continue;
+                }
+
+                $quantity = $detail->quantity;
+                StockMovement::create([
+                    'product_id'      => $detail->product_id,
+                    'product_name'    => $detail->product_name,
+                    'uom'             => $detail->product_uom,
+                    'ref_id'          => $detail->id,
+                    'ref_type'        => StockMovement::RefType_SalesOrderDetail,
+                    'quantity'        => -$quantity,
+                    'quantity_before' => $detail->product->stock,
+                    'quantity_after'  => $detail->product->stock - $quantity,
+                    'notes'           => "Transaksi penjualan #$order->formatted_id",
+                ]);
+
+                Product::where('id', $detail->product_id)->decrement('stock', $quantity);
+            }
+
+            Setting::setValue('pos.after_payment_action', $request->post('after_payment_action', 'print'));
+
+            DB::commit();
+        } catch (\Throwable $ex) {
+            DB::rollBack();
+            return JsonResponseHelper::error($ex->getMessage(), 500, $ex);
+        }
+
+        return JsonResponseHelper::success($order, "Order telah selesai.");
     }
 
     public function delete($id)
@@ -284,18 +342,11 @@ class SalesOrderController extends Controller
 
     public function detail($id)
     {
+        $order = $this->service->getOrderWithDetails($id);
+        $this->authorize('view', $order);
         return inertia('sales-order/Detail', [
-            'data' => SalesOrder::with([
-                'cashier',
-                'customer',
-                'details',
-                'payments',
-                'payments.account',
-                'cashierSession',
-                'cashierSession.cashierTerminal'
-            ])
-                ->findOrFail($id),
-            'accounts' => $this->getFinanceAccounts()
+            'data' => $order,
+            'accounts' => $this->financeAccountService->getFinanceAccounts()
         ]);
     }
 
@@ -482,183 +533,6 @@ class SalesOrderController extends Controller
         $item->delete();
         DB::commit();
         return JsonResponseHelper::success($item, 'Item telah dihapus.');
-    }
-
-    public function close(Request $request)
-    {
-        $order = SalesOrder::with(['customer', 'details', 'details.product'])->find($request->post('id'));
-
-        if (!$order) {
-            return JsonResponseHelper::error('Item tidak ditemukan');
-        }
-
-        if ($order->status !== SalesOrder::Status_Draft) {
-            return JsonResponseHelper::error('Order selesai tidak dapat diubah!');
-        }
-
-        try {
-            DB::beginTransaction();
-
-            // 1. Hitung total biaya dan harga di server
-            // Anggap kita punya helper parseToInt untuk semua angka
-            $total_cost = $order->details->sum(function ($detail) {
-                return round($detail->cost * $detail->quantity);
-            });
-
-            // Lakukan hal yang sama untuk total_price
-            $total_price = $order->details->sum(function ($detail) {
-                return round($detail->price * $detail->quantity);
-            });
-
-            $order->total_cost = $total_cost;
-            $order->total_price = $total_price;
-            $order->grand_total = $order->total_price;
-
-            // 2. Validasi grand total dengan input dari klien
-            $clientTotal = intval($request->post('total', 0));
-            $serverTotal = intval($order->grand_total);
-            if ($serverTotal !== $clientTotal) {
-                DB::rollBack();
-                return JsonResponseHelper::error('Gagal menyimpan transaksi, coba refresh halaman!');
-            }
-
-            // 3. Simpan dan proses pembayaran
-            $payments = $request->post('payments', []);
-            $totalPaidAmount = 0;
-            foreach ($payments as $inputPayment) {
-                if (!isset($inputPayment['id'])) {
-                    DB::rollBack();
-                    throw new Exception('Invalid input payment format!');
-                }
-
-                $amount = intval($inputPayment['amount']);
-                $totalPaidAmount += $amount;
-
-                $accountId = null;
-                $type = null;
-
-                if ($inputPayment['id'] === 'cash') {
-                    $type = SalesOrderPayment::Type_Cash;
-                    $session = $this->cashierSessionService->getActiveSession();
-                    if (!$session) {
-                        DB::rollBack();
-                        return JsonResponseHelper::error("Anda belum memulai sesi kasir.", 402);
-                    }
-                    $accountId = $session->cashierTerminal->financeAccount->id;
-                } else if ($inputPayment['id'] === 'wallet') {
-                    $type = SalesOrderPayment::Type_Wallet;
-                } else if (intval($inputPayment['id'])) {
-                    $type = SalesOrderPayment::Type_Transfer;
-                    $accountId = (int)$inputPayment['id'];
-                }
-
-                $payment = new SalesOrderPayment([
-                    'order_id' => $order->id,
-                    'finance_account_id' => $accountId,
-                    'customer_id' => $order->customer?->id,
-                    'type' => $type,
-                    'amount' => $amount,
-                ]);
-                $payment->save();
-
-                // Catat transaksi keuangan dan perbarui saldo
-                if ($type === SalesOrderPayment::Type_Transfer || $type === SalesOrderPayment::Type_Cash) {
-                    FinanceTransaction::create([
-                        'account_id' => $accountId,
-                        'datetime' => now(),
-                        'type' => FinanceTransaction::Type_Income,
-                        'amount' => $amount,
-                        'ref_id' => $payment->id,
-                        'ref_type' => FinanceTransaction::RefType_SalesOrderPayment,
-                        'notes' => "Pembayaran transaksi #$order->formatted_id",
-                    ]);
-                    FinanceAccount::where('id', $accountId)->increment('balance', $amount);
-                } else if ($type === SalesOrderPayment::Type_Wallet) {
-                    CustomerWalletTransaction::create([
-                        'customer_id' => $order->customer->id,
-                        'datetime' => now(),
-                        'type' => CustomerWalletTransaction::Type_SalesOrderPayment,
-                        'amount' => -$amount,
-                        'ref_type' => CustomerWalletTransaction::RefType_SalesOrderPayment,
-                        'ref_id' => $payment->id,
-                        'notes' => "Pembayaran transaksi #$order->formatted_id",
-                    ]);
-                    Customer::where('id', $order->customer->id)->decrement('wallet_balance', $amount);
-                }
-            }
-
-            // 4. Update status pembayaran dan total yang dibayar
-            $order->total_paid = $totalPaidAmount;
-            $order->change = max(0, $order->total_paid - $order->grand_total);
-            $order->remaining_debt = max(0, $order->grand_total - $order->total_paid);
-
-            if ($order->total_paid >= $order->grand_total) {
-                $order->payment_status = SalesOrder::PaymentStatus_FullyPaid;
-            } else if ($order->total_paid > 0) {
-                $order->payment_status = SalesOrder::PaymentStatus_PartiallyPaid;
-            } else {
-                $order->payment_status = SalesOrder::PaymentStatus_Unpaid;
-            }
-
-            $cashierSession = $this->cashierSessionService->getActiveSession();
-
-            // FIXME: status langsung diambil tanpa harus seting di order
-            $order->delivery_status = SalesOrder::DeliveryStatus_PickedUp;
-            $order->status = SalesOrder::Status_Closed;
-            $order->due_date = $request->post('due_date', null);
-            $order->cashier_id = Auth::user()->id;
-            $order->cashier_session_id = $cashierSession ? $cashierSession->id : null;
-            $order->save();
-
-            // 5. Perbarui stok produk secara massal
-            foreach ($order->details as $detail) {
-                $productType = $detail->product->type;
-                // TODO: Skip tipe produk tertentu
-                if (
-                    $productType == Product::Type_NonStocked
-                    || $productType == Product::Type_Service
-                ) {
-                    continue;
-                }
-
-                $quantity = $detail->quantity;
-                StockMovement::create([
-                    'product_id'      => $detail->product_id,
-                    'product_name'    => $detail->product_name,
-                    'uom'             => $detail->product_uom,
-                    'ref_id'          => $detail->id,
-                    'ref_type'        => StockMovement::RefType_SalesOrderDetail,
-                    'quantity'        => -$quantity,
-                    'quantity_before' => $detail->product->stock,
-                    'quantity_after'  => $detail->product->stock - $quantity,
-                    'notes'           => "Transaksi penjualan #$order->formatted_id",
-                ]);
-
-                Product::where('id', $detail->product_id)->decrement('stock', $quantity);
-            }
-
-            Setting::setValue('pos.after_payment_action', $request->post('after_payment_action', 'print'));
-
-            DB::commit();
-        } catch (\Throwable $ex) {
-            DB::rollBack();
-            return JsonResponseHelper::error($ex->getMessage(), 500, $ex);
-        }
-
-        return JsonResponseHelper::success($order, "Order telah selesai.");
-    }
-
-    protected function getFinanceAccounts()
-    {
-        return FinanceAccount::where('active', '=', true)
-            ->where(function ($query) {
-                $query->where('type', '=', FinanceAccount::Type_Cash)
-                    ->orWhere('type', '=', FinanceAccount::Type_Bank)
-                    ->orWhere('type', '=', FinanceAccount::Type_PettyCash);
-            })
-            ->where('show_in_pos_payment', '=', true)
-            ->orderBy('name')
-            ->get();
     }
 
     public function addPayment(Request $request)

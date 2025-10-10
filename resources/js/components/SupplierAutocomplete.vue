@@ -117,6 +117,6 @@ const filterFn = (val, update) => {
           options.value = [];
         });
       });
-  }, 500);
+  }, 100);
 };
 </script>

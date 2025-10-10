@@ -70,7 +70,7 @@ class StockMovementService
     {
         $item = StockMovement::where('ref_id', $ref_id)
             ->where('ref_type', $ref_type)
-            ->get();
+            ->first();
 
         return $item;
     }
@@ -88,10 +88,20 @@ class StockMovementService
 
     public function processStockIn(array $data)
     {
+        return $this->processStockDelta($data, $data['quantity']);
+    }
+
+    public function processStockOut(array $data)
+    {
+        return $this->processStockDelta($data, -$data['quantity']);
+    }
+
+    private function processStockDelta(array $data, $quantity)
+    {
         $item = StockMovement::create($data);
 
         $product = Product::where('id', $data['product_id'])->lockForUpdate()->firstOrFail();
-        $product->stock += $data['quantity'];
+        $product->stock += $quantity;
         $product->save();
 
         return $item;
