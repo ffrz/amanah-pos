@@ -21,7 +21,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Customer>
  */
-class SupplierFactory extends Factory
+class PurchaseOrderFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -30,11 +30,6 @@ class SupplierFactory extends Factory
      */
     public function definition(): array
     {
-        return [
-            'name' => $this->faker->company,
-            'phone_1' => $this->faker->phoneNumber,
-            'address' => $this->faker->address,
-            'active' => $this->faker->boolean(90)
-        ];
+        return [];
     }
 }

@@ -18,10 +18,11 @@ namespace App\Models;
 
 use App\Models\Traits\HasDocumentVersions;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class PurchaseOrder extends BaseModel
 {
-    use HasDocumentVersions;
+    use HasDocumentVersions, HasFactory;
 
     protected $fillable = [
         'supplier_id',
