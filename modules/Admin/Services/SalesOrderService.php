@@ -67,13 +67,7 @@ class SalesOrderService
             if (!is_array($filter['status'])) {
                 $filter['status'] = [$filter['status']];
             }
-
-            $statuses = $filter['status'];
-            $q->where(function ($q) use ($statuses) {
-                foreach ($statuses as $status) {
-                    $q->orWhere('status', '=', $status);
-                }
-            });
+            $q->whereIn('status', $filter['status']);
         }
 
         if (!empty($filter['payment_status']) && $filter['payment_status'] != 'all') {
@@ -313,14 +307,11 @@ class SalesOrderService
     private function reverseStock(SalesOrder $order)
     {
         foreach ($order->details as $detail) {
-            $product = $detail->product;
-            $product->stock += abs($detail->quantity);
-            $product->save();
+            Product::where('id', $detail->product_id)->increment('stock', $detail->quantity);
 
-            DB::delete(
-                'DELETE FROM stock_movements WHERE ref_type = ? AND ref_id = ?',
-                [StockMovement::RefType_SalesOrderDetail, $detail->id]
-            );
+            StockMovement::where('ref_type', StockMovement::RefType_SalesOrderDetail)
+                ->where('ref_id', $detail->id)
+                ->delete();
         }
     }
 }
