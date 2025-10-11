@@ -56,7 +56,7 @@ Route::middleware(NonAuthenticated::class)
 
 Route::middleware([Auth::class])
     ->group(function () {
-        Route::redirect('', 'admin/dashboard', 301);
+        Route::redirect('', 'admin/dashboard');
         Route::match(['get', 'post'], 'auth/logout', [AuthController::class, 'logout'])->name('admin.auth.logout');
         Route::get('dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
         Route::get('test', [DashboardController::class, 'test'])->name('admin.test');
