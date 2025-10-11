@@ -114,7 +114,7 @@ class SalesOrderPaymentService
         $this->ensureOrderIsProcessable($payment->order);
         DB::transaction(function () use ($order, $payment) {
             $total_amount = $this->deletePaymentsImpl([$payment]);
-            $order->updateTotalPaid($order->total_paid + $total_amount);
+            $order->updateTotalPaid($order->total_paid - $total_amount);
             $order->save();
         });
     }
