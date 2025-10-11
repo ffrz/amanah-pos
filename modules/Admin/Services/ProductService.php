@@ -170,7 +170,7 @@ class ProductService
 
             $newStock = $item->stock;
 
-            if (isset($data['stock']) && $item->type === Product::Type_Stocked) {
+            if ($item->type === Product::Type_Stocked) {
                 $refType = $isNew ? StockMovement::RefType_InitialStock : StockMovement::RefType_ManualAdjustment;
                 $quantityBefore = $isNew ? 0 : $oldStock;
                 $quantity = $isNew ? $newStock : $newStock - $oldStock;
