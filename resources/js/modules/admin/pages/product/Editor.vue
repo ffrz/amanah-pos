@@ -68,6 +68,7 @@ const margin = computed(() => {
       <div class="col col-md-6 q-pa-xs">
         <q-form
           class="row"
+          @keydown.enter.prevent
           @submit.prevent="submit"
           @validation-error="scrollToFirstErrorField"
         >
