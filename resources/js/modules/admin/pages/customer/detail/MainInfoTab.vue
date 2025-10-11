@@ -68,6 +68,11 @@ const page = usePage();
         <td>Rp. {{ formatNumber(page.props.data.wallet_balance) }}</td>
       </tr>
       <tr>
+        <td>Utang Penjualan</td>
+        <td>:</td>
+        <td>Rp. {{ formatNumber(page.props.data.balance) }}</td>
+      </tr>
+      <tr>
         <td>Status</td>
         <td>:</td>
         <td>

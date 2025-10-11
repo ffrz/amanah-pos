@@ -20,6 +20,7 @@ use App\Exceptions\BusinessRuleViolationException;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\SalesOrder;
+use App\Models\Setting;
 use App\Models\StockMovement;
 use App\Models\UserActivityLog;
 use Carbon\Carbon;
@@ -36,6 +37,7 @@ class SalesOrderService
         protected StockMovementService $stockMovementService,
         protected ProductService $productService,
         protected SupplierService $supplierService,
+        protected CashierSessionService $cashierSessionService,
     ) {}
 
     public function getData(array $options)
@@ -199,41 +201,74 @@ class SalesOrderService
             ->findOrFail($id);
     }
 
-    private function processSalesOrderStockOut(SalesOrder $order)
+    public function closeOrder(SalesOrder $order, array $data)
     {
-        // 5. Perbarui stok produk secara massal
-        foreach ($order->details as $detail) {
-            $productType = $detail->product->type;
-            if (
-                $productType == Product::Type_NonStocked
-                || $productType == Product::Type_Service
-            ) {
-                continue;
-            }
+        $this->ensureOrderIsEditable($order);
 
-            $product = $detail->product;
+        DB::transaction(function () use ($order, $data) {
+            $this->updateTotalAndValidateClientTotal($order, $data['total'] ?? 0);
 
-            $this->stockMovementService->processStockOut([
-                'product_id'      => $detail->product_id,
-                'product_name'    => $detail->product_name,
-                'uom'             => $detail->product_uom,
-                'ref_id'          => $detail->id,
-                'ref_type'        => StockMovement::RefType_SalesOrderDetail,
-                'quantity'        => $detail->quantity,
-                'quantity_before' => $product->stock,
-                'quantity_after'  => $product->stock + $detail->quantity,
-                'notes'           => "Transaksi penjualan #$order->formatted_id",
-            ]);
+            // Simpan dan proses pembayaran
+            $this->paymentService->addPayments($order, $data['payments'] ?? []);
+
+            // Update kembalian
+            $order->change = max(0, $order->total_paid - $order->grand_total);
+            $cashierSession = $this->cashierSessionService->getActiveSession();
+
+            // FIXME: status langsung diambil tanpa harus seting di order
+            $order->delivery_status = SalesOrder::DeliveryStatus_PickedUp;
+            $order->status = SalesOrder::Status_Closed;
+            $order->due_date = $data['due_date'] ?? null;
+            $order->cashier_id = Auth::user()->id;
+            $order->cashier_session_id = $cashierSession ? $cashierSession->id : null;
+            $order->save();
+
+            // Perbarui stok produk secara massal
+            $this->processSalesOrderStockOut($order);
+
+            // update settings
+            // FIXME: seharusnya ini dipindahkan ke user settings agar tidak semua user terdampak
+            Setting::setValue('pos.after_payment_action', $data['after_payment_action'] ?? 'print');
+        });
+    }
+
+    public function deleteOrder(SalesOrder $order)
+    {
+        $cashierSession = $order->cashierSession;
+        if ($cashierSession && $cashierSession->is_closed) {
+            throw new BusinessRuleViolationException("Transaksi tidak dapat dihapus! Sesi kasir untuk Order #$order->formatted_id sudah ditutup!");
         }
+
+        DB::transaction(function () use ($order) {
+            if ($order->status == SalesOrder::Status_Closed) {
+                $this->reverseStock($order);
+                $this->paymentService->deletePayments($order);
+            }
+            $order->delete();
+        });
     }
 
     private function updateTotalAndValidateClientTotal($order, $client_total)
     {
-        $order->updateTotals();
+        // Hitung total biaya dan harga di server
+        $total_cost = $order->details->sum(function ($detail) {
+            return round($detail->cost * $detail->quantity);
+        });
+
+        // Lakukan hal yang sama untuk total_price
+        $total_price = $order->details->sum(function ($detail) {
+            return round($detail->price * $detail->quantity);
+        });
+
+        $order->total_cost = $total_cost;
+        $order->total_price = $total_price;
+        $order->grand_total = $order->total_price;
+
+        // Validasi grand total dengan input dari klien
         $clientTotal = intval($client_total);
         $serverTotal = intval($order->grand_total);
         if ($serverTotal !== $clientTotal) {
-            throw new BusinessRuleViolationException('Gagal menyimpan transaksi, total tidak sinkron. Coba refresh halaman!');
+            throw new BusinessRuleViolationException('Gagal menyimpan transaksi, data tidak sinkron, coba refresh halaman!');
         }
     }
 
@@ -241,6 +276,50 @@ class SalesOrderService
     {
         if ($order->status != SalesOrder::Status_Draft) {
             throw new BusinessRuleViolationException('Order sudah tidak dapat diubah.');
+        }
+    }
+
+    private function processSalesOrderStockOut(SalesOrder $order)
+    {
+        foreach ($order->details as $detail) {
+            $productType = $detail->product->type;
+            // TODO: Skip tipe produk tertentu
+            if (
+                $productType == Product::Type_NonStocked
+                || $productType == Product::Type_Service
+            ) {
+                continue;
+            }
+
+            $quantity = $detail->quantity;
+
+            StockMovement::create([
+                'product_id'      => $detail->product_id,
+                'product_name'    => $detail->product_name,
+                'uom'             => $detail->product_uom,
+                'ref_id'          => $detail->id,
+                'ref_type'        => StockMovement::RefType_SalesOrderDetail,
+                'quantity'        => -$quantity,
+                'quantity_before' => $detail->product->stock,
+                'quantity_after'  => $detail->product->stock - $quantity,
+                'notes'           => "Transaksi penjualan #$order->formatted_id",
+            ]);
+
+            Product::where('id', $detail->product_id)->decrement('stock', $quantity);
+        }
+    }
+
+    private function reverseStock(SalesOrder $order)
+    {
+        foreach ($order->details as $detail) {
+            $product = $detail->product;
+            $product->stock += abs($detail->quantity);
+            $product->save();
+
+            DB::delete(
+                'DELETE FROM stock_movements WHERE ref_type = ? AND ref_id = ?',
+                [StockMovement::RefType_SalesOrderDetail, $detail->id]
+            );
         }
     }
 }

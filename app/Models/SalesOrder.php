@@ -212,9 +212,9 @@ class SalesOrder extends BaseModel
         return $this->belongsTo(CashierSession::class, 'cashier_session_id');
     }
 
-    public function applyPaymentUpdate($amount)
+    public function updateTotalPaid($totalPaid)
     {
-        $this->total_paid -= $amount;
+        $this->total_paid = $totalPaid;
         $this->remaining_debt = max(0, $this->grand_total - $this->total_paid);
 
         if ($this->total_paid >= $this->grand_total) {
@@ -224,5 +224,13 @@ class SalesOrder extends BaseModel
         } else {
             $this->payment_status = SalesOrder::PaymentStatus_Unpaid;
         }
+    }
+
+    public function updateTotals(): void
+    {
+        $this->total_cost = $this->details()->sum('subtotal_cost');
+        $this->total_price = $this->details()->sum('subtotal_price');
+        // TODO: hitung pajak dan dan diskon disini
+        $this->grand_total = $this->total_price; // + pajak, - diskon, dll.
     }
 }

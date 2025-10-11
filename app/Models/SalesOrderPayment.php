@@ -72,6 +72,9 @@ class SalesOrderPayment extends BaseModel
         return self::Types[$this->type] ?? '-';
     }
 
+    /**
+     * @return SalesOrder
+     */
     public function order()
     {
         return $this->belongsTo(SalesOrder::class, 'order_id');
