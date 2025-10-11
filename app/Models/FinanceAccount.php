@@ -101,4 +101,9 @@ class FinanceAccount extends BaseModel
     {
         FinanceAccount::where('id', $id)->increment('balance', abs($amount));
     }
+
+    public static function decrementBalance($id, $amount)
+    {
+        FinanceAccount::where('id', $id)->decrement('balance', abs($amount));
+    }
 }

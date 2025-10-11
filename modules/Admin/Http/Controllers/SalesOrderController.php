@@ -38,12 +38,14 @@ use Illuminate\Support\Facades\DB;
 use Modules\Admin\Http\Requests\SalesOrder\GetDataRequest;
 use Modules\Admin\Http\Requests\SalesOrder\SaveRequest;
 use Modules\Admin\Services\FinanceAccountService;
+use Modules\Admin\Services\SalesOrderPaymentService;
 use Modules\Admin\Services\SalesOrderService;
 
 class SalesOrderController extends Controller
 {
     public function __construct(
         protected SalesOrderService $service,
+        protected SalesOrderPaymentService $paymentService,
         protected FinanceTransactionService $financeTransactionService,
         protected CashierSessionService $cashierSessionService,
         protected FinanceAccountService $financeAccountService,
@@ -537,114 +539,10 @@ class SalesOrderController extends Controller
 
     public function addPayment(Request $request)
     {
-        $order = SalesOrder::with(['customer', 'details'])->find($request->post('order_id'));
-
-        if (!$order) {
-            return JsonResponseHelper::error('Pesanan penjualan tidak ditemukan.');
-        }
-
-        if ($order->remaining_debt <= 0) {
-            return JsonResponseHelper::error('Pesanan ini sudah lunas.');
-        }
-
-        try {
-            DB::beginTransaction();
-
-            $payments = $request->post('payments', []);
-            $totalPaidAmount = 0;
-
-            foreach ($payments as $inputPayment) {
-                if (!isset($inputPayment['id'])) {
-                    throw new Exception('Invalid input payment format!');
-                }
-
-                $amount = intval($inputPayment['amount']);
-
-                // Pastikan jumlah pembayaran tidak melebihi sisa tagihan
-                if ($order->remaining_debt - $totalPaidAmount < $amount) {
-                    throw new Exception('Jumlah pembayaran melebihi sisa tagihan.');
-                }
-
-                $totalPaidAmount += $amount;
-
-                $accountId = null;
-                $type = null;
-
-                if ($inputPayment['id'] === 'cash') {
-                    $type = SalesOrderPayment::Type_Cash;
-                    $session = $this->cashierSessionService->getActiveSession();
-
-                    if (!$session) {
-                        throw new Exception("Anda belum memulai sesi kasir.");
-                    }
-
-                    $accountId = $session->cashierTerminal->financeAccount->id;
-                } else if ($inputPayment['id'] === 'wallet') {
-                    $type = SalesOrderPayment::Type_Wallet;
-                    if ($order->customer) {
-                        // Backend validation for wallet balance
-                        if ($order->customer->wallet_balance < $amount) {
-                            throw new Exception("Saldo wallet pelanggan tidak mencukupi.");
-                        }
-                    }
-                } else if (intval($inputPayment['id'])) {
-                    $type = SalesOrderPayment::Type_Transfer;
-                    $accountId = (int)$inputPayment['id'];
-                }
-
-                $payment = new SalesOrderPayment([
-                    'order_id' => $order->id,
-                    'finance_account_id' => $accountId,
-                    'customer_id' => $order->customer?->id,
-                    'type' => $type,
-                    'amount' => $amount,
-                ]);
-                $payment->save();
-
-                if ($type === SalesOrderPayment::Type_Transfer || $type === SalesOrderPayment::Type_Cash) {
-                    FinanceTransaction::create([
-                        'account_id' => $accountId,
-                        'datetime' => now(),
-                        'type' => FinanceTransaction::Type_Income,
-                        'amount' => $amount,
-                        'ref_id' => $payment->id,
-                        'ref_type' => FinanceTransaction::RefType_SalesOrderPayment,
-                        'notes' => "Pembayaran transaksi #$order->formatted_id",
-                    ]);
-                    FinanceAccount::where('id', $accountId)->increment('balance', $amount);
-                } else if ($type === SalesOrderPayment::Type_Wallet) {
-                    CustomerWalletTransaction::create([
-                        'customer_id' => $order->customer->id,
-                        'datetime' => now(),
-                        'type' => CustomerWalletTransaction::Type_SalesOrderPayment,
-                        'amount' => -$amount,
-                        'ref_type' => CustomerWalletTransaction::RefType_SalesOrderPayment,
-                        'ref_id' => $payment->id,
-                        'notes' => "Pembayaran transaksi #$order->formatted_id",
-                    ]);
-                    Customer::where('id', $order->customer->id)->decrement('wallet_balance', $amount);
-                }
-            }
-
-            $order->total_paid += $totalPaidAmount;
-            $order->remaining_debt = max(0, $order->grand_total - $order->total_paid);
-
-            if ($order->total_paid >= $order->grand_total) {
-                $order->payment_status = SalesOrder::PaymentStatus_FullyPaid;
-            } else if ($order->total_paid > 0) {
-                $order->payment_status = SalesOrder::PaymentStatus_PartiallyPaid;
-            } else {
-                $order->payment_status = SalesOrder::PaymentStatus_Unpaid;
-            }
-            $order->save();
-
-            DB::commit();
-
-            return JsonResponseHelper::success($order, "Pembayaran berhasil dicatat.");
-        } catch (\Throwable $ex) {
-            DB::rollBack();
-            return JsonResponseHelper::error($ex->getMessage(), 500, $ex);
-        }
+        $order = $this->service->findOrderOrFail($request->post('order_id'));
+        $this->paymentService->addPayments($order, $request->post('payments', []));
+        $this->authorize('update', $order);
+        return JsonResponseHelper::success($order, "Pembayaran berhasil dicatat.");
     }
 
     /**
@@ -656,79 +554,9 @@ class SalesOrderController extends Controller
      */
     public function deletePayment(Request $request)
     {
-        $id = $request->id;
-
-        DB::beginTransaction();
-
-        try {
-            // 1. Cari pembayaran berdasarkan ID
-            $payment = SalesOrderPayment::with(['order', 'order.customer'])->find($id);
-
-            if (!$payment) {
-                DB::rollBack();
-                return JsonResponseHelper::error('Pembayaran tidak ditemukan.');
-            }
-
-            // 2. Pastikan order terkait dalam status 'closed'
-            $order = $payment->order;
-            if (!$order) {
-                DB::rollBack();
-                return JsonResponseHelper::error('Order terkait tidak ditemukan.');
-            }
-
-            if ($order->status !== SalesOrder::Status_Closed) {
-                DB::rollBack();
-                return JsonResponseHelper::error('Tidak dapat menghapus pembayaran dari order yang belum selesai.');
-            }
-
-            // 3. Batalkan transaksi keuangan terkait berdasarkan tipe pembayaran
-            if ($payment->type === SalesOrderPayment::Type_Transfer || $payment->type === SalesOrderPayment::Type_Cash) {
-                // Batalkan transaksi keuangan
-                FinanceTransaction::where('ref_id', $payment->id)
-                    ->where('ref_type', FinanceTransaction::RefType_SalesOrderPayment)
-                    ->delete();
-
-                // Kurangi saldo akun keuangan
-                if ($payment->finance_account_id) {
-                    FinanceAccount::where('id', $payment->finance_account_id)
-                        ->decrement('balance', $payment->amount);
-                }
-            } else if ($payment->type === SalesOrderPayment::Type_Wallet) {
-                // Batalkan transaksi dompet pelanggan
-                CustomerWalletTransaction::where('ref_id', $payment->id)
-                    ->where('ref_type', CustomerWalletTransaction::RefType_SalesOrderPayment)
-                    ->delete();
-
-                // Tambahkan kembali saldo ke dompet pelanggan
-                if ($order->customer) {
-                    Customer::where('id', $order->customer->id)
-                        ->increment('wallet_balance', $payment->amount);
-                }
-            }
-
-            // 4. Hapus entri pembayaran dari database
-            $payment->delete();
-
-            // 5. Perbarui status order
-            $order->total_paid -= $payment->amount;
-            $order->remaining_debt = max(0, $order->grand_total - $order->total_paid);
-
-            if ($order->total_paid >= $order->grand_total) {
-                $order->payment_status = SalesOrder::PaymentStatus_FullyPaid;
-            } else if ($order->total_paid > 0) {
-                $order->payment_status = SalesOrder::PaymentStatus_PartiallyPaid;
-            } else {
-                $order->payment_status = SalesOrder::PaymentStatus_Unpaid;
-            }
-
-            $order->save();
-
-            DB::commit();
-
-            return JsonResponseHelper::success($order, "Pembayaran berhasil dihapus.");
-        } catch (\Throwable $ex) {
-            DB::rollBack();
-            return JsonResponseHelper::error($ex->getMessage(), 500, $ex);
-        }
+        $payment = $this->paymentService->findOrFail($request->id);
+        $order = $this->paymentService->deletePayment($payment);
+        $this->authorize('update', $order);
+        return JsonResponseHelper::success($order, "Pembayaran berhasil dihapus.");
     }
 }

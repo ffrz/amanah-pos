@@ -211,4 +211,18 @@ class SalesOrder extends BaseModel
     {
         return $this->belongsTo(CashierSession::class, 'cashier_session_id');
     }
+
+    public function applyPaymentUpdate($amount)
+    {
+        $this->total_paid -= $amount;
+        $this->remaining_debt = max(0, $this->grand_total - $this->total_paid);
+
+        if ($this->total_paid >= $this->grand_total) {
+            $this->payment_status = SalesOrder::PaymentStatus_FullyPaid;
+        } else if ($this->total_paid > 0) {
+            $this->payment_status = SalesOrder::PaymentStatus_PartiallyPaid;
+        } else {
+            $this->payment_status = SalesOrder::PaymentStatus_Unpaid;
+        }
+    }
 }

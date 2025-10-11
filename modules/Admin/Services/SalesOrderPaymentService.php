@@ -17,24 +17,27 @@
 namespace Modules\Admin\Services;
 
 use App\Exceptions\BusinessRuleViolationException;
+use App\Models\Customer;
+use App\Models\CustomerWalletTransaction;
 use App\Models\FinanceAccount;
 use App\Models\FinanceTransaction;
-use App\Models\PurchaseOrder;
-use App\Models\PurchaseOrderPayment;
+use App\Models\SalesOrder;
+use App\Models\SalesOrderPayment;
 use Illuminate\Support\Facades\DB;
 
 class SalesOrderPaymentService
 {
     public function __construct(
-        protected CustomerService $customerService
+        protected CustomerService $customerService,
+        protected CashierSessionService $cashierSessionService,
     ) {}
 
-    public function findOrFail(int $id)
+    public function findOrFail(int $id): SalesOrderPayment
     {
-        return PurchaseOrderPayment::with(['order', 'order.customer'])->findOrFail($id);
+        return SalesOrderPayment::with(['order', 'order.customer'])->findOrFail($id);
     }
 
-    public function addPayments(PurchaseOrder $order, array $payments): void
+    public function addPayments(SalesOrder $order, array $payments): void
     {
         if ($order->remaining_debt <= 0) {
             throw new BusinessRuleViolationException('Pesanan ini sudah lunas.');
@@ -45,121 +48,154 @@ class SalesOrderPaymentService
 
             foreach ($payments as $inputPayment) {
                 $amount = intval($inputPayment['amount']);
-
-                if ($order->remaining_debt - $totalPaidAmount < $amount) {
-                    throw new BusinessRuleViolationException('Jumlah pembayaran melebihi sisa tagihan.');
-                }
-
-                $totalPaidAmount += $amount;
-
-                $payment = $this->createPaymentRecord($order, $inputPayment['id'] ?? null, $amount);
-
+                $result = $this->processAndValidatePaymentMethod($order, $inputPayment['id'], $amount);
+                $payment = $this->createPaymentRecord($order, $result);
                 $this->processFinancialRecords($payment);
+                $totalPaidAmount += $amount;
+            }
 
-                $this->updateCustomerDebtOnPayment($payment);
+            if ($totalPaidAmount > $order->remaining_debt) {
+                throw new BusinessRuleViolationException('Jumlah pembayaran melebihi sisa tagihan.');
             }
 
             $order->applyPaymentUpdate($totalPaidAmount);
-
             $order->save();
         });
     }
 
-    public function deletePayment(PurchaseOrderPayment $payment): void
+    private function processAndValidatePaymentMethod($order, $type_or_id, $amount)
     {
-        DB::transaction(function () use ($payment) {
-            $order = $payment->order;
+        $accountId = null;
+        $type = null;
+        if ($type_or_id === 'cash') {
+            $type = SalesOrderPayment::Type_Cash;
+            $session = $this->cashierSessionService->getActiveSession();
+            if (!$session) {
+                throw new BusinessRuleViolationException("Anda belum memulai sesi kasir.");
+            }
+            $accountId = $session->cashierTerminal->financeAccount->id;
+        } else if ($type_or_id === 'wallet') {
+            $type = SalesOrderPayment::Type_Wallet;
+            if ($order->customer && $order->customer->wallet_balance < $amount) {
+                throw new BusinessRuleViolationException("Saldo wallet pelanggan tidak mencukupi.");
+            }
+        } else if (intval($type_or_id)) {
+            $type = SalesOrderPayment::Type_Transfer;
+            $accountId = (int)$type_or_id;
+        }
 
-            if ($order->status !== PurchaseOrder::Status_Closed) {
+        return [
+            'finance_account_id' => $accountId,
+            'payment_type' => $type,
+            'amount' => $amount,
+        ];
+    }
+
+    public function deletePayment(SalesOrderPayment $payment): SalesOrder
+    {
+        return DB::transaction(function () use ($payment) {
+            /**
+             * @var SalesOrder
+             */
+            $order = $payment->order;
+            if ($order->status !== SalesOrder::Status_Closed) {
                 throw new BusinessRuleViolationException('Tidak dapat menghapus pembayaran dari order yang belum selesai.');
             }
 
             $this->reverseFinancialRecords($payment);
-
-            $this->reverseCustomerDebtOnPaymentDeletion($payment);
-
             $payment->delete();
-
             $order->applyPaymentUpdate(-$payment->amount);
+            $order->save();
+            return $order;
         });
     }
 
     // ---------------------------------------------
-    //              HELPER METHODS
+    //              HELPER METHODS
     // ---------------------------------------------
 
     /**
-     * Membuat record pembayaran dan menentukan tipe/akun.
+     * Membuat record pembayaran.
      */
-    private function createPaymentRecord(PurchaseOrder $order, $accountId, int $amount): PurchaseOrderPayment
+    private function createPaymentRecord(SalesOrder $order, array $data): SalesOrderPayment
     {
-        $payment = new PurchaseOrderPayment([
+        $payment = new SalesOrderPayment([
             'order_id' => $order->id,
-            'finance_account_id' => $accountId,
+            'finance_account_id' => $data['finance_account_id'],
             'customer_id' => $order->customer?->id,
-            'type' => $accountId ? PurchaseOrderPayment::Type_Transfer : PurchaseOrderPayment::Type_Cash,
-            'amount' => $amount,
+            'type' => $data['payment_type'], // FIX: Menggunakan 'payment_type' dari hasil validasi
+            'amount' => $data['amount'],
         ]);
-
         $payment->save();
-
         return $payment;
     }
 
     /**
-     * Mencatat transaksi keuangan (pengeluaran) dan mengurangi saldo akun.
+     * Mencatat transaksi keuangan dan memperbarui saldo keuangan, wallet dan utang piutang.
      */
-    private function processFinancialRecords(PurchaseOrderPayment $payment): void
+    private function processFinancialRecords(SalesOrderPayment $payment): void
     {
-        $order = $payment->order;
+        if ($payment->type === SalesOrderPayment::Type_Transfer || $payment->type === SalesOrderPayment::Type_Cash) {
+            if ($payment->finance_account_id) {
+                FinanceTransaction::create([
+                    'account_id' => $payment->finance_account_id,
+                    'datetime' => now(),
+                    'type' => FinanceTransaction::Type_Income,
+                    'amount' => $payment->amount,
+                    'ref_id' => $payment->id,
+                    'ref_type' => FinanceTransaction::RefType_SalesOrderPayment,
+                    'notes' => "Pembayaran transaksi #{$payment->order->formatted_id}",
+                ]);
 
-        if ($payment->type === PurchaseOrderPayment::Type_Transfer) {
-            FinanceTransaction::create([
-                'account_id' => $payment->finance_account_id,
+                FinanceAccount::where('id', $payment->finance_account_id)
+                    ->increment('balance', $payment->amount);
+            }
+
+            if ($payment->order?->customer) {
+                Customer::where('id', $payment->order->customer->id)
+                    ->decrement('balance', $payment->amount);
+            }
+        } else if ($payment->type === SalesOrderPayment::Type_Wallet) {
+            CustomerWalletTransaction::create([
+                'customer_id' => $payment->order->customer->id,
                 'datetime' => now(),
-                'type' => FinanceTransaction::Type_Expense,
-                // Pembayaran adalah pengeluaran (negatif)
+                'type' => CustomerWalletTransaction::Type_SalesOrderPayment,
                 'amount' => -$payment->amount,
+                'ref_type' => CustomerWalletTransaction::RefType_SalesOrderPayment,
                 'ref_id' => $payment->id,
-                'ref_type' => FinanceTransaction::RefType_PurchaseOrderPayment,
-                'notes' => "Pembayaran transaksi #$order->formatted_id",
+                'notes' => "Pembayaran transaksi #{$payment->order->formatted_id}",
             ]);
-
-            FinanceAccount::where('id', $payment->finance_account_id)
-                ->decrement('balance', abs($payment->amount));
+            Customer::where('id', $payment->order->customer_id)
+                ->decrement('wallet_balance', $payment->amount);
         }
     }
 
     /**
-     * Memperbarui saldo utang customer saat pembayaran diterima.
+     * Membalikkan transaksi keuangan dan mengembalikan saldo.
      */
-    private function updateCustomerDebtOnPayment(PurchaseOrderPayment $payment): void
+    private function reverseFinancialRecords(SalesOrderPayment $payment): void
     {
-        if (!$payment->order->customer_id) return;
+        if ($payment->type === SalesOrderPayment::Type_Transfer || $payment->type === SalesOrderPayment::Type_Cash) {
+            if ($payment->finance_account_id) {
+                FinanceTransaction::where('ref_id', $payment->id)
+                    ->where('ref_type', FinanceTransaction::RefType_SalesOrderPayment)
+                    ->delete();
 
-        // Pembayaran mengurangi utang, jadi nilainya negatif
-        $this->customerService->addToBalance($payment->order->customer, -abs($payment->amount));
-    }
+                FinanceAccount::where('id', $payment->finance_account_id)
+                    ->decrement('balance', $payment->amount);
+            }
 
-    /**
-     * Membalikkan transaksi keuangan (menghapus record transaksi dan mengembalikan saldo akun).
-     */
-    private function reverseFinancialRecords(PurchaseOrderPayment $payment): void
-    {
-        FinanceTransaction::deleteByRef($payment->id, FinanceTransaction::RefType_PurchaseOrderPayment);
+            if ($payment->order->customer_id) {
+                Customer::where('id', $payment->order->customer_id)
+                    ->increment('balance', $payment->amount);
+            }
+        } else if ($payment->type === SalesOrderPayment::Type_Wallet) {
+            CustomerWalletTransaction::where('ref_id', $payment->id)
+                ->where('ref_type', CustomerWalletTransaction::RefType_SalesOrderPayment)
+                ->delete();
 
-        if ($payment->finance_account_id) {
-            FinanceAccount::incrementBalance($payment->finance_account_id, abs($payment->amount));
+            Customer::where('id', $payment->order->customer_id)
+                ->increment('wallet_balance', $payment->amount);
         }
-    }
-
-    /**
-     * Membalikkan utang customer saat pembayaran dihapus.
-     */
-    private function reverseCustomerDebtOnPaymentDeletion(PurchaseOrderPayment $payment): void
-    {
-        if (!$payment->order->customer_id) return;
-
-        $this->customerService->addToBalance($payment->order->customer, abs($payment->amount));
     }
 }
