@@ -19,22 +19,11 @@ namespace Modules\Admin\Http\Controllers;
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\SalesOrder;
-use App\Models\Customer;
-use App\Models\CustomerWalletTransaction;
-use App\Models\FinanceAccount;
-use App\Models\FinanceTransaction;
-use App\Models\Product;
-use App\Models\SalesOrderDetail;
-use App\Models\SalesOrderPayment;
 use App\Models\Setting;
-use App\Models\StockMovement;
 use Modules\Admin\Services\CashierSessionService;
 use Modules\Admin\Services\FinanceTransactionService;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Modules\Admin\Http\Requests\SalesOrder\GetDataRequest;
 use Modules\Admin\Http\Requests\SalesOrder\SaveRequest;
 use Modules\Admin\Services\FinanceAccountService;
@@ -166,6 +155,7 @@ class SalesOrderController extends Controller
         $order = $this->service->findOrderOrFail($request->post('order_id', null));
         $this->authorize('update', $order);
         $detail = $this->detailService->addItem($order, $request->all());
+        $detail->loadMissing('product');
         return JsonResponseHelper::success([
             'item' => $detail,
             'mergeItem' => $request->post('merge', false),
@@ -174,20 +164,17 @@ class SalesOrderController extends Controller
 
     public function updateItem(Request $request)
     {
-        $detail = SalesOrderDetail::find($request->post('id'));
-        if (!$detail) {
-            return JsonResponseHelper::error('Detail Order tidak ditemukan');
-        }
-
-        $this->detailService->updateItem($detail);
-
+        $detail = $this->detailService->findItemOrFail($request->post('id'));
+        $this->authorize('update', $detail->parent);
+        $this->detailService->updateItem($detail, $request->all());
+        $detail->loadMissing('product');
         return JsonResponseHelper::success($detail, 'Item telah diperbarui.');
     }
 
     public function removeItem(Request $request)
     {
         $item = $this->detailService->findItemOrFail($request->id);
-        $this->authorize('update', $item->order);
+        $this->authorize('update', $item->parent);
         $this->detailService->deleteItem($item);
         return JsonResponseHelper::success($item, 'Item telah dihapus.');
     }
@@ -195,23 +182,16 @@ class SalesOrderController extends Controller
     public function addPayment(Request $request)
     {
         $order = $this->service->findOrderOrFail($request->post('order_id'));
-        $this->paymentService->addPayments($order, $request->post('payments', []));
         $this->authorize('update', $order);
+        $this->paymentService->addPayments($order, $request->post('payments', []));
         return JsonResponseHelper::success($order, "Pembayaran berhasil dicatat.");
     }
 
-    /**
-     * Menangani penghapusan pembayaran untuk Sales Order.
-     *
-     * @param Request $request
-     * @param int $id
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function deletePayment(Request $request)
     {
         $payment = $this->paymentService->findOrFail($request->id);
+        $this->authorize('update', $payment->order);
         $order = $this->paymentService->deletePayment($payment);
-        $this->authorize('update', $order);
         return JsonResponseHelper::success($order, "Pembayaran berhasil dihapus.");
     }
 }

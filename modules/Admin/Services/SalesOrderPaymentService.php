@@ -65,7 +65,7 @@ class SalesOrderPaymentService
         });
     }
 
-    private function processAndValidatePaymentMethod($order, $type_or_id, $amount)
+    private function processAndValidatePaymentMethod($order, $type_or_id, $amount): array
     {
         $accountId = null;
         $type = null;
@@ -93,31 +93,29 @@ class SalesOrderPaymentService
         ];
     }
 
-    public function deletePayments(SalesOrder $order)
+    public function deletePayments(SalesOrder $order): void
     {
         $this->ensureOrderIsProcessable($order);
-        return DB::transaction(function () use ($order) {
+        DB::transaction(function () use ($order) {
             // Memastikan relasi payments terload sebelum diteruskan ke impl
             $order->loadMissing('payments');
             $total_amount = $this->deletePaymentsImpl($order->payments);
             $order->updateTotalPaid($order->total_paid - $total_amount);
             $order->save();
-            return $order;
         });
     }
 
-    public function deletePayment(SalesOrderPayment $payment): SalesOrder
+    public function deletePayment(SalesOrderPayment $payment): void
     {
         /**
          * @var SalesOrder
          */
         $order = $payment->order;
         $this->ensureOrderIsProcessable($payment->order);
-        return DB::transaction(function () use ($order, $payment) {
+        DB::transaction(function () use ($order, $payment) {
             $total_amount = $this->deletePaymentsImpl([$payment]);
             $order->updateTotalPaid($order->total_paid + $total_amount);
             $order->save();
-            return $order;
         });
     }
 
@@ -132,7 +130,7 @@ class SalesOrderPaymentService
     private function ensureOrderIsProcessable(SalesOrder $order)
     {
         if ($order->status !== SalesOrder::Status_Closed) {
-            throw new BusinessRuleViolationException('Tidak dapat menghapus pembayaran dari order yang belum selesai.');
+            throw new BusinessRuleViolationException('Tidak dapat memproses pembayaran.');
         }
     }
 

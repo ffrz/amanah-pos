@@ -206,21 +206,22 @@ class SalesOrderService
         $this->ensureOrderIsEditable($order);
 
         DB::transaction(function () use ($order, $data) {
+            $cashierSession = $this->cashierSessionService->getActiveSession();
+
             $this->updateTotalAndValidateClientTotal($order, $data['total'] ?? 0);
+
+            $order->status = SalesOrder::Status_Closed;
+            $order->remaining_debt = $order->grand_total;
+            $order->delivery_status = SalesOrder::DeliveryStatus_PickedUp;
+            $order->due_date = $data['due_date'] ?? null;
+            $order->cashier_id = Auth::user()->id;
+            $order->cashier_session_id = $cashierSession ? $cashierSession->id : null;
 
             // Simpan dan proses pembayaran
             $this->paymentService->addPayments($order, $data['payments'] ?? []);
 
             // Update kembalian
             $order->change = max(0, $order->total_paid - $order->grand_total);
-            $cashierSession = $this->cashierSessionService->getActiveSession();
-
-            // FIXME: status langsung diambil tanpa harus seting di order
-            $order->delivery_status = SalesOrder::DeliveryStatus_PickedUp;
-            $order->status = SalesOrder::Status_Closed;
-            $order->due_date = $data['due_date'] ?? null;
-            $order->cashier_id = Auth::user()->id;
-            $order->cashier_session_id = $cashierSession ? $cashierSession->id : null;
             $order->save();
 
             // Perbarui stok produk secara massal

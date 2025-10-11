@@ -238,7 +238,7 @@ const updateItem = () => {
     qty: item.quantity,
   };
 
-  if (item.price_editable) {
+  if (item.product.price_editable) {
     data.price = item.price;
   }
 

@@ -100,7 +100,7 @@ defineExpose({
         <LocaleNumberInput
           v-model="item.price"
           label="Harga"
-          :readonly="!item.price_editable"
+          :readonly="!item.product.price_editable"
           hide-bottom-space
           :disable="isProcessing"
         />

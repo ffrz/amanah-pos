@@ -29,7 +29,7 @@ class SalesOrderDetailService
 
     public function findItemOrFail($id): SalesOrderDetail
     {
-        return SalesOrderDetail::findOrFail($id);
+        return SalesOrderDetail::with(['parent'])->findOrFail($id);
     }
 
     private function ensureOrderIsEditable(SalesOrder $order)
@@ -52,28 +52,28 @@ class SalesOrderDetailService
             $price = $data['price'];
         }
 
-        $detail = null;
+        $item = null;
         if ($merge) {
             // kalo gabung cari rekaman yang sudah ada
-            $detail = SalesOrderDetail::where('parent_id', '=', $order->id)
+            $item = SalesOrderDetail::where('parent_id', '=', $order->id)
                 ->where('product_id', '=', $product->id)
                 ->get()
                 ->first();
         }
 
-        if ($detail) {
+        if ($item) {
             // kurangi dulu dengan subtotal sebelum hitungan baru
-            $order->total_cost  -= $detail->subtotal_cost;
-            $order->total_price -= $detail->subtotal_price;
+            $order->total_cost  -= $item->subtotal_cost;
+            $order->total_price -= $item->subtotal_price;
 
             // kalau sudah ada cukup tambaih qty saja
-            $detail->quantity += $quantity;
+            $item->quantity += $quantity;
 
             // perbarui subtotal
-            $detail->subtotal_cost  = $detail->cost  * $detail->quantity;
-            $detail->subtotal_price = $detail->price * $detail->quantity;
+            $item->subtotal_cost  = $item->cost  * $item->quantity;
+            $item->subtotal_price = $item->price * $item->quantity;
         } else {
-            $detail = new SalesOrderDetail([
+            $item = new SalesOrderDetail([
                 'parent_id' => $order->id,
                 'product_id' => $product->id,
                 'product_name' => $product->name,
@@ -88,13 +88,13 @@ class SalesOrderDetailService
             ]);
         }
 
-        return DB::transaction(function () use ($order, $detail) {
-            $detail->save();
+        return DB::transaction(function () use ($order, $item) {
+            $item->save();
 
             $order->updateTotals();
             $order->save();
 
-            return $detail;
+            return $item;
         });
     }
 

@@ -23,6 +23,7 @@ use Illuminate\Http\Request;
 use Modules\Admin\Http\Requests\PurchaseOrder\GetDataRequest;
 use Modules\Admin\Http\Requests\PurchaseOrder\SaveRequest;
 use Modules\Admin\Services\FinanceAccountService;
+use Modules\Admin\Services\PurchaseOrderDetailService;
 use Modules\Admin\Services\PurchaseOrderPaymentService;
 use Modules\Admin\Services\PurchaseOrderService;
 
@@ -30,6 +31,7 @@ class PurchaseOrderController extends Controller
 {
     public function __construct(
         protected PurchaseOrderService $service,
+        protected PurchaseOrderDetailService $detailService,
         protected PurchaseOrderPaymentService $paymentService,
         protected FinanceAccountService $financeAccountService,
     ) {}
@@ -37,17 +39,14 @@ class PurchaseOrderController extends Controller
     public function index()
     {
         $this->authorize('viewAny', PurchaseOrder::class);
-
         return inertia('purchase-order/Index');
     }
 
     public function data(GetDataRequest $request)
     {
         $this->authorize('viewAny', PurchaseOrder::class);
-
         $orders = $this->service->getData($request->validated())
             ->withQueryString();
-
         return JsonResponseHelper::success($orders);
     }
 
@@ -55,16 +54,12 @@ class PurchaseOrderController extends Controller
     {
         if (!$id) {
             $this->authorize('create', PurchaseOrder::class);
-
             $order = $this->service->createOrder();
-
             return redirect(route('admin.purchase-order.edit', $order->id));
         }
 
         $order = $this->service->editOrder($id);
-
         $this->authorize('update', $order);
-
         return inertia('purchase-order/Editor', [
             'data' => $order,
             'accounts' => $this->financeAccountService->getFinanceAccounts(),
@@ -74,22 +69,16 @@ class PurchaseOrderController extends Controller
     public function update(SaveRequest $request)
     {
         $order = $this->service->findOrderOrFail($request->post('id'));
-
         $this->authorize('update', $order);
-
         $this->service->updateOrder($order, $request->validated());
-
         return JsonResponseHelper::success($order, 'Order telah diperbarui');
     }
 
     public function cancel($id)
     {
         $order = $this->service->findOrderOrFail($id);
-
         $this->authorize('cancel', $order);
-
         $this->service->cancelOrder($order);
-
         return JsonResponseHelper::success(
             ['id' => $order->id],
             "Transaksi #$order->formatted_id telah dibatalkan."
@@ -99,20 +88,15 @@ class PurchaseOrderController extends Controller
     public function delete($id)
     {
         $order = $this->service->findOrderOrFail($id);
-
         $this->authorize('delete', $order);
-
         $order = $this->service->deleteOrder($order);
-
         return JsonResponseHelper::success($order, "Transaksi #$order->formatted_id telah dihapus.");
     }
 
     public function detail($id)
     {
         $order = $this->service->findOrderOrFail($id);
-
         $this->authorize('view', $order);
-
         return inertia('purchase-order/Detail', [
             'data' => $order,
             'accounts' => $this->financeAccountService->getFinanceAccounts()
@@ -121,15 +105,10 @@ class PurchaseOrderController extends Controller
 
     public function addItem(Request $request)
     {
-        // TODO: Pindahkan ke Request khusus agar ada validasi lanjutan
-
         $order = $this->service->findOrderOrFail($request->post('order_id'));
-
         $this->authorize('update', $order);
-
         $merge = $request->post('merge', false);
-        $item = $this->service->addItem($order, $request->all(), $merge);
-
+        $item = $this->detailService->addItem($order, $request->all(), $merge);
         return JsonResponseHelper::success([
             'item' => $item,
             'mergeItem' => $merge,
@@ -138,66 +117,41 @@ class PurchaseOrderController extends Controller
 
     public function updateItem(Request $request)
     {
-        // TODO: Pindahkan ke Request khusus agar ada validasi lanjutan
-
         $item = $this->service->findOrderDetailOrFail($request->id);
-
         $this->authorize('update', $item->parent);
-
-        $this->service->updateItem($item, $request->all());
-
+        $this->detailService->updateItem($item, $request->all());
         return JsonResponseHelper::success($item, 'Item telah diperbarui.');
     }
 
     public function removeItem(Request $request)
     {
         $item = $this->service->findOrderDetailOrFail($request->id);
-
         $this->authorize('update', $item->parent);
-
-        $this->service->removeItem($item);
-
+        $this->detailService->removeItem($item);
         return JsonResponseHelper::success($item, 'Item telah dihapus.');
     }
 
     public function close(Request $request)
     {
         $order = $this->service->findOrderOrFail($request->id);
-
         $this->authorize('update', $order);
-
         $this->service->closeOrder($order, $request->all());
-
         return JsonResponseHelper::success($order, "Order telah selesai.");
     }
 
     public function addPayment(Request $request)
     {
-        // TODO: Pindahkan ke Request khusus agar ada validasi lanjutan
         $order = $this->service->findOrderOrFail($request->post('order_id'));
-
         $this->authorize('update', $order);
-
         $this->paymentService->addPayments($order, $request->post('payments', []));
-
         return JsonResponseHelper::success($order, "Pembayaran berhasil dicatat.");
     }
 
-    /**
-     * Menangani penghapusan pembayaran untuk Sales Order.
-     *
-     * @param Request $request
-     * @param int $id
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function deletePayment(Request $request)
     {
         $payment = $this->paymentService->findOrFail($request->id);
-
         $this->authorize('update', $payment->order);
-
         $this->paymentService->deletePayment($payment);
-
         return JsonResponseHelper::success(message: "Pembayaran berhasil dihapus.");
     }
 }
