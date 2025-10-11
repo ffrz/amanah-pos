@@ -44,6 +44,8 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ]);
 
+        $middleware->append(\App\Http\Middleware\CustomMaintenanceBypass::class);
+
         // $middleware->redirectGuestsTo(function (Request $request) {
         //     if ($request->is('api/*') || $request->is('web-api/*') || $request->expectsJson()) {
         //         return null;
