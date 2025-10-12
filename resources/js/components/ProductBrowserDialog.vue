@@ -4,6 +4,9 @@ import { formatNumber } from "@/helpers/formatter";
 import { getQueryParams } from "@/helpers/utils";
 import { handleFetchItems } from "@/helpers/client-req-handler";
 import LongTextView from "./LongTextView.vue";
+import { useQuasar } from "quasar";
+
+const $q = useQuasar();
 
 // Prop untuk mengontrol dialog
 const props = defineProps({
@@ -55,7 +58,12 @@ const computedColumns = computed(() => {
   if (props.showCost) {
     return columns;
   }
-  return columns.filter((col) => col.name !== "cost");
+
+  const cols = columns.filter((col) => col.name !== "cost");
+
+  if ($q.screen.gt.sm) return cols;
+
+  return cols.filter((col) => col.name === "name" || col.name === "stock");
 });
 
 onMounted(() => {
@@ -207,7 +215,9 @@ watch(
               tabindex="0"
               :props="props"
               :class="{
-                inactive: !props.row.active,
+                inactive:
+                  ['stocked', 'raw_materials'].includes(props.row.type) &&
+                  props.row.stock == 0,
                 'selected-row': selectedIndex === props.rowIndex,
               }"
               class="cursor-pointer"
@@ -223,6 +233,22 @@ watch(
                   :max-length="50"
                   class="text-grey-6"
                 />
+                <template v-if="$q.screen.lt.md">
+                  <div>
+                    Stok:
+                    {{
+                      props.row.type == "stocked"
+                        ? formatNumber(props.row.stock) + " " + props.row.uom
+                        : "-"
+                    }}
+                  </div>
+                  <div v-if="showCost">
+                    Modal: Rp. {{ formatNumber(props.row.cost) }}
+                  </div>
+                  <div>Harga 1: Rp. {{ formatNumber(props.row.price_1) }}</div>
+                  <div>Harga 2: Rp. {{ formatNumber(props.row.price_1) }}</div>
+                  <div>Harga 3: Rp. {{ formatNumber(props.row.price_1) }}</div>
+                </template>
               </q-td>
               <q-td key="stock" :props="props" class="wrap-column text-right">
                 {{

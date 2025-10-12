@@ -148,7 +148,7 @@ class StockAdjustmentService
             })
             ->where('active', 1)
             ->orderBy('name', 'asc')
-            ->get(['id', 'name', 'description', 'barcode', 'category_id', 'supplier_id', 'type', 'stock', 'uom', 'cost', 'price']);
+            ->get(['id', 'name', 'description', 'barcode', 'category_id', 'supplier_id', 'type', 'stock', 'uom', 'cost', 'price_1']);
     }
 
     public function save(StockAdjustment $item, $validated)

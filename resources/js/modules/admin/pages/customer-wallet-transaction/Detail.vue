@@ -1,11 +1,10 @@
 <script setup>
 import {
-  formatDate,
   formatDateTime,
   formatNumber,
   plusMinusSymbol,
 } from "@/helpers/formatter";
-import { router, usePage } from "@inertiajs/vue3";
+import { usePage } from "@inertiajs/vue3";
 
 const page = usePage();
 const title = "Rincian Transaksi";
