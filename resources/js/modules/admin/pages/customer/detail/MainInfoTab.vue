@@ -133,7 +133,7 @@ const confirmDelete = () => {
       </tr>
     </tbody>
   </table>
-  <div class="q-pt-md">
+  <div class="q-pt-md" v-if="$can('admin.customer.delete')">
     <q-btn
       icon="delete"
       label="Hapus"

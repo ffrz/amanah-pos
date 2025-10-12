@@ -190,6 +190,14 @@ class PurchaseOrderService
         }
     }
 
+    private function processPurchaseOrderStockOut(PurchaseOrder $order)
+    {
+        foreach ($order->details as $detail) {
+            $this->productService->addToStock($detail->product, -abs($detail->quantity));
+            $this->stockMovementService->deleteByRef($detail->id, StockMovement::RefType_PurchaseOrderDetail);
+        }
+    }
+
     public function closeOrder(PurchaseOrder $order, array $data)
     {
         DB::transaction(function () use ($order, $data) {
@@ -230,16 +238,8 @@ class PurchaseOrderService
     {
         return DB::transaction(function () use ($order) {
             if ($order->status == PurchaseOrder::Status_Closed) {
-                foreach ($order->details as $detail) {
-                    $this->productService->addToStock($detail->product, -abs($detail->quantity));
-                    
-                    $this->stockMovementService->deleteByRef($detail->id, StockMovement::RefType_PurchaseOrderDetail);
-                }
+                $this->processPurchaseOrderStockOut($order);
 
-                // TODO: pastikan delete order sesuai, membersihkan payment dan membuang utang
-                // pemanggilan fungsi ini belum teruji, apakah benar tidak double entry (dua kali potong saldo)
-                // masalahnya disini saldo malah dibuang, secara logika ini membuang utang, tapi di delete payment menambah utang
-                // maka hasilnya jadi seimbang lagi.
                 if ($order->supplier_id && $order->payment_status !== PurchaseOrder::PaymentStatus_FullyPaid) {
                     $this->supplierService->addToBalance($order->supplier, abs($order->grand_total));
                 }
@@ -328,7 +328,7 @@ class PurchaseOrderService
         return $q->paginate($options['per_page']);
     }
 
-    
+
 
     private function ensureOrderIsEditable(PurchaseOrder $order)
     {

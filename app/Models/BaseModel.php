@@ -75,7 +75,7 @@ abstract class BaseModel extends Model
                     $model->deleted_by = $auth->id;
                 }
 
-                $this->renameUniqueColumnsOnDelete();
+                $model->renameUniqueColumnsOnDelete();
 
                 $model->saveQuietly();
                 return false; // Batalkan hard delete (soft delete saja)

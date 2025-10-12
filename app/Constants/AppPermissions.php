@@ -23,6 +23,12 @@ class AppPermissions
         return [
             'admin.sales-order.add'    => 'admin.sales-order.edit',
             'admin.sales-order.save'   => 'admin.sales-order.edit',
+            'admin.purchase-order.add'    => 'admin.purchase-order.edit',
+            'admin.purchase-order.save'   => 'admin.purchase-order.edit',
+            'admin.purchase-order.update'    => 'admin.purchase-order.edit',
+            'admin.purchase-order.add-item'    => 'admin.purchase-order.edit',
+            'admin.purchase-order.update-item'    => 'admin.purchase-order.edit',
+            'admin.purchase-order.upted-item'    => 'admin.purchase-order.edit',
         ];
     }
     /**
@@ -153,27 +159,20 @@ class AppPermissions
             'Manajemen Pembelian' => [
                 'admin.purchase-order.index' => 'Lihat Daftar Pesanan Pembelian',
                 'admin.purchase-order.detail' => 'Lihat Detail Pesanan Pembelian',
-                // 'admin.purchase-order.add' => 'Tambah Pesanan Pembelian',
                 'admin.purchase-order.edit' => 'Membuat / Edit Pesanan Pembelian',
-                // 'admin.purchase-order.save' => 'Simpan Pesanan Pembelian',
                 'admin.purchase-order.delete' => 'Hapus Pesanan Pembelian',
-                // 'admin.purchase-order.data' => 'Data Pesanan Pembelian',
+                'admin.purchase-order.cancel' => 'Batalkan Pesanan Pembelian',
+                'admin.purchase-order.close' => 'Tutup Pesanan Pembelian',
+                'admin.purchase-order.add-payment' => 'Tambah Pembayaran',
+                'admin.purchase-order.delete-payment' => 'Hapus Pembayaran',
             ],
             'Manajemen Penjualan' => [
                 'admin.sales-order.index' => 'Lihat Daftar Pesanan Penjualan',
                 'admin.sales-order.detail' => 'Lihat Detail Pesanan Penjualan',
-                // 'admin.sales-order.add' => 'Tambah Pesanan Penjualan',
                 'admin.sales-order.edit' => 'Membuat / Edit Pesanan Penjualan',
-                // 'admin.sales-order.save' => 'Simpan Pesanan Penjualan',
                 'admin.sales-order.delete' => 'Hapus Pesanan Penjualan',
-                // 'admin.sales-order.data' => 'Data Pesanan Penjualan',
-                // 'admin.sales-order.add-item' => 'Tambah Item Pesanan Penjualan',
-                // 'admin.sales-order.remove-item' => 'Hapus Item Pesanan Penjualan',
-                // 'admin.sales-order.update' => 'Perbarui Pesanan Penjualan',
-                // 'admin.sales-order.update-item' => 'Perbarui Item Pesanan Penjualan',
                 'admin.sales-order.cancel' => 'Batalkan Pesanan Penjualan',
                 'admin.sales-order.close' => 'Tutup Pesanan Penjualan',
-
                 'admin.sales-order.add-payment' => 'Tambah Pembayaran',
                 'admin.sales-order.delete-payment' => 'Hapus Pembayaran',
             ],

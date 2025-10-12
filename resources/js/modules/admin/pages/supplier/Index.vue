@@ -5,6 +5,7 @@ import { handleDelete, handleFetchItems } from "@/helpers/client-req-handler";
 import { getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
 import useTableHeight from "@/composables/useTableHeight";
+import { formatNumber } from "@/helpers/formatter";
 
 const title = "Pemasok";
 const $q = useQuasar();
@@ -42,6 +43,13 @@ const columns = [
     label: "Nama",
     field: "name",
     align: "left",
+    sortable: true,
+  },
+  {
+    name: "balance",
+    label: "Utang / Piutang (Rp)",
+    field: "balance",
+    align: "right",
     sortable: true,
   },
   {
@@ -206,6 +214,14 @@ const computedColumns = computed(() => {
                 </template>
               </div>
               <template v-if="$q.screen.lt.md">
+                <div
+                  :class="
+                    props.row.balance < 0 ? 'text-negative' : 'text-positive'
+                  "
+                >
+                  <q-icon name="wallet" />
+                  {{ formatNumber(props.row.balance) }}
+                </div>
                 <div v-if="props.row.phone_1">
                   <q-icon name="phone" /> {{ props.row.phone_1 }}
                 </div>
@@ -216,6 +232,15 @@ const computedColumns = computed(() => {
             </q-td>
             <q-td key="name" :props="props" class="wrap-column">
               {{ props.row.name }}
+            </q-td>
+            <q-td key="balance" :props="props" class="wrap-column">
+              <div
+                :class="
+                  props.row.balance < 0 ? 'text-negative' : 'text-positive'
+                "
+              >
+                {{ formatNumber(props.row.balance) }}
+              </div>
             </q-td>
             <q-td key="phone_1" :props="props">
               {{ props.row.phone_1 }}
