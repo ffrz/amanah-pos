@@ -46,7 +46,7 @@ class ProductFactory extends Factory
             'supplier_id' => DB::table('suppliers')->inRandomOrder()->value('id'),
             'description' => $this->faker->sentence,
             'cost' => $cost,
-            'price' => $price,
+            'price_1' => $price,
             'stock' => $this->faker->numberBetween(0, 1000),
             'min_stock' => $this->faker->randomElement([0, 1, 2, 3, 5, 10, 12, 20, 50]),
             'max_stock' => 0,

@@ -122,7 +122,7 @@ class StoreProductRequestTest extends TestCase
                     'type' => Product::Type_Stocked,
                     'barcode' => 'BAR123',
                     'stock' => 10,
-                    'price' => 10000,
+                    'price_1' => 10000,
                     'active' => true,
                 ],
                 [],

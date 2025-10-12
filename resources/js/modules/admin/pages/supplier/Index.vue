@@ -25,11 +25,18 @@ const pagination = ref({
   page: 1,
   rowsPerPage: 10,
   rowsNumber: 10,
-  sortBy: "name",
-  descending: false,
+  sortBy: "id",
+  descending: true,
 });
 
 const columns = [
+  {
+    name: "code",
+    label: "Kode",
+    field: "code",
+    align: "left",
+    sortable: true,
+  },
   {
     name: "name",
     label: "Nama",
@@ -92,7 +99,7 @@ const onRowClicked = (row) =>
   router.get(route("admin.supplier.detail", { id: row.id }));
 const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return columns;
-  return columns.filter((col) => col.name === "name" || col.name === "action");
+  return columns.filter((col) => col.name === "code" || col.name === "action");
 });
 </script>
 
@@ -190,10 +197,13 @@ const computedColumns = computed(() => {
             class="cursor-pointer"
             @click="onRowClicked(props.row)"
           >
-            <q-td key="name" :props="props" class="wrap-column">
+            <q-td key="code" :props="props" class="wrap-column">
               <div>
                 <q-icon name="person" v-if="$q.screen.lt.md" />
-                {{ props.row.name }}
+                {{ props.row.code }}
+                <template v-if="$q.screen.lt.md">
+                  - {{ props.row.name }}
+                </template>
               </div>
               <template v-if="$q.screen.lt.md">
                 <div v-if="props.row.phone_1">
@@ -203,6 +213,9 @@ const computedColumns = computed(() => {
                   <q-icon name="home_pin" /> {{ props.row.address }}
                 </div>
               </template>
+            </q-td>
+            <q-td key="name" :props="props" class="wrap-column">
+              {{ props.row.name }}
             </q-td>
             <q-td key="phone_1" :props="props">
               {{ props.row.phone_1 }}

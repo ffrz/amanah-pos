@@ -19,10 +19,13 @@ namespace App\Models;
 use App\Models\Traits\HasDocumentVersions;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PurchaseOrder extends BaseModel
 {
-    use HasDocumentVersions, HasFactory;
+    use HasDocumentVersions,
+        HasFactory,
+        SoftDeletes;
 
     protected $fillable = [
         'supplier_id',

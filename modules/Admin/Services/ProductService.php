@@ -22,6 +22,7 @@ use App\Helpers\WhatsAppHelper;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Models\Setting;
 use App\Models\StockMovement;
 use App\Models\Supplier;
 use App\Models\UserActivityLog;
@@ -129,7 +130,8 @@ class ProductService
     {
         return $id ? $this->find($id) : new Product([
             'active' => 1,
-            'type' => Product::Type_Stocked
+            'type' => Product::Type_Stocked,
+            'name' => $this->generateProductCode(),
         ]);
     }
 
@@ -285,7 +287,7 @@ class ProductService
                 $itemData = [
                     'description' => trim($row['description']),
                     'cost'        => $row['cost'],
-                    'price'       => $row['price'],
+                    'price_1'     => $row['price'],
                     'uom'         => $row['uom'],
                     'stock'       => $row['stock'],
                     'category_id' => $category->id,
@@ -384,5 +386,14 @@ class ProductService
         }
 
         return $product;
+    }
+
+    private function generateProductCode(): string
+    {
+        $lastId = Product::max('id') ?? 0;
+        $nextId = $lastId + 1;
+        $code = str_pad($nextId, 5, '0', STR_PAD_LEFT);
+        $prefix = Setting::value('product.code-prefix', 'P-');
+        return $prefix . $code;
     }
 }

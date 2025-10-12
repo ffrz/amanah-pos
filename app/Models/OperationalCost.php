@@ -18,11 +18,13 @@ namespace App\Models;
 
 use App\Models\Traits\HasDocumentVersions;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class OperationalCost extends BaseModel
 {
     use HasFactory,
-        HasDocumentVersions;
+        HasDocumentVersions,
+        SoftDeletes;
 
     protected $fillable = [
         'category_id',

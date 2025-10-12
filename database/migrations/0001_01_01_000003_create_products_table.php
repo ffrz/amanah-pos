@@ -29,16 +29,18 @@ return new class extends Migration
             $table->id();
             $table->foreignId('category_id')->nullable()->constrained('product_categories')->onDelete('restrict');
             $table->foreignId('supplier_id')->nullable()->constrained('suppliers')->onDelete('restrict');
-            $table->string('name', 100)->index();
+            $table->string('name', 255)->unique();
             $table->string('barcode', 255)->default('')->index();
             $table->text('description')->nullable();
             $table->string('type', 20)->index();
             $table->boolean('active')->default(true)->index();
             $table->boolean('price_editable')->default(false);
             $table->decimal('cost', 10, 2)->default(0.);
-            $table->decimal('price', 10, 2)->default(0.);
+            $table->decimal('price_1', 10, 2)->default(0.);
             $table->decimal('price_2', 10, 2)->default(0.);
             $table->decimal('price_3', 10, 2)->default(0.);
+
+            $table->date('expiry_date', 'date')->nullable();
 
             $table->decimal('discount_percentage', 5, 2)->default(0.00);
             $table->datetime('discount_start_date')->nullable();
@@ -51,7 +53,7 @@ return new class extends Migration
             $table->decimal('min_stock', 10, 3)->default(0.);
             $table->decimal('max_stock', 10, 3)->default(0.);
 
-            $table->createdUpdatedTimestamps();
+            $table->createdUpdatedDeletedTimestamps();
         });
     }
 

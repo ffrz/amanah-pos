@@ -39,7 +39,7 @@ return new class extends Migration
             $table->string('image_path', 255)->nullable()->default('');
             $table->text('notes')->nullable();
 
-            $table->createdUpdatedTimestamps();
+            $table->createdUpdatedDeletedTimestamps();
         });
     }
 

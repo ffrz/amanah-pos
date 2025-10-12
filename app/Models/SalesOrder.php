@@ -18,10 +18,12 @@ namespace App\Models;
 
 use App\Models\Traits\HasDocumentVersions;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SalesOrder extends BaseModel
 {
-    use HasDocumentVersions;
+    use HasDocumentVersions,
+        SoftDeletes;
 
     protected $fillable = [
         'cashier_id',

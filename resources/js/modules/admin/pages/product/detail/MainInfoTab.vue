@@ -1,4 +1,5 @@
 <script setup>
+import { handleDelete } from "@/helpers/client-req-handler";
 import { formatNumber, formatDateTime } from "@/helpers/formatter";
 import { useQuasar } from "quasar";
 
@@ -17,6 +18,16 @@ const marginInfo = (price) => {
       ? formatNumber(((price - props.product.cost) / price) * 100, 2)
       : 0;
   return `${val}%`;
+};
+
+const confirmDelete = () => {
+  handleDelete({
+    message: `Hapus Produk ${page.props.data.name}?`,
+    url: route("admin.product.delete", page.props.data.id),
+    onSuccess: () => {
+      router.get(route("admin.product.index"));
+    },
+  });
 };
 </script>
 
@@ -185,9 +196,9 @@ const marginInfo = (price) => {
           <td>Harga Eceran</td>
           <td>:</td>
           <td>
-            Rp. {{ formatNumber(product.price) }}
+            Rp. {{ formatNumber(product.price_1) }}
             <span v-if="$can('admin.product:view-cost')">
-              ({{ marginInfo(product.price) }})
+              ({{ marginInfo(product.price_1) }})
             </span>
           </td>
         </tr>
@@ -230,5 +241,13 @@ const marginInfo = (price) => {
         </tr>
       </tbody>
     </table>
+    <div class="q-pt-md">
+      <q-btn
+        icon="delete"
+        label="Hapus"
+        color="negative"
+        @click="confirmDelete()"
+      />
+    </div>
   </div>
 </template>

@@ -46,7 +46,9 @@ const columns = [
   { name: "name", label: "Nama", field: "name", align: "left", sortable: true },
   { name: "stock", label: "Stok", field: "stock", align: "right" },
   { name: "cost", label: "Modal (Rp)", field: "cost", align: "right" },
-  { name: "price", label: "Harga (Rp)", field: "price", align: "right" },
+  { name: "price_1", label: "Harga (Rp)", field: "price_1", align: "right" },
+  { name: "price_2", label: "Harga (Rp)", field: "price_2", align: "right" },
+  { name: "price_3", label: "Harga (Rp)", field: "price_3", align: "right" },
 ];
 
 const computedColumns = computed(() => {
@@ -237,8 +239,14 @@ watch(
               >
                 {{ formatNumber(props.row.cost) }}
               </q-td>
-              <q-td key="price" :props="props" class="wrap-column text-right">
-                {{ formatNumber(props.row.price) }}
+              <q-td key="price_1" :props="props" class="wrap-column text-right">
+                {{ formatNumber(props.row.price_1) }}
+              </q-td>
+              <q-td key="price_2" :props="props" class="wrap-column text-right">
+                {{ formatNumber(props.row.price_2) }}
+              </q-td>
+              <q-td key="price_3" :props="props" class="wrap-column text-right">
+                {{ formatNumber(props.row.price_3) }}
               </q-td>
             </q-tr>
           </template>

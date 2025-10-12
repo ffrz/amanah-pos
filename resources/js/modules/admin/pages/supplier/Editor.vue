@@ -8,6 +8,7 @@ const page = usePage();
 const title = (!!page.props.data.id ? "Edit" : "Tambah") + " Pemasok";
 const form = useForm({
   id: page.props.data.id,
+  code: page.props.data.code,
   name: page.props.data.name,
   phone_1: page.props.data.phone_1,
   phone_2: page.props.data.phone_2,
@@ -58,7 +59,19 @@ const submit = () => handleSubmit({ form, url: route("admin.supplier.save") });
             <q-card-section class="q-pt-none">
               <input type="hidden" name="id" v-model="form.id" />
               <q-input
+                v-model.trim="form.code"
+                label="Kode Pelanggan"
+                :error="!!form.errors.code"
+                :disable="form.processing"
+                :error-message="form.errors.code"
+                :rules="[
+                  (val) => (val && val.length > 0) || 'Kode harus diisi.',
+                ]"
                 autofocus
+                lazy-rules
+                hide-bottom-space
+              />
+              <q-input
                 v-model.trim="form.name"
                 label="Nama"
                 lazy-rules

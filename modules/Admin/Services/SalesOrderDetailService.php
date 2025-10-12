@@ -47,7 +47,7 @@ class SalesOrderDetailService
         $product = $this->productService->findProductByCodeOrId($data);
         $quantity = $data['qty'] ?? 1;
         $data['price'] = $data['price'] ?? null;
-        $price = $product->price;
+        $price = $product->price_1;
         if ($product->price_editable && $data['price'] !== null) {
             $price = $data['price'];
         }

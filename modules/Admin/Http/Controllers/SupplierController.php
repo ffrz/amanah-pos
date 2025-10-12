@@ -51,7 +51,8 @@ class SupplierController extends Controller
     {
         $this->authorize('viewAny', Supplier::class);
 
-        $items = $this->supplierService->getData($request->validated());
+        $items = $this->supplierService->getData($request->validated())
+            ->withQueryString();
 
         return JsonResponseHelper::success($items);
     }

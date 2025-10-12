@@ -46,7 +46,7 @@ class CommonDataService
      *
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function getSuppliers($fields = ['id', 'name', 'phone_1'], $activeOnly = true)
+    public function getSuppliers($fields = ['id', 'code', 'name', 'phone_1'], $activeOnly = true)
     {
         $query = Supplier::query();
 

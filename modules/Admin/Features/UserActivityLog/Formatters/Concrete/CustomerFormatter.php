@@ -21,8 +21,8 @@ class CustomerFormatter extends BaseFormatter
     // TODO: Lengkapi data ini
     protected $mapping = [
         "id" => 'ID',
-        "username" => "Kode Pelanggan",
-        "name" => "Nama Pelanggan",
+        "code" => "Kode ",
+        "name" => "Nama ",
         "phone" => "No Telepon",
         "address" => "Alamat",
         "wallet_balance" => "Saldo Wallet",

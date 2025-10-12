@@ -20,10 +20,13 @@ use App\Models\Traits\HasDocumentVersions;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class FinanceTransaction extends BaseModel
 {
-    use HasFactory, HasDocumentVersions;
+    use HasFactory,
+        HasDocumentVersions,
+        SoftDeletes;
 
     protected $fillable = [
         'account_id',

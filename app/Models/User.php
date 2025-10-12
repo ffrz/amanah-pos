@@ -24,6 +24,7 @@ use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Illuminate\Foundation\Auth\Access\Authorizable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Traits\HasRoles;
@@ -39,7 +40,8 @@ class User extends BaseModel implements
         HasFactory,
         Notifiable,
         HasRoles,
-        HasDocumentVersions;
+        HasDocumentVersions,
+        SoftDeletes;
 
     public const Type_SuperUser = 'super_user';
     public const Type_StandardUser = 'standard_user';

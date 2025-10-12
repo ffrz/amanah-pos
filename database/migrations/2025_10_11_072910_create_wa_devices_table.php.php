@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('wa_devices', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 40)->unique();
+            $table->string('name', 255)->unique();
             $table->string('description', 200)->nullable();
-            $table->createdUpdatedTimestamps();
+            $table->createdUpdatedDeletedTimestamps();
         });
     }
 

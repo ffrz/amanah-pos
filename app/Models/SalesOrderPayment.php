@@ -17,9 +17,12 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SalesOrderPayment extends BaseModel
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'order_id',
         'finance_account_id',

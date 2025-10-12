@@ -28,7 +28,7 @@ return new class extends Migration
         Schema::create('customers', function (Blueprint $table) {
             $table->id();
             $table->string('type', 30)->index();
-            $table->string('code', 40)->unique()->nullable();
+            $table->string('code', 255)->unique();
             $table->string('name', 255)->index();
             $table->string('email', 255)->nullable()->default('')->index(); // untuk reset password
             $table->string('phone', 100)->nullable()->default('')->index();
@@ -38,13 +38,15 @@ return new class extends Migration
             $table->decimal('balance', 15, 0)->default(0)->index(); // utang - piutang
             $table->boolean('active')->default(true)->index();
 
+            $table->string('default_price_type', 10)->nullable('price_1');
+
             $table->string('password');
             $table->datetime('last_login_datetime')->nullable()->index();
             $table->string('last_activity_description')->default('');
             $table->datetime('last_activity_datetime')->nullable();
             $table->rememberToken();
 
-            $table->createdUpdatedTimestamps();
+            $table->createdUpdatedDeletedTimestamps();
         });
 
         Schema::create('customer_password_reset_tokens', function (Blueprint $table) {

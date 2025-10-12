@@ -18,14 +18,17 @@ namespace App\Models;
 
 use App\Models\Traits\HasDocumentVersions;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 
 class Supplier extends BaseModel
 {
     use HasFactory,
-        HasDocumentVersions;
+        HasDocumentVersions,
+        SoftDeletes;
 
     protected $fillable = [
+        'code',
         'name',
 
         'phone_1',
@@ -60,20 +63,21 @@ class Supplier extends BaseModel
     protected function casts(): array
     {
         return [
+            'code'    => 'string',
             'name'    => 'string',
-            'phone_1'   => 'string',
-            'phone_2'   => 'string',
-            'phone_3'   => 'string',
+            'phone_1' => 'string',
+            'phone_2' => 'string',
+            'phone_3' => 'string',
             'address' => 'string',
             'active'  => 'boolean',
             'balance' => 'decimal:2',
             'actual_balance' => 'decimal:2',
             'bank_account_number' => 'string',
             'return_address' => 'string',
-            'created_by'     => 'integer',
-            'updated_by'     => 'integer',
-            'created_at'     => 'datetime',
-            'updated_at'     => 'datetime',
+            'created_by' => 'integer',
+            'updated_by' => 'integer',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
         ];
     }
 

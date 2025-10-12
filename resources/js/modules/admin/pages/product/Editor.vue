@@ -26,7 +26,7 @@ const form = useForm({
   max_stock: parseFloat(page.props.data.max_stock) || 0,
   uom: page.props.data.uom || "",
   cost: parseFloat(page.props.data.cost) || 0,
-  price: parseFloat(page.props.data.price) || 0,
+  price_1: parseFloat(page.props.data.price_1) || 0,
   price_2: parseFloat(page.props.data.price_2) || 0,
   price_3: parseFloat(page.props.data.price_3) || 0,
   active: !!page.props.data.active,
@@ -44,7 +44,9 @@ const { filteredSuppliers, filterSuppliers } = useSupplierFilter(
 );
 
 const margin = computed(() => {
-  return form.price > 0 ? ((form.price - form.cost) / form.price) * 100 : 0;
+  return form.price_1 > 0
+    ? ((form.price_1 - form.cost) / form.price_1) * 100
+    : 0;
 });
 </script>
 
@@ -224,12 +226,12 @@ const margin = computed(() => {
                 hide-bottom-space
               />
               <LocaleNumberInput
-                v-model:modelValue="form.price"
+                v-model:modelValue="form.price_1"
                 label="Harga Eceran (Rp)"
                 lazyRules
                 :disable="form.processing"
-                :error="!!form.errors.price"
-                :errorMessage="form.errors.price"
+                :error="!!form.errors.price_1"
+                :errorMessage="form.errors.price_1"
                 hide-bottom-space
               />
               <LocaleNumberInput

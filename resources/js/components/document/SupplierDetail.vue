@@ -18,7 +18,7 @@ const props = defineProps({
         <td>No Telepon</td>
         <td>:</td>
         <td>
-          {{ data.phone_1 }}
+          {{ data.phone_1 ? data.phone_1 : "-" }}
           <template v-if="data.phone_2"
             ><br />
             {{ data.phone_2 }}</template
@@ -32,26 +32,44 @@ const props = defineProps({
       <tr>
         <td>Alamat</td>
         <td>:</td>
-        <td>{{ data.address }}</td>
+        <td>{{ data.address ? data.address : "-" }}</td>
       </tr>
       <tr>
         <td>Alamat Retur</td>
         <td>:</td>
-        <td>{{ data.returned_address ?? "-" }}</td>
+        <td>{{ data.returned_address ? data.returned_address : "-" }}</td>
       </tr>
-      <tr>
+      <tr
+        v-if="
+          data.bank_account_name_1 ||
+          data.bank_account_holder_1 ||
+          data.bank_account_number_1
+        "
+      >
         <td>No Rek 1</td>
         <td>:</td>
         <td>
-          {{ data.bank_account_name_1 }} a.n. {{ data.bank_account_holder_1 }}
+          {{ data.bank_account_name_1 }}
+          <template v-if="data.bank_account_holder_1">
+            a.n. {{ data.bank_account_holder_1 }}
+          </template>
           {{ data.bank_account_number_1 }}
         </td>
       </tr>
-      <tr>
+      <tr
+        v-if="
+          data.bank_account_name_2 ||
+          data.bank_account_holder_2 ||
+          data.bank_account_number_2
+        "
+      >
         <td>No Rek 2</td>
         <td>:</td>
         <td>
-          {{ data.bank_account_name_2 }} a.n. {{ data.bank_account_holder_2 }}
+          {{ data.bank_account_name_2 }}
+          <template v-if="data.bank_account_holder_2">
+            a.n. {{ data.bank_account_holder_2 }}
+          </template>
           {{ data.bank_account_number_2 }}
         </td>
       </tr>
@@ -59,6 +77,7 @@ const props = defineProps({
         <td>URL</td>
         <td>:</td>
         <td>
+          {{ !data.url_1 && !data.url_2 ? "-" : "" }}
           <template v-if="data.url_1">
             {{ data.url_1 }}
           </template>

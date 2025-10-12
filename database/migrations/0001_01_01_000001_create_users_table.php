@@ -28,7 +28,7 @@ return new class extends Migration
 
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('username')->unique();
+            $table->string('username', 255)->unique();
             $table->string('name')->index();
             $table->string('password');
             $table->string('type', 30)->index();
@@ -40,7 +40,7 @@ return new class extends Migration
         });
 
         Schema::table('users', function (Blueprint $table) {
-            $table->createdUpdatedTimestamps();
+            $table->createdUpdatedDeletedTimestamps();
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

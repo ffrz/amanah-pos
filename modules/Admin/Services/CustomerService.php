@@ -18,6 +18,8 @@ namespace Modules\Admin\Services;
 
 use App\Exceptions\ModelNotModifiedException;
 use App\Models\Customer;
+use App\Models\Product;
+use App\Models\Setting;
 use App\Models\UserActivityLog;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -38,7 +40,21 @@ class CustomerService
 
     public function findOrCreate($id): Customer
     {
-        return $id ? $this->find($id) : new Customer(['active' => true]);
+        return $id ? $this->find($id) : new Customer([
+            'active' => true,
+            'type' => Customer::Type_General,
+            'code' => $this->generateCustomerCode(),
+            'default_price_type' => Product::PriceType_Price1,
+        ]);
+    }
+
+    private function generateCustomerCode(): string
+    {
+        $lastId = Customer::max('id') ?? 0;
+        $nextId = $lastId + 1;
+        $code = str_pad($nextId, 4, '0', STR_PAD_LEFT);
+        $prefix = Setting::value('customer.code-prefix', 'CST-');
+        return $prefix . $code;
     }
 
     public function duplicate(int $id): Customer

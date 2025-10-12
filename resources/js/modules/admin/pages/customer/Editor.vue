@@ -4,6 +4,7 @@ import { handleSubmit } from "@/helpers/client-req-handler";
 import { scrollToFirstErrorField } from "@/helpers/utils";
 import StandardCheckBox from "@/components/StandardCheckBox.vue";
 import { createOptions } from "@/helpers/options";
+import { ref } from "vue";
 
 const page = usePage();
 const title = (!!page.props.data.id ? "Edit" : "Tambah") + " Pelanggan";
@@ -11,14 +12,18 @@ const form = useForm({
   id: page.props.data.id,
   code: page.props.data.code,
   name: page.props.data.name,
+  default_price_type: page.props.data.default_price_type,
   phone: page.props.data.phone,
   address: page.props.data.address,
   active: !!page.props.data.active,
-  password: page.props.data.password,
+  password: !page.props.data.id ? "12345" : null,
   type: page.props.data.type,
 });
+const showPassword = ref(!page.props.data.id ? true : false);
 
 const types = createOptions(window.CONSTANTS.CUSTOMER_TYPES);
+
+const priceOptions = createOptions(window.CONSTANTS.PRODUCT_PRICE_TYPES);
 
 const submit = () =>
   handleSubmit({
@@ -81,6 +86,19 @@ const submit = () =>
                 hide-bottom-space
               />
               <q-select
+                v-model="form.default_price_type"
+                :options="priceOptions"
+                label="Tipe Harga"
+                map-options
+                emit-value
+                hide-bottom-space
+                :error="!!form.errors.default_price_type"
+                :error-message="form.errors.default_price_type"
+                :disable="form.processing"
+                transition-show="jump-up"
+                transition-hide="jump-up"
+              />
+              <q-select
                 v-model="form.type"
                 label="Jenis Akun"
                 :options="types"
@@ -120,10 +138,9 @@ const submit = () =>
                 hide-bottom-space
               />
               <q-input
-                autocomplete=""
+                autocomplete="off"
                 aria-autocomplete="none"
                 v-model="form.password"
-                type="password"
                 :label="
                   !form.id
                     ? 'Kata Sandi Baru (Wajib diisi)'
@@ -134,7 +151,14 @@ const submit = () =>
                 :error-message="form.errors.password"
                 lazy-rules
                 hide-bottom-space
-              />
+                :type="showPassword ? 'text' : 'password'"
+              >
+                <template v-slot:append>
+                  <q-btn dense flat round @click="showPassword = !showPassword"
+                    ><q-icon :name="showPassword ? 'key_off' : 'key'"
+                  /></q-btn>
+                </template>
+              </q-input>
               <StandardCheckBox
                 v-model="form.active"
                 label="Aktif"

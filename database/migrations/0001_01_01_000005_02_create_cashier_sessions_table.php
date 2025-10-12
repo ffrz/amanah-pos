@@ -39,7 +39,7 @@ return new class extends Migration
 
             $table->text('opening_notes')->nullable();
             $table->text('closing_notes')->nullable();
-            $table->createdUpdatedTimestamps();
+            $table->createdDeletedTimestamps();
 
             $table->foreign('user_id')
                 ->references('id')

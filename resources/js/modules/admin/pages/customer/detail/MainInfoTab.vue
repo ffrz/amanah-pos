@@ -1,12 +1,23 @@
 <script setup>
-import { usePage } from "@inertiajs/vue3";
+import { router, usePage } from "@inertiajs/vue3";
 import {
   formatDateTime,
   formatDateTimeFromNow,
   formatNumber,
 } from "@/helpers/formatter";
+import { handleDelete } from "@/helpers/client-req-handler";
 
 const page = usePage();
+
+const confirmDelete = () => {
+  handleDelete({
+    message: `Hapus Pelanggan ${page.props.data.code}?`,
+    url: route("admin.customer.delete", page.props.data.id),
+    onSuccess: () => {
+      router.get(route("admin.customer.index"));
+    },
+  });
+};
 </script>
 
 <template>
@@ -14,29 +25,11 @@ const page = usePage();
     <tbody>
       <tr>
         <td colspan="3">
-          <div class="text-bold text-grey-8">
-            Info Pelanggan
-
-            <q-btn
-              v-if="$can('admin.customer.edit')"
-              icon="edit"
-              size="sm"
-              dense
-              flat
-              rounded
-              class="q-ml-sm"
-              color="grey"
-              @click="
-                $inertia.get(
-                  route('admin.customer.edit', { id: page.props.data.id })
-                )
-              "
-            />
-          </div>
+          <div class="text-bold text-grey-8">Info Pelanggan</div>
         </td>
       </tr>
       <tr>
-        <td style="width: 120px">Username</td>
+        <td style="width: 120px">Kode</td>
         <td style="width: 1px">:</td>
         <td>{{ page.props.data.code }}</td>
       </tr>
@@ -44,13 +37,20 @@ const page = usePage();
         <td>Jenis</td>
         <td>:</td>
         <td>
-          {{ $CONSTANTS.CUSTOMER_TYPES[page.props.data.type] }}
+          {{ page.props.data.type_label }}
         </td>
       </tr>
       <tr>
         <td>Nama</td>
         <td>:</td>
         <td>{{ page.props.data.name }}</td>
+      </tr>
+      <tr>
+        <td>Default Harga</td>
+        <td>:</td>
+        <td>
+          {{ page.props.data.default_price_type_label }}
+        </td>
       </tr>
       <tr>
         <td>No. Telepon</td>
@@ -133,4 +133,12 @@ const page = usePage();
       </tr>
     </tbody>
   </table>
+  <div class="q-pt-md">
+    <q-btn
+      icon="delete"
+      label="Hapus"
+      color="negative"
+      @click="confirmDelete()"
+    />
+  </div>
 </template>

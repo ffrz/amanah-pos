@@ -20,10 +20,12 @@ use App\Models\Traits\HasDocumentVersions;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CashierSession extends BaseModel
 {
-    use HasDocumentVersions;
+    use HasDocumentVersions,
+        SoftDeletes;
 
     /**
      * The table associated with the model.

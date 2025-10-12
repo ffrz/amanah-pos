@@ -17,6 +17,7 @@
 namespace Modules\Admin\Services;
 
 use App\Exceptions\ModelNotModifiedException;
+use App\Models\Setting;
 use App\Models\Supplier;
 use App\Models\UserActivityLog;
 use Illuminate\Database\Eloquent\Builder;
@@ -44,7 +45,10 @@ class SupplierService
 
     public function findOrCreate($id): Supplier
     {
-        return $id ? $this->find($id) : new Supplier(['active' => true]);
+        return $id ? $this->find($id) : new Supplier([
+            'active' => true,
+            'code' => $this->generateSupplierCode(),
+        ]);
     }
 
     public function duplicate(int $id): Supplier
@@ -135,7 +139,8 @@ class SupplierService
 
         if (!empty($filter['search'])) {
             $q->where(function (Builder $q) use ($filter) {
-                $q->where('name', 'like', '%' . $filter['search'] . '%');
+                $q->orWhere('code', 'like', '%' . $filter['search'] . '%');
+                $q->orWhere('name', 'like', '%' . $filter['search'] . '%');
                 $q->orWhere('phone_1', 'like', '%' . $filter['search'] . '%');
                 $q->orWhere('address', 'like', '%' . $filter['search'] . '%');
             });
@@ -147,7 +152,7 @@ class SupplierService
 
         $q->orderBy($options['order_by'], $options['order_type']);
 
-        return $q->paginate($options['per_page'])->withQueryString();
+        return $q->paginate($options['per_page']);
     }
 
     /**
@@ -178,5 +183,14 @@ class SupplierService
         }
 
         return $data;
+    }
+
+    private function generateSupplierCode(): string
+    {
+        $lastId = Supplier::max('id') ?? 0;
+        $nextId = $lastId + 1;
+        $code = str_pad($nextId, 4, '0', STR_PAD_LEFT);
+        $prefix = Setting::value('supplier.code-prefix', 'SUP-');
+        return $prefix . $code;
     }
 }

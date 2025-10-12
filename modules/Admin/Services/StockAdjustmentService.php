@@ -121,7 +121,7 @@ class StockAdjustmentService
                     'balance' => 0,
                     'uom' => $product->uom,
                     'cost' => $product->cost,
-                    'price' => $product->price,
+                    'price' => $product->price_1,
                 ]);
                 $detail->save();
             }

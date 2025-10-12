@@ -18,6 +18,7 @@ namespace App\Models;
 
 use App\Models\Traits\HasDocumentVersions;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -26,7 +27,8 @@ use Illuminate\Support\Facades\DB;
 class Product extends BaseModel
 {
     use HasFactory,
-        HasDocumentVersions;
+        HasDocumentVersions,
+        SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -42,9 +44,11 @@ class Product extends BaseModel
         'price_editable',
         'type',
         'cost',
-        'price',
+        'price_1',
         'price_2',
         'price_3',
+
+        'expiry_date',
 
         'discount_percentage',
         'discount_start_date',
@@ -86,6 +90,16 @@ class Product extends BaseModel
         self::Type_Consignment => 'Konsinyasi',
     ];
 
+    const PriceType_Price1 = 'price_1';
+    const PriceType_Price2 = 'price_2';
+    const PriceType_Price3 = 'price_3';
+
+    const PriceTypes = [
+        self::PriceType_Price1 => 'Harga Eceran',
+        self::PriceType_Price2 => 'Harga Partai',
+        self::PriceType_Price3 => 'Harga Grosir',
+    ];
+
     /**
      * The attributes that should be cast to native types.
      * @return array
@@ -108,7 +122,7 @@ class Product extends BaseModel
             'price_editable' => 'boolean',
             'type'       => 'string',
             'cost'       => 'decimal:2',
-            'price'      => 'decimal:2',
+            'price_1'    => 'decimal:2',
             'price_2'    => 'decimal:2',
             'price_3'    => 'decimal:2',
 

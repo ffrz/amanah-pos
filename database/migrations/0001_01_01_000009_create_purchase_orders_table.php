@@ -35,9 +35,9 @@ return new class extends Migration
             $table->string('supplier_phone', 40)->nullable()->default('');
             $table->string('supplier_address', 200)->nullable()->default('');
 
-            $table->string('status', 30)->index(); 
+            $table->string('status', 30)->index();
             $table->string('payment_status', 30)->index();
-            $table->string('delivery_status', 30)->index(); 
+            $table->string('delivery_status', 30)->index();
 
             $table->datetime('datetime')->index();
             $table->date('due_date')->nullable()->index();
@@ -51,7 +51,7 @@ return new class extends Migration
 
             $table->text('notes')->nullable();
 
-            $table->createdUpdatedTimestamps();
+            $table->createdDeletedTimestamps();
         });
     }
 

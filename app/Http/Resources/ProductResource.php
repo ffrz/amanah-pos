@@ -33,7 +33,7 @@ class ProductResource extends JsonResource
             'name' => $this->name,
             // Pindahkan logika pemotongan deskripsi ke sini
             'description' => strlen($this->description) > 50 ? substr($this->description, 0, 50) . '...' : $this->description,
-            'price' => $this->price,
+            'price_1' => $this->price_1,
             'stock' => $this->stock,
             'sku' => $this->sku,
             'barcode' => $this->barcode,

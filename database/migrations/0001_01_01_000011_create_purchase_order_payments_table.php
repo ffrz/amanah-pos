@@ -33,7 +33,7 @@ return new class extends Migration
 
             $table->string('type', 20)->nullable()->index();
             $table->decimal('amount', 18, 2)->nullable()->index();
-            $table->createdTimestamps();
+            $table->createdDeletedTimestamps();
         });
     }
 

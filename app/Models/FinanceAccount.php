@@ -18,12 +18,14 @@ namespace App\Models;
 
 use App\Models\Traits\HasDocumentVersions;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 
 class FinanceAccount extends BaseModel
 {
     use HasFactory,
-        HasDocumentVersions;
+        HasDocumentVersions,
+        SoftDeletes;
 
     protected $fillable = [
         'name',
