@@ -280,8 +280,9 @@ class ProductService
                 ]);
 
                 $supplier = Supplier::firstOrCreate([
-                    'code' => app(SupplierService::class)->generateSupplierCode(),
                     'name' => trim($row['supplier']),
+                ], [
+                    'code' => app(SupplierService::class)->generateSupplierCode()
                 ]);
 
                 // Siapkan data produk
