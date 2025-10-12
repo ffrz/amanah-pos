@@ -21,8 +21,8 @@ export function plusMinusSymbol(num) {
   return num > 0 ? "+" : num < 0 ? "-" : "";
 }
 
-export function formatNumberWithSymbol(num) {
-  return plusMinusSymbol(num) + formatNumber(Math.abs(num));
+export function formatNumberWithSymbol(num, maxDecimal = 0) {
+  return plusMinusSymbol(num) + formatNumber(Math.abs(num), maxDecimal);
 }
 
 export function formatMoneyWithSymbol(num) {

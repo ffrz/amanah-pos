@@ -2,7 +2,7 @@ import { ref } from "vue";
 
 export function useSupplierFilter(suppliersRaw, includeAllOption = false) {
   const baseSuppliers = suppliersRaw.map((item) => {
-    return { value: item.id, label: "#" + item.id + " - " + item.name };
+    return { value: item.id, label: item.name + " (" + item.code + ")" };
   });
 
   const suppliers = includeAllOption

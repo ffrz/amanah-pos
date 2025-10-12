@@ -48,6 +48,19 @@ const submit = () => handleSubmit({ form, url: route("admin.supplier.save") });
         />
       </div>
     </template>
+    <template #right-button>
+      <q-btn
+        class="q-ml-xs"
+        type="submit"
+        icon="check"
+        rounded
+        dense
+        color="primary"
+        :disable="form.processing"
+        @click="submit()"
+        title="Simpan"
+      />
+    </template>
     <q-page class="row justify-center">
       <div class="col col-md-6 q-pa-xs">
         <q-form
@@ -278,21 +291,6 @@ const submit = () => handleSubmit({ form, url: route("admin.supplier.save") });
                   {{ simpleMode ? "Lebih lengkap" : "Lebih ringkas" }}
                 </div>
               </div>
-            </q-card-section>
-            <q-card-section class="q-gutter-sm">
-              <q-btn
-                icon="save"
-                type="submit"
-                label="Simpan"
-                color="primary"
-                :disable="form.processing"
-              />
-              <q-btn
-                icon="cancel"
-                label="Batal"
-                :disable="form.processing"
-                @click="$goBack()"
-              />
             </q-card-section>
           </q-card>
         </q-form>

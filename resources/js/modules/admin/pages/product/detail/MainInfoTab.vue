@@ -22,8 +22,8 @@ const marginInfo = (price) => {
 
 const confirmDelete = () => {
   handleDelete({
-    message: `Hapus Produk ${page.props.data.name}?`,
-    url: route("admin.product.delete", page.props.data.id),
+    message: `Hapus Produk ${props.product.name}?`,
+    url: route("admin.product.delete", props.product.id),
     onSuccess: () => {
       router.get(route("admin.product.index"));
     },
@@ -37,16 +37,16 @@ const confirmDelete = () => {
     <table class="detail">
       <tbody>
         <tr>
-          <td style="width: 120px">ID</td>
+          <td style="width: 120px">Kode / Nama</td>
           <td style="width: 1px">:</td>
-          <td>{{ product.formatted_id }}</td>
-        </tr>
-        <tr>
-          <td>Nama Produk</td>
-          <td>:</td>
           <td>
             {{ product.name }}
           </td>
+        </tr>
+        <tr>
+          <td>Deskirpsi</td>
+          <td>:</td>
+          <td>{{ product.description }}</td>
         </tr>
         <tr>
           <td>Barcode</td>
@@ -230,13 +230,8 @@ const confirmDelete = () => {
     <table class="detail">
       <tbody>
         <tr>
-          <td style="width: 120px">Deskirpsi</td>
+          <td style="width: 120px">Catatan</td>
           <td style="width: 1px">:</td>
-          <td>{{ product.description }}</td>
-        </tr>
-        <tr>
-          <td>Catatan</td>
-          <td>:</td>
           <td>{{ product.notes }}</td>
         </tr>
       </tbody>

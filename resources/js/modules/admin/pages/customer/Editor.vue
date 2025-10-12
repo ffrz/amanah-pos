@@ -46,9 +46,22 @@ const submit = () =>
           color="grey-7"
           flat
           rounded
-          @click="$inertia.get(route('admin.customer.index'))"
+          @click="$goBack()"
         />
       </div>
+    </template>
+    <template #right-button>
+      <q-btn
+        class="q-ml-xs"
+        type="submit"
+        icon="check"
+        rounded
+        dense
+        color="primary"
+        :disable="form.processing"
+        @click="submit()"
+        title="Simpan"
+      />
     </template>
     <q-page class="row justify-center">
       <div class="col col-md-6 q-pa-xs">
@@ -165,22 +178,8 @@ const submit = () =>
                 :disable="form.processing"
               />
             </q-card-section>
-            <q-card-section class="q-gutter-sm">
-              <q-btn
-                type="submit"
-                label="Simpan"
-                icon="save"
-                color="primary"
-                :disable="form.processing"
-              />
-              <q-btn
-                label="Batal"
-                icon="cancel"
-                :disable="form.processing"
-                @click="router.get(route('admin.customer.index'))"
-              />
-            </q-card-section>
           </q-card>
+          <input type="submit" style="display: none" />
         </q-form>
       </div>
     </q-page>

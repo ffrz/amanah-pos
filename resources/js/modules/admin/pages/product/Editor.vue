@@ -1,5 +1,5 @@
 <script setup>
-import { router, useForm, usePage } from "@inertiajs/vue3";
+import { useForm, usePage } from "@inertiajs/vue3";
 import { handleSubmit } from "@/helpers/client-req-handler";
 import { scrollToFirstErrorField } from "@/helpers/utils";
 import { computed, ref } from "vue";
@@ -8,6 +8,7 @@ import { useSupplierFilter } from "@/composables/useSupplierFilter";
 import { createOptions } from "@/helpers/options";
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
 import CheckBox from "@/components/CheckBox.vue";
+import { formatNumberWithSymbol } from "@/helpers/formatter";
 
 const page = usePage();
 const title = (!!page.props.data.id ? "Edit" : "Tambah") + " Produk";
@@ -39,14 +40,23 @@ const submit = () => handleSubmit({ form, url: route("admin.product.save") });
 const { filteredCategories, filterCategories } = useProductCategoryFilter(
   page.props.categories
 );
-const { filteredSuppliers, filterSuppliers } = useSupplierFilter(
+const { filteredSuppliers, filterSupplierFn } = useSupplierFilter(
   page.props.suppliers
 );
 
-const margin = computed(() => {
-  return form.price_1 > 0
-    ? ((form.price_1 - form.cost) / form.price_1) * 100
+const calculateMargin = (price_type) => {
+  return form[price_type] > 0
+    ? ((form[price_type] - form.cost) / form[price_type]) * 100
     : 0;
+};
+const margin1 = computed(() => {
+  return calculateMargin("price_1");
+});
+const margin2 = computed(() => {
+  return calculateMargin("price_2");
+});
+const margin3 = computed(() => {
+  return calculateMargin("price_3");
 });
 </script>
 
@@ -65,6 +75,19 @@ const margin = computed(() => {
           @click="$goBack()"
         />
       </div>
+    </template>
+    <template #right-button>
+      <q-btn
+        class="q-ml-xs"
+        type="submit"
+        icon="check"
+        rounded
+        dense
+        color="primary"
+        :disable="form.processing"
+        @click="submit()"
+        title="Simpan"
+      />
     </template>
     <q-page class="row justify-center">
       <div class="col col-md-6 q-pa-xs">
@@ -135,6 +158,7 @@ const margin = computed(() => {
                   </q-item>
                 </template>
               </q-select>
+
               <q-select
                 v-if="$can('admin.product:view-supplier')"
                 v-model="form.supplier_id"
@@ -145,7 +169,7 @@ const margin = computed(() => {
                 :options="filteredSuppliers"
                 map-options
                 emit-value
-                @filter="filterSuppliers"
+                @filter="filterSupplierFn"
                 option-label="label"
                 option-value="value"
                 :error="!!form.errors.supplier_id"
@@ -164,51 +188,60 @@ const margin = computed(() => {
                 label="Aktif"
               />
               <div class="text-subtitle1 q-pt-lg">Info Inventori</div>
-              <q-input
-                v-model.trim="form.barcode"
-                label="Barcode"
-                lazy-rules
-                :error="!!form.errors.barcode"
-                :disable="form.processing"
-                :error-message="form.errors.barcode"
-                hide-bottom-space
-              />
-              <q-input
-                v-model.trim="form.uom"
-                label="Satuan"
-                lazy-rules
-                :error="!!form.errors.uom"
-                :disable="form.processing"
-                :error-message="form.errors.uom"
-                hide-bottom-space
-              />
-              <LocaleNumberInput
-                v-model:modelValue="form.stock"
-                label="Stok"
-                lazyRules
-                :disable="form.processing"
-                :error="!!form.errors.stock"
-                :errorMessage="form.errors.stock"
-                hide-bottom-space
-              />
-              <LocaleNumberInput
-                v-model:modelValue="form.min_stock"
-                label="Stok Minimum"
-                lazyRules
-                :disable="form.processing"
-                :error="!!form.errors.min_stock"
-                :errorMessage="form.errors.min_stock"
-                hide-bottom-space
-              />
-              <LocaleNumberInput
-                v-model:modelValue="form.max_stock"
-                label="Stok Maksimum"
-                lazyRules
-                :disable="form.processing"
-                :error="!!form.errors.max_stock"
-                :errorMessage="form.errors.max_stock"
-                hide-bottom-space
-              />
+              <div class="row q-gutter-md">
+                <q-input
+                  v-model.trim="form.barcode"
+                  label="Barcode"
+                  lazy-rules
+                  :error="!!form.errors.barcode"
+                  :disable="form.processing"
+                  :error-message="form.errors.barcode"
+                  hide-bottom-space
+                  class="col"
+                />
+                <q-input
+                  v-model.trim="form.uom"
+                  label="Satuan"
+                  lazy-rules
+                  :error="!!form.errors.uom"
+                  :disable="form.processing"
+                  :error-message="form.errors.uom"
+                  hide-bottom-space
+                  class="col"
+                />
+              </div>
+              <div class="row q-gutter-md">
+                <LocaleNumberInput
+                  v-model:modelValue="form.stock"
+                  label="Stok"
+                  lazyRules
+                  :disable="form.processing"
+                  :error="!!form.errors.stock"
+                  :errorMessage="form.errors.stock"
+                  hide-bottom-space
+                  class="col"
+                />
+                <LocaleNumberInput
+                  v-model:modelValue="form.min_stock"
+                  label="Stok Min"
+                  lazyRules
+                  :disable="form.processing"
+                  :error="!!form.errors.min_stock"
+                  :errorMessage="form.errors.min_stock"
+                  hide-bottom-space
+                  class="col"
+                />
+                <LocaleNumberInput
+                  v-model:modelValue="form.max_stock"
+                  label="Stok Maks"
+                  lazyRules
+                  :disable="form.processing"
+                  :error="!!form.errors.max_stock"
+                  :errorMessage="form.errors.max_stock"
+                  hide-bottom-space
+                  class="col"
+                />
+              </div>
               <div class="text-subtitle1 q-pt-lg">Info Harga</div>
               <CheckBox
                 v-model="form.price_editable"
@@ -225,42 +258,60 @@ const margin = computed(() => {
                 :errorMessage="form.errors.cost"
                 hide-bottom-space
               />
-              <LocaleNumberInput
-                v-model:modelValue="form.price_1"
-                label="Harga Eceran (Rp)"
-                lazyRules
-                :disable="form.processing"
-                :error="!!form.errors.price_1"
-                :errorMessage="form.errors.price_1"
-                hide-bottom-space
-              />
-              <LocaleNumberInput
-                v-model:modelValue="form.price_2"
-                label="Harga Partai (Rp)"
-                lazyRules
-                :disable="form.processing"
-                :error="!!form.errors.price_2"
-                :errorMessage="form.errors.price_2"
-                hide-bottom-space
-              />
-              <LocaleNumberInput
-                v-model:modelValue="form.price_3"
-                label="Harga Grosir (Rp)"
-                lazyRules
-                :disable="form.processing"
-                :error="!!form.errors.price_3"
-                :errorMessage="form.errors.price_3"
-                hide-bottom-space
-              />
-              <LocaleNumberInput
-                v-if="$can('admin.product:view-cost')"
-                v-model:modelValue="margin"
-                label="Margin (%)"
-                lazyRules
-                :disable="form.processing"
-                :maxDecimals="2"
-                hide-bottom-space
-              />
+              <div class="row q-gutter-md">
+                <div class="col">
+                  <LocaleNumberInput
+                    v-model:modelValue="form.price_1"
+                    label="Harga Eceran"
+                    lazyRules
+                    :disable="form.processing"
+                    :error="!!form.errors.price_1"
+                    :errorMessage="form.errors.price_1"
+                    hide-bottom-space
+                  />
+                  <div
+                    class="q-my-xs"
+                    :class="margin1 < 0 ? 'text-red' : 'text-green-7'"
+                  >
+                    {{ formatNumberWithSymbol(margin1, 2) }}%
+                  </div>
+                </div>
+                <div class="col">
+                  <LocaleNumberInput
+                    v-model:modelValue="form.price_2"
+                    label="Harga Partai"
+                    lazyRules
+                    :disable="form.processing"
+                    :error="!!form.errors.price_2"
+                    :errorMessage="form.errors.price_2"
+                    hide-bottom-space
+                  />
+                  <div
+                    class="q-my-xs"
+                    :class="margin2 < 0 ? 'text-red' : 'text-green-7'"
+                  >
+                    {{ formatNumberWithSymbol(margin2, 2) }}%
+                  </div>
+                </div>
+                <div class="col">
+                  <LocaleNumberInput
+                    v-model:modelValue="form.price_3"
+                    label="Harga Grosir"
+                    lazyRules
+                    :disable="form.processing"
+                    :error="!!form.errors.price_3"
+                    :errorMessage="form.errors.price_3"
+                    hide-bottom-space
+                  />
+                  <div
+                    class="q-my-xs"
+                    :class="margin3 < 0 ? 'text-red' : 'text-green-7'"
+                  >
+                    {{ formatNumberWithSymbol(margin3, 2) }}%
+                  </div>
+                </div>
+              </div>
+
               <div class="text-subtitle1 q-pt-lg">Info Lainnya</div>
               <q-input
                 v-model.trim="form.notes"
@@ -274,21 +325,6 @@ const margin = computed(() => {
                 :error="!!form.errors.notes"
                 :error-message="form.errors.notes"
                 hide-bottom-space
-              />
-            </q-card-section>
-            <q-card-section class="q-gutter-sm">
-              <q-btn
-                icon="save"
-                type="submit"
-                label="Simpan"
-                color="primary"
-                :disable="form.processing"
-              />
-              <q-btn
-                icon="cancel"
-                label="Batal"
-                :disable="form.processing"
-                @click="$goBack()"
               />
             </q-card-section>
           </q-card>
