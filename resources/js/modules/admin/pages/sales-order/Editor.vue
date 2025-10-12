@@ -507,17 +507,30 @@ const isValidWalletBalance = computed(() => {
                 outlined
                 autofocus
               />
-              <div
-                class="q-mt-xs q-ml-sm text-bold"
-                :class="isValidWalletBalance ? 'text-green' : 'text-red'"
-              >
-                Saldo:
-                {{
-                  customer
-                    ? "Rp. " +
-                      formatNumber(customer ? customer.wallet_balance : 0)
-                    : "Tidak tersedia"
-                }}
+              <div class="row" v-if="customer">
+                <div
+                  class="q-mt-xs q-ml-sm text-bold"
+                  :class="isValidWalletBalance ? 'text-green' : 'text-red'"
+                >
+                  Wallet:
+                  {{
+                    customer
+                      ? "Rp. " +
+                        formatNumber(customer ? customer.wallet_balance : 0)
+                      : "Tidak tersedia"
+                  }}
+                </div>
+                <div
+                  class="q-mt-xs q-ml-sm text-bold"
+                  :class="customer.balance >= 0 ? 'text-green' : 'text-red'"
+                >
+                  Utang / Piutang:
+                  {{
+                    customer
+                      ? "Rp. " + formatNumber(customer ? customer.balance : 0)
+                      : "Tidak tersedia"
+                  }}
+                </div>
               </div>
             </div>
           </div>

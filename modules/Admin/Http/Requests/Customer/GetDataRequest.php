@@ -31,7 +31,7 @@ class GetDataRequest extends DefaultGetDataRequest
         $rules = parent::rules();
 
         return array_merge($rules, [
-            'order_by'    => ['nullable', 'string', Rule::in(['id', 'code', 'name'])],
+            'order_by'    => ['nullable', 'string', Rule::in(['id', 'code', 'name', 'balance', 'wallet_balance'])],
         ]);
     }
 }

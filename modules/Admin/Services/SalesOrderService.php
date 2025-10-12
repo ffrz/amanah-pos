@@ -36,7 +36,7 @@ class SalesOrderService
         protected FinanceTransactionService $financeTransactionService,
         protected StockMovementService $stockMovementService,
         protected ProductService $productService,
-        protected SupplierService $supplierService,
+        protected CustomerService $customerService,
         protected CashierSessionService $cashierSessionService,
     ) {}
 
@@ -211,6 +211,13 @@ class SalesOrderService
             $order->cashier_id = Auth::user()->id;
             $order->cashier_session_id = $cashierSession ? $cashierSession->id : null;
 
+            if ($order->customer_id) {
+                // di awal kita catat sebagai utang dulu
+                // Utang customer adalah nilai negatif
+                Customer::where('id', $order->customer_id)
+                    ->decrement('balance', $order->grand_total);
+            }
+
             // Simpan dan proses pembayaran
             $this->paymentService->addPayments($order, $data['payments'] ?? []);
 
@@ -237,6 +244,11 @@ class SalesOrderService
         DB::transaction(function () use ($order) {
             if ($order->status == SalesOrder::Status_Closed) {
                 $this->reverseStock($order);
+
+                if ($order->customer_id) {
+                    $this->customerService->addToBalance($order->customer, abs($order->grand_total));
+                }
+
                 $this->paymentService->deletePayments($order);
             }
             $order->delete();

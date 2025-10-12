@@ -33,6 +33,14 @@ class CustomerService
         protected DocumentVersionService $documentVersionService
     ) {}
 
+    public function addToBalance(Customer $customer, $balance)
+    {
+        $lockedCustomer = Customer::where('id', $customer->id)->lockForUpdate()->firstOrFail();
+        $lockedCustomer->balance += $balance;
+        $lockedCustomer->save();
+        return $lockedCustomer;
+    }
+
     public function find(int $id): Customer
     {
         return Customer::with(['creator', 'updater'])->findOrFail($id);

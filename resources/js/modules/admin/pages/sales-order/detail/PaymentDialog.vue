@@ -30,7 +30,7 @@ const paymentForm = ref({
 const customer = page.props.data.customer;
 
 const paymentOptions = computed(() => [
-  { label: "Tunai", value: "cash" },
+  { label: "Tunai (Laci Kasir)", value: "cash" },
   // Opsi wallet hanya tersedia jika ada data customer
   ...(customer ? [{ label: "Wallet", value: "wallet" }] : []),
   ...page.props.accounts.map((a) => ({

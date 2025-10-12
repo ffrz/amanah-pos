@@ -240,7 +240,7 @@ class PurchaseOrderService
             if ($order->status == PurchaseOrder::Status_Closed) {
                 $this->processPurchaseOrderStockOut($order);
 
-                if ($order->supplier_id && $order->payment_status !== PurchaseOrder::PaymentStatus_FullyPaid) {
+                if ($order->supplier_id) {
                     $this->supplierService->addToBalance($order->supplier, abs($order->grand_total));
                 }
 

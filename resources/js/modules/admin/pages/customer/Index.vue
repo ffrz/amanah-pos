@@ -47,9 +47,17 @@ const columns = [
   },
   {
     name: "wallet_balance",
-    label: "Saldo (Rp)",
+    label: "Wallet (Rp)",
     field: "wallet_balance",
     align: "right",
+    sortable: true,
+  },
+  {
+    name: "balance",
+    label: "Utang / Piutang(Rp)",
+    field: "balance",
+    align: "right",
+    sortable: true,
   },
   {
     name: "phone",
@@ -247,8 +255,12 @@ const computedColumns = computed(() => {
                 <div><q-icon name="phone" /> {{ props.row.phone }}</div>
                 <LongTextView :text="props.row.address" icon="home_pin" />
                 <div>
-                  <q-icon name="wallet" /> Rp.
+                  <q-icon name="wallet" /> Wallet: Rp.
                   {{ formatNumber(props.row.wallet_balance) }}
+                </div>
+                <div>
+                  <q-icon name="wallet" /> Utang: Rp.
+                  {{ formatNumber(props.row.balance) }}
                 </div>
               </template>
             </q-td>
@@ -257,6 +269,9 @@ const computedColumns = computed(() => {
             </q-td>
             <q-td key="wallet_balance" :props="props">
               {{ formatNumber(props.row.wallet_balance) }}
+            </q-td>
+            <q-td key="balance" :props="props">
+              {{ formatNumber(props.row.balance) }}
             </q-td>
             <q-td key="phone" :props="props">
               {{ props.row.phone }}
