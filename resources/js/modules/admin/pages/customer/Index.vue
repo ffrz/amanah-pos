@@ -252,13 +252,19 @@ const computedColumns = computed(() => {
                   <q-icon name="person" v-if="$q.screen.lt.md" />
                   {{ props.row.name }}
                 </div>
-                <div><q-icon name="phone" /> {{ props.row.phone }}</div>
-                <LongTextView :text="props.row.address" icon="home_pin" />
-                <div>
+                <div v-if="props.row.phone">
+                  <q-icon name="phone" /> {{ props.row.phone }}
+                </div>
+                <LongTextView
+                  v-if="props.row.address"
+                  :text="props.row.address"
+                  icon="home_pin"
+                />
+                <div v-if="props.row.wallet_balance != 0">
                   <q-icon name="wallet" /> Wallet: Rp.
                   {{ formatNumber(props.row.wallet_balance) }}
                 </div>
-                <div>
+                <div v-if="props.row.balance != 0">
                   <q-icon name="wallet" /> Utang: Rp.
                   {{ formatNumber(props.row.balance) }}
                 </div>
