@@ -18,7 +18,7 @@ const rows = ref([]);
 const loading = ref(true);
 const filter = reactive({
   ...getQueryParams(),
-  user_id: props.data.user_id,
+  account_id: props.data.cashier_terminal?.finance_account_id,
   from_datetime: formatDateTimeForEditing(props.data.opened_at),
   to_datetime: props.data.closed_at
     ? formatDateTimeForEditing(props.data.closed_at)

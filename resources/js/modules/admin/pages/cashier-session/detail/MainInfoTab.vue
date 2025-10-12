@@ -85,12 +85,7 @@ const page = usePage();
           <td>Saldo Aktual</td>
           <td>:</td>
           <td>
-            {{
-              formatMoney(
-                page.props.data.opening_balance +
-                  (page.props.data.total_income - page.props.data.total_expense)
-              )
-            }}
+            {{ formatMoney(page.props.data.actual_balance) }}
           </td>
         </tr>
       </template>

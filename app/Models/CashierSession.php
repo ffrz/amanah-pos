@@ -51,7 +51,7 @@ class CashierSession extends BaseModel
         'closing_notes',
     ];
 
-    protected $appends = ['total_income', 'total_expense', 'total_sales'];
+    protected $appends = ['total_income', 'total_expense', 'total_sales', 'actual_balance'];
 
     /**
      * The attributes that should be cast to native types.
@@ -111,7 +111,7 @@ class CashierSession extends BaseModel
         }
 
         return FinanceTransaction::where('account_id', $accountId)
-            ->whereBetween('datetime', [$this->opened_at, $this->closed_at ?? Carbon::now()])
+            ->whereBetween('created_at', [$this->opened_at, $this->closed_at ?? Carbon::now()])
             ->where('amount', '>', 0)
             ->sum('amount');
     }
@@ -150,5 +150,14 @@ class CashierSession extends BaseModel
             ->sum('grand_total');
 
         return $total;
+    }
+
+    public function getActualBalanceAttribute(): float
+    {
+        if (!$this->cashierTerminal?->financeAccount) {
+            return 0;
+        }
+
+        return $this->cashierTerminal->financeAccount->balance;
     }
 }
