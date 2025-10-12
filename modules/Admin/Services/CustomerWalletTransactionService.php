@@ -212,7 +212,7 @@ class CustomerWalletTransactionService
     }
 
     // WARNING: Tidak mendukung pengeditan transaksi!!
-    protected function handleTransaction(array $newData)
+    public function handleTransaction(array $newData)
     {
         // Perbarui saldo akun baru
         $account = Customer::findOrFail($newData['customer_id']);

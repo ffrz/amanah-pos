@@ -280,6 +280,7 @@ class ProductService
                 ]);
 
                 $supplier = Supplier::firstOrCreate([
+                    'code' => app(SupplierService::class)->generateSupplierCode(),
                     'name' => trim($row['supplier']),
                 ]);
 
@@ -296,10 +297,24 @@ class ProductService
                 ];
 
                 // Simpan data produk
-                Product::firstOrCreate([
+                $product = Product::firstOrCreate([
                     'barcode' => $row['barcode'],
                     'name'    => trim($row['name']),
                 ], $itemData);
+
+                if ($product->wasRecentlyCreated && $row['stock'] > 0) {
+                    app(StockMovementService::class)->processStockIn([
+                        'product_id'      => $product->id,
+                        'product_name'    => $product->name,
+                        'uom'             => $product->uom,
+                        'ref_id'          => null,
+                        'ref_type'        => StockMovement::RefType_InitialStock,
+                        'quantity'        => $row['stock'],
+                        'quantity_before' => 0,
+                        'quantity_after'  => $row['stock'],
+                        'notes'           => "Stok awal dari import",
+                    ]);
+                }
             }
 
             $this->userActivityLogService->log(
@@ -309,6 +324,8 @@ class ProductService
             );
 
             fclose($handle);
+
+            return true;
         });
     }
 

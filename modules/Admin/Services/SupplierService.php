@@ -185,7 +185,7 @@ class SupplierService
         return $data;
     }
 
-    private function generateSupplierCode(): string
+    public function generateSupplierCode(): string
     {
         $lastId = Supplier::max('id') ?? 0;
         $nextId = $lastId + 1;
