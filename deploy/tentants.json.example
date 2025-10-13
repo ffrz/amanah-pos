@@ -1,0 +1,16 @@
+{
+    "tenant1": {
+        "host": "ftp.tenant1.com",
+        "user": "user_tenant1",
+        "pass": "password_tenant1",
+        "remote_path": "/public_html/tenant1",
+        "include_vendor": false
+    },
+    "tenant2": {
+        "host": "ftp.tenant2.net",
+        "user": "user_tenant2",
+        "pass": "password_tenant2",
+        "remote_path": "/public_html/tenant2",
+        "include_vendor": false
+    }
+}

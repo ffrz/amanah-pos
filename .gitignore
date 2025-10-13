@@ -32,3 +32,4 @@ vendor.zip
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+deploy/tenants.json
