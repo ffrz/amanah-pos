@@ -198,7 +198,9 @@ defineExpose({
           </q-item>
           <q-expansion-item
             v-if="
-              $can('admin.sales-order.index') || $can('admin.customer.index')
+              $can('admin.sales-order.index') ||
+              $can('admin.customer.index') ||
+              $can('admin.sales-order-return.index')
             "
             icon="storefront"
             label="Penjualan"
@@ -223,6 +225,21 @@ defineExpose({
               </q-item-section>
             </q-item>
             <q-item
+              v-if="$can('admin.sales-order.index')"
+              class="subnav"
+              clickable
+              v-ripple
+              :active="$page.url.startsWith('/admin/sales-orders-return')"
+              @click="router.get(route('admin.sales-order-return.index'))"
+            >
+              <q-item-section avatar>
+                <q-icon name="shopping_cart" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Retur Penjualan</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item
               v-if="$can('admin.customer.index')"
               class="subnav"
               clickable
@@ -241,7 +258,9 @@ defineExpose({
 
           <q-expansion-item
             v-if="
-              $can('admin.purchase-order.index') || $can('admin.supplier.index')
+              $can('admin.purchase-order.index') ||
+              $can('admin.supplier.index') ||
+              $can('admin.purchase-order-return.index')
             "
             icon="local_shipping"
             label="Pembelian"
@@ -263,6 +282,21 @@ defineExpose({
               </q-item-section>
               <q-item-section>
                 <q-item-label>Pembelian</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item
+              v-if="$can('admin.purchase-order.index')"
+              class="subnav"
+              clickable
+              v-ripple
+              :active="$page.url.startsWith('/admin/purchase-return-orders')"
+              @click="router.get(route('admin.purchase-order-return.index'))"
+            >
+              <q-item-section avatar>
+                <q-icon name="shopping_cart" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Retur Pembelian</q-item-label>
               </q-item-section>
             </q-item>
             <q-item

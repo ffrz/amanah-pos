@@ -21,14 +21,14 @@ class AppPermissions
     public static function aliases(): array
     {
         return [
-            'admin.sales-order.add'    => 'admin.sales-order.edit',
-            'admin.sales-order.save'   => 'admin.sales-order.edit',
-            'admin.purchase-order.add'    => 'admin.purchase-order.edit',
-            'admin.purchase-order.save'   => 'admin.purchase-order.edit',
-            'admin.purchase-order.update'    => 'admin.purchase-order.edit',
-            'admin.purchase-order.add-item'    => 'admin.purchase-order.edit',
-            'admin.purchase-order.update-item'    => 'admin.purchase-order.edit',
-            'admin.purchase-order.upted-item'    => 'admin.purchase-order.edit',
+            'admin.sales-order.add'  => 'admin.sales-order.edit',
+            'admin.sales-order.save' => 'admin.sales-order.edit',
+            'admin.sales-order-return.add'  => 'admin.sales-order-return.edit',
+            'admin.sales-order-return.save' => 'admin.sales-order-return.edit',
+            'admin.purchase-order.add'  => 'admin.purchase-order.edit',
+            'admin.purchase-order.save' => 'admin.purchase-order.edit',
+            'admin.purchase-order-return.add'  => 'admin.purchase-order-return.edit',
+            'admin.purchase-order-return.save' => 'admin.purchase-order-return.edit',
         ];
     }
     /**
@@ -166,6 +166,16 @@ class AppPermissions
                 'admin.purchase-order.add-payment' => 'Tambah Pembayaran',
                 'admin.purchase-order.delete-payment' => 'Hapus Pembayaran',
             ],
+            'Manajemen Retur Pembelian' => [
+                'admin.purchase-order-return.index' => 'Lihat Daftar Retur Pembelian',
+                'admin.purchase-order-return.detail' => 'Lihat Detail Retur Pembelian',
+                'admin.purchase-order-return.edit' => 'Membuat / Edit Retur Pembelian',
+                'admin.purchase-order-return.delete' => 'Hapus Retur Pembelian',
+                'admin.purchase-order-return.cancel' => 'Batalkan Retur Pembelian',
+                'admin.purchase-order-return.close' => 'Tutup Retur Pembelian',
+                'admin.purchase-order-return.add-payment' => 'Tambah Refund Pembayaran',
+                'admin.purchase-order-return.delete-payment' => 'Hapus Refund Pembayaran',
+            ],
             'Manajemen Penjualan' => [
                 'admin.sales-order.index' => 'Lihat Daftar Pesanan Penjualan',
                 'admin.sales-order.detail' => 'Lihat Detail Pesanan Penjualan',
@@ -175,6 +185,16 @@ class AppPermissions
                 'admin.sales-order.close' => 'Tutup Pesanan Penjualan',
                 'admin.sales-order.add-payment' => 'Tambah Pembayaran',
                 'admin.sales-order.delete-payment' => 'Hapus Pembayaran',
+            ],
+            'Manajemen Retur Penjual' => [
+                'admin.sales-order-return.index' => 'Lihat Daftar Retur Penjualan',
+                'admin.sales-order-return.detail' => 'Lihat Detail Retur Penjualan',
+                'admin.sales-order-return.edit' => 'Membuat / Edit Retur Penjualan',
+                'admin.sales-order-return.delete' => 'Hapus Retur Penjualan',
+                'admin.sales-order-return.cancel' => 'Batalkan Retur Penjualan',
+                'admin.sales-order-return.close' => 'Tutup Retur Penjualan',
+                'admin.sales-order-return.add-payment' => 'Tambah Refund Pembayaran',
+                'admin.sales-order-return.delete-payment' => 'Hapus Refund Pembayaran',
             ],
             'Manajemen Pemasok' => [
                 'admin.supplier.index' => 'Lihat Daftar Pemasok',

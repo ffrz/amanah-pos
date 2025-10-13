@@ -33,7 +33,9 @@ use Modules\Admin\Http\Controllers\OperationalCostCategoryController;
 use Modules\Admin\Http\Controllers\ProductCategoryController;
 use Modules\Admin\Http\Controllers\ProductController;
 use Modules\Admin\Http\Controllers\PurchaseOrderController;
+use Modules\Admin\Http\Controllers\PurchaseOrderReturnController;
 use Modules\Admin\Http\Controllers\SalesOrderController;
+use Modules\Admin\Http\Controllers\SalesOrderReturnController;
 use Modules\Admin\Http\Controllers\StockAdjustmentController;
 use Modules\Admin\Http\Controllers\StockMovementController;
 use Modules\Admin\Http\Controllers\SupplierController;
@@ -234,6 +236,25 @@ Route::middleware([Auth::class])
                 Route::post('update-item', [PurchaseOrderController::class, 'updateItem'])->name('admin.purchase-order.update-item');
             });
 
+            Route::prefix('purchase-order-returns')->group(function () {
+                Route::get('', [PurchaseOrderReturnController::class, 'index'])->name('admin.purchase-order-return.index');
+                Route::get('data', [PurchaseOrderReturnController::class, 'data'])->name('admin.purchase-order-return.data');
+                Route::get('add', [PurchaseOrderReturnController::class, 'editor'])->name('admin.purchase-order-return.add');
+                Route::get('edit/{id}', [PurchaseOrderReturnController::class, 'editor'])->name('admin.purchase-order-return.edit');
+                Route::get('detail/{id}', [PurchaseOrderReturnController::class, 'detail'])->name('admin.purchase-order-return.detail');
+                Route::post('save', [PurchaseOrderReturnController::class, 'save'])->name('admin.purchase-order-return.save');
+                Route::post('cancel/{id}', [PurchaseOrderReturnController::class, 'cancel'])->name('admin.purchase-order-return.cancel');
+                Route::post('delete/{id}', [PurchaseOrderReturnController::class, 'delete'])->name('admin.purchase-order-return.delete');
+                Route::post('update', [PurchaseOrderReturnController::class, 'update'])->name('admin.purchase-order-return.update');
+                Route::post('close', [PurchaseOrderReturnController::class, 'close'])->name('admin.purchase-order-return.close');
+                Route::post('add-payment', [PurchaseOrderReturnController::class, 'addPayment'])->name('admin.purchase-order-return.add-payment');
+                Route::post('delete-payment', [PurchaseOrderReturnController::class, 'deletePayment'])->name('admin.purchase-order-return.delete-payment');
+                // items
+                Route::post('add-item', [PurchaseOrderReturnController::class, 'addItem'])->name('admin.purchase-order.add-item');
+                Route::post('remove-item', [PurchaseOrderReturnController::class, 'removeItem'])->name('admin.purchase-order.remove-item');
+                Route::post('update-item', [PurchaseOrderReturnController::class, 'updateItem'])->name('admin.purchase-order.update-item');
+            });
+
             Route::prefix('sales-orders')->group(function () {
                 Route::get('', [SalesOrderController::class, 'index'])->name('admin.sales-order.index');
                 Route::get('data', [SalesOrderController::class, 'data'])->name('admin.sales-order.data');
@@ -255,6 +276,29 @@ Route::middleware([Auth::class])
                 Route::post('add-item', [SalesOrderController::class, 'addItem'])->name('admin.sales-order.add-item');
                 Route::post('remove-item', [SalesOrderController::class, 'removeItem'])->name('admin.sales-order.remove-item');
                 Route::post('update-item', [SalesOrderController::class, 'updateItem'])->name('admin.sales-order.update-item');
+            });
+
+            Route::prefix('sales-order-returns')->group(function () {
+                Route::get('', [SalesOrderReturnController::class, 'index'])->name('admin.sales-order-return.index');
+                Route::get('data', [SalesOrderReturnController::class, 'data'])->name('admin.sales-order-return.data');
+                Route::get('add', [SalesOrderReturnController::class, 'editor'])->name('admin.sales-order-return.add');
+                Route::get('edit/{id}', [SalesOrderReturnController::class, 'editor'])->name('admin.sales-order-return.edit');
+                Route::get('detail/{id}', [SalesOrderReturnController::class, 'detail'])->name('admin.sales-order-return.detail');
+                Route::post('save', [SalesOrderReturnController::class, 'save'])->name('admin.sales-order-return.save');
+                Route::post('cancel/{id}', [SalesOrderReturnController::class, 'cancel'])->name('admin.sales-order-return.cancel');
+                Route::post('delete/{id}', [SalesOrderReturnController::class, 'delete'])->name('admin.sales-order-return.delete');
+                Route::get('print/{id}', [SalesOrderReturnController::class, 'print'])->name('admin.sales-order-return.print');
+                Route::post('update', [SalesOrderReturnController::class, 'update'])->name('admin.sales-order-return.update');
+                Route::post('close', [SalesOrderReturnController::class, 'close'])->name('admin.sales-order-return.close');
+
+                // payment
+                Route::post('add-payment', [SalesOrderReturnController::class, 'addPayment'])->name('admin.sales-order-return.add-payment');
+                Route::post('delete-payment', [SalesOrderReturnController::class, 'deletePayment'])->name('admin.sales-order-return.delete-payment');
+
+                // items
+                Route::post('add-item', [SalesOrderReturnController::class, 'addItem'])->name('admin.sales-order-return.add-item');
+                Route::post('remove-item', [SalesOrderReturnController::class, 'removeItem'])->name('admin.sales-order-return.remove-item');
+                Route::post('update-item', [SalesOrderReturnController::class, 'updateItem'])->name('admin.sales-order-return.update-item');
             });
 
             Route::prefix('document-versions')->group(function () {

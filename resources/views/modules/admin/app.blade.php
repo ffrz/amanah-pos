@@ -22,11 +22,17 @@
                 'PURCHASE_ORDER_STATUSES' => \App\Models\PurchaseOrder::Statuses,
                 'PURCHASE_ORDER_PAYMENT_STATUSES' => \App\Models\PurchaseOrder::PaymentStatuses,
                 'PURCHASE_ORDER_DELIVERY_STATUSES' => \App\Models\PurchaseOrder::DeliveryStatuses,
-                'PURCHASE_ORDER_PAYMENT_TYPES' => \App\Models\SalesOrderPayment::Types,
+                'PURCHASE_ORDER_PAYMENT_TYPES' => \App\Models\PurchaseOrderPayment::Types,
+                'PURCHASE_ORDER_RETURN_STATUSES' => \App\Models\PurchaseOrderReturn::Statuses,
+                'PURCHASE_ORDER_REFUND_STATUSES' => \App\Models\PurchaseOrderReturn::RefundStatuses,
+                'PURCHASE_ORDER_REFUND_TYPES' => \App\Models\PurchaseOrderRefund::Types,
                 'SALES_ORDER_STATUSES' => \App\Models\SalesOrder::Statuses,
                 'SALES_ORDER_PAYMENT_STATUSES' => \App\Models\SalesOrder::PaymentStatuses,
                 'SALES_ORDER_DELIVERY_STATUSES' => \App\Models\SalesOrder::DeliveryStatuses,
                 'SALES_ORDER_PAYMENT_TYPES' => \App\Models\SalesOrderPayment::Types,
+                'SALES_ORDER_RETURN_STATUSES' => \App\Models\SalesOrderReturn::Statuses,
+                'SALES_ORDER_REFUND_STATUSES' => \App\Models\SalesOrderReturn::RefundStatuses,
+                'SALES_ORDER_REFUND_TYPES' => \App\Models\SalesOrderRefund::Types,
             ]) ?>;
         window.CONSTANTS.USER_TYPE_SUPER_USER = "{{ \App\Models\User::Type_SuperUser }}";
         window.CONSTANTS.USER_TYPE_STANDARD_USER = "{{ \App\Models\User::Type_StandardUser }}";

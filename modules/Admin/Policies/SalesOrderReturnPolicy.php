@@ -16,4 +16,4 @@
 
 namespace Modules\Admin\Policies;
 
-class SalesOrderPolicy extends OnlyAuthorPolicy {}
+class SalesOrderReturnPolicy extends OnlyAuthorPolicy {}
