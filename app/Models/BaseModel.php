@@ -67,18 +67,59 @@ abstract class BaseModel extends Model
                 $now  = now();
                 $auth = Auth::user();
 
-                $attrs = ['deleted_at' => $now];
-
-                if ($auth && $model->hasColumn('deleted_by')) {
-                    $attrs['deleted_by'] = $auth->id;
+                if ($model->hasColumn('deleted_at')) {
+                    $model->deleted_at = $now;
                 }
 
-                $model->fill($attrs)->saveQuietly();
+                if ($auth && $model->hasColumn('deleted_by')) {
+                    $model->deleted_by = $auth->id;
+                }
+
+                $model->renameUniqueColumnsOnDelete();
+
+                $model->saveQuietly();
                 return false; // Batalkan hard delete (soft delete saja)
             }
 
             return;
         });
+    }
+
+    /**
+     * Mengubah nama kolom unik yang ditentukan, memastikan panjangnya tidak melebihi batas.
+     */
+    protected function renameUniqueColumnsOnDelete(): void
+    {
+        // Mengambil daftar kolom dari properti Model.
+        $columnsToRename = ['username', 'code', 'name'];
+
+        // Suffix yang akan ditambahkan. Menggunakan ID dan Timestamp untuk menjamin keunikan global.
+        // Format: __DEL:ID:TIMESTAMP
+        $suffix = '__DEL:' . $this->id . ':' . time();
+        $maxLength = 255; // Asumsi umum lebar kolom VARCHAR(255)
+
+        foreach ($columnsToRename as $column) {
+            // Cek apakah model memiliki atribut untuk kolom ini
+            if (isset($this->attributes[$column])) {
+                $originalValue = $this->attributes[$column];
+
+                // Hitung panjang maksimum value asli yang boleh digunakan
+                $maxOriginalLength = $maxLength - strlen($suffix);
+
+                if (strlen($originalValue) > $maxOriginalLength) {
+                    // Potong nilai asli jika terlalu panjang.
+                    $truncatedValue = substr($originalValue, 0, $maxOriginalLength);
+                    $this->attributes[$column] = $truncatedValue . $suffix;
+                } else {
+                    // Jika cukup, tambahkan saja suffix
+                    $this->attributes[$column] = $originalValue . $suffix;
+                }
+
+                // kita asumsikan hanya 1 kolom unik, jika ada perubahan kita harus sesuaikan
+                // atau bisa dibuat custom rename handler di subclass
+                break;
+            }
+        }
     }
 
     /**
@@ -134,7 +175,9 @@ abstract class BaseModel extends Model
     public function replicate(?array $except = null)
     {
         $defaults = [
+            'created_at',
             'created_by',
+            'updated_at',
             'updated_by',
             'deleted_at',
             'deleted_by',

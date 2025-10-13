@@ -40,6 +40,7 @@ const groupedPermissions = computed(() => {
     <template #right-button>
       <div class="q-gutter-sm">
         <q-btn
+          v-if="$can('admin.user-role.edit')"
           icon="edit"
           dense
           color="grey"

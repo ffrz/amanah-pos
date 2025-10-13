@@ -27,7 +27,7 @@ return new class extends Migration
     {
         Schema::create('finance_accounts', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 40)->unique();
+            $table->string('name', 255)->unique();
             $table->string('type', 30)->index();
             $table->string('bank', 40)->default('');
             $table->string('number', 20)->default('');
@@ -38,7 +38,7 @@ return new class extends Migration
             $table->boolean('show_in_purchasing_payment')->default(false)->index();
             $table->boolean('has_wallet_access')->default(false)->index();
             $table->text('notes')->nullable();
-            $table->createdUpdatedTimestamps();
+            $table->createdUpdatedDeletedTimestamps();
         });
     }
 

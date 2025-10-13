@@ -24,6 +24,7 @@ use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Illuminate\Foundation\Auth\Access\Authorizable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\HasApiTokens;
@@ -39,7 +40,8 @@ class Customer extends BaseModel implements
         HasFactory,
         Notifiable,
         HasDocumentVersions,
-        HasApiTokens;
+        HasApiTokens,
+        SoftDeletes;
 
     public $timestamps = false;
 
@@ -52,6 +54,7 @@ class Customer extends BaseModel implements
         'address',
         'wallet_balance',
         'balance',
+        'default_price_type',
         'active',
         'last_login_datetime',
         'last_activity_description',
@@ -100,6 +103,7 @@ class Customer extends BaseModel implements
             'wallet_balance' => 'decimal:2',
             'balance' => 'decimal:2',
             'active' => 'boolean',
+            'default_price_type' => 'string',
             'last_login_datetime' => 'datetime',
             'last_activity_description' => 'string',
             'last_activity_datetime' => 'datetime',
@@ -112,7 +116,7 @@ class Customer extends BaseModel implements
 
     protected $appends = [
         'type_label',
-        'formatted_id',
+        'default_price_type_label',
     ];
 
     public function getTypeLabelAttribute()
@@ -120,9 +124,9 @@ class Customer extends BaseModel implements
         return self::Types[$this->type] ?? '';
     }
 
-    public function getFormattedIdAttribute()
+    public function getDefaultPriceTypeLabelAttribute()
     {
-        return Setting::value('customer_code_prefix', 'CST-') . str_pad($this->id, 6, '0', STR_PAD_LEFT);
+        return Product::PriceTypes[$this->default_price_type] ?? '';
     }
 
     public function setLastLogin()

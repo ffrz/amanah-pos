@@ -119,6 +119,18 @@ const deletePayment = (payment) => {
   <div class="column">
     <q-separator />
     <q-card-section class="q-pa-sm">
+      <div class="row">
+        <q-btn
+          v-if="$can('admin.sales-order.add-payment') && remainingPayment > 0"
+          label="Tambah"
+          color="primary"
+          icon="add"
+          dense
+          class="custom-dense"
+          size="sm"
+          @click.stop="openPaymentDialog()"
+        />
+      </div>
       <table class="full-width" style="border-collapse: collapse">
         <thead class="text-grey-8">
           <tr>
@@ -181,7 +193,10 @@ const deletePayment = (payment) => {
               style="border-bottom: 1px solid #eee"
             >
               <q-btn
-                v-if="$can('admin.sales-order.delete-payment')"
+                v-if="
+                  $can('admin.sales-order.delete-payment') &&
+                  props.data.customer_id
+                "
                 icon="delete"
                 color="negative"
                 dense
@@ -198,27 +213,14 @@ const deletePayment = (payment) => {
         </tbody>
         <tfoot>
           <tr>
-            <td class="q-pa-sm">
-              <q-btn
-                v-if="
-                  $can('admin.sales-order.add-payment') && remainingPayment > 0
-                "
-                label="Tambah"
-                color="primary"
-                icon="add"
-                dense
-                class="custom-dense"
-                size="sm"
-                @click.stop="openPaymentDialog()"
-              />
-            </td>
             <th class="text-right q-pa-sm" colspan="1">Total Dibayar</th>
             <th class="text-right q-pa-sm">
               {{ formatNumber(props.data.total_paid) }}
             </th>
+            <th></th>
           </tr>
           <tr>
-            <th class="text-right q-pa-sm" colspan="2">Sisa Tagihan</th>
+            <th class="text-right q-pa-sm" colspan="1">Sisa Tagihan</th>
             <th class="text-right q-pa-sm">
               {{ formatNumber(remainingPayment) }}
             </th>

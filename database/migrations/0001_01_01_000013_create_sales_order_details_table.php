@@ -42,7 +42,7 @@ return new class extends Migration
             $table->decimal('subtotal_price', 18, 2)->default(0.);
 
             $table->string('notes', 100)->nullable();
-            $table->createdUpdatedTimestamps();
+            $table->createdUpdatedDeletedTimestamps();
         });
     }
 

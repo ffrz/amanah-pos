@@ -82,9 +82,9 @@ let columns = [
     align: "right",
   },
   {
-    name: "price",
+    name: "price_1",
     label: "Harga Eceran",
-    field: "price",
+    field: "price_1",
     align: "right",
   },
   {
@@ -413,7 +413,7 @@ const goToDetail = (props) => {
                 </div>
                 <div>
                   <q-icon name="sell" /> Eceran: Rp.
-                  {{ formatNumber(props.row.price) }}
+                  {{ formatNumber(props.row.price_1) }}
                 </div>
                 <div v-if="props.row.price_2 != 0">
                   <q-icon name="sell" /> Partai: Rp.
@@ -449,8 +449,8 @@ const goToDetail = (props) => {
             <q-td key="cost" :props="props" class="wrap-column" v-if="true">
               {{ formatNumber(props.row.cost) }}
             </q-td>
-            <q-td key="price" :props="props" class="wrap-column">
-              {{ formatNumber(props.row.price) }}
+            <q-td key="price_1" :props="props" class="wrap-column">
+              {{ formatNumber(props.row.price_1) }}
             </q-td>
             <q-td key="price_2" :props="props" class="wrap-column">
               {{ formatNumber(props.row.price_2) }}

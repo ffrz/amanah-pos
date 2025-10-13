@@ -1,4 +1,5 @@
 <script setup>
+import { handleDelete } from "@/helpers/client-req-handler";
 import { formatNumber, formatDateTime } from "@/helpers/formatter";
 import { useQuasar } from "quasar";
 
@@ -18,6 +19,16 @@ const marginInfo = (price) => {
       : 0;
   return `${val}%`;
 };
+
+const confirmDelete = () => {
+  handleDelete({
+    message: `Hapus Produk ${props.product.name}?`,
+    url: route("admin.product.delete", props.product.id),
+    onSuccess: () => {
+      router.get(route("admin.product.index"));
+    },
+  });
+};
 </script>
 
 <template>
@@ -26,16 +37,16 @@ const marginInfo = (price) => {
     <table class="detail">
       <tbody>
         <tr>
-          <td style="width: 120px">ID</td>
+          <td style="width: 120px">Kode / Nama</td>
           <td style="width: 1px">:</td>
-          <td>{{ product.formatted_id }}</td>
-        </tr>
-        <tr>
-          <td>Nama Produk</td>
-          <td>:</td>
           <td>
             {{ product.name }}
           </td>
+        </tr>
+        <tr>
+          <td>Deskirpsi</td>
+          <td>:</td>
+          <td>{{ product.description }}</td>
         </tr>
         <tr>
           <td>Barcode</td>
@@ -185,9 +196,9 @@ const marginInfo = (price) => {
           <td>Harga Eceran</td>
           <td>:</td>
           <td>
-            Rp. {{ formatNumber(product.price) }}
+            Rp. {{ formatNumber(product.price_1) }}
             <span v-if="$can('admin.product:view-cost')">
-              ({{ marginInfo(product.price) }})
+              ({{ marginInfo(product.price_1) }})
             </span>
           </td>
         </tr>
@@ -219,16 +230,19 @@ const marginInfo = (price) => {
     <table class="detail">
       <tbody>
         <tr>
-          <td style="width: 120px">Deskirpsi</td>
+          <td style="width: 120px">Catatan</td>
           <td style="width: 1px">:</td>
-          <td>{{ product.description }}</td>
-        </tr>
-        <tr>
-          <td>Catatan</td>
-          <td>:</td>
           <td>{{ product.notes }}</td>
         </tr>
       </tbody>
     </table>
+    <div class="q-pt-md" v-if="$can('admin.product.delete')">
+      <q-btn
+        icon="delete"
+        label="Hapus"
+        color="negative"
+        @click="confirmDelete()"
+      />
+    </div>
   </div>
 </template>

@@ -19,11 +19,13 @@ namespace App\Models;
 use App\Models\Traits\HasDocumentVersions;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CustomerWalletTransactionConfirmation extends BaseModel
 {
     use HasFactory,
-        HasDocumentVersions;
+        HasDocumentVersions,
+        SoftDeletes;
 
     protected $table = 'customer_wallet_trx_confirmations';
 

@@ -5,6 +5,7 @@ import { handleDelete, handleFetchItems } from "@/helpers/client-req-handler";
 import { getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
 import useTableHeight from "@/composables/useTableHeight";
+import { formatNumber } from "@/helpers/formatter";
 
 const title = "Pemasok";
 const $q = useQuasar();
@@ -25,16 +26,30 @@ const pagination = ref({
   page: 1,
   rowsPerPage: 10,
   rowsNumber: 10,
-  sortBy: "name",
-  descending: false,
+  sortBy: "id",
+  descending: true,
 });
 
 const columns = [
+  {
+    name: "code",
+    label: "Kode",
+    field: "code",
+    align: "left",
+    sortable: true,
+  },
   {
     name: "name",
     label: "Nama",
     field: "name",
     align: "left",
+    sortable: true,
+  },
+  {
+    name: "balance",
+    label: "Utang / Piutang (Rp)",
+    field: "balance",
+    align: "right",
     sortable: true,
   },
   {
@@ -92,7 +107,7 @@ const onRowClicked = (row) =>
   router.get(route("admin.supplier.detail", { id: row.id }));
 const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return columns;
-  return columns.filter((col) => col.name === "name" || col.name === "action");
+  return columns.filter((col) => col.name === "code" || col.name === "action");
 });
 </script>
 
@@ -190,12 +205,23 @@ const computedColumns = computed(() => {
             class="cursor-pointer"
             @click="onRowClicked(props.row)"
           >
-            <q-td key="name" :props="props" class="wrap-column">
+            <q-td key="code" :props="props" class="wrap-column">
               <div>
                 <q-icon name="person" v-if="$q.screen.lt.md" />
-                {{ props.row.name }}
+                {{ props.row.code }}
+                <template v-if="$q.screen.lt.md">
+                  - {{ props.row.name }}
+                </template>
               </div>
               <template v-if="$q.screen.lt.md">
+                <div
+                  :class="
+                    props.row.balance < 0 ? 'text-negative' : 'text-positive'
+                  "
+                >
+                  <q-icon name="wallet" />
+                  {{ formatNumber(props.row.balance) }}
+                </div>
                 <div v-if="props.row.phone_1">
                   <q-icon name="phone" /> {{ props.row.phone_1 }}
                 </div>
@@ -203,6 +229,18 @@ const computedColumns = computed(() => {
                   <q-icon name="home_pin" /> {{ props.row.address }}
                 </div>
               </template>
+            </q-td>
+            <q-td key="name" :props="props" class="wrap-column">
+              {{ props.row.name }}
+            </q-td>
+            <q-td key="balance" :props="props" class="wrap-column">
+              <div
+                :class="
+                  props.row.balance < 0 ? 'text-negative' : 'text-positive'
+                "
+              >
+                {{ formatNumber(props.row.balance) }}
+              </div>
             </q-td>
             <q-td key="phone_1" :props="props">
               {{ props.row.phone_1 }}

@@ -18,10 +18,12 @@ namespace App\Models;
 
 use App\Models\Traits\HasDocumentVersions;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SalesOrder extends BaseModel
 {
-    use HasDocumentVersions;
+    use HasDocumentVersions,
+        SoftDeletes;
 
     protected $fillable = [
         'cashier_id',
@@ -210,5 +212,27 @@ class SalesOrder extends BaseModel
     public function cashierSession()
     {
         return $this->belongsTo(CashierSession::class, 'cashier_session_id');
+    }
+
+    public function updateTotalPaid($totalPaid)
+    {
+        $this->total_paid = $totalPaid;
+        $this->remaining_debt = max(0, $this->grand_total - $this->total_paid);
+
+        if ($this->total_paid >= $this->grand_total) {
+            $this->payment_status = SalesOrder::PaymentStatus_FullyPaid;
+        } else if ($this->total_paid > 0) {
+            $this->payment_status = SalesOrder::PaymentStatus_PartiallyPaid;
+        } else {
+            $this->payment_status = SalesOrder::PaymentStatus_Unpaid;
+        }
+    }
+
+    public function updateTotals(): void
+    {
+        $this->total_cost = $this->details()->sum('subtotal_cost');
+        $this->total_price = $this->details()->sum('subtotal_price');
+        // TODO: hitung pajak dan dan diskon disini
+        $this->grand_total = $this->total_price; // + pajak, - diskon, dll.
     }
 }

@@ -16,8 +16,9 @@
 
 namespace Modules\Admin\Services;
 
+use App\Exceptions\BusinessRuleViolationException;
 use App\Models\CashierSession;
-use App\Models\CashierTerminal;
+use App\Models\SalesOrder;
 use App\Models\User;
 use App\Models\UserActivityLog;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -70,7 +71,11 @@ class CashierSessionService
         }
 
         if (!empty($filter['status']) && $filter['status'] !== 'all') {
-            $q->where('is_closed', '=', $filter['status'] == 'closed' ? true : false);
+            $q->where('is_closed', $filter['status'] == 'closed' ? true : false);
+        }
+
+        if (!empty($filter['cashier_terminal_id']) && $filter['cashier_terminal_id'] !== 'all') {
+            $q->where('cashier_terminal_id', $filter['cashier_terminal_id']);
         }
 
         $q->orderBy($options['order_by'], $options['order_type']);
@@ -134,6 +139,10 @@ class CashierSessionService
 
     public function delete(CashierSession $item): mixed
     {
+        if ($this->checkSessionInUsed($item)) {
+            throw new BusinessRuleViolationException('Sesi kasir tidak dapat dihapus karena sudah ada transaksi.');
+        }
+
         return DB::transaction(function () use ($item) {
             $item->delete();
 
@@ -151,5 +160,11 @@ class CashierSessionService
 
             return $item;
         });
+    }
+
+    private function checkSessionInUsed(CashierSession $session): bool
+    {
+        return SalesOrder::where('cashier_session_id', $session->id)
+            ->count() > 0;
     }
 }

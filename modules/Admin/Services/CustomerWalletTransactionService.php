@@ -37,7 +37,7 @@ class CustomerWalletTransactionService
 
     public function find(int $id): CustomerWalletTransaction
     {
-        return CustomerWalletTransaction::findOrFail($id);
+        return CustomerWalletTransaction::with(['customer'])->findOrFail($id);
     }
 
     public function findOrCreate($id): CustomerWalletTransaction
@@ -78,17 +78,17 @@ class CustomerWalletTransactionService
 
     public function save(CustomerWalletTransaction $item, array $validated, $imageFile = null): CustomerWalletTransaction
     {
-        return DB::transaction(function () use ($item, $validated, $imageFile) {
-            // tetapkan jumlah (negatif / positif) berdasakran jenis transaksi
-            if (
-                in_array($validated['type'], [
-                    CustomerWalletTransaction::Type_SalesOrderPayment,
-                    CustomerWalletTransaction::Type_Withdrawal,
-                ])
-            ) {
-                $validated['amount'] *= -1;
-            }
+        // tetapkan jumlah (negatif / positif) berdasakran jenis transaksi
+        if (
+            in_array($validated['type'], [
+                CustomerWalletTransaction::Type_SalesOrderPayment,
+                CustomerWalletTransaction::Type_Withdrawal,
+            ])
+        ) {
+            $validated['amount'] *= -1;
+        }
 
+        return DB::transaction(function () use ($item, $validated, $imageFile) {
             // upload image jika ada
             if ($imageFile) {
                 $validated['image_path'] = ImageUploaderHelper::uploadAndResize(
@@ -212,10 +212,16 @@ class CustomerWalletTransactionService
     }
 
     // WARNING: Tidak mendukung pengeditan transaksi!!
-    protected function handleTransaction(array $newData)
+    public function handleTransaction(array $newData)
     {
         // Perbarui saldo akun baru
         $account = Customer::findOrFail($newData['customer_id']);
+
+        // jika negatif dan jumlah melebihi saldo, tolak
+        if ($newData['amount'] < 0 && abs($newData['amount']) > $account->wallet_balance) {
+            throw new BusinessRuleViolationException('Jumlah penarikan melebihi saldo!');
+        }
+
         $this->addToWalletBalance($account, $newData['amount']);
 
         // Buat transaksi baru

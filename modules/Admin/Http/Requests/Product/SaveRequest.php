@@ -50,7 +50,7 @@ class SaveRequest extends FormRequest
             'min_stock' => ['sometimes', 'numeric'],
             'max_stock' => ['sometimes', 'numeric'],
             'cost'      => ['sometimes', 'numeric'],
-            'price'     => ['sometimes', 'numeric'],
+            'price_1'   => ['sometimes', 'numeric'],
             'price_2'   => ['sometimes', 'numeric'],
             'price_3'   => ['sometimes', 'numeric'],
             'active'    => ['sometimes', 'boolean'],

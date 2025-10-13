@@ -31,6 +31,46 @@ const $q = useQuasar();
         />
       </div>
     </template>
+    <template #right-button>
+      <div class="q-gutter-sm">
+        <q-btn
+          v-if="$can('admin.customer.edit')"
+          icon="edit"
+          size="sm"
+          dense
+          flat
+          rounded
+          color="grey"
+          @click="
+            router.get(route('admin.customer.edit', { id: page.props.data.id }))
+          "
+          title="Edit Pelanggan"
+        />
+        <q-btn
+          v-if="$can('admin.customer.add')"
+          icon="content_copy"
+          size="sm"
+          dense
+          flat
+          rounded
+          color="grey"
+          @click="
+            router.get(route('admin.customer.edit', { id: page.props.data.id }))
+          "
+          title="Duplikat pelanggan"
+        />
+        <q-btn
+          v-if="$can('admin.customer.add')"
+          icon="add"
+          size="sm"
+          dense
+          rounded
+          color="primary"
+          @click="router.get(route('admin.customer.add'))"
+          title="Tambah pelanggan baru"
+        />
+      </div>
+    </template>
     <q-page class="row justify-center">
       <div class="col col-lg-6 q-pa-xs">
         <div class="row">

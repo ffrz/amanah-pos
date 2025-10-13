@@ -283,7 +283,10 @@ const computedColumns = computed(() => {
                         <q-item-section>Tutup Sesi Kasir</q-item-section>
                       </q-item>
                       <q-item
-                        v-if="$can('admin.cashier-session.delete')"
+                        v-if="
+                          $can('admin.cashier-session.delete') &&
+                          !props.row.is_closed
+                        "
                         @click.stop="deleteItem(props.row)"
                         clickable
                         v-ripple

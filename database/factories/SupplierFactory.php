@@ -32,7 +32,7 @@ class SupplierFactory extends Factory
     {
         return [
             'name' => $this->faker->company,
-            'phone' => $this->faker->phoneNumber,
+            'phone_1' => $this->faker->phoneNumber,
             'address' => $this->faker->address,
             'active' => $this->faker->boolean(90)
         ];

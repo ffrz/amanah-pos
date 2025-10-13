@@ -27,7 +27,8 @@ return new class extends Migration
     {
         Schema::create('suppliers', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 100)->unique();
+            $table->string('code', 255)->unique();
+            $table->string('name', 100)->index();
 
             $table->string('phone_1', 50)->default('')->index();
             $table->string('phone_2', 50)->default('')->index();
@@ -52,7 +53,7 @@ return new class extends Migration
 
             $table->text('notes', 255)->nullable();
 
-            $table->createdUpdatedTimestamps();
+            $table->createdUpdatedDeletedTimestamps();
         });
     }
 

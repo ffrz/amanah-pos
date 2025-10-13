@@ -184,7 +184,7 @@ class ProductController extends Controller
 
         return inertia('product/SendPriceList', [
             'customers' => $this->commonDataService->getCustomers(['id', 'name', 'phone']),
-            'products'  => $this->commonDataService->getProducts(['id', 'name', 'price', 'price_2', 'price_3']),
+            'products'  => $this->commonDataService->getProducts(['id', 'name', 'price_1', 'price_2', 'price_3']),
         ]);
     }
 }

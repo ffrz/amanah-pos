@@ -238,7 +238,7 @@ const updateItem = () => {
     qty: item.quantity,
   };
 
-  if (item.price_editable) {
+  if (item.product.price_editable) {
     data.price = item.price;
   }
 
@@ -299,6 +299,13 @@ onMounted(() => {
     } else if (e.key === "F11") {
       e.preventDefault();
       handleFullScreenClicked();
+    } else if (
+      e.key === "F5" ||
+      e.key === "F6" ||
+      e.key === "F7" ||
+      e.key === "F12"
+    ) {
+      e.preventDefault();
     }
   };
   document.addEventListener("keydown", handler);
@@ -315,9 +322,11 @@ const handleCustomerSelected = async (data) => {
   customer.value = data;
   form.customer_id = data?.id;
   await updateOrder();
-  nextTick(() => {
-    userInputRef.value?.focus(); // INI GAK NGARUH
-  }, 300);
+  if (data?.id) {
+    userInputRef.value.focus();
+  } else {
+    customerAutocompleteRef.value.focus();
+  }
 };
 
 const updateOrder = async () => {
@@ -325,7 +334,7 @@ const updateOrder = async () => {
 
   const data = {
     id: form.id,
-    customer_id: form.customer_id,
+    customer_id: form.customer_id ?? null,
     datetime: formatDateTimeForEditing(form.datetime),
     notes: form.notes,
   };
@@ -498,17 +507,30 @@ const isValidWalletBalance = computed(() => {
                 outlined
                 autofocus
               />
-              <div
-                class="q-mt-xs q-ml-sm text-bold"
-                :class="isValidWalletBalance ? 'text-green' : 'text-red'"
-              >
-                Saldo:
-                {{
-                  customer
-                    ? "Rp. " +
-                      formatNumber(customer ? customer.wallet_balance : 0)
-                    : "Tidak tersedia"
-                }}
+              <div class="row" v-if="customer">
+                <div
+                  class="q-mt-xs q-ml-sm text-bold"
+                  :class="isValidWalletBalance ? 'text-green' : 'text-red'"
+                >
+                  Wallet:
+                  {{
+                    customer
+                      ? "Rp. " +
+                        formatNumber(customer ? customer.wallet_balance : 0)
+                      : "Tidak tersedia"
+                  }}
+                </div>
+                <div
+                  class="q-mt-xs q-ml-sm text-bold"
+                  :class="customer.balance >= 0 ? 'text-green' : 'text-red'"
+                >
+                  Utang / Piutang:
+                  {{
+                    customer
+                      ? "Rp. " + formatNumber(customer ? customer.balance : 0)
+                      : "Tidak tersedia"
+                  }}
+                </div>
               </div>
             </div>
           </div>

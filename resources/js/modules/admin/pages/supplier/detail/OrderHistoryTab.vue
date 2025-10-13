@@ -127,6 +127,18 @@ const computedColumns = computed(() => {
             <q-badge :color="props.row.status == 'closed' ? 'green' : 'red'">
               {{ $CONSTANTS.SALES_ORDER_STATUSES[props.row.status] }}
             </q-badge>
+            <q-badge
+              :color="
+                props.row.payment_status == 'fully_paid' ? 'green' : 'red'
+              "
+              class="q-ml-xs"
+            >
+              {{
+                $CONSTANTS.SALES_ORDER_PAYMENT_STATUSES[
+                  props.row.payment_status
+                ]
+              }}
+            </q-badge>
           </div>
         </q-td>
         <q-td key="grand_total" :props="props">

@@ -18,12 +18,14 @@ namespace App\Models;
 
 use App\Models\Traits\HasDocumentVersions;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 
 class FinanceAccount extends BaseModel
 {
     use HasFactory,
-        HasDocumentVersions;
+        HasDocumentVersions,
+        SoftDeletes;
 
     protected $fillable = [
         'name',
@@ -95,5 +97,15 @@ class FinanceAccount extends BaseModel
     public function cashierTerminal()
     {
         return $this->hasOne(CashierTerminal::class, 'finance_account_id');
+    }
+
+    public static function incrementBalance($id, $amount)
+    {
+        FinanceAccount::where('id', $id)->increment('balance', abs($amount));
+    }
+
+    public static function decrementBalance($id, $amount)
+    {
+        FinanceAccount::where('id', $id)->decrement('balance', abs($amount));
     }
 }

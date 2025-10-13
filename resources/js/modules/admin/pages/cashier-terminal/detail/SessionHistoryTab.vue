@@ -4,20 +4,14 @@ import { getQueryParams } from "@/helpers/utils";
 import { router, usePage } from "@inertiajs/vue3";
 import { useQuasar } from "quasar";
 import { computed, onMounted, reactive, ref } from "vue";
-import {
-  formatDateTime,
-  formatNumberWithSymbol,
-  formatMoneyWithSymbol,
-} from "@/helpers/formatter";
+import { formatDateTime, formatMoney } from "@/helpers/formatter";
 import LongTextView from "@/components/LongTextView.vue";
-
-// TODO: SELESAIKAN MODUL INI
 
 const page = usePage();
 const rows = ref([]);
 const loading = ref(true);
 const filter = reactive({
-  customer_id: page.props.data.id,
+  cashier_terminal_id: page.props.data.id,
   ...getQueryParams(),
 });
 const pagination = ref({
@@ -29,9 +23,27 @@ const pagination = ref({
 });
 
 const columns = [
-  { name: "id", label: "Trx", field: "id", align: "left" },
-  { name: "notes", label: "Catatan", field: "notes", align: "left" },
-  { name: "amount", label: "Jumlah", field: "amount", align: "right" },
+  {
+    name: "id",
+    label: "Sesi",
+    field: "id",
+    align: "left",
+    sortable: true,
+  },
+  {
+    name: "opening_info",
+    label: "Buka Sesi",
+    field: "opening_info",
+    sortable: false,
+    align: "left",
+  },
+  {
+    name: "closing_info",
+    label: "Tutup Sesi",
+    field: "closing_info",
+    sortable: false,
+    align: "left",
+  },
 ];
 
 onMounted(() => {
@@ -44,7 +56,7 @@ const fetchItems = (props = null) =>
     filter,
     props,
     rows,
-    url: route("admin.customer-wallet-transaction.data"),
+    url: route("admin.cashier-session.data"),
     loading,
   });
 
@@ -97,53 +109,54 @@ const computedColumns = computed(() => {
           )
         "
       >
-        <q-td key="id" :props="props">
-          <div class="text-bold">
+        <q-td key="id" :props="props" class="wrap-column">
+          <div>
             <q-icon class="inline-icon" name="tag" />
-            {{ props.row.formatted_id }}
+            Session ID: {{ props.row.id }}
           </div>
+          <div>
+            <q-icon class="inline-icon" name="point_of_sale" />
+            {{ props.row.cashier_terminal.name }}
+          </div>
+          <div>
+            <q-icon class="inline-icon" name="person" />
+            {{ props.row.user.username }} - {{ props.row.user.name }}
+          </div>
+        </q-td>
+        <q-td key="opening_info" :props="props">
           <div>
             <q-icon class="inline-icon" name="calendar_clock" />
-            {{ formatDateTime(props.row.datetime) }}
+            {{
+              props.row.opened_at ? formatDateTime(props.row.opened_at) : "-"
+            }}
           </div>
-          <template v-if="$q.screen.lt.md">
-            <div
-              class="text-bold"
-              :class="props.row.amount < 0 ? 'text-red' : 'text-green'"
-            >
-              <q-icon name="money" class="inline-icon" />
-              {{ formatMoneyWithSymbol(props.row.amount) }}
-            </div>
-            <div>
-              <LongTextView
-                :text="props.row.notes"
-                class="text-grey-8"
-                icon="notes"
-              />
-            </div>
-          </template>
           <div>
-            <q-badge size="xs" :color="props.row.amount > 0 ? 'green' : 'red'">
-              <q-icon name="category" />
-              {{ props.row.type_label }}
-            </q-badge>
+            <q-icon class="inline-icon" name="money" />
+            {{ formatMoney(props.row.opening_balance) }}
           </div>
+          <LongTextView
+            v-if="props.row.opening_notes"
+            :text="props.row.opening_notes"
+            icon="notes"
+          />
         </q-td>
-        <q-td key="notes" :props="props" class="wrap-column">
-          <LongTextView :text="props.row.notes" />
-        </q-td>
-        <q-td key="amount" :props="props">
-          <div
-            :class="
-              props.row.amount < 0
-                ? 'text-red-10'
-                : props.row.amount > 0
-                ? 'text-green-10'
-                : ''
-            "
-          >
-            {{ formatNumberWithSymbol(props.row.amount) }}
+
+        <q-td key="closing_info" :props="props">
+          <div>
+            <q-icon class="inline-icon" name="calendar_clock" />
+            {{
+              props.row.closed_at ? formatDateTime(props.row.closed_at) : "-"
+            }}
           </div>
+          <div>
+            <q-icon class="inline-icon" name="money" />
+            {{ formatMoney(props.row.closing_balance) }}
+          </div>
+          <LongTextView
+            v-if="props.row.closing_notes"
+            :text="props.row.closing_notes"
+            icon="notes"
+          />
         </q-td>
       </q-tr>
     </template>

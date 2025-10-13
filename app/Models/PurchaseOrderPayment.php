@@ -17,9 +17,12 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PurchaseOrderPayment extends BaseModel
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'order_id',
         'finance_account_id',
@@ -37,7 +40,7 @@ class PurchaseOrderPayment extends BaseModel
     const Type_Cash = 'cash';
 
     const Types = [
-        self::Type_Transfer => 'Transfer',
+        self::Type_Transfer => 'Akun Kas',
         self::Type_Cash => 'Tunai',
     ];
 

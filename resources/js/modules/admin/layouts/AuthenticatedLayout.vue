@@ -624,7 +624,7 @@ defineExpose({
             </q-item>
 
             <q-item
-              v-if="$can('admin.user.index')"
+              v-if="$can('admin.user-activity-log.index')"
               class="subnav"
               clickable
               v-ripple

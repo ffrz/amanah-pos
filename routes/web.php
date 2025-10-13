@@ -14,6 +14,8 @@
  * Email: fahmifauzirahman@gmail.com
  */
 
+use App\Http\Controllers\Deploy\MaintenanceController;
+use App\Http\Middleware\VerifyDeployToken;
 use App\Models\Setting;
 use Illuminate\Support\Facades\Route;
 
@@ -29,5 +31,12 @@ Route::get('/', function () {
 Route::get('/landing-page', function () {
     return view('landing-page');
 })->name('landing-page');
+
+Route::middleware(VerifyDeployToken::class)->prefix('sysmain')->group(function () {
+    Route::get('/status', [MaintenanceController::class, 'status']);
+    Route::get('/down', [MaintenanceController::class, 'down']);
+    Route::get('/up', [MaintenanceController::class, 'up']);
+});
+
 
 require_once __DIR__ . '/web-api.php'; // Rute Web API untuk AJAX yang

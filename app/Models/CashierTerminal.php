@@ -19,10 +19,12 @@ namespace App\Models;
 use App\Models\Traits\HasDocumentVersions;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CashierTerminal extends BaseModel
 {
-    use HasDocumentVersions;
+    use HasDocumentVersions,
+        SoftDeletes;
 
     /**
      * The table associated with the model.

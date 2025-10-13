@@ -22,11 +22,13 @@ use App\Helpers\WhatsAppHelper;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Models\Setting;
 use App\Models\StockMovement;
 use App\Models\Supplier;
 use App\Models\UserActivityLog;
 use Exception;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -128,7 +130,8 @@ class ProductService
     {
         return $id ? $this->find($id) : new Product([
             'active' => 1,
-            'type' => Product::Type_Stocked
+            'type' => Product::Type_Stocked,
+            'name' => $this->generateProductCode(),
         ]);
     }
 
@@ -169,7 +172,7 @@ class ProductService
 
             $newStock = $item->stock;
 
-            if (isset($data['stock']) && $item->type === Product::Type_Stocked) {
+            if ($item->type === Product::Type_Stocked) {
                 $refType = $isNew ? StockMovement::RefType_InitialStock : StockMovement::RefType_ManualAdjustment;
                 $quantityBefore = $isNew ? 0 : $oldStock;
                 $quantity = $isNew ? $newStock : $newStock - $oldStock;
@@ -278,13 +281,15 @@ class ProductService
 
                 $supplier = Supplier::firstOrCreate([
                     'name' => trim($row['supplier']),
+                ], [
+                    'code' => app(SupplierService::class)->generateSupplierCode()
                 ]);
 
                 // Siapkan data produk
                 $itemData = [
                     'description' => trim($row['description']),
                     'cost'        => $row['cost'],
-                    'price'       => $row['price'],
+                    'price_1'     => $row['price'],
                     'uom'         => $row['uom'],
                     'stock'       => $row['stock'],
                     'category_id' => $category->id,
@@ -293,10 +298,24 @@ class ProductService
                 ];
 
                 // Simpan data produk
-                Product::firstOrCreate([
+                $product = Product::firstOrCreate([
                     'barcode' => $row['barcode'],
                     'name'    => trim($row['name']),
                 ], $itemData);
+
+                if ($product->wasRecentlyCreated && $row['stock'] > 0) {
+                    app(StockMovementService::class)->processStockIn([
+                        'product_id'      => $product->id,
+                        'product_name'    => $product->name,
+                        'uom'             => $product->uom,
+                        'ref_id'          => null,
+                        'ref_type'        => StockMovement::RefType_InitialStock,
+                        'quantity'        => $row['stock'],
+                        'quantity_before' => 0,
+                        'quantity_after'  => $row['stock'],
+                        'notes'           => "Stok awal dari import",
+                    ]);
+                }
             }
 
             $this->userActivityLogService->log(
@@ -306,6 +325,8 @@ class ProductService
             );
 
             fclose($handle);
+
+            return true;
         });
     }
 
@@ -358,5 +379,39 @@ class ProductService
         $lockedProduct = Product::where('id', $product->id)->lockForUpdate()->firstOrFail();
         $lockedProduct->stock += $quantity;
         $lockedProduct->save();
+    }
+
+    public function findProductByCodeOrId(array $data)
+    {
+        $product = null;
+        $productCode = $data['product_code'] ?? null;
+        $productId = $data['product_id'] ?? null;
+
+        if ($productId) {
+            $product = Product::find($productId);
+        } elseif ($productCode) {
+            // cari berdasarkan barcode
+            $product = Product::where('barcode', '=', $productCode)->first();
+
+            // kalo belum ketemu cari berdasarkan nama produk
+            if (!$product) {
+                $product = Product::where('name', '=', $productCode)->first();
+            }
+        }
+
+        if (!$product) {
+            throw new ModelNotFoundException('Produk tidak ditemukan.');
+        }
+
+        return $product;
+    }
+
+    private function generateProductCode(): string
+    {
+        $lastId = Product::max('id') ?? 0;
+        $nextId = $lastId + 1;
+        $code = str_pad($nextId, 5, '0', STR_PAD_LEFT);
+        $prefix = Setting::value('product.code-prefix', 'P-');
+        return $prefix . $code;
     }
 }

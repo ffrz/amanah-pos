@@ -272,10 +272,10 @@ onMounted(() => {
       showHelpDialog.value = true;
     } else if (e.key === "F2") {
       e.preventDefault();
-      userInputRef.value.focus();
+      supplierAutocompleteRef.value.focus();
     } else if (e.key === "F3") {
       e.preventDefault();
-      supplierAutocompleteRef.value.focus();
+      userInputRef.value.focus();
     } else if (e.key === "F4") {
       e.preventDefault();
       mergeItem.value = !mergeItem.value;
@@ -285,6 +285,13 @@ onMounted(() => {
     } else if (e.key === "F11") {
       e.preventDefault();
       handleFullScreenClicked();
+    } else if (
+      e.key === "F5" ||
+      e.key === "F6" ||
+      e.key === "F7" ||
+      e.key === "F12"
+    ) {
+      e.preventDefault();
     }
   };
   document.addEventListener("keydown", handler);
@@ -297,16 +304,19 @@ onMounted(() => {
   });
 });
 
-const handleSupplierSelected = (data) => {
+const handleSupplierSelected = async (data) => {
   supplier.value = data;
   form.supplier_id = data?.id;
-  updateOrder();
-  nextTick(() => {
-    userInputRef.value?.focus(); // INI GAK NGARUH
-  });
+  await updateOrder();
+
+  if (data?.id) {
+    userInputRef.value.focus();
+  } else {
+    supplierAutocompleteRef.value.focus();
+  }
 };
 
-const updateOrder = () => {
+const updateOrder = async () => {
   isProcessing.value = true;
 
   const data = {
@@ -316,7 +326,7 @@ const updateOrder = () => {
     notes: form.notes,
   };
 
-  axios
+  await axios
     .post(route("admin.purchase-order.update"), data)
     .then((response) => {
       const updated = response.data.data.id;

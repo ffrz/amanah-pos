@@ -2,6 +2,8 @@
 import { computed } from "vue";
 import { useQuasar } from "quasar";
 import SupplierDetail from "./document/SupplierDetail.vue";
+import CustomerDetail from "./document/CustomerDetail.vue";
+import ProductDetail from "./document/ProductDetail.vue";
 
 const props = defineProps({
   // Objek versi yang dipilih (harus mengandung field 'data', 'version', dan 'document_type')
@@ -86,7 +88,11 @@ const rawJson = computed(() => JSON.stringify(parsedData.value, null, 2));
         </div>
         <div v-else-if="docType === 'App\\Models\\Customer'">
           <div class="text-subtitle2 text-grey-8 q-mb-sm">Info Pelanggan</div>
-          <SupplierDetail :data="parsedData" />
+          <CustomerDetail :data="parsedData" />
+        </div>
+        <div v-else-if="docType === 'App\\Models\\Product'">
+          <div class="text-subtitle2 text-grey-8 q-mb-sm">Info Produk</div>
+          <ProductDetail :data="parsedData" />
         </div>
 
         <div v-else>

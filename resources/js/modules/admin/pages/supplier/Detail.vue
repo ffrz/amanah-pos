@@ -1,5 +1,5 @@
 <script setup>
-import { usePage } from "@inertiajs/vue3";
+import { router, usePage } from "@inertiajs/vue3";
 import { useQuasar } from "quasar";
 import { ref } from "vue";
 import MainInfoTab from "./detail/MainInfoTab.vue";
@@ -27,6 +27,46 @@ const $q = useQuasar();
           flat
           rounded
           @click="$inertia.get(route('admin.supplier.index'))"
+        />
+      </div>
+    </template>
+    <template #right-button>
+      <div class="q-gutter-sm">
+        <q-btn
+          v-if="$can('admin.supplier.edit')"
+          icon="edit"
+          size="sm"
+          dense
+          flat
+          rounded
+          color="grey"
+          @click="
+            router.get(route('admin.supplier.edit', { id: page.props.data.id }))
+          "
+          title="Edit pemasok"
+        />
+        <q-btn
+          v-if="$can('admin.supplier.add')"
+          icon="content_copy"
+          size="sm"
+          dense
+          flat
+          rounded
+          color="grey"
+          @click="
+            router.get(route('admin.supplier.edit', { id: page.props.data.id }))
+          "
+          title="Duplikat pemasok"
+        />
+        <q-btn
+          v-if="$can('admin.supplier.add')"
+          icon="add"
+          size="sm"
+          dense
+          rounded
+          color="primary"
+          @click="router.get(route('admin.supplier.add'))"
+          title="Tambah pemasok baru"
         />
       </div>
     </template>

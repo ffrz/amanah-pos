@@ -18,10 +18,14 @@ namespace App\Models;
 
 use App\Models\Traits\HasDocumentVersions;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PurchaseOrder extends BaseModel
 {
-    use HasDocumentVersions;
+    use HasDocumentVersions,
+        HasFactory,
+        SoftDeletes;
 
     protected $fillable = [
         'supplier_id',
@@ -207,7 +211,5 @@ class PurchaseOrder extends BaseModel
         } else {
             $this->payment_status = self::PaymentStatus_Unpaid;
         }
-
-        $this->save();
     }
 }

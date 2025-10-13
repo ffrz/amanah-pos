@@ -46,7 +46,7 @@ const props = defineProps({
     default: null,
   },
   class: { type: String, default: "" },
-  label: { type: String, default: "Cari Pelanggan" },
+  label: { type: String, default: "Cari Pemasok" },
   error: { type: Boolean, default: false },
   errorMessage: { type: String, default: "" },
   disable: { type: Boolean, default: false },
@@ -117,6 +117,6 @@ const filterFn = (val, update) => {
           options.value = [];
         });
       });
-  }, 500);
+  }, 100);
 };
 </script>

@@ -1,11 +1,22 @@
 <script setup>
+import { handleDelete } from "@/helpers/client-req-handler";
 import {
   formatMoneyWithSymbol,
   formatNumberWithSymbol,
 } from "@/helpers/formatter";
-import { usePage } from "@inertiajs/vue3";
+import { router, usePage } from "@inertiajs/vue3";
 
 const page = usePage();
+
+const confirmDelete = () => {
+  handleDelete({
+    message: `Hapus Pemasok ${page.props.data.name}?`,
+    url: route("admin.supplier.delete", page.props.data.id),
+    onSuccess: () => {
+      router.get(route("admin.supplier.index"));
+    },
+  });
+};
 </script>
 
 <template>
@@ -13,43 +24,26 @@ const page = usePage();
     <tbody>
       <tr>
         <td colspan="3">
-          <div class="text-bold text-grey-8">
-            Info Pemasok
-
-            <q-btn
-              v-if="$can('admin.supplier.edit')"
-              icon="edit"
-              size="sm"
-              dense
-              flat
-              rounded
-              class="q-ml-sm"
-              color="grey"
-              @click="
-                $inertia.get(
-                  route('admin.supplier.edit', { id: page.props.data.id })
-                )
-              "
-            />
-          </div>
+          <div class="text-bold text-grey-8">Info Pemasok</div>
         </td>
       </tr>
       <tr>
-        <td style="width: 120px">Nama</td>
+        <td style="width: 120px">Kode</td>
         <td style="width: 1px">:</td>
+        <td>{{ page.props.data.code }}</td>
+      </tr>
+      <tr>
+        <td>Nama</td>
+        <td>:</td>
         <td>{{ page.props.data.name }}</td>
       </tr>
       <tr>
         <td>
-          {{ page.props.data.actual_balance < 0 ? "Utang" : "Utang / Piutang" }}
+          {{ page.props.data.balance < 0 ? "Utang" : "Utang / Piutang" }}
         </td>
         <td>:</td>
-        <td
-          :class="
-            page.props.data.actual_balance < 0 ? 'text-red' : 'text-green'
-          "
-        >
-          {{ formatMoneyWithSymbol(page.props.data.actual_balance) }}
+        <td :class="page.props.data.balance < 0 ? 'text-red' : 'text-green'">
+          {{ formatMoneyWithSymbol(page.props.data.balance) }}
         </td>
       </tr>
       <tr v-if="page.props.data.phone_1">
@@ -118,4 +112,12 @@ const page = usePage();
       </tr>
     </tbody>
   </table>
+  <div class="q-pt-md" v-if="$can('admin.supplier.delete')">
+    <q-btn
+      icon="delete"
+      label="Hapus"
+      color="negative"
+      @click="confirmDelete()"
+    />
+  </div>
 </template>

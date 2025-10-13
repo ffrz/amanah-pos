@@ -180,9 +180,9 @@ class CustomerController extends Controller
                             ]
                         );
 
-                        if ($customer->wasRecentlyCreated) {
-                            if ($initialBalance > 0) {
-                                CustomerWalletTransactionService::handleTransaction([
+                        if ($customer->wasRecentlyCreated && $initialBalance > 0) {
+                            app(CustomerWalletTransactionService::class)
+                                ->handleTransaction([
                                     'customer_id' => $customer->id,
                                     'finance_account_id' => $newData['finance_account_id'] ?? null,
                                     'datetime' => now(),
@@ -190,7 +190,6 @@ class CustomerController extends Controller
                                     'type' => CustomerWalletTransaction::Type_Adjustment,
                                     'notes' => 'Saldo awal dari import',
                                 ]);
-                            }
                         }
                     }
 

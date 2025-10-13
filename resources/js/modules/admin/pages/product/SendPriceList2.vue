@@ -51,7 +51,7 @@ const allProductsOptions = computed(
 
 const prices = [
   {
-    value: "price",
+    value: "price_1",
     label: "Harga Eceran",
   },
   {

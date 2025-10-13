@@ -28,11 +28,11 @@ return new class extends Migration
         Schema::create('cashier_terminals', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('finance_account_id')->unique();
-            $table->string('name', 40)->unique();
+            $table->string('name', 255)->unique();
             $table->string('location', 100)->nullable();
             $table->string('notes', 200)->nullable();
             $table->boolean('active')->default(false)->index();
-            $table->createdUpdatedTimestamps();
+            $table->createdDeletedTimestamps();
 
             $table->foreign('finance_account_id')
                 ->references('id')

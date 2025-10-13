@@ -20,10 +20,13 @@ use App\Models\Traits\HasDocumentVersions;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class FinanceTransaction extends BaseModel
 {
-    use HasFactory, HasDocumentVersions;
+    use HasFactory,
+        HasDocumentVersions,
+        SoftDeletes;
 
     protected $fillable = [
         'account_id',
@@ -149,5 +152,10 @@ class FinanceTransaction extends BaseModel
     public function cashierSessions(): BelongsToMany
     {
         return $this->belongsToMany(CashierSession::class, 'cashier_session_transactions');
+    }
+
+    public static function deleteByRef($id, $type)
+    {
+        static::where('ref_id', $id)->where('ref_type', $type)->delete();
     }
 }

@@ -32,18 +32,8 @@ const page = usePage();
 const isProcessing = ref(false);
 const paymentMode = ref("cash");
 const debtDueDate = ref(new Date());
-// <<<<<<< HEAD
-// const firstPaymentInputRef = ref(null);
-// const payments = reactive([{ id: "cash", amount: 0.0 }]);
-
-// =======
-// >>>>>>> 5c574a5bf5fc52f899fef022e6f9dc83c1f7af4d
 const nextAction = ref(page.props.settings.after_payment_action ?? "print");
-
-// Array ref BARU untuk menampung semua instance QSelect (Metode Pembayaran)
 const selectRefs = ref([]);
-
-// Array ref LAMA untuk menampung semua instance LocaleNumberInput (Jumlah)
 const paymentInputRefs = ref([]);
 
 const payments = reactive([{ id: "cash", amount: 0.0 }]);
@@ -64,7 +54,7 @@ const nextActionOptions = [
 ];
 
 const paymentOptions = computed(() => [
-  { label: "Tunai", value: "cash" },
+  { label: "Laci Kasir", value: "cash" },
   ...(props.customer ? [{ label: "Wallet", value: "wallet" }] : []),
   ...page.props.accounts.map((a) => ({
     label: a.name,

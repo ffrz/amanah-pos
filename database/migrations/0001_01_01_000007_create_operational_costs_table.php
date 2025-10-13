@@ -34,7 +34,7 @@ return new class extends Migration
             $table->string('image_path', 255)->nullable()->default('');
             $table->decimal('amount', 8, 0)->default(0.);
             $table->text('notes');
-            $table->createdUpdatedTimestamps();
+            $table->createdDeletedTimestamps();
         });
     }
 

@@ -42,8 +42,9 @@ class SaveRequest extends FormRequest
             'name' => 'required|max:255',
             'phone' => 'nullable|max:100',
             'address' => 'nullable|max:1000',
+            'default_price_type' => 'required|string|max:10|in:price_1,price_2,price_3',
             'active'   => 'required|boolean',
-            'password' => (!$id ? 'required|' : '') . 'min:5|max:40',
+            'password' => (!$id ? 'required' : 'nullable') . '|min:5|max:40',
         ];
 
         return $rules;
@@ -65,6 +66,7 @@ class SaveRequest extends FormRequest
             'id' => $this->id ?? null,
             'phone' => $this->phone ?? '',
             'address' => $this->address ?? '',
+            'password' => $this->password ?? '',
         ]);
     }
 }

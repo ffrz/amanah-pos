@@ -19,6 +19,7 @@ namespace App\Providers;
 use App\Models\CashierSession;
 use App\Models\CashierTerminal;
 use App\Models\Customer;
+use App\Models\CustomerWalletTransaction;
 use App\Models\CustomerWalletTransactionConfirmation;
 use App\Models\FinanceAccount;
 use App\Models\FinanceTransaction;
@@ -73,6 +74,7 @@ class AuthServiceProvider extends ServiceProvider
         PurchaseOrder::class => PurchaseOrderPolicy::class,
         PurchaseOrderPayment::class => DefaultPolicy::class,
         CustomerWalletTransactionConfirmation::class => DefaultPolicy::class,
+        CustomerWalletTransaction::class => DefaultPolicy::class,
     ];
 
     /**
