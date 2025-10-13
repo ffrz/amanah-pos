@@ -1,0 +1,30 @@
+{
+    "include_path": [
+        "app",
+        "bootstrap",
+        "config",
+        "database",
+        "modules",
+        "public",
+        "resources",
+        "routes",
+        "artisan",
+        "LICENSE",
+        "VERSION"
+    ],
+    "exclude_path": [".env", "public/uploads"],
+    "tenants": {
+        "tenant1": {
+            "host": "ftp.mysite1.com",
+            "user": "ftpusername",
+            "pass": "ftppass",
+            "remote_path": "/public_html/shiftech-pos/tenant1"
+        },
+        "tenant2": {
+            "host": "ftp.mysite2.com",
+            "user": "ftpusername",
+            "pass": "ftppass",
+            "remote_path": "/public_html/shiftech-pos/tenant2"
+        }
+    }
+}

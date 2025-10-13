@@ -1,8 +1,0 @@
-app
-bootstrap
-config
-database
-modules
-public
-resources
-routes
