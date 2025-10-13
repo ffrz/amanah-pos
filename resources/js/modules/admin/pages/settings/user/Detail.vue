@@ -91,10 +91,20 @@ const title = "Rincian Pengguna";
                     </td>
                   </tr>
                   <tr>
+                    <td>Status</td>
+                    <td>:</td>
+                    <td>
+                      {{ page.props.data.active ? "Aktif" : "Tidak Aktif" }}
+                    </td>
+                  </tr>
+                  <tr>
                     <td>Dibuat</td>
                     <td>:</td>
                     <td>
                       {{ formatDateTime(page.props.data.created_at) }}
+                      oleh {{ page.props.data.creator?.name ?? "Sistem" }} ({{
+                        page.props.data.creator?.username ?? "system"
+                      }})
                     </td>
                   </tr>
                   <tr v-if="page.props.data.updated_at">
@@ -102,6 +112,11 @@ const title = "Rincian Pengguna";
                     <td>:</td>
                     <td>
                       {{ formatDateTime(page.props.data.updated_at) }}
+                      <template v-if="page.props.data.updater">
+                        oleh {{ page.props.data.updater.name }} ({{
+                          page.props.data.updater.username
+                        }})
+                      </template>
                     </td>
                   </tr>
                   <tr>

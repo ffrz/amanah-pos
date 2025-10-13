@@ -53,10 +53,20 @@ const title = "Rincian Biaya Operasional";
                     <td>Akun</td>
                     <td>:</td>
                     <td>
-                      {{ page.props.data.finance_account.name }}
+                      <i-link
+                        :href="
+                          route(
+                            'admin.finance-account.detail',
+                            page.props.data.finance_account.id
+                          )
+                        "
+                      >
+                        {{ page.props.data.finance_account.name }}
+                      </i-link>
                       <template
                         v-if="page.props.data.finance_account.type === 'bank'"
                       >
+                        <br />
                         Rek {{ page.props.data.finance_account.bank }} an
                         {{ page.props.data.finance_account.holder }}
                         <br />

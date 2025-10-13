@@ -43,7 +43,9 @@ class UserActivityLogService
         $user = Auth::user();
 
         if ($user) {
-            $user->setLastActivity("$category > $name");
+            $categoryName = UserActivityLog::Categories[$category] ?? '';
+            $activityName = UserActivityLog::Categories[$name] ?? '';
+            $user->setLastActivity("$categoryName > $activityName");
         }
 
         return UserActivityLog::create([

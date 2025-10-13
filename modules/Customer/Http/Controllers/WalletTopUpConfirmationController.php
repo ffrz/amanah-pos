@@ -43,7 +43,7 @@ class WalletTopUpConfirmationController extends Controller
 
     public function data(Request $request)
     {
-        $orderBy = $request->get('order_by', 'datetime');
+        $orderBy = $request->get('order_by', 'id');
         $orderType = $request->get('order_type', 'desc');
         $filter = $request->get('filter', []);
 

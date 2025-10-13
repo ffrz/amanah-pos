@@ -50,7 +50,7 @@ const pagination = ref({
   page: 1,
   rowsPerPage: 10,
   rowsNumber: 10,
-  sortBy: "datetime",
+  sortBy: "id",
   descending: true,
 });
 

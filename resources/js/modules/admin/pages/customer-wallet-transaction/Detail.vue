@@ -56,7 +56,14 @@ const title = "Rincian Transaksi";
                     <td>
                       <div>
                         <q-icon name="person" class="inline-icon" />
-                        {{ page.props.data.customer.code }}
+                        <i-link
+                          :href="
+                            route('admin.customer.detail', {
+                              id: page.props.data.customer_id,
+                            })
+                          "
+                          >&nbsp;{{ page.props.data.customer.code }}</i-link
+                        >
                       </div>
                       <div>
                         <q-icon name="person" class="inline-icon" />
@@ -69,16 +76,6 @@ const title = "Rincian Transaksi";
                       <div v-if="page.props.data.customer.address">
                         <q-icon name="home_pin" class="inline-icon" />
                         {{ page.props.data.customer.address }}
-                      </div>
-                      <div>
-                        <i-link
-                          :href="
-                            route('admin.customer.detail', {
-                              id: page.props.data.customer_id,
-                            })
-                          "
-                          >Lihat Rincian Pelanggan</i-link
-                        >
                       </div>
                     </td>
                   </tr>

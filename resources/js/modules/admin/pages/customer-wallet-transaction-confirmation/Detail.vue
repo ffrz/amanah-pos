@@ -126,11 +126,18 @@ const rejectItem = () =>
                     <td>:</td>
                     <td>
                       <div>
-                        <q-icon name="person" class="inline-icon" /> Kode:
-                        {{ page.props.data.customer.code }}
+                        <q-icon name="person" class="inline-icon" />
+                        <i-link
+                          :href="
+                            route('admin.customer.detail', {
+                              id: page.props.data.customer_id,
+                            })
+                          "
+                          >{{ page.props.data.customer.code }}</i-link
+                        >
                       </div>
                       <div>
-                        <q-icon name="person" class="inline-icon" /> Nama:
+                        <q-icon name="person" class="inline-icon" />
                         {{ page.props.data.customer.name }}
                       </div>
                       <div v-if="page.props.data.customer.phone">
@@ -140,16 +147,6 @@ const rejectItem = () =>
                       <div v-if="page.props.data.customer.address">
                         <q-icon name="home_pin" class="inline-icon" />
                         {{ page.props.data.customer.address }}
-                      </div>
-                      <div>
-                        <i-link
-                          :href="
-                            route('admin.customer.detail', {
-                              id: page.props.data.customer_id,
-                            })
-                          "
-                          >Lihat Rincian Pelanggan</i-link
-                        >
                       </div>
                     </td>
                   </tr>

@@ -40,7 +40,7 @@ class UserService
 
     public function find($id): User
     {
-        return User::with(['roles'])->findOrFail($id);
+        return User::with(['roles', 'creator', 'updater'])->findOrFail($id);
     }
 
     public function findOrCreate($id): User

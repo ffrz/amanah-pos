@@ -2,6 +2,7 @@
 import {
   formatDate,
   formatDateTime,
+  formatMoneyWithSymbol,
   formatNumber,
   plusMinusSymbol,
 } from "@/helpers/formatter";
@@ -58,7 +59,16 @@ const title = "Rincian Transaksi";
                     <td>Akun</td>
                     <td>:</td>
                     <td>
-                      {{ page.props.data.account.name }}
+                      <i-link
+                        :href="
+                          route(
+                            'admin.finance-account.detail',
+                            page.props.data.account.id
+                          )
+                        "
+                      >
+                        {{ page.props.data.account.name }}
+                      </i-link>
                       <template v-if="page.props.data.account.type === 'bank'">
                         Rek {{ page.props.data.account.bank }} an
                         {{ page.props.data.account.holder }}
@@ -82,8 +92,7 @@ const title = "Rincian Transaksi";
                     <td>Jumlah</td>
                     <td>:</td>
                     <td>
-                      {{ plusMinusSymbol(page.props.data.amount) }}
-                      Rp. {{ formatNumber(Math.abs(page.props.data.amount)) }}
+                      {{ formatMoneyWithSymbol(page.props.data.amount) }}
                     </td>
                   </tr>
                   <tr>
