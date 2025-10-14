@@ -10,9 +10,7 @@ const props = defineProps({
   data: Object,
 });
 
-const remainingPayment = computed(() => {
-  return props.data.grand_total - props.data.total_paid;
-});
+console.log(props.data);
 
 const $q = useQuasar();
 const showPaymentDialog = ref(false);
@@ -20,11 +18,14 @@ const showPaymentDialog = ref(false);
 const openPaymentDialog = () => {
   showPaymentDialog.value = true;
 };
+const remainingRefund = computed(() => {
+  return props.data.grand_total - props.data.total_refunded;
+});
+
 const handleAcceptedPayment = async (payload) => {
   const postData = {
     order_id: props.data.id,
-    payments: payload.payments,
-    notes: payload.notes,
+    ...payload,
   };
 
   $q.loading.show({
@@ -33,22 +34,23 @@ const handleAcceptedPayment = async (payload) => {
 
   try {
     const response = await axios.post(
-      route("admin.sales-order.add-payment"),
+      route("admin.sales-order-return.add-refund"),
       postData
     );
 
     $q.notify({
-      message: "Pembayaran berhasil diproses!",
+      message: "Refund Pembayaran berhasil diproses!",
       color: "positive",
       icon: "check_circle",
     });
     showPaymentDialog.value = false;
 
     router.visit(
-      route("admin.sales-order.detail", { id: props.data.id }) + "?tab=payment"
+      route("admin.sales-order-return.detail", { id: props.data.id }) +
+        "?tab=refund"
     );
   } catch (error) {
-    let errorMessage = "Gagal memproses pembayaran.";
+    let errorMessage = "Gagal memproses refund.";
     if (error.response && error.response.data && error.response.data.message) {
       errorMessage = error.response.data.message;
     } else if (error.message) {
@@ -68,7 +70,7 @@ const handleAcceptedPayment = async (payload) => {
 const deletePayment = (payment) => {
   $q.dialog({
     title: "Konfirmasi",
-    message: `Apakah Anda yakin ingin menghapus pembayaran ini?`,
+    message: `Apakah Anda yakin ingin menghapus refund pembayaran ini?`,
     cancel: true,
     persistent: true,
   }).onOk(async () => {
@@ -78,7 +80,7 @@ const deletePayment = (payment) => {
 
     try {
       await axios.post(
-        route("admin.sales-order.delete-payment", { id: payment.id })
+        route("admin.sales-order-return.delete-refund", { id: payment.id })
       );
 
       $q.notify({
@@ -88,11 +90,11 @@ const deletePayment = (payment) => {
       });
 
       router.visit(
-        route("admin.sales-order.detail", { id: props.data.id }) +
-          "?tab=payment"
+        route("admin.sales-order-return.detail", { id: props.data.id }) +
+          "?tab=refund"
       );
     } catch (error) {
-      let errorMessage = "Gagal menghapus pembayaran.";
+      let errorMessage = "Gagal menghapus refund pembayaran.";
       if (
         error.response &&
         error.response.data &&
@@ -121,7 +123,10 @@ const deletePayment = (payment) => {
     <q-card-section class="q-pa-sm">
       <div class="row">
         <q-btn
-          v-if="$can('admin.sales-order.add-payment') && remainingPayment > 0"
+          v-if="
+            $can('admin.sales-order-return.add-refund') &&
+            props.data.remaining_refund > 0
+          "
           label="Tambah"
           color="primary"
           icon="add"
@@ -150,7 +155,7 @@ const deletePayment = (payment) => {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="item in props.data.payments" :key="item.id">
+          <tr v-for="item in props.data.refunds" :key="item.id">
             <td class="q-pa-sm" style="border-bottom: 1px solid #eee">
               <div class="row items-center q-gutter-x-sm">
                 <q-icon name="tag" size="xs" color="grey-7" />
@@ -194,7 +199,7 @@ const deletePayment = (payment) => {
             >
               <q-btn
                 v-if="
-                  $can('admin.sales-order.delete-payment') &&
+                  $can('admin.sales-order-return.delete-refund') &&
                   props.data.customer_id
                 "
                 icon="delete"
@@ -207,22 +212,22 @@ const deletePayment = (payment) => {
               />
             </td>
           </tr>
-          <tr v-if="props.data.payments.length == 0">
+          <tr v-if="props.data.refunds.length == 0">
             <td colspan="100%" class="text-center text-grey">Belum ada item</td>
           </tr>
         </tbody>
         <tfoot>
           <tr>
-            <th class="text-right q-pa-sm" colspan="1">Total Dibayar</th>
+            <th class="text-right q-pa-sm" colspan="1">Total Direfund</th>
             <th class="text-right q-pa-sm">
-              {{ formatNumber(props.data.total_paid) }}
+              {{ formatNumber(props.data.total_refunded) }}
             </th>
             <th></th>
           </tr>
           <tr>
-            <th class="text-right q-pa-sm" colspan="1">Sisa Tagihan</th>
+            <th class="text-right q-pa-sm" colspan="1">Sisa Refund</th>
             <th class="text-right q-pa-sm">
-              {{ formatNumber(remainingPayment) }}
+              {{ formatNumber(props.data.remaining_refund) }}
             </th>
             <td></td>
           </tr>
@@ -233,7 +238,7 @@ const deletePayment = (payment) => {
 
   <PaymentDialog
     v-model="showPaymentDialog"
-    :total="remainingPayment"
+    :total="remainingRefund"
     :customer="props.data.customer"
     @accepted="handleAcceptedPayment"
   />

@@ -30,9 +30,9 @@ const paymentForm = ref({
 const customer = page.props.data.customer;
 
 const paymentOptions = computed(() => [
-  { label: "Tunai (Laci Kasir)", value: "cash" },
   // Opsi wallet hanya tersedia jika ada data customer
-  ...(customer ? [{ label: "Wallet", value: "wallet" }] : []),
+  ...(customer ? [{ label: "Refund ke Wallet", value: "wallet" }] : []),
+  { label: "Tunai (Laci Kasir)", value: "cash" },
   ...page.props.accounts.map((a) => ({
     label: a.name,
     value: a.id,
@@ -46,24 +46,15 @@ const remainingTotal = computed(() => {
 // Menghitung pesan error berdasarkan validasi
 const errorMessage = computed(() => {
   const amount = paymentForm.value.amount || 0;
-  const total = props.total;
 
   if (amount <= 0) {
     return "Jumlah pembayaran harus lebih dari 0.";
   }
 
-  // boleh dicicil
-  // if (amount < total) {
-  //   return "Jumlah pembayaran tidak boleh kurang dari total tagihan.";
-  // }
-
-  if (
-    paymentForm.value.method === "wallet" &&
-    customer &&
-    amount > customer.wallet_balance
-  ) {
-    return "Saldo wallet tidak mencukupi.";
+  if (amount > props.total) {
+    return "Jumlah pembayaran melebihi jumlah transaksi";
   }
+
   return null;
 });
 
@@ -81,16 +72,9 @@ const handleFinalizePayment = () => {
 
   // Asumsikan kita hanya memiliki satu pembayaran tunggal
   const payload = {
-    total_paid: paymentForm.value.amount,
-    payments: [
-      {
-        id: paymentForm.value.method,
-        amount: paymentForm.value.amount,
-      },
-    ],
+    id: paymentForm.value.method,
+    amount: paymentForm.value.amount,
     notes: paymentForm.value.notes,
-    change: Math.max(0, (paymentForm.value.amount || 0) - props.total),
-    remaining_debt: Math.max(0, props.total - (paymentForm.value.amount || 0)),
   };
 
   emit("accepted", payload);
@@ -113,7 +97,7 @@ const onBeforeShow = () => {
     <q-card style="min-width: 300px">
       <q-card-section>
         <div class="text-subtitle1 text-bold text-center">
-          Rincian Pembayaran
+          Pengembalian Dana
         </div>
       </q-card-section>
       <q-card-section class="q-pt-none">
@@ -130,7 +114,7 @@ const onBeforeShow = () => {
         <q-select
           v-model="paymentForm.method"
           :options="paymentOptions"
-          label="Metode Pembayaran"
+          :label="paymentForm.method == 'wallet' ? 'Tujuan' : 'Sumber Dana'"
           :outlined="true"
           emit-value
           map-options
@@ -162,16 +146,10 @@ const onBeforeShow = () => {
             v-if="remainingTotal > 0"
             class="text-h6 text-negative text-weight-bold"
           >
-            Sisa Tagihan: Rp. {{ formatNumber(remainingTotal) }}
-          </div>
-          <div
-            v-else-if="remainingTotal < 0"
-            class="text-h6 text-green-8 text-weight-bold"
-          >
-            Kembalian: Rp. {{ formatNumber(Math.abs(remainingTotal)) }}
+            Sisa Refund: Rp. {{ formatNumber(remainingTotal) }}
           </div>
           <div v-else class="text-h6 text-positive text-weight-bold">
-            Tagihan Terbayar
+            Refund Lunas
           </div>
         </div>
       </q-card-section>

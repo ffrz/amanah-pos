@@ -50,6 +50,7 @@ class CustomerWalletTransaction extends BaseModel
     const Type_Deposit = 'deposit';
     const Type_Refund = 'refund';
     const Type_SalesOrderPayment = 'sales_order_payment';
+    const Type_SalesOrderRefund = 'sales_order_refund';
     const Type_Withdrawal = 'withdrawal';
     const Type_Adjustment = 'adjustment';
 
@@ -57,15 +58,18 @@ class CustomerWalletTransaction extends BaseModel
         self::Type_Deposit => 'Top Up',
         self::Type_Refund => 'Refund',
         self::Type_SalesOrderPayment => 'Pembelian',
+        self::Type_SalesOrderRefund => 'Refund Pembelian',
         self::Type_Withdrawal => 'Penarikan',
         self::Type_Adjustment => 'Penyesuaian',
     ];
 
     const RefType_SalesOrderPayment = 'sales_order_payment';
+    const RefType_SalesOrderReturnRefund = 'sales_order_return_refund';
     const RefType_CustomerWalletTransactionConfirmation = 'customer_wallet_transaction_confirmation';
 
     const RefTypes = [
-        self::RefType_SalesOrderPayment => 'Pembayaran Transaksi Penjualan',
+        self::RefType_SalesOrderPayment => 'Transaksi Pembayaran Penjualan',
+        self::RefType_SalesOrderReturnRefund => ' Transaksi Refund Pembayaran Penjualan',
         self::RefType_CustomerWalletTransactionConfirmation => 'Konfirmasi Transaksi Wallet Pelanggan',
     ];
 

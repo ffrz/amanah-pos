@@ -1,17 +1,17 @@
 <script setup>
 import { router, usePage } from "@inertiajs/vue3";
 import { nextTick, onMounted, ref } from "vue";
-import InvoiceTab from "./detail/InvoiceTab.vue";
-import PaymentTab from "./detail/PaymentTab.vue";
+import MainInfoTab from "./detail/MainInfoTab.vue";
+import RefundTab from "./detail/RefundTab.vue";
 
 const urlParams = new URLSearchParams(window.location.search);
 const page = usePage();
 const data = page.props.data;
-const title = `Rincian Penjualan`;
+const title = `Retur Penjualan`;
 const isPreview = ref(urlParams.get("preview") || false);
 
 const getInitialTab = () => {
-  return urlParams.get("tab") || "invoice";
+  return urlParams.get("tab") || "main-info";
 };
 
 const currentTab = ref(getInitialTab());
@@ -24,6 +24,7 @@ onMounted(() => {
     }
   });
 });
+
 
 const print = (size) => {
   window.open(
@@ -99,19 +100,19 @@ const print = (size) => {
             align="justify"
             narrow-indicator
           >
-            <q-tab name="invoice" label="Invoice" />
-            <q-tab name="payment" label="Refund Pembayaran" v-if="!isPreview" />
+            <q-tab name="main-info" label="Info Retur" />
+            <q-tab name="refund" label="Refund Pembayaran" v-if="!isPreview" />
           </q-tabs>
 
           <q-separator />
 
           <q-tab-panels v-model="currentTab" animated>
-            <q-tab-panel name="invoice" class="q-pa-none">
-              <invoice-tab :data="data" />
+            <q-tab-panel name="main-info" class="q-pa-none">
+              <main-info-tab :data="data" />
             </q-tab-panel>
 
-            <q-tab-panel name="payment" class="q-pa-none">
-              <payment-tab :data="data" />
+            <q-tab-panel name="refund" class="q-pa-none">
+              <refund-tab :data="data" />
             </q-tab-panel>
           </q-tab-panels>
         </q-card>

@@ -173,8 +173,8 @@ class AppPermissions
                 'admin.purchase-order-return.delete' => 'Hapus Retur Pembelian',
                 'admin.purchase-order-return.cancel' => 'Batalkan Retur Pembelian',
                 'admin.purchase-order-return.close' => 'Tutup Retur Pembelian',
-                'admin.purchase-order-return.add-payment' => 'Tambah Refund Pembayaran',
-                'admin.purchase-order-return.delete-payment' => 'Hapus Refund Pembayaran',
+                'admin.purchase-order-return.add-refund' => 'Tambah Refund Pembayaran',
+                'admin.purchase-order-return.delete-refund' => 'Hapus Refund Pembayaran',
             ],
             'Manajemen Penjualan' => [
                 'admin.sales-order.index' => 'Lihat Daftar Pesanan Penjualan',
@@ -193,8 +193,8 @@ class AppPermissions
                 'admin.sales-order-return.delete' => 'Hapus Retur Penjualan',
                 'admin.sales-order-return.cancel' => 'Batalkan Retur Penjualan',
                 'admin.sales-order-return.close' => 'Tutup Retur Penjualan',
-                'admin.sales-order-return.add-payment' => 'Tambah Refund Pembayaran',
-                'admin.sales-order-return.delete-payment' => 'Hapus Refund Pembayaran',
+                'admin.sales-order-return.add-refund' => 'Tambah Refund Pembayaran',
+                'admin.sales-order-return.delete-refund' => 'Hapus Refund Pembayaran',
             ],
             'Manajemen Pemasok' => [
                 'admin.supplier.index' => 'Lihat Daftar Pemasok',

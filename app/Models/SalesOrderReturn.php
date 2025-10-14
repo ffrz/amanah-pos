@@ -161,6 +161,19 @@ class SalesOrderReturn extends BaseModel
         $this->total_cost = $this->details()->sum('subtotal_cost');
         $this->total_price = $this->details()->sum('subtotal_price');
         // TODO: hitung pajak dan dan diskon disini
-        $this->grand_total = $this->total_price; // + pajak, - diskon, dll.
+        $this->grand_total = $this->total_price;
+    }
+
+    public function updateTotalRefunded($requestedAmount)
+    {
+        $this->total_refunded += $requestedAmount;
+        $this->remaining_refund = $this->grand_total - $this->total_refunded;
+        if ($this->total_refunded >= $this->grand_total) {
+            $this->refund_status = SalesOrderReturn::RefundStatus_FullyRefunded;
+        } else if ($this->total_refunded > 0) {
+            $this->refund_status = SalesOrderReturn::RefundStatus_PartiallyRefunded;
+        } else {
+            $this->refund_status = SalesOrderReturn::RefundStatus_NoRefund;
+        }
     }
 }

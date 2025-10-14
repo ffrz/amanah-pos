@@ -11,7 +11,7 @@ const props = defineProps({
     <q-card-section class="q-pa-none">
       <div class="bg-grey-2 q-pa-xs">
         <div class="text-subtitle1 text-bold text-grey-10">
-          INVOICE #{{ props.data.formatted_id }}
+          RETUR #{{ props.data.formatted_id }}
         </div>
         <div class="text-caption text-grey-8">
           Kasir: {{ props.data.cashier?.username }} -

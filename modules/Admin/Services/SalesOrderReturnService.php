@@ -17,20 +17,17 @@
 namespace Modules\Admin\Services;
 
 use App\Exceptions\BusinessRuleViolationException;
-use App\Models\Customer;
 use App\Models\Product;
 use App\Models\SalesOrder;
 use App\Models\SalesOrderReturn;
-use App\Models\Setting;
 use App\Models\StockMovement;
 use App\Models\UserActivityLog;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class SalesOrderReturnService
 {
     public function __construct(
-        protected SalesOrderPaymentService $paymentService,
+        protected SalesOrderReturnRefundService $refundService,
         protected UserActivityLogService $userActivityLogService,
         protected DocumentVersionService $documentVersionService,
         protected FinanceTransactionService $financeTransactionService,
@@ -189,6 +186,8 @@ class SalesOrderReturnService
 
         DB::transaction(function () use ($order, $data) {
             $order->status = SalesOrderReturn::Status_Closed;
+            $order->updateTotals();
+            $order->remaining_refund = $order->grand_total;
             $order->save();
             $this->processSalesOrderReturnStockIn($order);
         });
@@ -206,34 +205,10 @@ class SalesOrderReturnService
                     $this->customerService->addToBalance($order->customer, abs($order->grand_total));
                 }
 
-                $this->paymentService->deletePayments($order);
+                $this->refundService->deletePayments($order);
             }
             $order->delete();
         });
-    }
-
-    private function updateTotalAndValidateClientTotal($order, $client_total)
-    {
-        // Hitung total biaya dan harga di server
-        $total_cost = $order->details->sum(function ($detail) {
-            return round($detail->cost * $detail->quantity);
-        });
-
-        // Lakukan hal yang sama untuk total_price
-        $total_price = $order->details->sum(function ($detail) {
-            return round($detail->price * $detail->quantity);
-        });
-
-        $order->total_cost = $total_cost;
-        $order->total_price = $total_price;
-        $order->grand_total = $order->total_price;
-
-        // Validasi grand total dengan input dari klien
-        $clientTotal = intval($client_total);
-        $serverTotal = intval($order->grand_total);
-        if ($serverTotal !== $clientTotal) {
-            throw new BusinessRuleViolationException('Gagal menyimpan transaksi, data tidak sinkron, coba refresh halaman!');
-        }
     }
 
     // OK
@@ -275,7 +250,7 @@ class SalesOrderReturnService
     }
 
     // OK
-    private function reverseStock(SalesOrder $order)
+    private function reverseStock(SalesOrderReturn $order)
     {
         foreach ($order->details as $detail) {
             Product::where('id', $detail->product_id)->decrement('stock', $detail->quantity);

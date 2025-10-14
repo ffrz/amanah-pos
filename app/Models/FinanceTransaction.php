@@ -63,15 +63,19 @@ class FinanceTransaction extends BaseModel
     const RefType_FinanceTransaction = 'finance_transaction';
     const RefType_CustomerWalletTransaction = 'customer_wallet_transaction';
     const RefType_SalesOrderPayment = 'sales_order_payment';
+    const RefType_SalesOrderReturnRefund = 'sales_order_return_refund';
     const RefType_PurchaseOrderPayment = 'sales_order_payment';
+    const RefType_PurchaseOrderReturnRefund = 'sales_order_return_refund';
     const RefType_OperationalCost = 'operational_cost';
 
     const RefTypes = [
         self::RefType_FinanceTransaction => 'Transaksi Keuangan',
         self::RefType_CustomerWalletTransaction => 'Transaksi Dompet Pelanggan',
         self::RefType_SalesOrderPayment => 'Transaksi Pembayaran Penjualan',
+        self::RefType_SalesOrderReturnRefund => 'Transaksi Refund Pembayaran Penjualan',
         self::RefType_PurchaseOrderPayment => 'Transaksi Pembayaran Pembelian',
-        self::RefType_OperationalCost => 'operational_cost',
+        self::RefType_PurchaseOrderReturnRefund => 'Transaksi Refund Pembayaran Pembelian',
+        self::RefType_OperationalCost => 'Transaksi Biaya Operasional',
     ];
 
     const RefTypeModels = [

@@ -292,8 +292,8 @@ Route::middleware([Auth::class])
                 Route::post('close', [SalesOrderReturnController::class, 'close'])->name('admin.sales-order-return.close');
 
                 // payment
-                Route::post('add-payment', [SalesOrderReturnController::class, 'addPayment'])->name('admin.sales-order-return.add-payment');
-                Route::post('delete-payment', [SalesOrderReturnController::class, 'deletePayment'])->name('admin.sales-order-return.delete-payment');
+                Route::post('add-refund', [SalesOrderReturnController::class, 'addRefund'])->name('admin.sales-order-return.add-refund');
+                Route::post('delete-refund', [SalesOrderReturnController::class, 'deleteRefund'])->name('admin.sales-order-return.delete-refund');
 
                 // items
                 Route::post('add-item', [SalesOrderReturnController::class, 'addItem'])->name('admin.sales-order-return.add-item');

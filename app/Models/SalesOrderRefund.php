@@ -44,13 +44,11 @@ class SalesOrderRefund extends BaseModel
     const Type_Transfer = 'transfer';
     const Type_Cash     = 'cash';
     const Type_Wallet   = 'wallet';
-    const Type_CreditNote = 'credit_note'; // Jika refund diberikan sebagai kredit di toko
 
     const Types = [
         self::Type_Transfer => 'Transfer',
         self::Type_Cash     => 'Tunai',
         self::Type_Wallet   => 'Wallet',
-        self::Type_CreditNote => 'Credit Note',
     ];
 
     protected function casts(): array
