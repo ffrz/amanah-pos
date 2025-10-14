@@ -16,7 +16,7 @@ class DatabaseMigrationController extends Controller
 
         try {
             // enter maintenance (optional, but safer)
-            Artisan::call('down', ['--no-interaction' => true, '--message' => 'Maintenance during deploy']);
+            Artisan::call('down', ['--no-interaction' => true]);
 
             $migrateOutput = '';
             if ($action === 'migrate') {

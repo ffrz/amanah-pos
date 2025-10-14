@@ -14,6 +14,7 @@
  * Email: fahmifauzirahman@gmail.com
  */
 
+use App\Http\Controllers\Deploy\DatabaseMigrationController;
 use App\Http\Controllers\Deploy\MaintenanceController;
 use App\Http\Middleware\VerifyDeployToken;
 use App\Models\Setting;
@@ -36,6 +37,7 @@ Route::middleware(VerifyDeployToken::class)->prefix('sysmain')->group(function (
     Route::get('/status', [MaintenanceController::class, 'status']);
     Route::get('/down', [MaintenanceController::class, 'down']);
     Route::get('/up', [MaintenanceController::class, 'up']);
+    Route::get('/migrate', [DatabaseMigrationController::class, 'migrate']);
 });
 
 
