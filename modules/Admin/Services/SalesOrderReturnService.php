@@ -3,13 +3,13 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
+ *
  * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
+ *
  * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
+ *
  * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
@@ -172,60 +172,30 @@ class SalesOrderReturnService
         });
     }
 
-    public function getOrderWithDetails($id): SalesOrder
+    public function getOrderWithDetails($id): SalesOrderReturn
     {
-        return SalesOrder::with([
-            'cashier',
+        return SalesOrderReturn::with([
             'customer',
             'details',
-            'payments',
-            'payments.account',
-            'cashierSession',
-            'cashierSession.cashierTerminal'
+            'refunds',
+            'refunds.account',
         ])
             ->findOrFail($id);
     }
 
-    public function closeOrder(SalesOrderReturn $order, array $data)
+    public function closeOrderReturn(SalesOrderReturn $order, array $data)
     {
         $this->ensureOrderIsEditable($order);
 
         DB::transaction(function () use ($order, $data) {
-            $cashierSession = $this->cashierSessionService->getActiveSession();
-
-            $this->updateTotalAndValidateClientTotal($order, $data['total'] ?? 0);
-
             $order->status = SalesOrderReturn::Status_Closed;
-            $order->remaining_debt = $order->grand_total;
-            $order->due_date = $data['due_date'] ?? null;
-            $order->cashier_id = Auth::user()->id;
-            $order->cashier_session_id = $cashierSession ? $cashierSession->id : null;
-
-            if ($order->customer_id) {
-                // di awal kita catat sebagai utang dulu
-                // Utang customer adalah nilai negatif
-                Customer::where('id', $order->customer_id)
-                    ->decrement('balance', $order->grand_total);
-            }
-
-            // Simpan dan proses pembayaran
-            $this->paymentService->addPayments($order, $data['payments'] ?? []);
-
-            // Update kembalian
-            $order->change = max(0, $order->total_paid - $order->grand_total);
             $order->save();
-
-            // Perbarui stok produk secara massal
             $this->processSalesOrderReturnStockIn($order);
-
-            // update settings
-            // FIXME: seharusnya ini dipindahkan ke user settings agar tidak semua user terdampak
-            Setting::setValue('pos.after_payment_action', $data['after_payment_action'] ?? 'print');
         });
     }
 
     // IN PROGRESS
-    public function deleteOrder(SalesOrderReturn $order)
+    public function deleteOrderReturn(SalesOrderReturn $order)
     {
         DB::transaction(function () use ($order) {
             if ($order->status == SalesOrderReturn::Status_Closed) {
@@ -275,7 +245,7 @@ class SalesOrderReturnService
     }
 
     // OK
-    private function processSalesOrderReturnStockIn(SalesOrder $order)
+    private function processSalesOrderReturnStockIn(SalesOrderReturn $order)
     {
         foreach ($order->details as $detail) {
             $productType = $detail->product->type;

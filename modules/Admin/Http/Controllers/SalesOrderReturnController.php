@@ -3,13 +3,13 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
+ *
  * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
+ *
  * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
+ *
  * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
@@ -113,6 +113,7 @@ class SalesOrderReturnController extends Controller
         ]);
     }
 
+    // OK
     public function update(SaveRequest $request)
     {
         $order = $this->service->findOrderOrFail($request->post('id'));
@@ -121,6 +122,7 @@ class SalesOrderReturnController extends Controller
         return JsonResponseHelper::success($order, 'Order telah diperbarui');
     }
 
+    // OK
     public function cancel($id)
     {
         $orderReturn = $this->service->findOrderOrFail($id, []);
@@ -134,18 +136,19 @@ class SalesOrderReturnController extends Controller
 
     public function close(Request $request)
     {
-        $order = $this->service->findOrderOrFail($request->post('id'));
-        $this->authorize('update', $order);
-        $this->service->closeOrder($order, $request->all());
-        return JsonResponseHelper::success($order, "Order telah selesai.");
+        $orderReturn = $this->service->findOrderOrFail($request->id);
+        $this->authorize('update', $orderReturn);
+        $this->service->closeOrderReturn($orderReturn, $request->all());
+        return JsonResponseHelper::success($orderReturn, "Order telah selesai.");
     }
 
+    // OK
     public function delete($id)
     {
-        $order = $this->service->findOrderOrFail($id);
-        $this->authorize('delete', $order);
-        $this->service->deleteOrder($order);
-        return JsonResponseHelper::success($order, "Transaksi #$order->formatted_id telah dihapus.");
+        $orderReturn = $this->service->findOrderOrFail($id);
+        $this->authorize('delete', $orderReturn);
+        $this->service->deleteOrderReturn($orderReturn);
+        return JsonResponseHelper::success($orderReturn, "Transaksi #$orderReturn->formatted_id telah dihapus.");
     }
 
     public function detail($id)

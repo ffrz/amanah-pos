@@ -3,13 +3,13 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
+ *
  * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
+ *
  * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
+ *
  * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
@@ -43,12 +43,20 @@ class SalesOrderReturnDetailService
         }
     }
 
-    // OK
+    // TODO: CHECK THIS!!!
     private function getMaxQuantity($sales_order_id, $product_id)
     {
-        return SalesOrderDetail::where('parent_id', $sales_order_id)
+        $total_sales_quantity = SalesOrderDetail::where('parent_id', $sales_order_id)
             ->where('product_id', $product_id)
             ->sum('quantity');
+
+        $total_returned_quantity = SalesOrderReturnDetail::where('product_id', $product_id)
+            ->join('sales_order_returns as sor', 'sor.id', '=', 'sales_order_return_details.sales_order_return_id')
+            ->where('sor.sales_order_id', $sales_order_id)
+            ->where('sor.status', 'closed')
+            ->sum('sales_order_return_details.quantity');
+
+        return $total_sales_quantity - $total_returned_quantity;
     }
 
     // OK
@@ -145,8 +153,8 @@ class SalesOrderReturnDetailService
 
         $item->quantity = $data['qty'] ?? 0;
 
-        if ($item->quantity < 0 || $item->quantity > $maxQuantity) {
-            throw new BusinessRuleViolationException('Kwantitas retur melebihi batas.');
+        if ($item->quantity <= 0 || $item->quantity > $maxQuantity) {
+            throw new BusinessRuleViolationException('Kwantitas tidak valid atau melebihi batas.');
         }
 
         $price = $data['price'] ?? null;

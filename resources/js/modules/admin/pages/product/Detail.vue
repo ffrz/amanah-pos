@@ -50,7 +50,9 @@ const tab = ref("main");
           rounded
           color="grey"
           @click="
-            router.get(route('admin.product.edit', { id: page.props.data.id }))
+            router.get(
+              route('admin.product.duplicate', { id: page.props.data.id })
+            )
           "
           title="Duplikat produk"
         />

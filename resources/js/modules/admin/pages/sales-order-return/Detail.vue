@@ -100,7 +100,7 @@ const print = (size) => {
             narrow-indicator
           >
             <q-tab name="invoice" label="Invoice" />
-            <q-tab name="payment" label="Pembayaran" v-if="!isPreview" />
+            <q-tab name="payment" label="Refund Pembayaran" v-if="!isPreview" />
           </q-tabs>
 
           <q-separator />

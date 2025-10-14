@@ -14,8 +14,8 @@ const props = defineProps({
           INVOICE #{{ props.data.formatted_id }}
         </div>
         <div class="text-caption text-grey-8">
-          Kasir: {{ props.data.cashier.username }} -
-          {{ props.data.cashier.name }} |
+          Kasir: {{ props.data.cashier?.username }} -
+          {{ props.data.cashier?.name }} |
           {{ formatDateTime(props.data.datetime) }}
           <template v-if="props.data.cashier_session">
             | Session ID: {{ props.data.cashier_session.id }} | Terminal:
@@ -72,7 +72,9 @@ const props = defineProps({
       </div>
 
       <div class="col-12 col-sm-6" align="left">
-        <div class="text-subtitle2 text-bold text-grey-8">Info Order</div>
+        <div class="text-subtitle2 text-bold text-grey-8">
+          Info Retur Penjualan
+        </div>
         <table class="full-width">
           <tbody>
             <tr>
@@ -83,39 +85,17 @@ const props = defineProps({
               </td>
             </tr>
             <tr>
-              <td class="text-grey-7">Status Order</td>
+              <td class="text-grey-7">Status Retur</td>
               <td style="width: 1px">:</td>
               <td>
-                {{ $CONSTANTS.SALES_ORDER_STATUSES[props.data.status] }}
+                {{ props.data.status_label }}
               </td>
             </tr>
             <tr>
-              <td class="text-grey-7">Status Pembayaran</td>
+              <td class="text-grey-7">Status Refund</td>
               <td>:</td>
               <td>
-                {{
-                  $CONSTANTS.SALES_ORDER_PAYMENT_STATUSES[
-                    props.data.payment_status
-                  ]
-                }}
-              </td>
-            </tr>
-            <tr v-if="false">
-              <td class="text-grey-7">Status Pengiriman</td>
-              <td>:</td>
-              <td>
-                {{
-                  $CONSTANTS.SALES_ORDER_DELIVERY_STATUSES[
-                    props.data.delivery_status
-                  ]
-                }}
-              </td>
-            </tr>
-            <tr v-if="props.data.due_date">
-              <td class="text-grey-7">Jatuh Tempo</td>
-              <td>:</td>
-              <td>
-                {{ formatDate(props.data.due_date) }}
+                {{ props.data.refund_status_label }}
               </td>
             </tr>
           </tbody>

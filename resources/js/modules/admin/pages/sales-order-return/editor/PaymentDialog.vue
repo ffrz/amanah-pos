@@ -32,26 +32,11 @@ const page = usePage();
 const isProcessing = ref(false);
 const paymentMode = ref("cash");
 const debtDueDate = ref(new Date());
-const nextAction = ref(page.props.settings.after_payment_action ?? "print");
 const selectRefs = ref([]);
 const paymentInputRefs = ref([]);
 
 const payments = reactive([{ id: "cash", amount: 0.0 }]);
 const default_payment_mode = page.props.settings.default_payment_mode;
-const nextActionOptions = [
-  {
-    value: "print",
-    label: "Cetak",
-  },
-  {
-    value: "detail",
-    label: "Rincian",
-  },
-  {
-    value: "new-order",
-    label: "Penjualan Baru",
-  },
-];
 
 const paymentOptions = computed(() => [
   { label: "Laci Kasir", value: "cash" },
@@ -166,7 +151,6 @@ const handleFinalizePayment = () => {
   let payload = {
     total: props.total,
     is_debt: paymentMode.value === "debt",
-    after_payment_action: nextAction.value,
   };
 
   if (paymentMode.value === "debt") {
@@ -366,18 +350,6 @@ const handlePaymentMethodSelected = (newId, index) => {
         </div>
       </q-card-section>
       <q-card-actions align="center" class="q-mb-sm row q-gutter-xs q-pa-md">
-        <q-select
-          v-model="nextAction"
-          :options="nextActionOptions"
-          label="Aksi setelah bayar"
-          :outlined="true"
-          emit-value
-          map-options
-          dense
-          class="custom-select col"
-          :disable="isProcessing"
-          hide-bottom-space
-        />
         <q-btn
           flat
           label="Batal"

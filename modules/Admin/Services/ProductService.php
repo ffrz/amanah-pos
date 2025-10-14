@@ -112,7 +112,10 @@ class ProductService
 
     public function duplicate($id): Product
     {
-        return $this->find($id)->replicate();
+        $product =  $this->find($id)->replicate();
+        // kode ini masih pake field nama
+        $product->name = $this->generateProductCode();
+        return $product;
     }
 
     /**

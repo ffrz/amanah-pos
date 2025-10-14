@@ -1,12 +1,15 @@
 <script setup>
+// TODO:
+// - Buang customer autocomplete, cukup tampilkan langsung customernya jika ada
+// - Perbarui Product browser agar hanya tampilkan produk yang dibeli saja
+// - Buat mekanisme potongan retur dengan cara edit harga saja supaya cepat
+
 import { router, usePage } from "@inertiajs/vue3";
 import { ref, computed, nextTick, onMounted, onUnmounted, reactive } from "vue";
 import { Dialog, useQuasar } from "quasar";
 import axios from "axios";
 
 import ItemListTable from "./editor/ItemsListTable.vue";
-import PaymentDialog from "./editor/PaymentDialog.vue";
-import ProductBrowserDialog from "@/components/ProductBrowserDialog.vue";
 import CheckBox from "@/components/CheckBox.vue";
 import ItemEditorDialog from "./editor/ItemEditorDialog.vue";
 import DigitalClock from "@/components/DigitalClock.vue";
@@ -21,7 +24,7 @@ import { useFullscreen } from "@/composables/useFullscreen";
 import { showError, showWarning, showInfo } from "@/composables/useNotify";
 import OrderInfoDialog from "./editor/OrderInfoDialog.vue";
 import LongTextView from "@/components/LongTextView.vue";
-import SuccessDialog from "./editor/SuccessDialog.vue";
+import ProductBrowserDialog from "@/components/ProductBrowserDialog.vue";
 
 const $q = useQuasar();
 const page = usePage();
@@ -33,16 +36,13 @@ const showHelpDialog = ref(false);
 const authLayoutRef = ref(null);
 const targetDiv = ref(null);
 const { isFullscreen, toggleFullscreen } = useFullscreen(targetDiv);
-const title = page.props.data.formatted_id;
+const title = "Retur #" + page.props.data.formatted_id;
 const customer = ref(page.props.data.customer);
-const payment = ref(null);
 const userInput = ref("");
 const isProcessing = ref(false);
-const showPaymentDialog = ref(false);
 const showProductBrowserDialog = ref(false);
 const showItemEditorDialog = ref(false);
 const showOrderInfoDialog = ref(false);
-const showSuccessDialog = ref(false);
 const itemToEdit = ref(null);
 
 const form = reactive({
@@ -238,9 +238,9 @@ const updateItem = () => {
     qty: item.quantity,
   };
 
-  if (item.product.price_editable) {
-    data.price = item.price;
-  }
+  // if (item.product.price_editable) {
+  //   data.price = item.price;
+  // }
 
   if (item.notes) {
     data.notes = item.notes;
@@ -272,7 +272,6 @@ onMounted(() => {
   const handler = (e) => {
     // abaikan jika ada dialog yang sedang terbuka
     if (
-      showPaymentDialog.value ||
       showHelpDialog.value ||
       showItemEditorDialog.value ||
       showProductBrowserDialog.value ||
@@ -295,7 +294,7 @@ onMounted(() => {
       mergeItem.value = !mergeItem.value;
     } else if (e.key === "F10" || (e.ctrlKey && e.key === "Enter")) {
       e.preventDefault();
-      showPaymentDialog.value = true;
+      closeOrder();
     } else if (e.key === "F11") {
       e.preventDefault();
       handleFullScreenClicked();
@@ -357,48 +356,41 @@ const updateOrder = async () => {
     });
 };
 
-const handlePayment = (data) => {
+const closeOrder = (data) => {
   if (form.items.length === 0) {
     showInfo("Item masih kosong", "top");
     return;
   }
 
-  const payload = {
-    id: form.id,
-    ...data,
-  };
-
-  isProcessing.value = true;
-  axios
-    .post(route("admin.sales-order-return.close"), payload)
-    .then((response) => {
-      showInfo("Transaksi selesai");
-      if (payload.after_payment_action === "print") {
-        window.open(
-          route("admin.sales-order-return.print", {
-            id: form.id,
-            size: page.props.settings.default_print_size,
-          }),
-          "_self"
-        );
-      } else if (payload.after_payment_action === "detail") {
+  Dialog.create({
+    title: "Konfirmasi Selesai",
+    icon: "question",
+    message: `Selesaikan transaksi #${form.formatted_id}?`,
+    focus: "cancel",
+    cancel: true,
+    persistent: true,
+  }).onOk(() => {
+    isProcessing.value = true;
+    axios
+      .post(route("admin.sales-order-return.close", { id: form.id }))
+      .then((response) => {
+        showInfo("Transaksi selesai");
         router.get(
           route("admin.sales-order-return.detail", {
             id: form.id,
           })
         );
-      } else if (payload.after_payment_action === "new-order") {
-        router.get(route("admin.sales-order-return.add"));
-      }
-      return;
-    })
-    .catch((error) => {
-      showError(error.response?.data?.message);
-      console.error(error);
-    })
-    .finally(() => {
-      isProcessing.value = false;
-    });
+
+        return;
+      })
+      .catch((error) => {
+        showError(error.response?.data?.message);
+        console.error(error);
+      })
+      .finally(() => {
+        isProcessing.value = false;
+      });
+  });
 };
 
 const cancelOrder = () => {
@@ -625,10 +617,10 @@ const isValidWalletBalance = computed(() => {
           <div class="col q-py-sm">
             <q-btn
               class="full-width q-py-none"
-              label="Bayar"
+              label="Selesai"
               color="primary"
               icon="payment"
-              @click="showPaymentDialog = true"
+              @click="closeOrder()"
               :disable="
                 !$can('admin.sales-order-return.close') ||
                 isProcessing ||
@@ -703,14 +695,6 @@ const isValidWalletBalance = computed(() => {
         @save="updateItem()"
         :is-processing="isProcessing"
       />
-      <PaymentDialog
-        v-model="showPaymentDialog"
-        @accepted="handlePayment"
-        :form="form"
-        :customer="customer"
-        :total="total"
-        :accounts="page.props.accounts"
-      />
       <ProductBrowserDialog
         v-model="showProductBrowserDialog"
         @product-selected="handleProductSelection"
@@ -722,13 +706,6 @@ const isValidWalletBalance = computed(() => {
         :is-processing="isProcessing"
       />
       <HelpDialog v-model="showHelpDialog" />
-      <SuccessDialog
-        v-model="showSuccessDialog"
-        :order="form"
-        :customer="customer"
-        :total="total"
-        :payment="payment"
-      />
     </q-page>
   </authenticated-layout>
 </template>
