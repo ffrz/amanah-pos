@@ -198,14 +198,8 @@ class SalesOrderReturnService
     {
         DB::transaction(function () use ($order) {
             if ($order->status == SalesOrderReturn::Status_Closed) {
-                // BELUM DIVALIDASI
                 $this->reverseStock($order);
-
-                if ($order->customer_id) {
-                    $this->customerService->addToBalance($order->customer, abs($order->grand_total));
-                }
-
-                $this->refundService->deletePayments($order);
+                $this->refundService->deleteRefunds($order);
             }
             $order->delete();
         });

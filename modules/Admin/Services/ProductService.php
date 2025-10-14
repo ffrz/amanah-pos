@@ -288,8 +288,10 @@ class ProductService
                     'code' => app(SupplierService::class)->generateSupplierCode()
                 ]);
 
-                // Siapkan data produk
-                $itemData = [
+                // Simpan data produk
+                $product = Product::create([
+                    'name'        => trim($row['name']),
+                    'barcode'     => $row['barcode'],
                     'description' => trim($row['description']),
                     'cost'        => $row['cost'],
                     'price_1'     => $row['price'],
@@ -298,16 +300,10 @@ class ProductService
                     'category_id' => $category->id,
                     'supplier_id' => $supplier->id,
                     'type'        => $row['type'] ?? Product::Type_Stocked,
-                ];
+                ]);
 
-                // Simpan data produk
-                $product = Product::firstOrCreate([
-                    'barcode' => $row['barcode'],
-                    'name'    => trim($row['name']),
-                ], $itemData);
-
-                if ($product->wasRecentlyCreated && $row['stock'] > 0) {
-                    app(StockMovementService::class)->processStockIn([
+                if ($row['stock'] > 0) {
+                    StockMovement::create([
                         'product_id'      => $product->id,
                         'product_name'    => $product->name,
                         'uom'             => $product->uom,

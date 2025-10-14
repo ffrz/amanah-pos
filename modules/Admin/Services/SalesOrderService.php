@@ -303,6 +303,7 @@ class SalesOrderService
             }
 
             $quantity = $detail->quantity;
+            $product = $detail->product;
 
             StockMovement::create([
                 'product_id'      => $detail->product_id,
@@ -311,10 +312,13 @@ class SalesOrderService
                 'ref_id'          => $detail->id,
                 'ref_type'        => StockMovement::RefType_SalesOrderDetail,
                 'quantity'        => -$quantity,
-                'quantity_before' => $detail->product->stock,
-                'quantity_after'  => $detail->product->stock - $quantity,
+                'quantity_before' => $product->stock,
+                'quantity_after'  => $product->stock - $quantity,
                 'notes'           => "Transaksi penjualan #$order->formatted_id",
             ]);
+
+            // FIXME: ada bugs, quantity dikali 2 di rekaman tertentu,
+            // mungkin ketika detail lebih dari 1
 
             Product::where('id', $detail->product_id)->decrement('stock', $quantity);
         }

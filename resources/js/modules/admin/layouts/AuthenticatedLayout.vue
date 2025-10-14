@@ -218,7 +218,7 @@ defineExpose({
               @click="router.get(route('admin.sales-order.index'))"
             >
               <q-item-section avatar>
-                <q-icon name="shopping_cart" />
+                <q-icon name="add_shopping_cart" />
               </q-item-section>
               <q-item-section>
                 <q-item-label>Penjualan</q-item-label>
@@ -233,7 +233,7 @@ defineExpose({
               @click="router.get(route('admin.sales-order-return.index'))"
             >
               <q-item-section avatar>
-                <q-icon name="shopping_cart" />
+                <q-icon name="remove_shopping_cart" />
               </q-item-section>
               <q-item-section>
                 <q-item-label>Retur Penjualan</q-item-label>
@@ -278,7 +278,7 @@ defineExpose({
               @click="router.get(route('admin.purchase-order.index'))"
             >
               <q-item-section avatar>
-                <q-icon name="shopping_cart" />
+                <q-icon name="add_shopping_cart" />
               </q-item-section>
               <q-item-section>
                 <q-item-label>Pembelian</q-item-label>
@@ -293,7 +293,7 @@ defineExpose({
               @click="router.get(route('admin.purchase-order-return.index'))"
             >
               <q-item-section avatar>
-                <q-icon name="shopping_cart" />
+                <q-icon name="remove_shopping_cart" />
               </q-item-section>
               <q-item-section>
                 <q-item-label>Retur Pembelian</q-item-label>
