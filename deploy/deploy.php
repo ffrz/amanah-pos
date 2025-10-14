@@ -13,13 +13,15 @@ function logMessage(string $message): void
 
 function ftpEnsureDir($ftp, string $remoteDir): bool
 {
+    // ... (Fungsi ini tetap sama)
     $parts = explode('/', trim($remoteDir, '/'));
     $path = '';
     foreach ($parts as $part) {
         if ($part === '') continue;
         $path .= '/' . $part;
+        // Gunakan @ftp_chdir tanpa mencoba kembali ke root jika tidak perlu.
         if (@ftp_chdir($ftp, $path)) {
-            ftp_chdir($ftp, '/'); // go back root after test
+            // @ftp_chdir($ftp, '/'); // go back root after test - Dihapus/dikomentari karena tidak perlu
             continue;
         }
         if (!@ftp_mkdir($ftp, $path)) {
@@ -32,6 +34,7 @@ function ftpEnsureDir($ftp, string $remoteDir): bool
 
 function ftpDeleteDir($ftp, string $remoteDir): void
 {
+    // ... (Fungsi ini tetap sama)
     $items = @ftp_mlsd($ftp, $remoteDir);
     if ($items !== false) {
         foreach ($items as $item) {
@@ -49,9 +52,27 @@ function ftpDeleteDir($ftp, string $remoteDir): void
     logMessage("🗑️ Removed directory: $remoteDir");
 }
 
-function ftpSyncAndClean($ftp, string $localPath, string $remotePath, array $exclude = []): void
+/**
+ * Sinkronisasi rekursif antara lokal dan remote
+ *
+ * @param resource $ftp Koneksi FTP
+ * @param string $localPath Path lokal saat ini
+ * @param string $remotePath Path remote saat ini
+ * @param array $exclude Array daftar item (nama file/folder) yang harus dikecualikan di level direktori saat ini
+ * @param string $baseRemotePath Path root remote untuk perhitungan pengecualian di langkah 2
+ * @param string $baseLocalPath Path root lokal untuk perhitungan pengecualian di langkah 2
+ */
+function ftpSyncAndClean($ftp, string $localPath, string $remotePath, array $exclude = [], string $baseRemotePath = '', string $baseLocalPath = '', $makedir = true): void
 {
-    @ftp_mkdir($ftp, $remotePath);
+
+    // Inisialisasi base path untuk panggilan rekursif pertama
+    if (empty($baseRemotePath)) $baseRemotePath = $remotePath;
+    if (empty($baseLocalPath)) $baseLocalPath = $localPath;
+
+    // Pastikan remote path adalah direktori
+    if ($makedir) {
+        @ftp_mkdir($ftp, $remotePath);
+    }
 
     $remoteItems = [];
     $list = @ftp_mlsd($ftp, $remotePath);
@@ -64,16 +85,22 @@ function ftpSyncAndClean($ftp, string $localPath, string $remotePath, array $exc
 
     $localItems = is_dir($localPath) ? array_diff(scandir($localPath), ['.', '..']) : [];
 
-    // Upload or update
+    // **Perbaikan 2.1: Periksa item yang akan diunggah/diperbarui apakah masuk daftar exclude**
     if (is_dir($localPath)) {
         foreach ($localItems as $name) {
-            if (in_array($name, $exclude, true)) continue;
+            // Check exclude hanya berdasarkan nama item untuk recursive call
+            if (in_array($name, $exclude, true)) {
+                logMessage("🚫 Skipped (excluded): $remotePath/$name");
+                unset($remoteItems[$name]); // Jangan hapus di cleanup
+                continue;
+            }
 
             $localFile = rtrim($localPath, '/') . '/' . $name;
             $remoteFile = rtrim($remotePath, '/') . '/' . $name;
 
             if (is_dir($localFile)) {
-                ftpSyncAndClean($ftp, $localFile, $remoteFile, $exclude);
+                // Tambahkan base paths saat panggilan rekursif
+                ftpSyncAndClean($ftp, $localFile, $remoteFile, $exclude, $baseRemotePath, $baseLocalPath);
             } else {
                 $localMTime = filemtime($localFile);
                 $remoteMTime = 0;
@@ -91,12 +118,30 @@ function ftpSyncAndClean($ftp, string $localPath, string $remotePath, array $exc
                 }
             }
 
-            unset($remoteItems[$name]); // sudah di-handle
+            unset($remoteItems[$name]); // Sudah di-handle
         }
 
-        // Hapus yang tidak ada di lokal
+        // **Perbaikan 2.2: Hapus yang tidak ada di lokal, LEWATKAN yang masuk daftar exclude**
         foreach ($remoteItems as $name => $info) {
-            if (in_array($name, $exclude, true)) continue;
+            // Periksa item yang ada di remote tapi tidak ada di lokal.
+            // Jika nama item ini masuk daftar exclude, JANGAN HAPUS.
+            var_dump($name, $exclude, $baseRemotePath);
+            exit;
+            // $name = "test"
+            //
+            // $remotePath = "/public_html/_apps/shiftech-pos/shiftcom/public"
+
+            // exclude ini harus diterjemahkan, misa dari nama direktori semisa "public/uploads"
+            // tapi saat dijalankan ternyata $remote_path/$name mungkin /public_html/...../public/uploads/namafile"
+            // logikanya kita butuh nerjemahin "public/upoads ditambah prefix $remote_path
+            if (in_array($current_dir, $exclude)) {
+                continue;
+            }
+            if (in_array($name, $exclude, true)) {
+                logMessage("🚫 Skipped (remote excluded from cleanup): $remotePath/$name");
+                continue;
+            }
+
             $remoteItemPath = rtrim($remotePath, '/') . '/' . $name;
             if ($info['type'] === 'dir') {
                 ftpDeleteDir($ftp, $remoteItemPath);
@@ -106,9 +151,14 @@ function ftpSyncAndClean($ftp, string $localPath, string $remotePath, array $exc
             }
         }
     } else {
-        // Kalau $localPath file biasa
-        $remoteDir = dirname($remotePath);
-        ftpEnsureDir($ftp, $remoteDir);
+        // Logika ini seharusnya tidak tercapai jika dipanggil dari deployTenant dengan path yang merupakan file.
+        // Jika $localPath file, akan di-handle di `deployTenant` agar tidak rekursif.
+        // Logika di bawah ini tidak perlu diubah, tapi perhatikan bagaimana `deployTenant` memanggil fungsi ini.
+
+        // Kalau $localPath file biasa (ini kasus yang berbeda dari $localPath direktori)
+
+        // $remoteDir = dirname($remotePath);
+        // ftpEnsureDir($ftp, $remoteDir);
 
         $localMTime = filemtime($localPath);
         $remoteMTime = 0;
@@ -121,6 +171,7 @@ function ftpSyncAndClean($ftp, string $localPath, string $remotePath, array $exc
                 }
             }
         }
+
 
         if ($remoteMTime < $localMTime) {
             logMessage("[*] Uploading updated file: $remotePath");
@@ -149,7 +200,6 @@ function deployTenant(string $name, array $tenantCfg, array $globalCfg): void
     ftp_pasv($ftp, true);
     logMessage("🔗 Connected to {$tenantCfg['host']} as {$tenantCfg['user']}");
 
-    // ✅ Buat direktori root tenant otomatis jika belum ada
     $remoteRoot = rtrim($tenantCfg['remote_path'], '/');
     if (!ftpEnsureDir($ftp, $remoteRoot)) {
         logMessage("❌ Failed to ensure remote root directory for tenant [$name]", false);
@@ -176,7 +226,14 @@ function deployTenant(string $name, array $tenantCfg, array $globalCfg): void
         }
 
         $remoteTarget = $remoteRoot . '/' . $path;
-        ftpSyncAndClean($ftp, $path, $remoteTarget, $excludes);
+
+        if (is_dir($path)) {
+            logMessage("🔄 Syncing directory: $path -> $remoteTarget");
+            ftpSyncAndClean($ftp, $path, $remoteTarget, $excludes);
+        } else {
+            logMessage("⬆️ Uploading file: $path -> $remoteTarget");
+            ftpSyncAndClean($ftp, $path, $remoteTarget, $excludes, makedir: false);
+        }
     }
 
     ftp_close($ftp);
