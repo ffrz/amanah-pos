@@ -44,6 +44,7 @@ const showItemEditorDialog = ref(false);
 const showOrderInfoDialog = ref(false);
 const showSuccessDialog = ref(false);
 const itemToEdit = ref(null);
+const selectedPriceType = ref("price_1");
 
 const form = reactive({
   id: page.props.data.id,
@@ -100,7 +101,7 @@ const validateBarcode = (code) => {
 
 // -----
 const handleProductSelection = (product) => {
-  if (userInput.value.endsWith("*")) {
+  if (userInput.value?.endsWith("*")) {
     userInput.value += product.name;
   } else {
     userInput.value = product.name;
@@ -323,8 +324,10 @@ const handleCustomerSelected = async (data) => {
   form.customer_id = data?.id;
   await updateOrder();
   if (data?.id) {
+    selectedPriceType.value = customer.value.default_price_type ?? "price_1";
     userInputRef.value.focus();
   } else {
+    selectedPriceType.value = "price_1";
     customerAutocompleteRef.value.focus();
   }
 };
@@ -473,6 +476,10 @@ const isValidWalletBalance = computed(() => {
         <template v-if="$q.screen.gt.sm">
           <div class="text-weight-bold">
             {{ page.props.auth.user.username }}
+          </div>
+          <div class="q-mx-sm">|</div>
+          <div class="text-weight-bold">
+            {{ page.props.data.cashier_session?.cashier_terminal?.name }}
           </div>
           <div class="q-mx-sm">|</div>
           <div>
@@ -714,6 +721,8 @@ const isValidWalletBalance = computed(() => {
       <ProductBrowserDialog
         v-model="showProductBrowserDialog"
         @product-selected="handleProductSelection"
+        :priceType="selectedPriceType"
+        :show-cost="$can('admin.product:view-cost')"
       />
       <OrderInfoDialog
         v-model="showOrderInfoDialog"

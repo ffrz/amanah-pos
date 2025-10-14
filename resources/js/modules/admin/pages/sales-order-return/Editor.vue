@@ -148,7 +148,7 @@ const addItem = async () => {
 
   isProcessing.value = true;
   await axios
-    .post(route("admin.sales-order.add-item"), {
+    .post(route("admin.sales-order-return.add-item"), {
       order_id: form.id,
       product_code: inputBarcode,
       qty: inputQuantity,
@@ -208,7 +208,7 @@ const removeItem = (item) => {
   }).onOk(() => {
     isProcessing.value = true;
     axios
-      .post(route("admin.sales-order.remove-item"), { id: item.id })
+      .post(route("admin.sales-order-return.remove-item"), { id: item.id })
       .then(() => {
         const index = form.items.findIndex((data) => data.id === item.id);
         if (index !== -1) {
@@ -247,7 +247,7 @@ const updateItem = () => {
   }
 
   axios
-    .post(route("admin.sales-order.update-item"), data)
+    .post(route("admin.sales-order-return.update-item"), data)
     .then((response) => {
       const item = response.data.data;
       const index = form.items.findIndex((data) => data.id === item.id);
@@ -340,7 +340,7 @@ const updateOrder = async () => {
   };
 
   await axios
-    .post(route("admin.sales-order.update"), data)
+    .post(route("admin.sales-order-return.update"), data)
     .then((response) => {
       const updated = response.data.data.id;
       form.customer_id = updated.customer_id;
@@ -370,12 +370,12 @@ const handlePayment = (data) => {
 
   isProcessing.value = true;
   axios
-    .post(route("admin.sales-order.close"), payload)
+    .post(route("admin.sales-order-return.close"), payload)
     .then((response) => {
       showInfo("Transaksi selesai");
       if (payload.after_payment_action === "print") {
         window.open(
-          route("admin.sales-order.print", {
+          route("admin.sales-order-return.print", {
             id: form.id,
             size: page.props.settings.default_print_size,
           }),
@@ -383,12 +383,12 @@ const handlePayment = (data) => {
         );
       } else if (payload.after_payment_action === "detail") {
         router.get(
-          route("admin.sales-order.detail", {
+          route("admin.sales-order-return.detail", {
             id: form.id,
           })
         );
       } else if (payload.after_payment_action === "new-order") {
-        router.get(route("admin.sales-order.add"));
+        router.get(route("admin.sales-order-return.add"));
       }
       return;
     })
@@ -412,14 +412,14 @@ const cancelOrder = () => {
   }).onOk(() => {
     axios
       .post(
-        route("admin.sales-order.cancel", {
+        route("admin.sales-order-return.cancel", {
           id: form.id,
         }),
         { id: form.id }
       )
       .then(() => {
         showInfo("Transaksi telah dibatalkan.");
-        router.visit(route("admin.sales-order.detail", { id: form.id }));
+        router.visit(route("admin.sales-order-return.detail", { id: form.id }));
       })
       .catch((error) => {
         const errorMessage =
@@ -437,7 +437,7 @@ const cancelOrder = () => {
 
 const invoicePreview = () => {
   window.open(
-    route("admin.sales-order.detail", { id: form.id }) + "?preview=1",
+    route("admin.sales-order-return.detail", { id: form.id }) + "?preview=1",
     "_blank"
   );
 };
@@ -464,7 +464,7 @@ const isValidWalletBalance = computed(() => {
           color="grey-7"
           flat
           rounded
-          @click="router.get(route('admin.sales-order.index'))"
+          @click="router.get(route('admin.sales-order-return.index'))"
         />
       </div>
     </template>
@@ -501,8 +501,7 @@ const isValidWalletBalance = computed(() => {
                 class="custom-select full-width col col-12 bg-white q-pa-sm"
                 v-model="customer"
                 label="Pelanggan"
-                :disable="isProcessing"
-                @customer-selected="handleCustomerSelected"
+                disable
                 :min-length="1"
                 outlined
                 autofocus
@@ -603,7 +602,8 @@ const isValidWalletBalance = computed(() => {
 
           <div class="col" v-if="$q.screen.gt.sm">
             <div class="q-pa-sm q-pb-none text-grey-8">
-              <div>#: {{ form.formatted_id }}</div>
+              <div>Return #: {{ form.formatted_id }}</div>
+              <div>Order #: {{ page.props.data.sales_order.formatted_id }}</div>
               <div>{{ formatDateTime(form.datetime) }}</div>
             </div>
           </div>
@@ -630,7 +630,7 @@ const isValidWalletBalance = computed(() => {
               icon="payment"
               @click="showPaymentDialog = true"
               :disable="
-                !$can('admin.sales-order.close') ||
+                !$can('admin.sales-order-return.close') ||
                 isProcessing ||
                 form.items.length === 0 ||
                 form.status !== 'draft'

@@ -110,13 +110,15 @@ class SalesOrderService
             'delivery_status' => SalesOrder::DeliveryStatus_ReadyForPickUp,
         ]);
         $item->cashier_id = Auth::user()->id;
+        $activeSession = $this->cashierSessionService->getActiveSession();
+        $item->cashier_session_id = $activeSession ? $activeSession->id : null;
         $item->save();
         return $item;
     }
 
     public function findOrderOrFail(int $id): SalesOrder
     {
-        return SalesOrder::with(['details', 'customer'])->findOrFail($id);
+        return SalesOrder::with(['details', 'customer', 'cashierSession', 'cashierSession.cashierTerminal'])->findOrFail($id);
     }
 
     public function editOrder(SalesOrder $order): SalesOrder
@@ -145,6 +147,8 @@ class SalesOrderService
             }
         }
 
+        $activeSession = $this->cashierSessionService->getActiveSession();
+        $item->cashier_session_id = $activeSession ? $activeSession->id : null;
         $item->notes = $data['notes'];
         $item->datetime = $data['datetime'];
 

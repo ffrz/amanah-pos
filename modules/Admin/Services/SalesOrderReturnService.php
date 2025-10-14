@@ -20,10 +20,10 @@ use App\Exceptions\BusinessRuleViolationException;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\SalesOrder;
+use App\Models\SalesOrderReturn;
 use App\Models\Setting;
 use App\Models\StockMovement;
 use App\Models\UserActivityLog;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -40,13 +40,14 @@ class SalesOrderReturnService
         protected CashierSessionService $cashierSessionService,
     ) {}
 
+    // OK
     public function getData(array $options)
     {
         $orderBy = $options['order_by'];
         $orderType = $options['order_type'];
         $filter = $options['filter'];
 
-        $q = SalesOrder::with(['customer', 'details', 'details.product', 'cashier', 'cashierSession.cashierTerminal']);
+        $q = SalesOrderReturn::with(['salesOrder', 'customer', 'details', 'details.product']);
 
         if (!empty($filter['search'])) {
             $q->where(function ($q) use ($filter) {
@@ -70,12 +71,8 @@ class SalesOrderReturnService
             $q->whereIn('status', $filter['status']);
         }
 
-        if (!empty($filter['payment_status']) && $filter['payment_status'] != 'all') {
-            $q->where('payment_status', '=', $filter['payment_status']);
-        }
-
-        if (!empty($filter['delivery_status']) && $filter['delivery_status'] != 'all') {
-            $q->where('delivery_status', '=', $filter['delivery_status']);
+        if (!empty($filter['refund_status']) && $filter['refund_status'] != 'all') {
+            $q->where('refund_status', '=', $filter['refund_status']);
         }
 
         if (!empty($filter['year']) && $filter['year'] !== 'all') {
@@ -100,84 +97,78 @@ class SalesOrderReturnService
         return $q->paginate($options['per_page']);
     }
 
-    public function createOrder(): SalesOrder
+    public function createOrderReturn(SalesOrder $order): SalesOrderReturn
     {
-        $item = new SalesOrder([
-            'type' => SalesOrder::Type_Pickup,
-            'datetime' => Carbon::now(),
-            'status' => SalesOrder::Status_Draft,
-            'payment_status' => SalesOrder::PaymentStatus_Unpaid,
-            'delivery_status' => SalesOrder::DeliveryStatus_ReadyForPickUp,
+        if ($order->status !== SalesOrder::Status_Closed) {
+            throw new BusinessRuleViolationException('Transaksi belum selesai tidak dapat diretur!');
+        }
+
+        $item = new SalesOrderReturn([
+            'sales_order_id' => $order->id,
+            'customer_id' => $order->customer_id,
+            'customer_name' => $order->customer_name,
+            'customer_phone' => $order->customer_phone,
+            'customer_address' => $order->customer_address,
+            'status' => SalesOrderReturn::Status_Draft,
+            'refund_status' => SalesOrderReturn::RefundStatus_Pending,
+            'grand_total' => $order->grand_total,
+            'datetime' => now(),
         ]);
-        $item->cashier_id = Auth::user()->id;
         $item->save();
         return $item;
     }
 
-    public function findOrderOrFail(int $id): SalesOrder
+    // OK
+    public function findOrderOrFail(int $id, $relations = ['salesOrder', 'details', 'customer'], $cols = "*"): SalesOrderReturn
     {
-        return SalesOrder::with(['details', 'customer'])->findOrFail($id);
+        return SalesOrderReturn::with($relations)->findOrFail($id, $cols);
     }
 
-    public function editOrder(SalesOrder $order): SalesOrder
+    // OK
+    public function editOrder(SalesOrderReturn $order): SalesOrderReturn
     {
         $this->ensureOrderIsEditable($order);
 
         return $order;
     }
 
-    public function updateOrder(SalesOrder $item, array $data): SalesOrder
+    // OK
+    public function updateOrder(SalesOrderReturn $item, array $data): SalesOrderReturn
     {
         $this->ensureOrderIsEditable($item);
-
-        if (isset($data['customer_id'])) {
-            $customer = $data['customer_id'] ? Customer::findOrFail($data['customer_id']) : null;
-
-            // WARNING: logika ini perlu diperbarui jika mendukung customization di frontend
-            // saat ini info customer selalu diperbarui dari data customer
-            // karena frontend tidak mendukung customization
-            if ($customer) {
-                $item->customer_id      = $customer->id;
-                $item->customer_code    = $customer->code;
-                $item->customer_name    = $customer->name;
-                $item->customer_phone   = $customer->phone;
-                $item->customer_address = $customer->address;
-            }
-        }
 
         $item->notes = $data['notes'];
         $item->datetime = $data['datetime'];
 
         return DB::transaction(function () use ($item) {
             $item->save();
-            // kita tidak mencatat log dan lacak version di penyimpanan ini
-            // untuk menghemat ruang dan meminimalisir interaksi database
             return $item;
         });
     }
 
-    public function cancelOrder(SalesOrder $item): SalesOrder
+    // OK
+    public function cancelOrder(SalesOrderReturn $orderReturn): SalesOrderReturn
     {
-        $this->ensureOrderIsEditable($item);
+        $this->ensureOrderIsEditable($orderReturn);
 
-        $item->status = SalesOrder::Status_Canceled;
+        $orderReturn->status = SalesOrderReturn::Status_Canceled;
 
-        return DB::transaction(function () use ($item) {
-            $item->save();
+        return DB::transaction(function () use ($orderReturn) {
+            $orderReturn->save();
 
-            $this->documentVersionService->createVersion($item);
+            $this->documentVersionService->createVersion($orderReturn);
 
             $this->userActivityLogService->log(
-                UserActivityLog::Category_SalesOrder,
-                UserActivityLog::Name_SalesOrder_Cancel,
-                "Order penjualan $item->formatted_id telah dibatalkan.",
+                UserActivityLog::Category_SalesOrderReturn,
+                UserActivityLog::Name_SalesOrderReturn_Cancel,
+                "Order penjualan $orderReturn->formatted_id telah dibatalkan.",
                 [
-                    'data' => $item->toArray(),
-                    'formatter' => 'sales-order',
+                    'data' => $orderReturn->toArray(),
+                    'formatter' => 'sales-order-return',
                 ]
             );
 
-            return $item;
+            return $orderReturn;
         });
     }
 
@@ -195,7 +186,7 @@ class SalesOrderReturnService
             ->findOrFail($id);
     }
 
-    public function closeOrder(SalesOrder $order, array $data)
+    public function closeOrder(SalesOrderReturn $order, array $data)
     {
         $this->ensureOrderIsEditable($order);
 
@@ -204,9 +195,8 @@ class SalesOrderReturnService
 
             $this->updateTotalAndValidateClientTotal($order, $data['total'] ?? 0);
 
-            $order->status = SalesOrder::Status_Closed;
+            $order->status = SalesOrderReturn::Status_Closed;
             $order->remaining_debt = $order->grand_total;
-            $order->delivery_status = SalesOrder::DeliveryStatus_PickedUp;
             $order->due_date = $data['due_date'] ?? null;
             $order->cashier_id = Auth::user()->id;
             $order->cashier_session_id = $cashierSession ? $cashierSession->id : null;
@@ -226,7 +216,7 @@ class SalesOrderReturnService
             $order->save();
 
             // Perbarui stok produk secara massal
-            $this->processSalesOrderStockOut($order);
+            $this->processSalesOrderReturnStockIn($order);
 
             // update settings
             // FIXME: seharusnya ini dipindahkan ke user settings agar tidak semua user terdampak
@@ -234,15 +224,12 @@ class SalesOrderReturnService
         });
     }
 
-    public function deleteOrder(SalesOrder $order)
+    // IN PROGRESS
+    public function deleteOrder(SalesOrderReturn $order)
     {
-        $cashierSession = $order->cashierSession;
-        if ($cashierSession && $cashierSession->is_closed) {
-            throw new BusinessRuleViolationException("Transaksi tidak dapat dihapus! Sesi kasir untuk Order #$order->formatted_id sudah ditutup!");
-        }
-
         DB::transaction(function () use ($order) {
-            if ($order->status == SalesOrder::Status_Closed) {
+            if ($order->status == SalesOrderReturn::Status_Closed) {
+                // BELUM DIVALIDASI
                 $this->reverseStock($order);
 
                 if ($order->customer_id) {
@@ -279,18 +266,19 @@ class SalesOrderReturnService
         }
     }
 
-    private function ensureOrderIsEditable(SalesOrder $order)
+    // OK
+    private function ensureOrderIsEditable(SalesOrderReturn $orderReturn)
     {
-        if ($order->status != SalesOrder::Status_Draft) {
+        if ($orderReturn->status != SalesOrderReturn::Status_Draft) {
             throw new BusinessRuleViolationException('Order sudah tidak dapat diubah.');
         }
     }
 
-    private function processSalesOrderStockOut(SalesOrder $order)
+    // OK
+    private function processSalesOrderReturnStockIn(SalesOrder $order)
     {
         foreach ($order->details as $detail) {
             $productType = $detail->product->type;
-            // TODO: Skip tipe produk tertentu
             if (
                 $productType == Product::Type_NonStocked
                 || $productType == Product::Type_Service
@@ -305,23 +293,24 @@ class SalesOrderReturnService
                 'product_name'    => $detail->product_name,
                 'uom'             => $detail->product_uom,
                 'ref_id'          => $detail->id,
-                'ref_type'        => StockMovement::RefType_SalesOrderDetail,
-                'quantity'        => -$quantity,
+                'ref_type'        => StockMovement::RefType_SalesOrderReturnDetail,
+                'quantity'        => $quantity,
                 'quantity_before' => $detail->product->stock,
                 'quantity_after'  => $detail->product->stock - $quantity,
-                'notes'           => "Transaksi penjualan #$order->formatted_id",
+                'notes'           => "Transaksi retur penjualan #$order->formatted_id",
             ]);
 
-            Product::where('id', $detail->product_id)->decrement('stock', $quantity);
+            Product::where('id', $detail->product_id)->increment('stock', $quantity);
         }
     }
 
+    // OK
     private function reverseStock(SalesOrder $order)
     {
         foreach ($order->details as $detail) {
-            Product::where('id', $detail->product_id)->increment('stock', $detail->quantity);
+            Product::where('id', $detail->product_id)->decrement('stock', $detail->quantity);
 
-            StockMovement::where('ref_type', StockMovement::RefType_SalesOrderDetail)
+            StockMovement::where('ref_type', StockMovement::RefType_SalesOrderReturnDetail)
                 ->where('ref_id', $detail->id)
                 ->delete();
         }

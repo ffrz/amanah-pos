@@ -155,4 +155,12 @@ class SalesOrderReturn extends BaseModel
     {
         return $this->hasMany(SalesOrderRefund::class);
     }
+
+    public function updateTotals(): void
+    {
+        $this->total_cost = $this->details()->sum('subtotal_cost');
+        $this->total_price = $this->details()->sum('subtotal_price');
+        // TODO: hitung pajak dan dan diskon disini
+        $this->grand_total = $this->total_price; // + pajak, - diskon, dll.
+    }
 }

@@ -12,14 +12,12 @@ import {
   createYearOptions,
 } from "@/helpers/options";
 import useTableHeight from "@/composables/useTableHeight";
-import SalesOrderStatusChip from "@/components/SalesOrderStatusChip.vue";
-import SalesOrderPaymentStatusChip from "@/components/SalesOrderPaymentStatusChip.vue";
-import SalesOrderDeliveryStatusChip from "@/components/SalesOrderDeliveryStatusChip.vue";
 import MyLink from "@/components/MyLink.vue";
 import axios from "axios";
 import LongTextView from "@/components/LongTextView.vue";
+import StatusChip from "@/components/StatusChip.vue";
 
-const title = "Penjualan";
+const title = "Retur Penjualan";
 const $q = useQuasar();
 const showFilter = ref(false);
 const rows = ref([]);
@@ -43,17 +41,12 @@ const months = [
 
 const statusOptions = [
   { value: "all", label: "Semua Status" },
-  ...createOptions(window.CONSTANTS.SALES_ORDER_STATUSES),
+  ...createOptions(window.CONSTANTS.SALES_ORDER_RETURN_STATUSES),
 ];
 
-const paymentStatusOptions = [
+const refundStatusOptions = [
   { value: "all", label: "Semua Status" },
-  ...createOptions(window.CONSTANTS.SALES_ORDER_PAYMENT_STATUSES),
-];
-
-const deliveryStatusOptions = [
-  { value: "all", label: "Semua Status" },
-  ...createOptions(window.CONSTANTS.SALES_ORDER_DELIVERY_STATUSES),
+  ...createOptions(window.CONSTANTS.SALES_ORDER_RETURN_REFUND_STATUSES),
 ];
 
 const filter = reactive({
@@ -61,8 +54,7 @@ const filter = reactive({
   year: currentYear,
   month: currentMonth,
   status: "all",
-  payment_status: "all",
-  delivery_status: "all",
+  refund_status: "all",
   ...getQueryParams(),
 });
 
@@ -125,11 +117,11 @@ const onRowClicked = (row) => {
 };
 
 const editItem = (row) => {
-  router.get(route("admin.sales-order.edit", row.id));
+  router.get(route("admin.sales-order-return.edit", row.id));
 };
 
 const viewItem = (row) => {
-  router.get(route("admin.sales-order.detail", row.id));
+  router.get(route("admin.sales-order-return.detail", row.id));
 };
 
 const cancelItem = (row) => {
@@ -143,7 +135,7 @@ const cancelItem = (row) => {
   }).onOk(() => {
     axios
       .post(
-        route("admin.sales-order.cancel", {
+        route("admin.sales-order-return.cancel", {
           id: row.id,
         }),
         {
@@ -186,7 +178,7 @@ const deleteItem = (row) =>
   handleDelete({
     title: "Konfirmasi Penghapusan",
     message: `Hapus transaksi #${row.formatted_id}?`,
-    url: route("admin.sales-order.delete", row.id),
+    url: route("admin.sales-order-return.delete", row.id),
     fetchItemsCallback: fetchItems,
     loading,
   });
@@ -197,7 +189,7 @@ const fetchItems = (props = null) => {
     filter,
     props,
     rows,
-    url: route("admin.sales-order.data"),
+    url: route("admin.sales-order-return.data"),
     loading,
     tableRef,
   });
@@ -236,13 +228,13 @@ watch(
         @click="showFilter = !showFilter"
       />
       <q-btn
-        v-if="$can('admin.sales-order.edit')"
+        v-if="$can('admin.sales-order-return.edit')"
         icon="add"
         dense
         rounded
         class="q-ml-sm"
         color="primary"
-        @click="router.get(route('admin.sales-order.add'))"
+        @click="router.get(route('admin.sales-order-return.add'))"
       />
     </template>
     <template #header v-if="showFilter">
@@ -284,21 +276,9 @@ watch(
             @update:model-value="onFilterChange"
           />
           <q-select
-            v-model="filter.payment_status"
-            :options="paymentStatusOptions"
-            label="Status Pembayaran"
-            dense
-            outlined
-            class="col-xs-6 col-sm-2"
-            emit-value
-            map-options
-            @update:model-value="onFilterChange"
-          />
-          <q-select
-            v-if="false"
-            v-model="filter.delivery_status"
-            :options="deliveryStatusOptions"
-            label="Status Pengiriman"
+            v-model="filter.refund_status"
+            :options="refundStatusOptions"
+            label="Status Refund"
             dense
             outlined
             class="col-xs-6 col-sm-2"
@@ -397,13 +377,24 @@ watch(
                 </div>
               </template>
               <div>
-                <SalesOrderStatusChip :status="props.row.status" />
-                <SalesOrderPaymentStatusChip
-                  :status="props.row.payment_status"
+                <StatusChip
+                  :status="props.row.status"
+                  :statuses="$CONSTANTS.SALES_ORDER_RETURN_STATUSES"
+                  :colors="{
+                    draft: 'orange',
+                    closed: 'green',
+                    canceled: 'red',
+                  }"
                 />
-                <SalesOrderDeliveryStatusChip
-                  v-if="false"
-                  :status="props.row.delivery_status"
+                <StatusChip
+                  :status="props.row.refund_status"
+                  :statuses="$CONSTANTS.SALES_ORDER_RETURN_REFUND_STATUSES"
+                  :colors="{
+                    pending: 'grey',
+                    partially_refunded: 'orange',
+                    fully_refunded: 'green',
+                    no_refund: 'red',
+                  }"
                 />
               </div>
             </q-td>
@@ -444,10 +435,10 @@ watch(
               <div class="flex justify-end">
                 <q-btn
                   v-if="
-                    $can('admin.sales-order.detail') ||
-                    $can('admin.sales-order.edit') ||
-                    $can('admin.sales-order.cancel') ||
-                    $can('admin.sales-order.delete')
+                    $can('admin.sales-order-return.detail') ||
+                    $can('admin.sales-order-return.edit') ||
+                    $can('admin.sales-order-return.cancel') ||
+                    $can('admin.sales-order-return.delete')
                   "
                   icon="more_vert"
                   dense
@@ -465,7 +456,7 @@ watch(
                       <q-item
                         v-if="
                           props.row.status != 'draft' &&
-                          $can('admin.sales-order.detail')
+                          $can('admin.sales-order-return.detail')
                         "
                         @click.stop="viewItem(props.row)"
                         clickable
@@ -480,7 +471,7 @@ watch(
                       <q-item
                         v-if="
                           props.row.status == 'draft' &&
-                          $can('admin.sales-order.edit')
+                          $can('admin.sales-order-return.edit')
                         "
                         @click.stop="editItem(props.row)"
                         clickable
@@ -495,7 +486,7 @@ watch(
                       <q-item
                         v-if="
                           props.row.status == 'draft' &&
-                          $can('admin.sales-order.cancel')
+                          $can('admin.sales-order-return.cancel')
                         "
                         @click.stop="cancelItem(props.row)"
                         clickable
@@ -509,7 +500,7 @@ watch(
                       </q-item>
                       <q-separator />
                       <q-item
-                        v-if="$can('admin.sales-order.delete')"
+                        v-if="$can('admin.sales-order-return.delete')"
                         @click.stop="deleteItem(props.row)"
                         clickable
                         v-ripple

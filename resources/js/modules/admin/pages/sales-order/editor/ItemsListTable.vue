@@ -91,7 +91,8 @@ defineEmits(["update-quantity", "remove-item", "edit-item"]);
           <div class="column items-end">
             <div>{{ formatNumber(props.row.subtotal_price) }}</div>
             <div class="text-caption text-grey-6 text-italic">
-              {{ formatNumber(props.row.quantity) }} x Rp.
+              {{ formatNumber(props.row.quantity) }}
+              {{ props.row.product_uom }} x Rp.
               {{ formatNumber(props.row.price) }}
             </div>
           </div>

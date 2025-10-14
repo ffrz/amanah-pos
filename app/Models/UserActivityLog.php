@@ -44,7 +44,9 @@ class UserActivityLog extends Model
     public const Category_FinanceAccount = 'finance-account';
     public const Category_FinanceTransaction = 'finance-transaction';
     public const Category_SalesOrder = 'sales-order';
+    public const Category_SalesOrderReturn = 'sales-order-return';
     public const Category_PurchaseOrder = 'purchase-order';
+    public const Category_PurchaseOrderReturn = 'purchase-order-return';
     public const Category_OperationalCost = 'operational-cost';
     public const Category_OperationalCostCategory = 'operational-cost-category';
     public const Category_CashierTerminal = 'cashier-terminal';
@@ -70,7 +72,9 @@ class UserActivityLog extends Model
         self::Category_Customer => 'Manajemen Pelanggan',
         self::Category_UserActivityLog => 'Manajemen Log Aktifitas Pengguna',
         self::Category_SalesOrder => 'Manajemen Order Penjualan',
+        self::Category_SalesOrderReturn => 'Manajemen Retur Penjualan',
         self::Category_PurchaseOrder => 'Manajemen Order Pembelian',
+        self::Category_PurchaseOrderReturn => 'Manajemen Retur Pembelian',
         self::Category_OperationalCost => 'Manajemen Biaya Operasional',
         self::Category_OperationalCostCategory => 'Manajemen Kategori Biaya Operasional',
         self::Category_CashierTerminal => 'Manajemen Terminal Kasir',
@@ -133,6 +137,12 @@ class UserActivityLog extends Model
     public const Name_SalesOrder_Cancel = 'sales-order.cancel';
     public const Name_SalesOrder_AddPayment    = 'sales-order.add-payment';
     public const Name_SalesOrder_DeletePayment = 'sales-order.delete-payment';
+    public const Name_SalesOrderReturn_Create = 'sales-order-return.create';
+    public const Name_SalesOrderReturn_Close  = 'sales-order-return.close';
+    public const Name_SalesOrderReturn_Delete = 'sales-order-return.delete';
+    public const Name_SalesOrderReturn_Cancel = 'sales-order-return.cancel';
+    public const Name_SalesOrderReturn_AddRefund    = 'sales-order-return.add-refund';
+    public const Name_SalesOrderReturn_DeleteRefund = 'sales-order-return.delete-refund';
 
     // Cashier
     public const Name_CashierTerminal_Create = 'cashier-terminal.create';
@@ -227,6 +237,12 @@ class UserActivityLog extends Model
         self::Name_SalesOrder_Cancel => 'Membatalkan Order Penjualan',
         self::Name_SalesOrder_AddPayment    => 'Menamabah Pembayaran Order Penjualan',
         self::Name_SalesOrder_DeletePayment => 'Menghapus Pembayaran Order Penjualan',
+        self::Name_SalesOrderReturn_Create => 'Membuat Retur Penjualan',
+        self::Name_SalesOrderReturn_Close  => 'Menutup Retur Penjualan',
+        self::Name_SalesOrderReturn_Delete => 'Menghapus Retur Penjualan',
+        self::Name_SalesOrderReturn_Cancel => 'Membatalkan Retur Penjualan',
+        self::Name_SalesOrderReturn_AddRefund    => 'Menamabah Refund Order Penjualan',
+        self::Name_SalesOrderReturn_DeleteRefund => 'Menghapus Refund Order Penjualan',
 
         self::Name_OperationalCost_Create => 'Menambah Biaya Operasional',
         self::Name_OperationalCost_Update => 'Memperbarui Biaya Operasional',

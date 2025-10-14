@@ -42,7 +42,6 @@ const selectedIndex = ref(-1);
 
 const filter = reactive({
   search: "",
-  status: "active",
   ...getQueryParams(),
 });
 
@@ -54,39 +53,16 @@ const pagination = ref({
   descending: false,
 });
 
-const priceOptions = [...createOptions(window.CONSTANTS.PRODUCT_PRICE_TYPES)];
-
 const columns = [
-  { name: "name", label: "Nama", field: "name", align: "left", sortable: true },
-  { name: "stock", label: "Stok", field: "stock", align: "right" },
-  { name: "cost", label: "Modal (Rp)", field: "cost", align: "right" },
   {
-    name: "price_1",
-    label: window.CONSTANTS.PRODUCT_PRICE_TYPES["price_1"].replace(
-      "Harga ",
-      "H "
-    ),
-    field: "price_1",
-    align: "right",
+    name: "product_name",
+    label: "Nama Item",
+    field: "product_name",
+    align: "left",
+    sortable: true,
   },
-  {
-    name: "price_2",
-    label: window.CONSTANTS.PRODUCT_PRICE_TYPES["price_2"].replace(
-      "Harga ",
-      "H "
-    ),
-    field: "price_2",
-    align: "right",
-  },
-  {
-    name: "price_3",
-    label: window.CONSTANTS.PRODUCT_PRICE_TYPES["price_3"].replace(
-      "Harga ",
-      "H "
-    ),
-    field: "price_3",
-    align: "right",
-  },
+  { name: "quantity", label: "Kwantitas", field: "quantity", align: "right" },
+  { name: "price", label: "Harga (Rp)", field: "price", align: "right" },
 ];
 
 const computedColumns = computed(() => {
@@ -119,7 +95,7 @@ const fetchItems = (props = null) => {
     filter,
     props,
     rows,
-    url: route("admin.product.data"),
+    url: route("admin.sales-order-return.order-details"),
     loading,
     tableRef,
   });
@@ -199,30 +175,6 @@ watch(
         </div>
       </q-card-section>
 
-      <q-card-section class="q-py-sm" :class="$q.screen.lt.sm ? 'q-px-xs' : ''">
-        <!-- Ini untuk fitur nanti kalau bisa customize harga per item transaksi -->
-        <q-input
-          autofocus
-          outlined
-          dense
-          debounce="300"
-          v-model="filter.search"
-          placeholder="Cari produk berdasarkan nama atau barcode"
-          clearable
-          @update:model-value="onFilterChange"
-        >
-          <template v-slot:append>
-            <q-icon name="search" />
-          </template>
-        </q-input>
-        <q-checkbox
-          v-if="showCostEnabled"
-          v-model="showCost"
-          label="Tampilkan Modal"
-          style="margin-left: -10px"
-        />
-      </q-card-section>
-
       <q-card-section
         class="q-py-xs col"
         :class="$q.screen.lt.sm ? 'q-px-xs' : ''"
@@ -256,12 +208,6 @@ watch(
             <q-tr
               tabindex="0"
               :props="props"
-              :class="{
-                inactive:
-                  ['stocked', 'raw_materials'].includes(props.row.type) &&
-                  props.row.stock == 0,
-                'selected-row': selectedIndex === props.rowIndex,
-              }"
               class="cursor-pointer"
               @click="onProductSelect(props.row)"
               @keydown.enter.prevent.stop="onProductSelect(props.row)"
@@ -277,39 +223,17 @@ watch(
                 />
                 <template v-if="$q.screen.lt.md">
                   <div>
-                    Stok:
-                    {{
-                      props.row.type == "stocked"
-                        ? formatNumber(props.row.stock) + " " + props.row.uom
-                        : "-"
-                    }}
+                    Kwantitas:
+                    {{ formatNumber(props.row.quantity) + " " + props.row.uom }}
                   </div>
-                  <div v-if="showCost">
-                    Modal: Rp. {{ formatNumber(props.row.cost) }}
-                  </div>
-                  <div>Harga 1: Rp. {{ formatNumber(props.row.price_1) }}</div>
-                  <div>Harga 2: Rp. {{ formatNumber(props.row.price_1) }}</div>
-                  <div>Harga 3: Rp. {{ formatNumber(props.row.price_1) }}</div>
+                  <div>Harga: Rp. {{ formatNumber(props.row.price) }}</div>
                 </template>
               </q-td>
-              <q-td key="stock" :props="props" class="text-right">
-                {{
-                  props.row.type == "stocked"
-                    ? formatNumber(props.row.stock) + " " + props.row.uom
-                    : "-"
-                }}
+              <q-td key="quantity" :props="props" class="text-right">
+                {{ formatNumber(props.row.quantity) + " " + props.row.uom }}
               </q-td>
-              <q-td key="cost" :props="props" class="wrap-column text-right">
-                {{ formatNumber(props.row.cost) }}
-              </q-td>
-              <q-td key="price_1" :props="props" class="wrap-column text-right">
-                {{ formatNumber(props.row.price_1) }}
-              </q-td>
-              <q-td key="price_2" :props="props" class="wrap-column text-right">
-                {{ formatNumber(props.row.price_2) }}
-              </q-td>
-              <q-td key="price_3" :props="props" class="wrap-column text-right">
-                {{ formatNumber(props.row.price_3) }}
+              <q-td key="price" :props="props" class="wrap-column text-right">
+                {{ formatNumber(props.row.price) }}
               </q-td>
             </q-tr>
           </template>

@@ -16,4 +16,14 @@
 
 namespace Modules\Admin\Policies;
 
-class SalesOrderPolicy extends OnlyAuthorPolicy {}
+use App\Models\SalesOrder;
+use App\Models\User;
+
+class SalesOrderPolicy extends OnlyAuthorPolicy
+{
+
+    public function cancel(User $user, SalesOrder $model)
+    {
+        return true;
+    }
+}

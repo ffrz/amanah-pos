@@ -19,4 +19,11 @@ namespace Modules\Admin\Policies;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
-class PurchaseOrderPolicy extends DefaultPolicy {}
+class PurchaseOrderPolicy extends DefaultPolicy
+{
+
+    public function cancel(User $user, SalesOrder $model)
+    {
+        return true;
+    }
+}

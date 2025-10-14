@@ -16,4 +16,13 @@
 
 namespace Modules\Admin\Policies;
 
-class PurchaseOrderReturnPolicy extends DefaultPolicy {}
+use App\Models\PurchaseOrderReturn;
+use App\Models\User;
+
+class PurchaseOrderReturnPolicy extends DefaultPolicy
+{
+    public function cancel(User $user, PurchaseOrderReturn $model)
+    {
+        return true;
+    }
+}

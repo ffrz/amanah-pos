@@ -281,7 +281,7 @@ Route::middleware([Auth::class])
             Route::prefix('sales-order-returns')->group(function () {
                 Route::get('', [SalesOrderReturnController::class, 'index'])->name('admin.sales-order-return.index');
                 Route::get('data', [SalesOrderReturnController::class, 'data'])->name('admin.sales-order-return.data');
-                Route::get('add', [SalesOrderReturnController::class, 'editor'])->name('admin.sales-order-return.add');
+                Route::match(['get', 'post'], 'add', [SalesOrderReturnController::class, 'add'])->name('admin.sales-order-return.add');
                 Route::get('edit/{id}', [SalesOrderReturnController::class, 'editor'])->name('admin.sales-order-return.edit');
                 Route::get('detail/{id}', [SalesOrderReturnController::class, 'detail'])->name('admin.sales-order-return.detail');
                 Route::post('save', [SalesOrderReturnController::class, 'save'])->name('admin.sales-order-return.save');

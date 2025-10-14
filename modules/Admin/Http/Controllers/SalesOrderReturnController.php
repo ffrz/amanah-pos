@@ -19,6 +19,7 @@ namespace Modules\Admin\Http\Controllers;
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\SalesOrder;
+use App\Models\SalesOrderReturn;
 use App\Models\Setting;
 use Modules\Admin\Services\CashierSessionService;
 use Modules\Admin\Services\FinanceTransactionService;
@@ -42,27 +43,62 @@ class SalesOrderReturnController extends Controller
         protected SalesOrderReturnDetailService $detailService,
     ) {}
 
+    // OK
     public function index()
     {
-        $this->authorize("viewAny", SalesOrder::class);
+        $this->authorize("viewAny", SalesOrderReturn::class);
         return inertia('sales-order-return/Index');
     }
 
+    // OK
     public function data(GetDataRequest $request)
     {
-        $this->authorize("viewAny", SalesOrder::class);
+        $this->authorize("viewAny", SalesOrderReturn::class);
         $orders = $this->service->getData($request->validated())->withQueryString();
         return JsonResponseHelper::success($orders);
     }
 
-    public function editor($id = 0)
+    // OK
+    public function add(Request $request)
     {
-        if (!$id) {
-            $this->authorize("create", SalesOrder::class);
-            $order = $this->service->createOrder();
-            return redirect(route('admin.sales-order-return.edit', $order->id));
+        $this->authorize("create", SalesOrderReturn::class);
+
+        $data = [
+            'code' => $request->post('code'),
+        ];
+
+        if ($request->isMethod(Request::METHOD_POST)) {
+            $codeArray = explode('-', $data['code']);
+            $code = null;
+
+            if (!empty($codeArray)) {
+                $code = $codeArray[count($codeArray) - 1];
+            }
+
+            $salesOrder = null;
+            if (is_numeric($code)) {
+                $salesOrder = SalesOrder::find((int)$code);
+            }
+
+            if (!$salesOrder || $salesOrder->formatted_id !== $data['code']) {
+                return redirect()
+                    ->back()
+                    ->withInput()
+                    ->withErrors(['code' => 'Sales Order dengan kode tersebut tidak ditemukan.']);
+            }
+
+            $salesOrderReturn = $this->service->createOrderReturn($salesOrder);
+            return redirect(route('admin.sales-order-return.edit', $salesOrderReturn->id));
         }
 
+        return inertia('sales-order-return/Create', [
+            'data' => $data,
+        ]);
+    }
+
+    // OK
+    public function editor($id)
+    {
         $order = $this->service->findOrderOrFail($id);
         $this->authorize("update", $order);
         $order = $this->service->editOrder($order);
@@ -87,15 +123,14 @@ class SalesOrderReturnController extends Controller
 
     public function cancel($id)
     {
-        $order = $this->service->findOrderOrFail($id);
-        $this->authorize('cancel', $order);
-        $this->service->cancelOrder($order);
+        $orderReturn = $this->service->findOrderOrFail($id, []);
+        $this->authorize('cancel', $orderReturn);
+        $this->service->cancelOrder($orderReturn);
         return JsonResponseHelper::success(
-            ['id' => $order->id],
-            "Transaksi #$order->formatted_id telah dibatalkan."
+            ['id' => $orderReturn->id],
+            "Transaksi Retur #$orderReturn->formatted_id telah dibatalkan."
         );
     }
-
 
     public function close(Request $request)
     {
@@ -150,6 +185,7 @@ class SalesOrderReturnController extends Controller
         ]);
     }
 
+    // OK
     public function addItem(Request $request)
     {
         $order = $this->service->findOrderOrFail($request->post('order_id', null));
@@ -162,6 +198,7 @@ class SalesOrderReturnController extends Controller
         ], 'Item telah ditambahkan');
     }
 
+    // OK
     public function updateItem(Request $request)
     {
         $detail = $this->detailService->findItemOrFail($request->post('id'));
@@ -171,6 +208,7 @@ class SalesOrderReturnController extends Controller
         return JsonResponseHelper::success($detail, 'Item telah diperbarui.');
     }
 
+    // OK
     public function removeItem(Request $request)
     {
         $item = $this->detailService->findItemOrFail($request->id);
