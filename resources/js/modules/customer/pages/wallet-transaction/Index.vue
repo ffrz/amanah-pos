@@ -97,6 +97,8 @@ watch(
 const onRowClicked = (row) => {
   router.get(route("customer.wallet-transaction.detail", { id: row.id }));
 };
+const { protectClick } = useTableClickProtection();
+const protectedRowClick = protectClick(onRowClicked);
 </script>
 
 <template>
@@ -192,7 +194,7 @@ const onRowClicked = (row) => {
         <template v-slot:body="props">
           <q-tr
             :props="props"
-            @click="onRowClicked(props.row)"
+            @click.stop="protectedRowClick(props.row, $event)"
             class="cursor-pointer"
           >
             <q-td key="id" :props="props" class="wrap-column">

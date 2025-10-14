@@ -7,6 +7,7 @@ import { useQuasar } from "quasar";
 import { createOptions } from "@/helpers/options";
 import { formatNumber } from "@/helpers/formatter";
 import useTableHeight from "@/composables/useTableHeight";
+import { useTableClickProtection } from "@/composables/useTableClickProtection";
 
 const page = usePage();
 const title = "Akun Kas";
@@ -97,8 +98,12 @@ const fetchItems = (props = null) => {
 };
 
 const onFilterChange = () => fetchItems();
+
 const onRowClicked = (row) =>
   router.get(route("admin.finance-account.detail", { id: row.id }));
+const { protectClick } = useTableClickProtection();
+const protectedRowClick = protectClick(onRowClicked);
+
 const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return columns;
   return columns.filter((col) => col.name === "name" || col.name === "action");
@@ -217,7 +222,7 @@ const computedColumns = computed(() => {
             :props="props"
             :class="!props.row.active ? 'bg-red-1' : ''"
             class="cursor-pointer"
-            @click="onRowClicked(props.row)"
+            @click.stop="protectedRowClick(props.row, $event)"
           >
             <q-td key="name" :props="props" class="wrap-column">
               <div class="text-bold text-grey-9">{{ props.row.name }}</div>

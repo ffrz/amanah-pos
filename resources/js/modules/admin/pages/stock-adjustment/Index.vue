@@ -13,6 +13,7 @@ import {
 import useTableHeight from "@/composables/useTableHeight";
 import { getCurrentMonth, getCurrentYear } from "@/helpers/datetime";
 import { useCan } from "@/composables/usePermission";
+import { useTableClickProtection } from "@/composables/useTableClickProtection";
 
 const title = "Penyesuaian Stok";
 const rows = ref([]);
@@ -150,6 +151,8 @@ const onRowClicked = (row) => {
     router.get(route("admin.stock-adjustment.editor", row.id));
   else router.get(route("admin.stock-adjustment.detail", row.id));
 };
+const { protectClick } = useTableClickProtection();
+const protectedRowClick = protectClick(onRowClicked);
 
 const $q = useQuasar();
 const computedColumns = computed(() => {
@@ -290,7 +293,7 @@ const computedColumns = computed(() => {
         <template v-slot:body="props">
           <q-tr
             :props="props"
-            @click="onRowClicked(props.row)"
+            @click.stop="protectedRowClick(props.row, $event)"
             class="cursor-pointer"
           >
             <q-td key="id" :props="props">

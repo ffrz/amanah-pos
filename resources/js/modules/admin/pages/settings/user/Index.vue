@@ -5,6 +5,7 @@ import { handleFetchItems, handleDelete } from "@/helpers/client-req-handler";
 import { createOptions } from "@/helpers/options";
 import { useQuasar } from "quasar";
 import useTableHeight from "@/composables/useTableHeight";
+import { useTableClickProtection } from "@/composables/useTableClickProtection";
 
 const types = [
   { value: "all", label: "Semua" },
@@ -107,6 +108,8 @@ const computedColumns = computed(() => {
 });
 
 const onRowClicked = (row) => router.get(route("admin.user.detail", row.id));
+const { protectClick } = useTableClickProtection();
+const protectedRowClick = protectClick(onRowClicked);
 
 const tableRef = ref(null);
 const filterToolbarRef = ref(null);
@@ -227,7 +230,7 @@ const tableHeight = useTableHeight(filterToolbarRef);
           <q-tr
             :props="props"
             :class="!props.row.active ? 'bg-red-1' : ''"
-            @click="onRowClicked(props.row)"
+            @click.stop="protectedRowClick(props.row, $event)"
             class="cursor-pointer"
           >
             <q-td key="username" :props="props">

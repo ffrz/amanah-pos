@@ -7,6 +7,7 @@ import { useQuasar } from "quasar";
 import { formatNumber } from "@/helpers/formatter";
 import LongTextView from "@/components/LongTextView.vue";
 import useTableHeight from "@/composables/useTableHeight";
+import { useTableClickProtection } from "@/composables/useTableClickProtection";
 
 const title = "Pelanggan";
 const $q = useQuasar();
@@ -111,6 +112,9 @@ const onFilterChange = () => fetchItems();
 
 const onRowClicked = (row) =>
   router.get(route("admin.customer.detail", { id: row.id }));
+
+const { protectClick } = useTableClickProtection();
+const protectedRowClick = protectClick(onRowClicked);
 
 const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return columns;
@@ -240,7 +244,7 @@ const computedColumns = computed(() => {
             :props="props"
             :class="!props.row.active ? 'bg-red-1' : ''"
             class="cursor-pointer"
-            @click="onRowClicked(props.row)"
+            @click.stop="protectedRowClick(props.row, $event)"
           >
             <q-td key="code" :props="props" class="wrap-column">
               <div>

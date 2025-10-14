@@ -5,6 +5,7 @@ import { handleDelete, handleFetchItems } from "@/helpers/client-req-handler";
 import { getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
 import useTableHeight from "@/composables/useTableHeight";
+import { useTableClickProtection } from "@/composables/useTableClickProtection";
 
 const title = "Role Pengguna";
 const $q = useQuasar();
@@ -75,6 +76,9 @@ const fetchItems = (props = null) => {
 
 const onRowClicked = (row) =>
   router.get(route("admin.user-role.detail", { id: row.id }));
+const { protectClick } = useTableClickProtection();
+const protectedRowClick = protectClick(onRowClicked);
+
 const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return columns;
   return columns.filter((col) => col.name === "name" || col.name === "action");
@@ -160,7 +164,7 @@ const computedColumns = computed(() => {
           <q-tr
             :props="props"
             class="cursor-pointer"
-            @click="onRowClicked(props.row)"
+            @click.stop="protectedRowClick(props.row, $event)"
           >
             <q-td key="name" :props="props" class="wrap-column">
               <div>

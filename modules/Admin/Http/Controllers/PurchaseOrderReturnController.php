@@ -143,15 +143,15 @@ class PurchaseOrderReturnController extends Controller
     {
         $order = $this->service->findOrderOrFail($request->post('order_id'));
         $this->authorize('update', $order);
-        $this->returnService->addPayments($order, $request->post('payments', []));
-        return JsonResponseHelper::success($order, "Pembayaran berhasil dicatat.");
+        $this->refundService->addPayments($order, $request->post('payments', []));
+        return JsonResponseHelper::success($order, "Refund Pembayaran berhasil dicatat.");
     }
 
     public function deletePayment(Request $request)
     {
-        $payment = $this->returnService->findOrFail($request->id);
+        $payment = $this->refundService->findOrFail($request->id);
         $this->authorize('update', $payment->order);
-        $this->returnService->deletePayment($payment);
-        return JsonResponseHelper::success(message: "Pembayaran berhasil dihapus.");
+        $this->refundService->deletePayment($payment);
+        return JsonResponseHelper::success(message: "Refund Pembayaran berhasil dihapus.");
     }
 }
