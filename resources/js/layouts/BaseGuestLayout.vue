@@ -41,10 +41,14 @@ onMounted(() => {
     <!-- Footer -->
     <q-footer class="transparent" reveal>
       <slot name="footer">
+        <div class="q-mt-lg justify-center items-center flex text-grey-6">
+          {{ $config.APP_NAME }} v{{ $config.APP_VERSION_STR }}
+        </div>
         <div
-          class="q-mt-lg q-mb-md justify-center items-center flex text-grey-6"
+          class="q-mt-xs q-mb-md justify-center items-center flex text-grey-6"
         >
-          &copy; 2025 - {{ $config.APP_NAME }} v{{ $config.APP_VERSION_STR }}
+          &copy; 2025 &nbsp;
+          <a href="https://shiftech.my.id"> Shiftech Indonesia</a>
         </div>
       </slot>
     </q-footer>

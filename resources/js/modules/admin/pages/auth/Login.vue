@@ -2,6 +2,7 @@
 import StandardCheckBox from "@/components/StandardCheckBox.vue";
 import { useApiForm } from "@/composables/useApiForm";
 import { handleSubmit } from "@/helpers/client-req-handler";
+import { usePage } from "@inertiajs/vue3";
 import { ref } from "vue";
 
 let form = useApiForm({
@@ -9,6 +10,9 @@ let form = useApiForm({
   password: window.CONFIG.APP_DEMO ? "12345" : "",
   remember: true,
 });
+
+const page = usePage();
+console.log(page.props.data);
 
 const submit = () =>
   handleSubmit({
@@ -31,14 +35,14 @@ const showPassword = ref(false);
           <q-form class="q-gutter-md" @submit.prevent="submit">
             <q-card square bordered flat class="q-pa-md">
               <q-card-section class="text-center">
-                <div class="flex justify-center">
-                  <q-avatar size="80px">
-                    <q-icon name="badge" color="primary" />
-                  </q-avatar>
+                <div class="q-my-sm text-grey-7 text-subtitle1 text-bold">
+                  Login ke {{ page.props.company.name }}
+                  <div class="flex justify-center">
+                    <q-avatar size="100px" class="q-my-none">
+                      <q-icon name="badge" color="grey" />
+                    </q-avatar>
+                  </div>
                 </div>
-                <h6 class="q-my-sm text-primary">Login Staff</h6>
-              </q-card-section>
-              <q-card-section>
                 <q-input
                   v-model.trim="form.username"
                   label="Username"

@@ -3,13 +3,13 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
+ *
  * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
+ *
  * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
+ *
  * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
@@ -17,6 +17,7 @@
 namespace Modules\Admin\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\Setting;
 use App\Models\User;
 use App\Models\UserActivityLog;
 use Modules\Admin\Services\UserActivityLogService;
@@ -79,6 +80,9 @@ class AuthController extends Controller
                 'data' => [
                     'username' => env('APP_DEMO') ? 'admin' : '',
                     'password' => env('APP_DEMO') ? '12345' : '',
+                ],
+                'company' => [
+                    'name' => Setting::value('company.name', 'Amanah Mart'),
                 ]
             ]);
         }

@@ -5,26 +5,28 @@
         "config",
         "database",
         "modules",
-        "public",
         "resources",
         "routes",
+        "public",
+        "storage",
         "artisan",
         "LICENSE",
         "VERSION"
     ],
-    "exclude_path": [".env", "public/uploads"],
+    "exclude_path": [
+        "public/hot",
+        "public/uploads",
+        "bootstrap/cache",
+        "storage/debugbar",
+        "storage/framework/views",
+        "storage/logs"
+    ],
     "tenants": {
-        "tenant1": {
-            "host": "ftp.mysite1.com",
-            "user": "ftpusername",
-            "pass": "ftppass",
-            "remote_path": "/public_html/shiftech-pos/tenant1"
-        },
-        "tenant2": {
-            "host": "ftp.mysite2.com",
-            "user": "ftpusername",
-            "pass": "ftppass",
-            "remote_path": "/public_html/shiftech-pos/tenant2"
+        "shiftcom": {
+            "host": "ftp.mysite.my.id",
+            "user": "username",
+            "pass": "pass",
+            "remote_path": "/public_html/tentant1"
         }
     }
 }
