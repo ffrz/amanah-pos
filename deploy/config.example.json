@@ -11,7 +11,10 @@
         "storage",
         "artisan",
         "LICENSE",
-        "VERSION"
+        "VERSION",
+        "composer.json",
+        "composer.lock",
+        "vite.config.js"
     ],
     "exclude_path": [
         "public/hot",
