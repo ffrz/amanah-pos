@@ -62,23 +62,10 @@ const pagination = ref({
 let columns = [
   {
     name: "id",
-    label: $q.screen.lt.sm ? "Item" : "#",
+    label: "Item",
     field: "id",
     align: "left",
     sortable: true,
-  },
-  {
-    name: "created_at",
-    label: "Waktu",
-    field: "created_at",
-    align: "left",
-    sortable: true,
-  },
-  {
-    name: "type",
-    label: "Jenis",
-    field: "type",
-    align: "left",
   },
   {
     name: "product",
@@ -88,20 +75,26 @@ let columns = [
   },
   {
     name: "quantity_before",
-    label: "Qty Awal",
+    label: "Awal",
     field: "quantity_before",
     align: "right",
   },
   {
+    name: "quantity",
+    label: "+/-",
+    field: "quantity",
+    align: "right",
+  },
+  {
     name: "quantity_after",
-    label: "Qty Akhir",
+    label: "Akhir",
     field: "quantity_after",
     align: "right",
   },
   {
-    name: "quantity",
-    label: "Selisih",
-    field: "quantity",
+    name: "uom",
+    label: "Satuan",
+    field: "uom",
     align: "right",
   },
   {
@@ -246,23 +239,19 @@ const computedColumns = computed(() => {
           <q-tr :props="props">
             <q-td key="id" :props="props">
               <div>
-                <template v-if="$q.screen.lt.sm">
-                  <div>
-                    <q-badge>
-                      {{
-                        $CONSTANTS.STOCK_MOVEMENT_REF_TYPES[props.row.ref_type]
-                      }}
-                    </q-badge>
-                  </div>
-                  <q-icon class="inline-icon" name="tag" />
-                </template>
+                <q-icon class="inline-icon" name="tag" />
                 {{ props.row.code }}
               </div>
+              <div>
+                <q-icon name="calendar_clock" class="inline-icon" />
+                {{ formatDateTime(props.row.created_at) }}
+              </div>
+              <div>
+                <q-badge>
+                  {{ $CONSTANTS.STOCK_MOVEMENT_REF_TYPES[props.row.ref_type] }}
+                </q-badge>
+              </div>
               <template v-if="$q.screen.lt.sm">
-                <div>
-                  <q-icon name="calendar_clock" class="inline-icon" />
-                  {{ formatDateTime(props.row.created_at) }}
-                </div>
                 <div>
                   <q-icon name="token" class="inline-icon" />
                   {{ props.row.product.name }}
@@ -286,25 +275,11 @@ const computedColumns = computed(() => {
                 />
               </template>
             </q-td>
-            <q-td key="created_at" :props="props">
-              {{ formatDateTime(props.row.created_at) }}
-            </q-td>
-            <q-td key="type" :props="props">
-              {{ $CONSTANTS.STOCK_MOVEMENT_REF_TYPES[props.row.ref_type] }}
-              <span v-if="props.row.ref">
-                {{ props.row.ref }}
-              </span>
-            </q-td>
             <q-td key="product" :props="props">
               {{ props.row.product.name }}
             </q-td>
             <q-td key="quantity_before" :props="props">
               {{ formatNumber(props.row.quantity_before) }}
-              {{ props.row.uom }}
-            </q-td>
-            <q-td key="quantity_after" :props="props">
-              {{ formatNumber(props.row.quantity_after) }}
-              {{ props.row.uom }}
             </q-td>
             <q-td
               key="quantity"
@@ -314,6 +289,12 @@ const computedColumns = computed(() => {
               "
             >
               {{ formatNumber(props.row.quantity) }}
+              <template v-if="$q.screen.lt.sm">{{ props.row.uom }}</template>
+            </q-td>
+            <q-td key="quantity_after" :props="props">
+              {{ formatNumber(props.row.quantity_after) }}
+            </q-td>
+            <q-td key="uom" :props="props">
               {{ props.row.uom }}
             </q-td>
             <q-td key="notes" :props="props">
