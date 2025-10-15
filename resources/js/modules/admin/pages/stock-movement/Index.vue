@@ -4,7 +4,11 @@ import { usePage } from "@inertiajs/vue3";
 import { handleFetchItems } from "@/helpers/client-req-handler";
 import { getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
-import { formatDateTime, formatNumber } from "@/helpers/formatter";
+import {
+  formatDateTime,
+  formatNumber,
+  formatNumberWithSymbol,
+} from "@/helpers/formatter";
 import useTableHeight from "@/composables/useTableHeight";
 import LongTextView from "@/components/LongTextView.vue";
 import { getCurrentMonth, getCurrentYear } from "@/helpers/datetime";
@@ -288,7 +292,7 @@ const computedColumns = computed(() => {
                 props.row.quantity > 0 ? 'text-positive' : 'text-negative'
               "
             >
-              {{ formatNumber(props.row.quantity) }}
+              {{ formatNumberWithSymbol(props.row.quantity) }}
               <template v-if="$q.screen.lt.sm">{{ props.row.uom }}</template>
             </q-td>
             <q-td key="quantity_after" :props="props">

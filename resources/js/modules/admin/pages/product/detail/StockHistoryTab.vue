@@ -3,7 +3,11 @@ import { handleFetchItems } from "@/helpers/client-req-handler";
 import { getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
 import { computed, onMounted, reactive, ref } from "vue";
-import { formatDateTime, formatNumber } from "@/helpers/formatter";
+import {
+  formatDateTime,
+  formatNumber,
+  formatNumberWithSymbol,
+} from "@/helpers/formatter";
 import LongTextView from "@/components/LongTextView.vue";
 
 const props = defineProps({
@@ -172,7 +176,7 @@ const computedColumns = computed(() => {
           :props="props"
           :class="props.row.quantity > 0 ? 'text-positive' : 'text-negative'"
         >
-          {{ formatNumber(props.row.quantity) }}
+          {{ formatNumberWithSymbol(props.row.quantity) }}
           <template v-if="$q.screen.lt.sm">{{ props.row.uom }}</template>
         </q-td>
         <q-td key="quantity_after" :props="props">
