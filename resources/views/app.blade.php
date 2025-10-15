@@ -24,19 +24,19 @@
     };
     window.CONFIG.APP_VERSION_STR = "{{ config('app.version_str', '1.0.0') }}";
     window.CONSTANTS = <?= json_encode([
-                          'USER_TYPES' => \App\Models\User::Types,
-                          'PRODUCT_TYPES' => \App\Models\Product::Types,
-                          'STOCK_MOVEMENT_REF_TYPES' => \App\Models\StockMovement::RefTypes,
-                          'STOCK_ADJUSTMENT_TYPES' => \App\Models\StockAdjustment::Types,
-                          'STOCK_ADJUSTMENT_STATUSES' => \App\Models\StockAdjustment::Statuses,
-                          'CUSTOMER_WALLET_TRANSACTION_TYPES' => \App\Models\CustomerWalletTransaction::Types,
-                          'FINANCE_ACCOUNT_TYPES' => \App\Models\FinanceAccount::Types,
-                          'FINANCE_TRANSACTION_TYPES' => \App\Models\FinanceTransaction::Types,
-                          'PURCHASE_ORDER_STATUSES' => \App\Models\PurchaseOrder::Statuses,
-                          'PURCHASE_ORDER_PAYMENT_STATUSES' => \App\Models\PurchaseOrder::PaymentStatuses,
-                          'PURCHASE_ORDER_DELIVERY_STATUSES' => \App\Models\PurchaseOrder::DeliveryStatuses,
-                          'CUSTOMER_TYPES' => \App\Models\Customer::Types,
-                        ]) ?>;
+          'USER_TYPES' => \App\Models\User::Types,
+          'PRODUCT_TYPES' => \App\Models\Product::Types,
+          'STOCK_MOVEMENT_REF_TYPES' => \App\Models\StockMovement::RefTypes,
+          'STOCK_ADJUSTMENT_TYPES' => \App\Models\StockAdjustment::Types,
+          'STOCK_ADJUSTMENT_STATUSES' => \App\Models\StockAdjustment::Statuses,
+          'CUSTOMER_WALLET_TRANSACTION_TYPES' => \App\Models\CustomerWalletTransaction::Types,
+          'FINANCE_ACCOUNT_TYPES' => \App\Models\FinanceAccount::Types,
+          'FINANCE_TRANSACTION_TYPES' => \App\Models\FinanceTransaction::Types,
+          'PURCHASE_ORDER_STATUSES' => \App\Models\PurchaseOrder::Statuses,
+          'PURCHASE_ORDER_PAYMENT_STATUSES' => \App\Models\PurchaseOrder::PaymentStatuses,
+          'PURCHASE_ORDER_DELIVERY_STATUSES' => \App\Models\PurchaseOrder::DeliveryStatuses,
+          'CUSTOMER_TYPES' => \App\Models\Customer::Types,
+      ]) ?>;
     window.CONSTANTS.USER_TYPE_SUPER_USER = "{{ \App\Models\User::Type_SuperUser }}";
     window.CONSTANTS.USER_TYPE_STANDARD_USER = "{{ \App\Models\User::Type_StandardUser }}";
   </script>

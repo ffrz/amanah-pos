@@ -1,113 +1,114 @@
 @php
-    use App\Models\Setting;
+  use App\Models\Setting;
 
-    $is_pdf_export = isset($pdf) && $pdf;
+  $is_pdf_export = isset($pdf) && $pdf;
 
-    $logo_path = Setting::value('company.logo_path');
-    $logo_path = $is_pdf_export ? public_path($logo_path) : url($logo_path);
-
-    $title = 'KARTU STOK #' . $item->code;
-    $foot_note = Setting::value('pos.foot_note');
+  $logo_path = Setting::value('company.logo_path');
+  if ($logo_path) {
+      $logo_path = $is_pdf_export ? public_path($logo_path) : url($logo_path);
+  }
+  $title = 'KARTU STOK #' . $item->code;
+  $foot_note = Setting::value('pos.foot_note');
 @endphp
 
 @extends('modules.admin.layouts.print-a4-portrait')
 
 @section('content')
-    @if (!$is_pdf_export)
-        <div class="no-print text-center" style="margin-top: 10px; margin-bottom:20px;">
-            <a class="btn my-xs" href="{{ route('admin.stock-adjustment.print-stock-card', $item->id) }}?output=pdf">Simpan
-                PDF</a>
-            <a class="btn my-xs" href="#" onclick="window.print()">Cetak</a>
-        </div>
-    @endif
-
-    <div class="page">
-
-        <x-admin.company-header :logo-path="$logo_path">
-            <h4 style="margin: 0 0 5px 0; text-align: Left;">PENYESUAIAN STOK</h4>
-            <table>
-                <tr>
-                    <td style="width: 2.3cm;">No.</td>
-                    <td>:</td>
-                    <td>{{ $item->code }}</td>
-                </tr>
-                <tr>
-                    <td>Tanggal</td>
-                    <td>:</td>
-                    <td>{{ format_datetime($item->datetime) }}</td>
-                </tr>
-                <tr>
-                    <td>Jenis</td>
-                    <td>:</td>
-                    <td>{{ \App\Models\StockAdjustment::Types[$item->type] }}</td>
-                </tr>
-                <tr>
-                    <td style="vertical-align:top;">Selish Harga</td>
-                    <td>:</td>
-                    <td>Rp. {{ format_number($item->total_price) }}</td>
-                </tr>
-                <tr>
-                    <td style="vertical-align:top;">Catatan</td>
-                    <td>:</td>
-                    <td>{{ $item->notes ?? '-' }}</td>
-                </tr>
-            </table>
-        </x-admin.company-header>
-        <br>
-        <table class="table table-bordered table-striped table-condensed center-th table-sm" style="width:100%">
-            <thead>
-                <th style="width:1%">No</th>
-                <th>Nama Produk</th>
-                <th style="">Satuan</th>
-                <th style="">Stok Awal</th>
-                <th style="">Stok Aktual</th>
-                <th style="">Selisih</th>
-                <th style="">Harga (Rp.)</th>
-                <th style="">Subtotal (Rp.)</th>
-            </thead>
-            <tbody>
-                @foreach ($details as $i => $detail)
-                    <tr>
-                        <td class="text-right">{{ $i + 1 }}</td>
-                        <td class="wrap-column">{{ $detail->product_name }}</td>
-                        <td class="text-center">{{ $detail->uom }}</td>
-                        <td class="text-right">{{ format_number($detail->old_quantity) }}</td>
-                        <td class="text-right">{{ format_number($detail->new_quantity) }}</td>
-                        <td class="text-right">{{ format_number($detail->balance) }}</td>
-                        <td class="text-right">{{ format_number($detail->price) }}</td>
-                        <td class="text-right">{{ format_number($detail->balance * $detail->price) }}</td>
-                    </tr>
-                @endforeach
-            </tbody>
-            <tfoot>
-                <tr>
-                    <th class="text-right" colspan="7">TOTAL (Rp.)</th>
-                    <th class="text-right">{{ format_number($item->total_price) }}</th>
-                </tr>
-            </tfoot>
-        </table>
-
-        <br>
-
-        <table style="width:100%;">
-            <tr>
-                <td style="font-size: small; width: 60%;">
-                    <div>
-                        Dicetak oleh <b>{{ Auth::user()->username }}</b> pada {{ format_datetime(now()) }} |
-                        {{ env('APP_NAME') . ' v' . env('APP_VERSION_STR') }}
-                    </div>
-                    @if ($item->creator)
-                        <div>
-                            Dibuat oleh: {{ $item->creator->name ?? '-' }} |
-                            Diselesaikan oleh: {{ $item->updater->name ?? '-' }}
-                        </div>
-                    @endif
-                </td>
-                <td style="width:40%;text-align:center;">
-                    Disetujui,<br><br><br><br>
-                    (................................)
-                </td>
-            </tr>
-        </table>
+  @if (!$is_pdf_export)
+    <div class="no-print text-center" style="margin-top: 10px; margin-bottom:20px;">
+      <a class="btn my-xs" href="{{ route('admin.stock-adjustment.print-stock-card', $item->id) }}?output=pdf">Simpan
+        PDF</a>
+      <a class="btn my-xs" href="#" onclick="window.print()">Cetak</a>
     </div>
+  @endif
+
+  <div class="page">
+
+    <x-admin.company-header :logo-path="$logo_path">
+      <h4 style="margin: 0 0 5px 0; text-align: Left;">PENYESUAIAN STOK</h4>
+      <table>
+        <tr>
+          <td style="width: 2.3cm;">No.</td>
+          <td>:</td>
+          <td>{{ $item->code }}</td>
+        </tr>
+        <tr>
+          <td>Tanggal</td>
+          <td>:</td>
+          <td>{{ format_datetime($item->datetime) }}</td>
+        </tr>
+        <tr>
+          <td>Jenis</td>
+          <td>:</td>
+          <td>{{ \App\Models\StockAdjustment::Types[$item->type] }}</td>
+        </tr>
+        <tr>
+          <td style="vertical-align:top;">Selish Harga</td>
+          <td>:</td>
+          <td>Rp. {{ format_number($item->total_price) }}</td>
+        </tr>
+        <tr>
+          <td style="vertical-align:top;">Catatan</td>
+          <td>:</td>
+          <td>{{ $item->notes ?? '-' }}</td>
+        </tr>
+      </table>
+    </x-admin.company-header>
+    <br>
+    <table class="table table-bordered table-striped table-condensed center-th table-sm" style="width:100%">
+      <thead>
+        <th style="width:1%">No</th>
+        <th>Nama Produk</th>
+        <th style="">Satuan</th>
+        <th style="">Stok Awal</th>
+        <th style="">Stok Aktual</th>
+        <th style="">Selisih</th>
+        <th style="">Harga (Rp.)</th>
+        <th style="">Subtotal (Rp.)</th>
+      </thead>
+      <tbody>
+        @foreach ($details as $i => $detail)
+          <tr>
+            <td class="text-right">{{ $i + 1 }}</td>
+            <td class="wrap-column">{{ $detail->product_name }}</td>
+            <td class="text-center">{{ $detail->uom }}</td>
+            <td class="text-right">{{ format_number($detail->old_quantity) }}</td>
+            <td class="text-right">{{ format_number($detail->new_quantity) }}</td>
+            <td class="text-right">{{ format_number($detail->balance) }}</td>
+            <td class="text-right">{{ format_number($detail->price) }}</td>
+            <td class="text-right">{{ format_number($detail->balance * $detail->price) }}</td>
+          </tr>
+        @endforeach
+      </tbody>
+      <tfoot>
+        <tr>
+          <th class="text-right" colspan="7">TOTAL (Rp.)</th>
+          <th class="text-right">{{ format_number($item->total_price) }}</th>
+        </tr>
+      </tfoot>
+    </table>
+
+    <br>
+
+    <table style="width:100%;">
+      <tr>
+        <td style="font-size: small; width: 60%;">
+          <div>
+            Dicetak oleh <b>{{ Auth::user()->username }}</b> pada {{ format_datetime(now()) }} |
+            {{ env('APP_NAME') . ' v' . env('APP_VERSION_STR') }}
+          </div>
+          @if ($item->creator)
+            <div>
+              Dibuat oleh: {{ $item->creator->name ?? '-' }} |
+              Diselesaikan oleh: {{ $item->updater->name ?? '-' }}
+            </div>
+          @endif
+        </td>
+        <td style="width:40%;text-align:center;">
+          Disetujui,<br><br><br><br>
+          (................................)
+        </td>
+      </tr>
+    </table>
+  </div>
 @endSection
