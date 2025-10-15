@@ -35,10 +35,10 @@ const title = "Rincian Biaya Operasional";
               <table class="detail">
                 <tbody>
                   <tr>
-                    <td style="width: 110px">ID</td>
+                    <td style="width: 110px">Kode</td>
                     <td style="width: 1px">:</td>
                     <td>
-                      {{ page.props.data.id }}
+                      {{ page.props.data.code }}
                     </td>
                   </tr>
                   <tr>

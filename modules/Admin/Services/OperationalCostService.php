@@ -58,7 +58,8 @@ class OperationalCostService
 
         if (!empty($filter['search'])) {
             $q->where(function ($q) use ($filter) {
-                $q->where('description', 'like', '%' . $filter['search'] . '%');
+                $q->orWhere('code', 'like', '%' . $filter['search'] . '%');
+                $q->orWhere('description', 'like', '%' . $filter['search'] . '%');
                 $q->orWhere('notes', 'like', '%' . $filter['search'] . '%');
             });
         }
@@ -143,7 +144,7 @@ class OperationalCostService
                     'account_id' => $item->finance_account_id,
                     'amount'     => -abs($item->amount),
                     'type'       => FinanceTransaction::Type_Expense,
-                    'notes'      => "Biaya operasional #$item->id",
+                    'notes'      => "Biaya operasional #$item->code",
                 ],
                 $oldItem ? [
                     'ref_id'     => $oldItem->id,
@@ -166,7 +167,7 @@ class OperationalCostService
                 $this->userActivityLogService->log(
                     UserActivityLog::Category_OperationalCost,
                     UserActivityLog::Name_OperationalCost_Create,
-                    "Biaya operasional ID: $item->id telah dibuat.",
+                    "Biaya operasional ID: $item->code telah dibuat.",
                     [
                         'formatter' => 'operational-cost',
                         'new_data' => $this->generateActivityLogData($item),
@@ -176,7 +177,7 @@ class OperationalCostService
                 $this->userActivityLogService->log(
                     UserActivityLog::Category_OperationalCost,
                     UserActivityLog::Name_OperationalCost_Update,
-                    "Biaya operasional ID: $item->id telah diperbarui.",
+                    "Biaya operasional ID: $item->code telah diperbarui.",
                     [
                         'formatter' => 'operational-cost',
                         'old_data' => $oldLogData,

@@ -30,6 +30,8 @@ class GetDataRequest extends DefaultGetDataRequest
     {
         $rules = parent::rules();
 
-        return array_merge($rules, []);
+        return array_merge($rules, [
+            'order_by'  => 'nullable|string|in:id,code,date,finance_account_id,category_id,description,amount',
+        ]);
     }
 }

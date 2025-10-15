@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('purchase_order_id')->constrained('purchase_orders')->onDelete('restrict');
             $table->foreignId('cashier_id')->nullable()->constrained('users')->onDelete('restrict');
             $table->foreignId('supplier_id')->nullable()->constrained('suppliers')->onDelete('restrict');
+            $table->string('code', 255)->unique();
             $table->string('supplier_code', 100)->nullable()->default('');
             $table->string('supplier_name', 100)->nullable()->default('');
             $table->string('supplier_phone', 40)->nullable()->default('');

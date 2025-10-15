@@ -256,7 +256,7 @@ const computedColumns = computed(() => {
                   </div>
                   <q-icon class="inline-icon" name="tag" />
                 </template>
-                {{ props.row.formatted_id }}
+                {{ props.row.code }}
               </div>
               <template v-if="$q.screen.lt.sm">
                 <div>

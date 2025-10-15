@@ -17,6 +17,7 @@
 namespace App\Models;
 
 use App\Models\Traits\HasDocumentVersions;
+use App\Models\Traits\HasTransactionCode;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -25,9 +26,13 @@ class PurchaseOrder extends BaseModel
 {
     use HasDocumentVersions,
         HasFactory,
+        HasTransactionCode,
         SoftDeletes;
 
+    protected string $transactionPrefix = 'PO';
+
     protected $fillable = [
+        'code',
         'supplier_id',
         'supplier_name',
         'supplier_phone',
@@ -55,7 +60,7 @@ class PurchaseOrder extends BaseModel
         'status_label',
         'payment_status_label',
         'delivery_status_label',
-        'formatted_id',
+
     ];
 
     public const Type_Pickup   = 'pickup';
@@ -147,14 +152,6 @@ class PurchaseOrder extends BaseModel
     protected function getTotalPaidAttribute(string $value): float
     {
         return (float) $value;
-    }
-
-    public function getFormattedIdAttribute()
-    {
-        return Setting::value('purchase_order_code_prefix', 'PO-')
-            . Carbon::parse($this->created_at)->format('Ymd')
-            . '-'
-            . $this->id;
     }
 
     public function getTypeLabelAttribute()

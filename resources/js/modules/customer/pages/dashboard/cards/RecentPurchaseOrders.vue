@@ -27,9 +27,7 @@ const page = usePage();
             <q-item-section>
               <q-item-label class="text-subtitle2">
                 <div>
-                  <q-icon class="inline-icon" name="tag" />{{
-                    item.formatted_id
-                  }}
+                  <q-icon class="inline-icon" name="tag" />{{ item.code }}
                 </div>
                 <div>
                   <q-icon class="inline-icon" name="calendar_clock" />{{

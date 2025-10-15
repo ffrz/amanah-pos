@@ -17,6 +17,7 @@
 namespace App\Models;
 
 use App\Models\Traits\HasDocumentVersions;
+use App\Models\Traits\HasTransactionCode;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -27,9 +28,13 @@ class SalesOrderReturn extends BaseModel
 {
     use HasDocumentVersions,
         HasFactory,
+        HasTransactionCode,
         SoftDeletes;
 
+    protected string $transactionPrefix = 'SOR';
+
     protected $fillable = [
+        'code',
         'sales_order_id',
         'user_id', // Siapa yang memproses retur
 
@@ -60,7 +65,7 @@ class SalesOrderReturn extends BaseModel
     protected $appends = [
         'status_label',
         'refund_status_label',
-        'formatted_id',
+
     ];
 
     // === Status Dokumen Retur ===
@@ -78,19 +83,18 @@ class SalesOrderReturn extends BaseModel
     public const RefundStatus_Pending   = 'pending';
     public const RefundStatus_PartiallyRefunded = 'partially_refunded';
     public const RefundStatus_FullyRefunded   = 'fully_refunded';
-    public const RefundStatus_NoRefund = 'no_refund';
 
     public const RefundStatuses = [
         self::RefundStatus_Pending   => 'Menunggu Refund',
         self::RefundStatus_PartiallyRefunded => 'Refund Sebagian',
         self::RefundStatus_FullyRefunded   => 'Refund Lunas',
-        self::RefundStatus_NoRefund  => 'Tidak Ada Refund',
     ];
 
 
     protected function casts(): array
     {
         return [
+            'code'              => 'string',
             'sales_order_id'    => 'integer',
             'user_id'           => 'integer',
             'customer_id'       => 'integer',
@@ -115,14 +119,6 @@ class SalesOrderReturn extends BaseModel
     }
 
     // === Accessors ===
-
-    public function getFormattedIdAttribute(): string
-    {
-        return Setting::value('sales_order_return_code_prefix', 'SOR-')
-            . Carbon::parse($this->created_at)->format('Ymd')
-            . '-'
-            . $this->id;
-    }
 
     public function getStatusLabelAttribute(): string
     {
@@ -173,7 +169,7 @@ class SalesOrderReturn extends BaseModel
         } else if ($this->total_refunded > 0) {
             $this->refund_status = SalesOrderReturn::RefundStatus_PartiallyRefunded;
         } else {
-            $this->refund_status = SalesOrderReturn::RefundStatus_NoRefund;
+            $this->refund_status = SalesOrderReturn::RefundStatus_Pending;
         }
     }
 }

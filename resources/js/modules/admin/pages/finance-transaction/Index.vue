@@ -79,7 +79,7 @@ const pagination = ref({
 const columns = [
   {
     name: "id",
-    label: $q.screen.lt.md ? "Item" : "Kode Trx",
+    label: $q.screen.lt.md ? "Item" : "Kode",
     field: "id",
     align: "left",
     sortable: true,
@@ -128,7 +128,7 @@ onMounted(() => {
 
 const deleteItem = (row) =>
   handleDelete({
-    message: `Penghapusan transaksi keuangan bisa mengakibatkan data yang saling berkaitan di modul lain tidak konsisten. Anda setuju untuk menghapus transaksi ${row.formatted_id}?`,
+    message: `Penghapusan transaksi keuangan bisa mengakibatkan data yang saling berkaitan di modul lain tidak konsisten. Anda setuju untuk menghapus transaksi ${row.code}?`,
     url: route("admin.finance-transaction.delete", row.id),
     fetchItemsCallback: fetchItems,
     loading,
@@ -308,7 +308,7 @@ const showAttachment = (url) => {
                 <template v-if="$q.screen.lt.md">
                   <q-icon class="inline-icon" name="tag" />
                 </template>
-                {{ props.row.formatted_id }}
+                {{ props.row.code }}
               </div>
               <template v-if="$q.screen.lt.md">
                 <div class="text-grey-8">

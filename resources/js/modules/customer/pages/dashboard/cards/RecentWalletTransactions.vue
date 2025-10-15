@@ -41,7 +41,7 @@ const page = usePage();
               <q-item-label>
                 <div>
                   <q-icon class="inline-icon" name="tag" />
-                  {{ item.formatted_id }}
+                  {{ item.code }}
                 </div>
                 <div>
                   <q-icon class="inline-icon" name="calendar_clock" />

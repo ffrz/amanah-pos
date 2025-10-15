@@ -8,7 +8,7 @@ const title = "Rincian Konfirmasi Top Up";
 
 const acceptItem = () =>
   handlePost({
-    message: `Setujui konfirmasi transaksi #${page.props.data.formatted_id}?`,
+    message: `Setujui konfirmasi transaksi #${page.props.data.code}?`,
     url: route(
       "admin.customer-wallet-transaction-confirmation.save",
       page.props.data.id
@@ -29,7 +29,7 @@ const acceptItem = () =>
 
 const rejectItem = () =>
   handlePost({
-    message: `Tolak konfirmasi transaksi #${page.props.data.formatted_id}?`,
+    message: `Tolak konfirmasi transaksi #${page.props.data.code}?`,
     url: route(
       "admin.customer-wallet-transaction-confirmation.save",
       page.props.data.id
@@ -111,7 +111,7 @@ const rejectItem = () =>
                     <td style="width: 110px">Kode Trx</td>
                     <td style="width: 1px">:</td>
                     <td>
-                      {{ page.props.data.formatted_id }}
+                      {{ page.props.data.code }}
                     </td>
                   </tr>
                   <tr>

@@ -28,7 +28,7 @@ return new class extends Migration
         Schema::create('purchase_orders', function (Blueprint $table) {
             $table->id();
             $table->foreignId('supplier_id')->nullable()->constrained('suppliers')->onDelete('restrict')->index(); // FK Index
-
+            $table->string('code', 255)->unique();
             $table->string('type', 40)->nullable()->default('')->index();
 
             $table->string('supplier_name', 100)->nullable()->default('');

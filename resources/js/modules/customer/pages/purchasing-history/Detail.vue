@@ -34,7 +34,7 @@ const title = "Rincian Pembelian";
                     <td style="width: 110px">Kode Trx</td>
                     <td style="width: 1px">:</td>
                     <td>
-                      {{ page.props.data.formatted_id }}
+                      {{ page.props.data.code }}
                     </td>
                   </tr>
                   <tr>

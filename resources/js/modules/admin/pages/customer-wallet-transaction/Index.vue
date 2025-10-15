@@ -54,6 +54,13 @@ const pagination = ref({
 
 const columns = [
   {
+    name: "code",
+    label: "Kode",
+    field: "code",
+    align: "left",
+    sortable: true,
+  },
+  {
     name: "datetime",
     label: "Waktu",
     field: "datetime",
@@ -61,22 +68,31 @@ const columns = [
     sortable: true,
   },
   {
-    name: "customer",
+    name: "customer_id",
     label: "Pelanggan",
-    field: "customer",
+    field: "customer_id",
     align: "left",
+    sortable: true,
   },
   {
-    name: "notes",
-    label: "Catatan",
-    field: "notes",
+    name: "finance_account_id",
+    label: "Akun",
+    field: "finance_account_id",
     align: "left",
+    sortable: true,
   },
   {
     name: "amount",
     label: "Jumlah (Rp.)",
     field: "amount",
     align: "right",
+    sortable: true,
+  },
+  {
+    name: "notes",
+    label: "Catatan",
+    field: "notes",
+    align: "left",
   },
   {
     name: "action",
@@ -90,7 +106,7 @@ onMounted(() => {
 
 const deleteItem = (row) =>
   handleDelete({
-    message: `Hapus transaksi #${row.formatted_id}? Seluruh akun terkait akan di refund dan rekaman akan dihapus.`,
+    message: `Hapus transaksi #${row.code}? Seluruh akun terkait akan di refund dan rekaman akan dihapus.`,
     url: route("admin.customer-wallet-transaction.delete", row.id),
     fetchItemsCallback: fetchItems,
     loading,
@@ -114,9 +130,7 @@ const onFilterChange = () => {
 
 const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return columns;
-  return columns.filter(
-    (col) => col.name === "datetime" || col.name === "action"
-  );
+  return columns.filter((col) => col.name === "code" || col.name === "action");
 });
 
 watch(
@@ -244,24 +258,26 @@ const showAttachment = (url) => {
               )
             "
           >
-            <q-td key="datetime" :props="props" class="wrap-column">
+            <q-td key="code" :props="props" class="wrap-column">
               <div>
-                <q-icon name="tag" class="inline-icon" />
-                {{ props.row.formatted_id }}
-              </div>
-              <div>
-                <q-icon name="calendar_clock" class="inline-icon" />
-                {{ formatDateTime(props.row.datetime) }}
-              </div>
-              <div v-if="props.row.finance_account">
-                <q-icon name="wallet" class="inline-icon" />
-                {{
-                  props.row.finance_account
-                    ? props.row.finance_account.name
-                    : "-"
-                }}
+                <template v-if="!$q.screen.gt.sm">
+                  <q-icon name="tag" class="inline-icon" />
+                </template>
+                {{ props.row.code }}
               </div>
               <template v-if="!$q.screen.gt.sm">
+                <div>
+                  <q-icon name="calendar_clock" class="inline-icon" />
+                  {{ formatDateTime(props.row.datetime) }}
+                </div>
+                <div v-if="props.row.finance_account">
+                  <q-icon name="wallet" class="inline-icon" />
+                  {{
+                    props.row.finance_account
+                      ? props.row.finance_account.name
+                      : "-"
+                  }}
+                </div>
                 <LongTextView
                   icon="person"
                   :text="
@@ -290,18 +306,31 @@ const showAttachment = (url) => {
                 </div>
               </template>
             </q-td>
-            <q-td key="customer" :props="props">
+            <q-td key="datetime" :props="props">
+              {{ formatDateTime(props.row.datetime) }}
+            </q-td>
+
+            <q-td key="customer_id" :props="props">
               <LongTextView
                 :text="
                   props.row.customer.code + ' - ' + props.row.customer.name
                 "
               />
             </q-td>
-            <q-td key="notes" :props="props">
-              <LongTextView :text="props.row.notes" />
+            <q-td key="finance_account_id" :props="props">
+              <div v-if="props.row.finance_account">
+                {{
+                  props.row.finance_account
+                    ? props.row.finance_account.name
+                    : "-"
+                }}
+              </div>
             </q-td>
             <q-td key="amount" :props="props" style="text-align: right">
               {{ formatNumberWithSymbol(props.row.amount) }}
+            </q-td>
+            <q-td key="notes" :props="props">
+              <LongTextView :text="props.row.notes" />
             </q-td>
             <q-td key="action" :props="props">
               <div class="flex justify-end no-wrap">

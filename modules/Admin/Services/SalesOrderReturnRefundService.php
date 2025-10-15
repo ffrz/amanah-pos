@@ -180,7 +180,7 @@ class SalesOrderReturnRefundService
                     'amount' => -$refund->amount,
                     'ref_id' => $refund->id,
                     'ref_type' => FinanceTransaction::RefType_SalesOrderReturnRefund,
-                    'notes' => "Pembayaran transaksi #{$refund->salesOrderReturn->formatted_id}",
+                    'notes' => "Pembayaran transaksi #{$refund->salesOrderReturn->code}",
                 ]);
 
                 // mengurangi saldo akun keuangan
@@ -196,7 +196,7 @@ class SalesOrderReturnRefundService
                 'amount' => $refund->amount,
                 'ref_type' => CustomerWalletTransaction::RefType_SalesOrderReturnRefund,
                 'ref_id' => $refund->id,
-                'notes' => "Pengembalian dana retur #{$refund->salesOrderReturn->formatted_id}",
+                'notes' => "Pengembalian dana retur #{$refund->salesOrderReturn->code}",
             ]);
 
             // tambah saldo wallet pelanggan

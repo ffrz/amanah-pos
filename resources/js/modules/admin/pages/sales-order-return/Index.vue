@@ -128,7 +128,7 @@ const cancelItem = (row) => {
   Dialog.create({
     title: "Konfirmasi Pembatalan",
     icon: "question",
-    message: `Batalkan transaksi #${row.formatted_id}?`,
+    message: `Batalkan transaksi #${row.code}?`,
     focus: "cancel",
     cancel: true,
     persistent: true,
@@ -177,7 +177,7 @@ const cancelItem = (row) => {
 const deleteItem = (row) =>
   handleDelete({
     title: "Konfirmasi Penghapusan",
-    message: `Hapus transaksi #${row.formatted_id}?`,
+    message: `Hapus transaksi #${row.code}?`,
     url: route("admin.sales-order-return.delete", row.id),
     fetchItemsCallback: fetchItems,
     loading,
@@ -341,7 +341,7 @@ watch(
             <q-td key="id" :props="props" class="wrap-column">
               <div>
                 <q-icon name="tag" />
-                {{ props.row.formatted_id }}
+                {{ props.row.code }}
               </div>
               <div>
                 <q-icon class="inline-icon" name="calendar_today" />{{

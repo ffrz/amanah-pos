@@ -17,7 +17,7 @@
 namespace App\Models;
 
 use App\Models\Traits\HasDocumentVersions;
-use Carbon\Carbon;
+use App\Models\Traits\HasTransactionCode;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -26,10 +26,14 @@ class FinanceTransaction extends BaseModel
 {
     use HasFactory,
         HasDocumentVersions,
+        HasTransactionCode,
         SoftDeletes;
+
+    protected string $transactionPrefix = 'FTX';
 
     protected $fillable = [
         'account_id',
+        'code',
         'datetime',
         'type',
         'amount',
@@ -42,7 +46,7 @@ class FinanceTransaction extends BaseModel
     protected $appends = [
         'ref_type_label',
         'type_label',
-        'formatted_id',
+
     ];
 
     /**
@@ -102,14 +106,6 @@ class FinanceTransaction extends BaseModel
             'updated_at' => 'datetime',
             'image_path' => 'string'
         ];
-    }
-
-    public function getFormattedIdAttribute()
-    {
-        return Setting::value('finance_transaction_code_prefix', 'FTX-')
-            . Carbon::parse($this->created_at)->format('Ymd')
-            . '-'
-            . $this->id;
     }
 
     public function getTypeLabelAttribute()

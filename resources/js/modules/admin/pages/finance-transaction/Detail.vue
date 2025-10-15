@@ -1,11 +1,5 @@
 <script setup>
-import {
-  formatDate,
-  formatDateTime,
-  formatMoneyWithSymbol,
-  formatNumber,
-  plusMinusSymbol,
-} from "@/helpers/formatter";
+import { formatDateTime, formatMoneyWithSymbol } from "@/helpers/formatter";
 import { usePage } from "@inertiajs/vue3";
 
 const page = usePage();
@@ -41,10 +35,10 @@ const title = "Rincian Transaksi";
               <table class="detail">
                 <tbody>
                   <tr>
-                    <td style="width: 110px">Kode Trx</td>
+                    <td style="width: 110px">Kode</td>
                     <td style="width: 1px">:</td>
                     <td>
-                      {{ page.props.data.formatted_id }}
+                      {{ page.props.data.code }}
                     </td>
                   </tr>
                   <tr>

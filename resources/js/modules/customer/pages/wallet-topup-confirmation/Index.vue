@@ -136,7 +136,7 @@ const showAttachment = (url) => {
 const cancelWalletTopupConfirmation = (row) => {
   $q.dialog({
     title: "Batalkan Konfirmasi",
-    message: `Apakah Anda yakin akan membatalkan transaksi #${row.formatted_id}?`,
+    message: `Apakah Anda yakin akan membatalkan transaksi #${row.code}?`,
     cancel: {
       label: "Tidak",
       color: "grey",
@@ -157,7 +157,7 @@ const cancelWalletTopupConfirmation = (row) => {
         const index = rows.value.findIndex((tRow) => tRow.id == item.id);
         if (index !== -1) {
           rows.value[index] = item;
-          showInfo(`Transaksi #${row.formatted_id} telah dibatalkan.`);
+          showInfo(`Transaksi #${row.code} telah dibatalkan.`);
         }
       })
       .catch((e) => {
@@ -289,12 +289,12 @@ const onRowClicked = (row) => {
             @click.stop="onRowClicked(props.row)"
           >
             <q-td key="id" :props="props">
-              {{ props.row.formatted_id }}
+              {{ props.row.code }}
             </q-td>
             <q-td key="datetime" :props="props" class="wrap-column">
               <div v-if="!$q.screen.gt.sm">
                 <q-icon name="tag" class="inline-icon" />
-                {{ props.row.formatted_id }}
+                {{ props.row.code }}
               </div>
               <div>
                 <template v-if="!$q.screen.gt.sm">

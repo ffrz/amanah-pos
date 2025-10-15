@@ -17,6 +17,7 @@
 namespace App\Models;
 
 use App\Models\Traits\HasDocumentVersions;
+use App\Models\Traits\HasTransactionCode;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -25,11 +26,15 @@ class CustomerWalletTransaction extends BaseModel
 {
     use HasFactory,
         HasDocumentVersions,
+        HasTransactionCode,
         SoftDeletes;
+
+    protected string $transactionPrefix = 'CWTX';
 
     protected $fillable = [
         'customer_id',
         'finance_account_id',
+        'code',
         'datetime',
         'type',
         'amount',
@@ -41,7 +46,7 @@ class CustomerWalletTransaction extends BaseModel
 
     protected $appends = [
         'type_label',
-        'formatted_id',
+
     ];
 
     /**
@@ -94,14 +99,6 @@ class CustomerWalletTransaction extends BaseModel
             'updated_at' => 'datetime',
             'image_path' => 'string'
         ];
-    }
-
-    public function getFormattedIdAttribute()
-    {
-        return Setting::value('customer_wallet_transaction_code_prefix', 'CWTX-')
-            . Carbon::parse($this->created_at)->format('Ymd')
-            . '-'
-            . $this->id;
     }
 
     public function getTypeLabelAttribute()

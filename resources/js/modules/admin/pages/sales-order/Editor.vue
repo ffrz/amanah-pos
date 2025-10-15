@@ -33,7 +33,7 @@ const showHelpDialog = ref(false);
 const authLayoutRef = ref(null);
 const targetDiv = ref(null);
 const { isFullscreen, toggleFullscreen } = useFullscreen(targetDiv);
-const title = page.props.data.formatted_id;
+const title = page.props.data.code;
 const customer = ref(page.props.data.customer);
 const payment = ref(null);
 const userInput = ref("");
@@ -48,7 +48,7 @@ const selectedPriceType = ref("price_1");
 
 const form = reactive({
   id: page.props.data.id,
-  formatted_id: page.props.data.formatted_id,
+  code: page.props.data.code,
   customer_id: page.props.data.customer_id,
   datetime: new Date(page.props.data.datetime),
   status: page.props.data.status,
@@ -408,7 +408,7 @@ const cancelOrder = () => {
   Dialog.create({
     title: "Konfirmasi Pembatalan",
     icon: "question",
-    message: `Batalkan transaksi #${form.formatted_id}?`,
+    message: `Batalkan transaksi #${form.code}?`,
     focus: "cancel",
     cancel: true,
     persistent: true,
@@ -610,7 +610,7 @@ const isValidWalletBalance = computed(() => {
 
           <div class="col" v-if="$q.screen.gt.sm">
             <div class="q-pa-sm q-pb-none text-grey-8">
-              <div>#: {{ form.formatted_id }}</div>
+              <div>#: {{ form.code }}</div>
               <div>{{ formatDateTime(form.datetime) }}</div>
             </div>
           </div>

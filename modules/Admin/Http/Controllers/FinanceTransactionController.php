@@ -80,7 +80,7 @@ class FinanceTransactionController extends Controller
         $item = $this->financeTransactionService->save($request->validated(), $request->file('image'));
 
         return redirect(route('admin.finance-transaction.index'))
-            ->with('success', "Transaksi $item->formatted_id telah disimpan.");
+            ->with('success', "Transaksi $item->code telah disimpan.");
     }
 
     public function delete($id)
@@ -92,6 +92,6 @@ class FinanceTransactionController extends Controller
 
         $this->financeTransactionService->delete($item);
 
-        return JsonResponseHelper::success($item, "Transaksi #$item->formatted_id telah dihapus.");
+        return JsonResponseHelper::success($item, "Transaksi #$item->code telah dihapus.");
     }
 }

@@ -101,7 +101,7 @@ const computedColumns = computed(() => {
         <q-td key="id" :props="props">
           <div class="text-bold">
             <q-icon class="inline-icon" name="tag" />
-            {{ props.row.formatted_id }}
+            {{ props.row.code }}
           </div>
           <div>
             <q-icon class="inline-icon" name="calendar_today" />

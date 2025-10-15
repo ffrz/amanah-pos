@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('sales_order_id')->constrained('sales_orders')->onDelete('restrict');
             $table->foreignId('cashier_id')->nullable()->constrained('users')->onDelete('restrict');
             $table->foreignId('customer_id')->nullable()->constrained('customers')->onDelete('restrict');
+            $table->string('code', 255)->unique();
             $table->string('customer_code', 100)->nullable()->default('');
             $table->string('customer_name', 100)->nullable()->default('');
             $table->string('customer_phone', 40)->nullable()->default('');

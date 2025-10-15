@@ -33,16 +33,18 @@ const pagination = ref({
 
 const columns = [
   {
-    name: "id",
-    label: "ID",
-    field: "id",
+    name: "code",
+    label: "Kode",
+    field: "code",
     align: "left",
+    sortable: true,
   },
   {
     name: "datetime",
     label: "Waktu",
     field: "datetime",
     align: "left",
+    sortable: true,
   },
   {
     name: "type",
@@ -121,13 +123,13 @@ const fetchItems = (props = null) =>
 
     <template v-slot:body="props">
       <q-tr :props="props">
-        <q-td key="id" :props="props">
+        <q-td key="code" :props="props">
           <div class="flex q-gutter-sm">
             <div>
               <template v-if="$q.screen.lt.md">
                 <q-icon name="tag" class="inline-icon" />
               </template>
-              {{ props.row.formatted_id }}
+              {{ props.row.code }}
             </div>
           </div>
           <template v-if="$q.screen.lt.md">

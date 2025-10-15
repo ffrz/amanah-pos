@@ -55,6 +55,7 @@ class CustomerWalletTransactionService
 
         if (!empty($filter['search'])) {
             $q->where(function ($q) use ($filter) {
+                $q->orWhere('code', 'like', "%" . $filter['search'] . "%");
                 $q->orWhere('notes', 'like', '%' . $filter['search'] . '%');
             });
         }
@@ -113,7 +114,7 @@ class CustomerWalletTransactionService
                     'account_id' => $validated['finance_account_id'],
                     'amount' => $validated['amount'],
                     'type' => $validated['amount'] >= 0 ? FinanceTransaction::Type_Income : FinanceTransaction::Type_Expense,
-                    'notes' => 'Transaksi wallet customer ' . $item->customer->code . ' Ref: ' . $item->formatted_id,
+                    'notes' => 'Transaksi wallet customer ' . $item->customer->code . ' Ref: ' . $item->code,
                     'ref_type' => FinanceTransaction::RefType_CustomerWalletTransaction,
                     'ref_id' => $item->id,
                 ]);
@@ -124,7 +125,7 @@ class CustomerWalletTransactionService
             $this->userActivityLogService->log(
                 UserActivityLog::Category_CustomerWallet,
                 UserActivityLog::Name_CustomerWalletTransaction_Create,
-                "Transaksi wallet pelanggan $item->formatted_id telah dibuat.",
+                "Transaksi wallet pelanggan $item->code telah dibuat.",
                 [
                     'formatter' => 'customer-wallet-transaction',
                     'data' => $item->toArray(),
@@ -162,7 +163,7 @@ class CustomerWalletTransactionService
             $this->userActivityLogService->log(
                 UserActivityLog::Category_CustomerWallet,
                 UserActivityLog::Name_CustomerWalletTransaction_Delete,
-                "Transaksi wallet pelanggan $item->formatted_id telah dihapus.",
+                "Transaksi wallet pelanggan $item->code telah dihapus.",
                 [
                     'formatter' => 'customer-wallet-transaction',
                     'data' => $item->toArray(),
@@ -191,7 +192,7 @@ class CustomerWalletTransactionService
             $this->userActivityLogService->log(
                 UserActivityLog::Category_CustomerWallet,
                 UserActivityLog::Name_CustomerWalletTransaction_Create,
-                "Transaksi penyesuaian salldo wallet pelanggan $item->formatted_id telah dibuat.",
+                "Transaksi penyesuaian salldo wallet pelanggan $item->code telah dibuat.",
                 [
                     'formatter' => 'customer-wallet-transaction',
                     'data' => $item->toArray(),
@@ -240,7 +241,7 @@ class CustomerWalletTransactionService
         );
     }
 
-    protected function reverseTransaction($ref_id, $ref_type)
+    public function reverseTransaction($ref_id, $ref_type)
     {
         $trx = CustomerWalletTransaction::where('ref_id', $ref_id)
             ->where('ref_type', $ref_type)

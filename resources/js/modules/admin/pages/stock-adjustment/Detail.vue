@@ -9,7 +9,7 @@ import { useQuasar } from "quasar";
 import { computed } from "vue";
 
 const page = usePage();
-const title = `Rincian #${page.props.data.formatted_id}`;
+const title = `Rincian #${page.props.data.code}`;
 const rows = page.props.details;
 
 const columns = [
@@ -128,7 +128,7 @@ const print = () => {
                   <tr>
                     <td style="width: 120px">Kode</td>
                     <td style="width: 1px">:</td>
-                    <td>#{{ page.props.data.formatted_id }}</td>
+                    <td>#{{ page.props.data.code }}</td>
                   </tr>
                   <tr>
                     <td>Jenis</td>

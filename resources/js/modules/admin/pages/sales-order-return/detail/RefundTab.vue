@@ -159,7 +159,7 @@ const deletePayment = (payment) => {
             <td class="q-pa-sm" style="border-bottom: 1px solid #eee">
               <div class="row items-center q-gutter-x-sm">
                 <q-icon name="tag" size="xs" color="grey-7" />
-                <span class="text-weight-bold">{{ item.formatted_id }}</span>
+                <span class="text-weight-bold">{{ item.code }}</span>
               </div>
               <div class="row items-center q-gutter-x-sm q-mt-xs">
                 <q-icon name="calendar_today" size="xs" color="grey-7" />
@@ -198,10 +198,7 @@ const deletePayment = (payment) => {
               style="border-bottom: 1px solid #eee"
             >
               <q-btn
-                v-if="
-                  $can('admin.sales-order-return.delete-refund') &&
-                  props.data.customer_id
-                "
+                v-if="$can('admin.sales-order-return.delete-refund')"
                 icon="delete"
                 color="negative"
                 dense

@@ -206,6 +206,7 @@ defineExpose({
             label="Penjualan"
             :default-opened="
               $page.url.startsWith('/admin/sales-orders') ||
+              $page.url.startsWith('/admin/sales-order-returns') ||
               $page.url.startsWith('/admin/customers')
             "
           >
@@ -225,11 +226,11 @@ defineExpose({
               </q-item-section>
             </q-item>
             <q-item
-              v-if="$can('admin.sales-order.index')"
+              v-if="$can('admin.sales-order-return.index')"
               class="subnav"
               clickable
               v-ripple
-              :active="$page.url.startsWith('/admin/sales-orders-return')"
+              :active="$page.url.startsWith('/admin/sales-order-returns')"
               @click="router.get(route('admin.sales-order-return.index'))"
             >
               <q-item-section avatar>
@@ -266,6 +267,7 @@ defineExpose({
             label="Pembelian"
             :default-opened="
               $page.url.startsWith('/admin/purchase-orders') ||
+              $page.url.startsWith('/admin/purchase-order-returns') ||
               $page.url.startsWith('/admin/suppliers')
             "
           >
@@ -285,11 +287,11 @@ defineExpose({
               </q-item-section>
             </q-item>
             <q-item
-              v-if="$can('admin.purchase-order.index')"
+              v-if="$can('admin.purchase-order-return.index')"
               class="subnav"
               clickable
               v-ripple
-              :active="$page.url.startsWith('/admin/purchase-return-orders')"
+              :active="$page.url.startsWith('/admin/purchase-order-returns')"
               @click="router.get(route('admin.purchase-order-return.index'))"
             >
               <q-item-section avatar>

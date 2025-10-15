@@ -64,21 +64,35 @@ const pagination = ref({
   page: 1,
   rowsPerPage: 10,
   rowsNumber: 10,
-  sortBy: "datetime",
+  sortBy: "id",
   descending: true,
 });
 
 const columns = [
   {
+    name: "code",
+    label: "Kode",
+    field: "code",
+    align: "left",
+    sortable: true,
+  },
+  {
     name: "datetime",
-    label: "Tanggal",
+    label: "Waktu",
     field: "datetime",
     align: "left",
     sortable: true,
   },
   {
+    name: "customer_id",
+    label: "Pelanggan",
+    field: "customer_id",
+    align: "left",
+    sortable: true,
+  },
+  {
     name: "finance_account_id",
-    label: "Bank Tujuan",
+    label: "Akun",
     field: "finance_account_id",
     align: "left",
   },
@@ -100,7 +114,7 @@ const columns = [
     field: "notes",
     align: "left",
   },
-  { name: "action", label: "Aksi", field: "action", align: "center" },
+  { name: "action", field: "action", align: "center" },
 ];
 
 onMounted(() => {
@@ -125,7 +139,7 @@ const onFilterChange = () => {
 
 const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return columns;
-  return columns.filter((col) => ["datetime", "action"].includes(col.name));
+  return columns.filter((col) => ["code", "action"].includes(col.name));
 });
 
 watch(
@@ -139,7 +153,7 @@ watch(
 
 const acceptItem = (row) =>
   handlePost({
-    message: `Setujui konfirmasi transaksi #${row.formatted_id}?`,
+    message: `Setujui konfirmasi transaksi #${row.code}?`,
     url: route("admin.customer-wallet-transaction-confirmation.save"),
     fetchItemsCallback: fetchItems,
     loading,
@@ -163,7 +177,7 @@ const rejectItem = (row) =>
 
 const deleteItem = (row) =>
   handleDelete({
-    message: `Hapus konfirmasi transaksi ${row.formatted_id}?`,
+    message: `Hapus konfirmasi transaksi ${row.code}?`,
     url: route("admin.customer-wallet-transaction-confirmation.delete", row.id),
     fetchItemsCallback: fetchItems,
     loading,
@@ -279,12 +293,12 @@ const showAttachment = (url) => {
               )
             "
           >
-            <q-td key="datetime" :props="props" class="wrap-column">
+            <q-td key="code" :props="props" class="wrap-column">
               <div>
                 <q-icon class="inline-icon" name="tag" />
-                {{ props.row.formatted_id }}
+                {{ props.row.code }}
               </div>
-              <div>
+              <div v-if="!$q.screen.gt.sm">
                 <q-icon name="calendar_clock" class="inline-icon" />
                 {{ formatDateTime(props.row.datetime) }}
               </div>
@@ -314,14 +328,22 @@ const showAttachment = (url) => {
                 </div>
               </template>
             </q-td>
-
+            <q-td key="datetime" :props="props" class="wrap-column">
+              {{ formatDateTime(props.row.datetime) }}
+            </q-td>
+            <q-td key="customer_id" :props="props">
+              <LongTextView
+                :text="
+                  props.row.customer.code + ' - ' + props.row.customer.name
+                "
+              />
+            </q-td>
             <q-td key="finance_account_id" :props="props">
               {{ props.row.finance_account.name }}<br />
               {{ props.row.finance_account.bank }}
               {{ props.row.finance_account.number }} an.
               {{ props.row.finance_account.holder }}
             </q-td>
-
             <q-td key="amount" :props="props" style="text-align: right">
               {{ formatNumber(props.row.amount) }}
             </q-td>

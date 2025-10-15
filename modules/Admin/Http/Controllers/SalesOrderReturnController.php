@@ -68,23 +68,21 @@ class SalesOrderReturnController extends Controller
         ];
 
         if ($request->isMethod(Request::METHOD_POST)) {
-            $codeArray = explode('-', $data['code']);
-            $code = null;
+            $salesOrder = SalesOrder::where('code', $data['code'])
+                ->first();
 
-            if (!empty($codeArray)) {
-                $code = $codeArray[count($codeArray) - 1];
-            }
-
-            $salesOrder = null;
-            if (is_numeric($code)) {
-                $salesOrder = SalesOrder::find((int)$code);
-            }
-
-            if (!$salesOrder || $salesOrder->formatted_id !== $data['code']) {
+            if (!$salesOrder) {
                 return redirect()
                     ->back()
                     ->withInput()
-                    ->withErrors(['code' => 'Sales Order dengan kode tersebut tidak ditemukan.']);
+                    ->withErrors(['code' => 'Transaksi penjualan tidak ditemukan.']);
+            }
+
+            if ($salesOrder->status !== SalesOrder::Status_Closed) {
+                return redirect()
+                    ->back()
+                    ->withInput()
+                    ->withErrors(['code' => 'Transaksi penjualan belum ditutup / tidak valid.']);
             }
 
             $salesOrderReturn = $this->service->createOrderReturn($salesOrder);
@@ -130,7 +128,7 @@ class SalesOrderReturnController extends Controller
         $this->service->cancelOrder($orderReturn);
         return JsonResponseHelper::success(
             ['id' => $orderReturn->id],
-            "Transaksi Retur #$orderReturn->formatted_id telah dibatalkan."
+            "Transaksi Retur #$orderReturn->code telah dibatalkan."
         );
     }
 
@@ -148,7 +146,7 @@ class SalesOrderReturnController extends Controller
         $orderReturn = $this->service->findOrderOrFail($id);
         $this->authorize('delete', $orderReturn);
         $this->service->deleteOrderReturn($orderReturn);
-        return JsonResponseHelper::success($orderReturn, "Transaksi #$orderReturn->formatted_id telah dihapus.");
+        return JsonResponseHelper::success($orderReturn, "Transaksi #$orderReturn->code telah dihapus.");
     }
 
     public function detail($id)
@@ -180,7 +178,7 @@ class SalesOrderReturnController extends Controller
                 ->setPaper($size, 'portrait')
                 ->setOption('isHtml5ParserEnabled', true)
                 ->setOption('isPhpEnabled', true);
-            return $pdf->download(env('APP_NAME') . '_' . $item->formatted_id . '.pdf');
+            return $pdf->download(env('APP_NAME') . '_' . $item->code . '.pdf');
         }
 
         return view('modules.admin.pages.sales-order-return.print-' . $size, [

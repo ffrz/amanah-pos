@@ -29,6 +29,7 @@ return new class extends Migration
                 ->onDelete('cascade');
             $table->foreignId('customer_id')->nullable()->constrained('customers')->onDelete('restrict');
             $table->foreignId('finance_account_id')->nullable()->constrained('finance_accounts')->onDelete('restrict');
+            $table->string('code', 255)->unique();
             $table->string('type', 20)->nullable()->index();
             $table->decimal('amount', 18, 2)->nullable();
             $table->text('notes')->nullable();

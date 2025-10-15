@@ -126,7 +126,7 @@ class PurchaseOrderReturnRefundService
                 'amount' => -$payment->amount,
                 'ref_id' => $payment->id,
                 'ref_type' => FinanceTransaction::RefType_PurchaseOrderPayment,
-                'notes' => "Pembayaran transaksi #$order->formatted_id",
+                'notes' => "Pembayaran transaksi #$order->code",
             ]);
 
             FinanceAccount::where('id', $payment->finance_account_id)

@@ -48,6 +48,7 @@ class CustomerWalletTransactionConfirmationService
 
         if (!empty($filter['search'])) {
             $q->where(function ($q) use ($filter) {
+                $q->orWhere('code', 'like', "%" . $filter['search'] . "%");
                 $q->orWhere('notes', 'like', '%' . $filter['search'] . '%');
             });
         }
@@ -92,7 +93,7 @@ class CustomerWalletTransactionConfirmationService
                     'ref_type' => CustomerWalletTransaction::RefType_CustomerWalletTransactionConfirmation,
                     'ref_id' => $item->id,
                     'amount' => $item->amount,
-                    'notes' => 'Konfirmasi topup wallet otomatis #' . $item->formatted_id,
+                    'notes' => 'Konfirmasi topup wallet otomatis #' . $item->code,
                 ]);
 
                 $this->transactionService->handleTransaction([
@@ -100,7 +101,7 @@ class CustomerWalletTransactionConfirmationService
                     'account_id' => $item->finance_account_id,
                     'amount' => $item->amount,
                     'type' => FinanceTransaction::Type_Income,
-                    'notes' => 'Transaksi topup wallet customer ' . $item->customer->code . ' Ref: #' . $walletTransaction->formatted_id,
+                    'notes' => 'Transaksi topup wallet customer ' . $item->customer->code . ' Ref: #' . $walletTransaction->code,
                     'ref_type' => FinanceTransaction::RefType_CustomerWalletTransaction,
                     'ref_id' => $item->id,
                 ]);
@@ -159,7 +160,7 @@ class CustomerWalletTransactionConfirmationService
             $this->activityLogService->log(
                 UserActivityLog::Category_CustomerWallet,
                 UserActivityLog::Name_CustomerWalletTopupConfirmation_Delete,
-                "Konfirmasi wallet $item->formatted_id telah dihapus.",
+                "Konfirmasi wallet $item->code telah dihapus.",
                 [
                     'data' => $item->toArray(),
                     'formatter' => 'customer-wallet-transaction-confirmation',

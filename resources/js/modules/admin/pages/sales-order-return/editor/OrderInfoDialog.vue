@@ -66,7 +66,7 @@ defineExpose({
       <q-card-section class="q-py-sm">
         <div class="row items-center no-wrap">
           <div class="col text-subtite text-bold text-grey-8">
-            Edit {{ data.formatted_id }}
+            Edit {{ data.code }}
           </div>
           <div class="col-auto">
             <q-btn

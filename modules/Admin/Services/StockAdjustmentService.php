@@ -51,7 +51,8 @@ class StockAdjustmentService
         if (!empty($filter['search'])) {
             $search = $filter['search'];
             $q->where(function ($q) use ($search) {
-                $q->where('notes', 'like', '%' . $search . '%');
+                $q->orWhere('code', 'like', '%' . $search . '%');
+                $q->orWhere('notes', 'like', '%' . $search . '%');
             });
         }
 
@@ -130,7 +131,7 @@ class StockAdjustmentService
             $this->userActivityLogService->log(
                 UserActivityLog::Category_StockAdjustment,
                 UserActivityLog::Name_StockAdjustment_Create,
-                "Penyesuaian stok $item->formatted_id telah dibuat.",
+                "Penyesuaian stok $item->code telah dibuat.",
                 [
                     'data' => $item->toArray(),
                 ]
@@ -185,7 +186,7 @@ class StockAdjustmentService
                         'quantity' => $detail->balance,
                         'quantity_before' => $detail->old_quantity,
                         'quantity_after' => $detail->new_quantity,
-                        'notes' => "Penyesuaian stok #$item->formatted_id",
+                        'notes' => "Penyesuaian stok #$item->code",
                     ]);
                     $stockMovement->save();
                 }
@@ -202,7 +203,7 @@ class StockAdjustmentService
                 $this->userActivityLogService->log(
                     UserActivityLog::Category_StockAdjustment,
                     UserActivityLog::Name_StockAdjustment_Close,
-                    "Penyesuaian stok $item->formatted_id telah selesai.",
+                    "Penyesuaian stok $item->code telah selesai.",
                     [
                         'data' => $item->toArray(),
                     ]
@@ -213,7 +214,7 @@ class StockAdjustmentService
                 $this->userActivityLogService->log(
                     UserActivityLog::Category_StockAdjustment,
                     UserActivityLog::Name_StockAdjustment_Cancel,
-                    "Penyesuaian stok $item->formatted_id telah dibatalkan.",
+                    "Penyesuaian stok $item->code telah dibatalkan.",
                     [
                         'data' => $item->toArray(),
                     ]
@@ -254,7 +255,7 @@ class StockAdjustmentService
             $this->userActivityLogService->log(
                 UserActivityLog::Category_StockAdjustment,
                 UserActivityLog::Name_StockAdjustment_Delete,
-                "Penyesuaian stok $item->formatted_id telah dihapus.",
+                "Penyesuaian stok $item->code telah dihapus.",
                 [
                     'data' => $item->toArray(),
                 ]

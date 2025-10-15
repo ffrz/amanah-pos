@@ -72,7 +72,7 @@ class StockAdjustmentController extends Controller
             return redirect(route('admin.stock-adjustment.editor', [
                 'id' => $item->id
             ]))->with([
-                'message' => "Penyesuaian stok $item->formatted_id telah dibuat."
+                'message' => "Penyesuaian stok $item->code telah dibuat."
             ]);
         }
 
@@ -134,7 +134,7 @@ class StockAdjustmentController extends Controller
 
         $item = $this->stockAdjustmentService->delete($item);
 
-        return JsonResponseHelper::success($item, "Penyesuaian stock $item->formatted_id telah dihapus.");
+        return JsonResponseHelper::success($item, "Penyesuaian stock $item->code telah dihapus.");
     }
 
     public function printStockCard(Request $request, $id)
@@ -156,7 +156,7 @@ class StockAdjustmentController extends Controller
                 ->setPaper('a4', 'portrait')
                 ->setOption('isHtml5ParserEnabled', true)
                 ->setOption('isPhpEnabled', true);
-            return $pdf->download(env('APP_NAME') . ' - KARTU STOK - ' . $item->formatted_id . '.pdf');
+            return $pdf->download(env('APP_NAME') . ' - KARTU STOK - ' . $item->code . '.pdf');
         }
 
         return view($template, [
@@ -184,7 +184,7 @@ class StockAdjustmentController extends Controller
                 ->setPaper('a4', 'portrait')
                 ->setOption('isHtml5ParserEnabled', true)
                 ->setOption('isPhpEnabled', true);
-            return $pdf->download(env('APP_NAME') . ' - PENYESUAIAN STOK - ' . $item->formatted_id . '.pdf');
+            return $pdf->download(env('APP_NAME') . ' - PENYESUAIAN STOK - ' . $item->code . '.pdf');
         }
 
         return view($template, [

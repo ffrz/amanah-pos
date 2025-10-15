@@ -3,7 +3,7 @@
     $is_pdf_export = isset($pdf) && $pdf;
     $logo_path = Setting::value('company.logo_path');
     $logo_path = $is_pdf_export ? public_path($logo_path) : url($logo_path);
-    $title = '#' . $item->formatted_id;
+    $title = '#' . $item->code;
 @endphp
 
 @extends('modules.admin.layouts.print-receipt-58mm')
@@ -69,7 +69,7 @@
             <tr>
                 <td class="text-center">
                     <hr style="margin: 4px 0;">
-                    <b>#{{ $item->formatted_id }}</b><br>
+                    <b>#{{ $item->code }}</b><br>
                     {{ format_datetime($item->datetime) }}
                 </td>
             </tr>

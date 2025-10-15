@@ -224,7 +224,7 @@ const onRowClicked = (row) => {
             <q-td key="id" :props="props" class="wrap-column">
               <template v-if="!$q.screen.gt.sm">
                 <q-icon name="tag" class="inline-icon" />
-                {{ props.row.formatted_id }}
+                {{ props.row.code }}
               </template>
               <div>
                 <template v-if="!$q.screen.gt.sm">

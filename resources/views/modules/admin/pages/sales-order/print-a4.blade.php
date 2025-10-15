@@ -5,7 +5,7 @@
     $logo_path = Setting::value('company.logo_path');
     $logo_path = $is_pdf_export ? public_path($logo_path) : url($logo_path);
 
-    $title = '#' . $item->formatted_id;
+    $title = '#' . $item->code;
     $foot_note = Setting::value('pos.foot_note');
 @endphp
 
@@ -29,7 +29,7 @@
                 <tr>
                     <td style="width: 2cm;">No. Invoice</td>
                     <td>:</td>
-                    <td>{{ $item->formatted_id }}</td>
+                    <td>{{ $item->code }}</td>
                 </tr>
                 <tr>
                     <td>Status</td>

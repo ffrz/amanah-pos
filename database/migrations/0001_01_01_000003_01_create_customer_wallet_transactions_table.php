@@ -30,6 +30,7 @@ return new class extends Migration
             $table->foreignId('finance_account_id')->nullable()->constrained('finance_accounts')->onDelete('restrict');
             $table->foreignId('customer_id')->nullable()->constrained('customers')->onDelete('restrict');
 
+            $table->string('code', 255)->unique();
             $table->nullableMorphs('ref');
 
             $table->datetime('datetime')->nullable()->index();

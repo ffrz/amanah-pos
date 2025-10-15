@@ -97,7 +97,7 @@
     "isEntry": true
   },
   "resources/js/modules/admin/app.js": {
-    "file": "assets/app-QvqemzoP.js",
+    "file": "assets/app-CS3_HktC.js",
     "name": "app",
     "src": "resources/js/modules/admin/app.js",
     "isEntry": true,
@@ -105,11 +105,11 @@
       "_virtual_pwa-register-DRELx6Yo.js"
     ],
     "css": [
-      "assets/app-Dey6jzpT.css"
+      "assets/app-TiPJdpt3.css"
     ]
   },
   "resources/js/modules/customer/app.js": {
-    "file": "assets/app-CSNMDTgk.js",
+    "file": "assets/app-DDNdCcws.js",
     "name": "app",
     "src": "resources/js/modules/customer/app.js",
     "isEntry": true,
@@ -117,7 +117,7 @@
       "_virtual_pwa-register-DRELx6Yo.js"
     ],
     "css": [
-      "assets/app-zWOq_k0n.css"
+      "assets/app-Bi-c-X5Z.css"
     ]
   }
 }

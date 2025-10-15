@@ -29,6 +29,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('finance_account_id')->nullable()->constrained('finance_accounts')->onDelete('restrict');
             $table->foreignId('customer_id')->nullable()->constrained('customers')->onDelete('restrict');
+            $table->string('code', 255)->unique();
             $table->datetime('datetime')->nullable()->index();
             $table->decimal('amount', 12, 2)->default(0.);
             $table->string('image_path', 255)->nullable()->default('');

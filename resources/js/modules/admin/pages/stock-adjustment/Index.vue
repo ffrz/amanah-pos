@@ -125,7 +125,7 @@ onMounted(() => {
 
 const deleteItem = (row) =>
   handleDelete({
-    message: `Hapus Penyesuaian Stok #${row.formatted_id}?`,
+    message: `Hapus Penyesuaian Stok #${row.code}?`,
     url: route("admin.stock-adjustment.delete", row.id),
     fetchItemsCallback: fetchItems,
     loading,
@@ -298,13 +298,11 @@ const computedColumns = computed(() => {
           >
             <q-td key="id" :props="props">
               <template v-if="!$q.screen.lt.md">
-                <div class="flex q-gutter-xs">
-                  #{{ props.row.formatted_id }}
-                </div>
+                <div class="flex q-gutter-xs">#{{ props.row.code }}</div>
               </template>
               <template v-else>
                 <div class="flex q-col-gutter-xs">
-                  <div>#{{ props.row.formatted_id }}</div>
+                  <div>#{{ props.row.code }}</div>
                   <div>
                     <q-icon name="history" />
                     {{ formatDateTime(props.row.datetime) }}

@@ -31,7 +31,7 @@ class GetDataRequest extends DefaultGetDataRequest
         $rules = parent::rules();
 
         return array_merge($rules, [
-            'order_by'  => 'nullable|string|in:id,datetime',
+            'order_by'  => 'nullable|string|in:id,code,finance_account_id,customer_id,datetime,amount',
         ]);
     }
 }

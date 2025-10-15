@@ -16,14 +16,18 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasTransactionCode;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SalesOrderPayment extends BaseModel
 {
-    use SoftDeletes;
+    use SoftDeletes, HasTransactionCode;
+
+    protected string $transactionPrefix = 'SOTX';
 
     protected $fillable = [
+        'code',
         'order_id',
         'finance_account_id',
         'customer_id',
@@ -32,7 +36,7 @@ class SalesOrderPayment extends BaseModel
     ];
 
     protected $appends = [
-        'formatted_id',
+
         'type_label',
     ];
 
@@ -60,15 +64,6 @@ class SalesOrderPayment extends BaseModel
             'created_at'  => 'datetime',
         ];
     }
-
-    public function getFormattedIdAttribute()
-    {
-        return Setting::value('sales_order_payment_code_prefix', 'SOPY-')
-            . Carbon::parse($this->created_at)->format('Ymd')
-            . '-'
-            . $this->id;
-    }
-
 
     public function getTypeLabelAttribute()
     {

@@ -17,6 +17,7 @@
 namespace App\Models;
 
 use App\Models\Traits\HasDocumentVersions;
+use App\Models\Traits\HasTransactionCode;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -27,12 +28,15 @@ class PurchaseOrderReturn extends BaseModel
 {
     use HasDocumentVersions,
         HasFactory,
+        HasTransactionCode,
         SoftDeletes;
+
+    protected string $transactionPrefix = 'POR';
 
     protected $fillable = [
         'purchase_order_id',
         'user_id', // Siapa yang memproses retur
-
+        'code',
         'supplier_id',
         'supplier_code',
         'supplier_name',
@@ -59,7 +63,7 @@ class PurchaseOrderReturn extends BaseModel
     protected $appends = [
         'status_label',
         'credit_status_label',
-        'formatted_id',
+
     ];
 
     // === Status Dokumen Retur ===
@@ -112,17 +116,6 @@ class PurchaseOrderReturn extends BaseModel
     }
 
     // === Accessors ===
-
-    public function getFormattedIdAttribute(): string
-    {
-        // Asumsi ada setting untuk prefix retur pembelian
-        // Menggunakan id() karena `Setting` mungkin belum tersedia di konteks ini.
-        // return Setting::value('purchase_return_code_prefix', 'PR-')
-        return 'PR-'
-            . Carbon::parse($this->created_at)->format('Ymd')
-            . '-'
-            . $this->id;
-    }
 
     public function getStatusLabelAttribute(): string
     {

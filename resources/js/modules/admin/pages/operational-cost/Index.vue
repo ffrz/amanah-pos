@@ -66,9 +66,9 @@ const pagination = ref({
 });
 const columns = [
   {
-    name: "id",
-    label: $q.screen.lt.md ? "Item" : "ID",
-    field: "id",
+    name: "code",
+    label: $q.screen.lt.md ? "Item" : "Kode",
+    field: "code",
     align: "left",
     sortable: true,
   },
@@ -80,16 +80,18 @@ const columns = [
     sortable: true,
   },
   {
-    name: "account_id",
+    name: "finance_account_id",
     label: "Akun",
-    field: "account_id",
+    field: "finance_account_id",
     align: "left",
+    sortable: true,
   },
   {
     name: "category_id",
     label: "Kategori",
     field: "category_id",
     align: "left",
+    sortable: true,
   },
   {
     name: "description",
@@ -123,7 +125,7 @@ onMounted(() => {
 
 const deleteItem = (row) =>
   handleDelete({
-    message: `Hapus Biaya ${row.description}?`,
+    message: `Hapus Biaya ${row.code}?`,
     url: route("admin.operational-cost.delete", row.id),
     fetchItemsCallback: fetchItems,
     loading,
@@ -294,9 +296,9 @@ const showAttachment = (url) => {
               )
             "
           >
-            <q-td key="id" :props="props" class="wrap-column">
-              <template v-if="!$q.screen.gt.sm"> ID: </template>
-              {{ props.row.id }}
+            <q-td key="code" :props="props" class="wrap-column">
+              <template v-if="!$q.screen.gt.sm"> Kode: </template>
+              {{ props.row.code }}
               <template v-if="!$q.screen.gt.sm">
                 <div>
                   <q-icon name="calendar_clock" class="inline-icon" />
@@ -329,7 +331,7 @@ const showAttachment = (url) => {
             <q-td key="date" :props="props" class="wrap-column">
               {{ formatDate(props.row.date) }}
             </q-td>
-            <q-td key="account_id" :props="props" class="wrap-column">
+            <q-td key="finance_account_id" :props="props" class="wrap-column">
               {{
                 props.row.finance_account ? props.row.finance_account.name : ""
               }}

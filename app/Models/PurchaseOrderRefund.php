@@ -16,25 +16,29 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasTransactionCode;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PurchaseOrderRefund extends BaseModel
 {
-    use SoftDeletes;
+    use SoftDeletes, HasTransactionCode;
+
+    protected string $transactionPrefix = 'PORF';
 
     protected $fillable = [
         'purchase_order_return_id', // Merujuk ke dokumen retur pembelian
         'supplier_id',
         'finance_account_id',
+        'code',
         'type',
         'amount',
         'notes', // Catatan
     ];
 
     protected $appends = [
-        'formatted_id',
+
         'type_label',
     ];
 
@@ -63,17 +67,6 @@ class PurchaseOrderRefund extends BaseModel
             'created_at'               => 'datetime',
         ];
     }
-
-    public function getFormattedIdAttribute(): string
-    {
-        // Prefix untuk Purchase Order Refund / Credit
-        // return Setting::value('purchase_refund_code_prefix', 'PORF-')
-        return 'PORF-'
-            . Carbon::parse($this->created_at)->format('Ymd')
-            . '-'
-            . $this->id;
-    }
-
 
     public function getTypeLabelAttribute(): string
     {

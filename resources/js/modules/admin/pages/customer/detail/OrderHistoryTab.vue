@@ -104,7 +104,7 @@ const computedColumns = computed(() => {
         <q-td key="id" :props="props">
           <div class="text-bold">
             <q-icon class="inline-icon" name="tag" />
-            {{ props.row.formatted_id }}
+            {{ props.row.code }}
           </div>
           <div>
             <q-icon class="inline-icon" name="calendar_clock" />
@@ -125,7 +125,15 @@ const computedColumns = computed(() => {
           </template>
           <div>
             <q-badge :color="props.row.status == 'closed' ? 'green' : 'red'">
-              {{ $CONSTANTS.SALES_ORDER_STATUSES[props.row.status] }}
+              {{ props.row.status_label }}
+            </q-badge>
+            <q-badge
+              class="q-ml-xs"
+              :color="
+                props.row.payment_status == 'fully_paid' ? 'green' : 'red'
+              "
+            >
+              {{ props.row.payment_status_label }}
             </q-badge>
           </div>
         </q-td>

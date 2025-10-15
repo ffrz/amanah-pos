@@ -16,23 +16,26 @@
 
 namespace App\Models;
 
-use Carbon\Carbon;
+use App\Models\Traits\HasTransactionCode;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PurchaseOrderPayment extends BaseModel
 {
-    use SoftDeletes;
+    use SoftDeletes, HasTransactionCode;
+
+    protected string $transactionPrefix = 'POTX';
 
     protected $fillable = [
         'order_id',
         'finance_account_id',
         'supplier_id',
+        'code',
         'type',
         'amount',
     ];
 
     protected $appends = [
-        'formatted_id',
+
         'type_label',
     ];
 
@@ -54,14 +57,6 @@ class PurchaseOrderPayment extends BaseModel
             'amount'      => 'decimal:3',
             'created_at'  => 'datetime',
         ];
-    }
-
-    public function getFormattedIdAttribute()
-    {
-        return Setting::value('purchase_order_payment_code_prefix', 'POPY-')
-            . Carbon::parse($this->created_at)->format('Ymd')
-            . '-'
-            . $this->id;
     }
 
 

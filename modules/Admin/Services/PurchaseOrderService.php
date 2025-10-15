@@ -74,7 +74,7 @@ class PurchaseOrderService
             $this->userActivityLogService->log(
                 UserActivityLog::Category_PurchaseOrder,
                 UserActivityLog::Name_PurchaseOrder_Create,
-                "Order pembelian $item->formatted_id telah dibuat.",
+                "Order pembelian $item->code telah dibuat.",
                 [
                     'data' => $item->toArray(),
                     'formatter' => 'puchase-order',
@@ -137,7 +137,7 @@ class PurchaseOrderService
             $this->userActivityLogService->log(
                 UserActivityLog::Category_PurchaseOrder,
                 UserActivityLog::Name_PurchaseOrder_Cancel,
-                "Order pembelian $item->formatted_id telah dibatalkan.",
+                "Order pembelian $item->code telah dibatalkan.",
                 [
                     'data' => $item->toArray(),
                     'formatter' => 'puchase-order',
@@ -182,7 +182,7 @@ class PurchaseOrderService
                 'quantity'        => $detail->quantity,
                 'quantity_before' => $product->stock,
                 'quantity_after'  => $product->stock + $detail->quantity,
-                'notes'           => "Transaksi pembelian #$order->formatted_id",
+                'notes'           => "Transaksi pembelian #$order->code",
             ]);
 
             $product->cost = $detail->cost;
@@ -225,7 +225,7 @@ class PurchaseOrderService
             $this->userActivityLogService->log(
                 UserActivityLog::Category_PurchaseOrder,
                 UserActivityLog::Name_PurchaseOrder_Close,
-                "Order pembelian $order->formatted_id telah ditutup.",
+                "Order pembelian $order->code telah ditutup.",
                 [
                     'data' => $order->toArray(),
                     'formatter' => 'puchase-order',
@@ -257,7 +257,7 @@ class PurchaseOrderService
             $this->userActivityLogService->log(
                 UserActivityLog::Category_PurchaseOrder,
                 UserActivityLog::Name_PurchaseOrder_Delete,
-                "Order pembelian $order->formatted_id telah dihapus.",
+                "Order pembelian $order->code telah dihapus.",
                 [
                     'data' => $order->toArray(),
                     'formatter' => 'puchase-order',
@@ -276,6 +276,7 @@ class PurchaseOrderService
 
         if (!empty($filter['search'])) {
             $q->where(function ($q) use ($filter) {
+                $q->orWhere('code', 'like', "%" . $filter['search'] . "%");
                 $q->orWhere('notes', 'like', '%' . $filter['search'] . '%');
                 $q->orWhere('supplier_code', 'like', '%' . $filter['search'] . '%');
                 $q->orWhere('supplier_name', 'like', '%' . $filter['search'] . '%');

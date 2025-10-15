@@ -28,6 +28,7 @@ return new class extends Migration
         Schema::create('finance_transactions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('account_id')->nullable()->constrained('finance_accounts')->onDelete('restrict');
+            $table->string('code', 255)->unique();
             $table->nullableMorphs('ref');
             $table->datetime('datetime')->nullable()->index();
             $table->string('type', '100')->index();

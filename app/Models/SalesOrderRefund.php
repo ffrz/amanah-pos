@@ -16,15 +16,19 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasTransactionCode;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SalesOrderRefund extends BaseModel
 {
-    use SoftDeletes;
+    use SoftDeletes, HasTransactionCode;
+
+    protected string $transactionPrefix = 'SORF';
 
     protected $fillable = [
+        'code',
         'sales_order_return_id', // Merujuk ke dokumen retur penjualan
         'finance_account_id',
         'customer_id',
@@ -34,7 +38,7 @@ class SalesOrderRefund extends BaseModel
     ];
 
     protected $appends = [
-        'formatted_id',
+
         'type_label',
     ];
 
@@ -63,17 +67,6 @@ class SalesOrderRefund extends BaseModel
             'created_at'            => 'datetime',
         ];
     }
-
-    public function getFormattedIdAttribute(): string
-    {
-        // Prefix untuk Sales Order Refund
-        // return Setting::value('sales_refund_code_prefix', 'SORF-')
-        return 'SORF-'
-            . Carbon::parse($this->created_at)->format('Ymd')
-            . '-'
-            . $this->id;
-    }
-
 
     public function getTypeLabelAttribute(): string
     {

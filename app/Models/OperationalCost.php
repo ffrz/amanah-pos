@@ -17,6 +17,7 @@
 namespace App\Models;
 
 use App\Models\Traits\HasDocumentVersions;
+use App\Models\Traits\HasTransactionCode;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -24,11 +25,15 @@ class OperationalCost extends BaseModel
 {
     use HasFactory,
         HasDocumentVersions,
+        HasTransactionCode,
         SoftDeletes;
+
+    protected string $transactionPrefix = 'OC';
 
     protected $fillable = [
         'category_id',
         'finance_account_id',
+        'code',
         'date',
         'description',
         'amount',

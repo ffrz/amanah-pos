@@ -92,7 +92,7 @@ class SalesOrderController extends Controller
         $this->service->cancelOrder($order);
         return JsonResponseHelper::success(
             ['id' => $order->id],
-            "Transaksi #$order->formatted_id telah dibatalkan."
+            "Transaksi #$order->code telah dibatalkan."
         );
     }
 
@@ -110,7 +110,7 @@ class SalesOrderController extends Controller
         $order = $this->service->findOrderOrFail($id);
         $this->authorize('delete', $order);
         $this->service->deleteOrder($order);
-        return JsonResponseHelper::success($order, "Transaksi #$order->formatted_id telah dihapus.");
+        return JsonResponseHelper::success($order, "Transaksi #$order->code telah dihapus.");
     }
 
     public function detail($id)
@@ -142,7 +142,7 @@ class SalesOrderController extends Controller
                 ->setPaper($size, 'portrait')
                 ->setOption('isHtml5ParserEnabled', true)
                 ->setOption('isPhpEnabled', true);
-            return $pdf->download(env('APP_NAME') . '_' . $item->formatted_id . '.pdf');
+            return $pdf->download(env('APP_NAME') . '_' . $item->code . '.pdf');
         }
 
         return view('modules.admin.pages.sales-order.print-' . $size, [

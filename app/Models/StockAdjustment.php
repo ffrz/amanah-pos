@@ -17,7 +17,7 @@
 namespace App\Models;
 
 use App\Models\Traits\HasDocumentVersions;
-use Carbon\Carbon;
+use App\Models\Traits\HasTransactionCode;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -25,9 +25,13 @@ class StockAdjustment extends BaseModel
 {
     use HasFactory,
         HasDocumentVersions,
+        HasTransactionCode,
         SoftDeletes;
 
+    protected string $transactionPrefix = 'SA';
+
     protected $fillable = [
+        'code',
         'datetime',
         'status',
         'type',
@@ -63,13 +67,14 @@ class StockAdjustment extends BaseModel
     ];
 
     protected $appends = [
-        'formatted_id',
+
         'type_label'
     ];
 
     protected function casts(): array
     {
         return [
+            'code'         => 'string',
             'datetime'     => 'datetime',
             'status'       => 'string',
             'type'         => 'string',
@@ -91,13 +96,5 @@ class StockAdjustment extends BaseModel
     public function details()
     {
         return $this->hasMany(StockAdjustmentDetail::class, 'parent_id');
-    }
-
-    public function getFormattedIdAttribute()
-    {
-        return Setting::value('stock_adjustment_code_prefix', 'SA-')
-            . Carbon::parse($this->created_at)->format('Ymd')
-            . '-'
-            . $this->id;
     }
 }

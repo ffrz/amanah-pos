@@ -64,7 +64,7 @@ class Product extends BaseModel
 
     protected $appends = [
         'type_label',
-        'formatted_id',
+
     ];
 
     /**

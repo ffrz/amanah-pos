@@ -50,6 +50,7 @@ class SalesOrderService
 
         if (!empty($filter['search'])) {
             $q->where(function ($q) use ($filter) {
+                $q->orWhere('code', 'like', "%" . $filter['search'] . "%");
                 $q->orWhere('notes', 'like', '%' . $filter['search'] . '%');
                 $q->orWhere('customer_code', 'like', '%' . $filter['search'] . '%');
                 $q->orWhere('customer_name', 'like', '%' . $filter['search'] . '%');
@@ -58,8 +59,8 @@ class SalesOrderService
             });
 
             $q->orWhereHas('details.product', function ($q) use ($filter) {
-                $q->where('name', 'like', "%" . $filter['search'] . "%")
-                    ->orWhere('barcode', 'like', "%" . $filter['search'] . "%");
+                $q->orWhere('name', 'like', "%" . $filter['search'] . "%");
+                $q->orWhere('barcode', 'like', "%" . $filter['search'] . "%");
             });
         }
 
@@ -174,7 +175,7 @@ class SalesOrderService
             $this->userActivityLogService->log(
                 UserActivityLog::Category_SalesOrder,
                 UserActivityLog::Name_SalesOrder_Cancel,
-                "Order penjualan $item->formatted_id telah dibatalkan.",
+                "Order penjualan $item->code telah dibatalkan.",
                 [
                     'data' => $item->toArray(),
                     'formatter' => 'sales-order',
@@ -242,7 +243,7 @@ class SalesOrderService
     {
         $cashierSession = $order->cashierSession;
         if ($cashierSession && $cashierSession->is_closed) {
-            throw new BusinessRuleViolationException("Transaksi tidak dapat dihapus! Sesi kasir untuk Order #$order->formatted_id sudah ditutup!");
+            throw new BusinessRuleViolationException("Transaksi tidak dapat dihapus! Sesi kasir untuk Order #$order->code sudah ditutup!");
         }
 
         DB::transaction(function () use ($order) {
@@ -314,7 +315,7 @@ class SalesOrderService
                 'quantity'        => -$quantity,
                 'quantity_before' => $product->stock,
                 'quantity_after'  => $product->stock - $quantity,
-                'notes'           => "Transaksi penjualan #$order->formatted_id",
+                'notes'           => "Transaksi penjualan #$order->code",
             ]);
 
             // FIXME: ada bugs, quantity dikali 2 di rekaman tertentu,

@@ -27,6 +27,7 @@ return new class extends Migration
     {
         Schema::create('stock_adjustments', function (Blueprint $table) {
             $table->id();
+            $table->string('code', 255)->unique();
             $table->datetime('datetime')->nullable()->index();
             $table->string('status', 30)->index();
             $table->string('type', 30)->index();

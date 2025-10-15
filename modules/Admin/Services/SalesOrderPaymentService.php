@@ -187,7 +187,7 @@ class SalesOrderPaymentService
                     'amount' => $payment->amount,
                     'ref_id' => $payment->id,
                     'ref_type' => FinanceTransaction::RefType_SalesOrderPayment,
-                    'notes' => "Pembayaran transaksi #{$payment->order->formatted_id}",
+                    'notes' => "Pembayaran transaksi #{$payment->order->code}",
                 ]);
 
                 // menambahkan saldo akun keuangan
@@ -203,7 +203,7 @@ class SalesOrderPaymentService
                 'amount' => -$payment->amount,
                 'ref_type' => CustomerWalletTransaction::RefType_SalesOrderPayment,
                 'ref_id' => $payment->id,
-                'notes' => "Pembayaran transaksi #{$payment->order->formatted_id}",
+                'notes' => "Pembayaran transaksi #{$payment->order->code}",
             ]);
 
             // kurangi saldo wallet pelanggan

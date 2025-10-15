@@ -50,7 +50,7 @@ const focusOnButton = () => {
             <tr>
               <td>ID</td>
               <td>:</td>
-              <td>{{ order.formatted_id }}</td>
+              <td>{{ order.code }}</td>
             </tr>
             <tr v-if="customer">
               <td style="vertical-align: top">Pelanggan</td>

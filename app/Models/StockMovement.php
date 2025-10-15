@@ -16,6 +16,7 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasTransactionCode;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
@@ -25,7 +26,10 @@ use Illuminate\Support\Facades\DB;
  */
 class StockMovement extends BaseModel
 {
-    use SoftDeletes;
+    use SoftDeletes,
+        HasTransactionCode;
+
+    protected string $transactionPrefix = 'SM';
 
     /**
      * The attributes that are mass assignable.
@@ -66,9 +70,7 @@ class StockMovement extends BaseModel
         self::RefType_PurchaseOrderReturnDetail => 'Retur Order Pembelian',
     ];
 
-    protected $appends = [
-        'formatted_id',
-    ];
+    protected $appends = [];
 
     protected function casts(): array
     {
@@ -86,14 +88,6 @@ class StockMovement extends BaseModel
             'updated_at'       => 'datetime',
             'updated_by'       => 'integer',
         ];
-    }
-
-    public function getFormattedIdAttribute()
-    {
-        return Setting::value('stock_movement_code_prefix', 'SM-')
-            . Carbon::parse($this->created_at)->format('Ymd')
-            . '-'
-            . $this->id;
     }
 
     public function product()

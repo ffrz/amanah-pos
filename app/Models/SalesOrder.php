@@ -17,18 +17,22 @@
 namespace App\Models;
 
 use App\Models\Traits\HasDocumentVersions;
+use App\Models\Traits\HasTransactionCode;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SalesOrder extends BaseModel
 {
     use HasDocumentVersions,
+        HasTransactionCode,
         SoftDeletes;
+
+    protected string $transactionPrefix = 'SO';
 
     protected $fillable = [
         'cashier_id',
         'cashier_session_id',
-
+        'code',
         'customer_id',
         'customer_code',
         'customer_name',
@@ -57,7 +61,7 @@ class SalesOrder extends BaseModel
         'status_label',
         'payment_status_label',
         'delivery_status_label',
-        'formatted_id',
+
     ];
 
     public const Type_Pickup   = 'pickup';

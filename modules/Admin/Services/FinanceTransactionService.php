@@ -114,6 +114,7 @@ class FinanceTransactionService
 
         if (!empty($filter['search'])) {
             $q->where(function ($q) use ($filter) {
+                $q->orWhere('code', 'like', "%" . $filter['search'] . "%");
                 $q->orWhere('notes', 'like', '%' . $filter['search'] . '%');
             });
         }
@@ -168,7 +169,7 @@ class FinanceTransactionService
                     $this->userActivityLogService->log(
                         UserActivityLog::Category_FinanceTransaction,
                         UserActivityLog::Name_FinanceTransaction_Delete,
-                        "Transaksi $pair->formatted_id telah dihapus",
+                        "Transaksi $pair->code telah dihapus",
                         [
                             "data" => $pair->toArray(),
                             "formatter" => "finance-transaction",
@@ -184,7 +185,7 @@ class FinanceTransactionService
             $this->userActivityLogService->log(
                 UserActivityLog::Category_FinanceTransaction,
                 UserActivityLog::Name_FinanceTransaction_Delete,
-                "Transaksi $item->formatted_id telah dihapus",
+                "Transaksi $item->code telah dihapus",
                 [
                     "data" => $item->toArray(),
                     "formatter" => "finance-transaction",
@@ -225,12 +226,12 @@ class FinanceTransactionService
                 foreach ($items as $item) {
                     $this->documentVersionService->createVersion($item);
 
-                    $formatted_id = $item->formatted_id;
+                    $code = $item->code;
 
                     $this->userActivityLogService->log(
                         UserActivityLog::Category_FinanceTransaction,
                         UserActivityLog::Name_FinanceTransaction_Create,
-                        "Transaksi $formatted_id telah dibuat",
+                        "Transaksi $code telah dibuat",
                         [
                             "data" => $item->toArray(),
                             "formatter" => "finance-transaction",
@@ -245,7 +246,7 @@ class FinanceTransactionService
                 $this->userActivityLogService->log(
                     UserActivityLog::Category_FinanceTransaction,
                     UserActivityLog::Name_FinanceTransaction_Create,
-                    "Transaksi $item->formatted_id telah dibuat",
+                    "Transaksi $item->code telah dibuat",
                     [
                         "data" => $item->toArray(),
                         "formatter" => "finance-transaction",

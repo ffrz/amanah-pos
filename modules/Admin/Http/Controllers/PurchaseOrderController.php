@@ -81,7 +81,7 @@ class PurchaseOrderController extends Controller
         $this->service->cancelOrder($order);
         return JsonResponseHelper::success(
             ['id' => $order->id],
-            "Transaksi #$order->formatted_id telah dibatalkan."
+            "Transaksi #$order->code telah dibatalkan."
         );
     }
 
@@ -90,7 +90,7 @@ class PurchaseOrderController extends Controller
         $order = $this->service->findOrderOrFail($id);
         $this->authorize('delete', $order);
         $order = $this->service->deleteOrder($order);
-        return JsonResponseHelper::success($order, "Transaksi #$order->formatted_id telah dihapus.");
+        return JsonResponseHelper::success($order, "Transaksi #$order->code telah dihapus.");
     }
 
     public function detail($id)

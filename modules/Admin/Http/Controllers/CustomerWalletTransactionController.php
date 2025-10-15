@@ -86,7 +86,7 @@ class CustomerWalletTransactionController extends Controller
         $this->service->save($item, $request->validated(), $request->file('image'));
 
         return redirect(route('admin.customer-wallet-transaction.index'))
-            ->with('success', "Transaksi $item->formatted_id telah disimpan.");
+            ->with('success', "Transaksi $item->code telah disimpan.");
     }
 
     public function adjustment(AdjustmentRequest $request)
@@ -114,7 +114,7 @@ class CustomerWalletTransactionController extends Controller
 
         return JsonResponseHelper::success(
             $item,
-            "Transaksi #$item->formatted_id telah dihapus."
+            "Transaksi #$item->code telah dihapus."
         );
     }
 }
