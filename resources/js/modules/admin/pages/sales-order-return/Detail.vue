@@ -25,10 +25,12 @@ onMounted(() => {
   });
 });
 
-
 const print = (size) => {
   window.open(
-    route("admin.sales-order.print", { id: page.props.data.id, size: size }),
+    route("admin.sales-order-return.print", {
+      id: page.props.data.id,
+      size: size,
+    }),
     "_self"
   );
 };

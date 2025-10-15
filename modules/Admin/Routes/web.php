@@ -248,8 +248,8 @@ Route::middleware([Auth::class])
                 Route::post('delete/{id}', [PurchaseOrderReturnController::class, 'delete'])->name('admin.purchase-order-return.delete');
                 Route::post('update', [PurchaseOrderReturnController::class, 'update'])->name('admin.purchase-order-return.update');
                 Route::post('close', [PurchaseOrderReturnController::class, 'close'])->name('admin.purchase-order-return.close');
-                Route::post('add-payment', [PurchaseOrderReturnController::class, 'addPayment'])->name('admin.purchase-order-return.add-payment');
-                Route::post('delete-payment', [PurchaseOrderReturnController::class, 'deletePayment'])->name('admin.purchase-order-return.delete-payment');
+                Route::post('add-refund', [PurchaseOrderReturnController::class, 'addRefund'])->name('admin.purchase-order-return.add-refund');
+                Route::post('delete-refund', [PurchaseOrderReturnController::class, 'deleteRefund'])->name('admin.purchase-order-return.delete-refund');
                 // items
                 Route::post('add-item', [PurchaseOrderReturnController::class, 'addItem'])->name('admin.purchase-order-return.add-item');
                 Route::post('remove-item', [PurchaseOrderReturnController::class, 'removeItem'])->name('admin.purchase-order-return.remove-item');

@@ -33,7 +33,7 @@ class PurchaseOrderReturnRefundService
 
     public function findOrFail(int $id): PurchaseOrderRefund
     {
-        return PurchaseOrderRefund::with(['purchaseOrderReturn', 'purchaseOrderReturn.Supplier'])->findOrFail($id);
+        return PurchaseOrderRefund::with(['purchaseOrderReturn', 'purchaseOrderReturn.supplier'])->findOrFail($id);
     }
 
     public function addRefund(PurchaseOrderReturn $order, array $data): void
@@ -166,11 +166,11 @@ class PurchaseOrderReturnRefundService
                 FinanceTransaction::create([
                     'account_id' => $refund->finance_account_id,
                     'datetime' => now(),
-                    'type' => FinanceTransaction::Type_Expense,
+                    'type' => FinanceTransaction::Type_Income,
                     'amount' => $refund->amount,
                     'ref_id' => $refund->id,
                     'ref_type' => FinanceTransaction::RefType_PurchaseOrderReturnRefund,
-                    'notes' => "Pembayaran transaksi #{$refund->purchaseOrderReturn->code}",
+                    'notes' => "Terima refund pembelian #{$refund->purchaseOrderReturn->code}",
                 ]);
 
                 // menambah saldo akun keuangan

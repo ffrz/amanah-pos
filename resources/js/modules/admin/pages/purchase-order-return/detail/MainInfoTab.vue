@@ -11,7 +11,10 @@ const props = defineProps({
     <q-card-section class="q-pa-none">
       <div class="bg-grey-2 q-pa-xs">
         <div class="text-subtitle1 text-bold text-grey-10">
-          INVOICE #{{ props.data.code }}
+          RETUR #{{ props.data.code }}
+        </div>
+        <div class="text-caption text-grey-8">
+          {{ formatDateTime(props.data.datetime) }}
         </div>
       </div>
     </q-card-section>
@@ -34,7 +37,9 @@ const props = defineProps({
                     "
                   >
                     <q-icon class="inline-icon" name="person" />
-                    {{ props.data.supplier_name }}
+                    {{ props.data.supplier_name }} ({{
+                      props.data.supplier_code
+                    }})
                   </i-link>
                 </template>
                 <template v-else>
@@ -61,7 +66,7 @@ const props = defineProps({
       </div>
 
       <div class="col-12 col-sm-6" align="left">
-        <div class="text-subtitle2 text-bold text-grey-8">Info Order</div>
+        <div class="text-subtitle2 text-bold text-grey-8">Info Retur</div>
         <table class="full-width">
           <tbody>
             <tr>
@@ -72,39 +77,17 @@ const props = defineProps({
               </td>
             </tr>
             <tr>
-              <td class="text-grey-7">Status Order</td>
+              <td class="text-grey-7">Status Retur</td>
               <td style="width: 1px">:</td>
               <td>
-                {{ $CONSTANTS.PURCHASE_ORDER_STATUSES[props.data.status] }}
+                {{ props.data.status_label }}
               </td>
             </tr>
             <tr>
-              <td class="text-grey-7">Status Pembayaran</td>
+              <td class="text-grey-7">Status Refund</td>
               <td>:</td>
               <td>
-                {{
-                  $CONSTANTS.PURCHASE_ORDER_PAYMENT_STATUSES[
-                    props.data.payment_status
-                  ]
-                }}
-              </td>
-            </tr>
-            <tr v-if="false">
-              <td class="text-grey-7">Status Pengiriman</td>
-              <td>:</td>
-              <td>
-                {{
-                  $CONSTANTS.PURCHASE_ORDER_DELIVERY_STATUSES[
-                    props.data.delivery_status
-                  ]
-                }}
-              </td>
-            </tr>
-            <tr v-if="props.data.due_date">
-              <td class="text-grey-7">Jatuh Tempo</td>
-              <td>:</td>
-              <td>
-                {{ formatDate(props.data.due_date) }}
+                {{ props.data.refund_status_label }}
               </td>
             </tr>
           </tbody>
@@ -122,17 +105,16 @@ const props = defineProps({
               Item
             </th>
             <th
-              colspan="2"
-              class="text-center q-pa-sm"
-              style="border-bottom: 2px solid #ddd"
-            >
-              Qty
-            </th>
-            <th
               class="text-right q-pa-sm"
               style="border-bottom: 2px solid #ddd"
             >
-              Harga Beli (Rp)
+              Harga (Rp)
+            </th>
+            <th
+              class="text-center q-pa-sm"
+              style="border-bottom: 2px solid #ddd"
+            >
+              Jumlah
             </th>
             <th
               class="text-right q-pa-sm"
@@ -145,9 +127,7 @@ const props = defineProps({
         <tbody>
           <tr v-for="item in props.data.details" :key="item.id">
             <td class="q-pa-sm" style="border-bottom: 1px solid #eee">
-              <i-link
-                :href="route('admin.product.detail', { id: item.product_id })"
-              >
+              <i-link :href="route('admin.product.detail', item.product_id)">
                 {{ item.product_name }}
               </i-link>
             </td>
@@ -155,22 +135,19 @@ const props = defineProps({
               class="text-right q-pa-sm"
               style="border-bottom: 1px solid #eee"
             >
+              {{ formatNumber(item.price) }}
+            </td>
+            <td
+              class="text-center q-pa-sm"
+              style="border-bottom: 1px solid #eee"
+            >
               {{ item.quantity }}
             </td>
-            <td>
-              {{ item.product_uom }}
-            </td>
             <td
               class="text-right q-pa-sm"
               style="border-bottom: 1px solid #eee"
             >
-              {{ formatNumber(item.cost) }}
-            </td>
-            <td
-              class="text-right q-pa-sm"
-              style="border-bottom: 1px solid #eee"
-            >
-              {{ formatNumber(item.subtotal_cost) }}
+              {{ formatNumber(item.subtotal_price) }}
             </td>
           </tr>
           <tr v-if="props.data.details.length == 0">
