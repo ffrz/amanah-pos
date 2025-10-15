@@ -159,7 +159,7 @@ class SalesOrderReturnService
             $this->userActivityLogService->log(
                 UserActivityLog::Category_SalesOrderReturn,
                 UserActivityLog::Name_SalesOrderReturn_Cancel,
-                "Order penjualan $orderReturn->code telah dibatalkan.",
+                "Retur penjualan $orderReturn->code telah dibatalkan.",
                 [
                     'data' => $orderReturn->toArray(),
                     'formatter' => 'sales-order-return',
@@ -236,8 +236,8 @@ class SalesOrderReturnService
                 'ref_type'        => StockMovement::RefType_SalesOrderReturnDetail,
                 'quantity'        => $quantity,
                 'quantity_before' => $detail->product->stock,
-                'quantity_after'  => $detail->product->stock - $quantity,
-                'notes'           => "Transaksi retur penjualan #$order->code",
+                'quantity_after'  => $detail->product->stock + $quantity,
+                'notes'           => "Retur penjualan #$order->code",
             ]);
 
             Product::where('id', $detail->product_id)->increment('stock', $quantity);

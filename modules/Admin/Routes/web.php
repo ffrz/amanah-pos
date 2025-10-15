@@ -240,6 +240,7 @@ Route::middleware([Auth::class])
                 Route::get('', [PurchaseOrderReturnController::class, 'index'])->name('admin.purchase-order-return.index');
                 Route::get('data', [PurchaseOrderReturnController::class, 'data'])->name('admin.purchase-order-return.data');
                 Route::get('add', [PurchaseOrderReturnController::class, 'editor'])->name('admin.purchase-order-return.add');
+                Route::match(['get', 'post'], 'add', [PurchaseOrderReturnController::class, 'add'])->name('admin.purchase-order-return.add');
                 Route::get('edit/{id}', [PurchaseOrderReturnController::class, 'editor'])->name('admin.purchase-order-return.edit');
                 Route::get('detail/{id}', [PurchaseOrderReturnController::class, 'detail'])->name('admin.purchase-order-return.detail');
                 Route::post('save', [PurchaseOrderReturnController::class, 'save'])->name('admin.purchase-order-return.save');
@@ -250,9 +251,9 @@ Route::middleware([Auth::class])
                 Route::post('add-payment', [PurchaseOrderReturnController::class, 'addPayment'])->name('admin.purchase-order-return.add-payment');
                 Route::post('delete-payment', [PurchaseOrderReturnController::class, 'deletePayment'])->name('admin.purchase-order-return.delete-payment');
                 // items
-                Route::post('add-item', [PurchaseOrderReturnController::class, 'addItem'])->name('admin.purchase-order.add-item');
-                Route::post('remove-item', [PurchaseOrderReturnController::class, 'removeItem'])->name('admin.purchase-order.remove-item');
-                Route::post('update-item', [PurchaseOrderReturnController::class, 'updateItem'])->name('admin.purchase-order.update-item');
+                Route::post('add-item', [PurchaseOrderReturnController::class, 'addItem'])->name('admin.purchase-order-return.add-item');
+                Route::post('remove-item', [PurchaseOrderReturnController::class, 'removeItem'])->name('admin.purchase-order-return.remove-item');
+                Route::post('update-item', [PurchaseOrderReturnController::class, 'updateItem'])->name('admin.purchase-order-return.update-item');
             });
 
             Route::prefix('sales-orders')->group(function () {

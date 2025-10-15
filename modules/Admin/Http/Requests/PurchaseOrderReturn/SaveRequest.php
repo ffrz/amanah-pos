@@ -30,8 +30,8 @@ class SaveRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id'          => 'required|integer|exists:purchase_orders,id',
-            'supplier_id' => 'nullable|integer|exists:suppliers,id',
+            'id' => 'nullable|integer|exists:purchase_orders,id',
+            'customer_id' => 'nullable|integer|exists:suppliers,id',
             'notes'       => 'nullable|string|max:200',
             'datetime'    => 'nullable|date',
         ];
@@ -44,7 +44,7 @@ class SaveRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'id'       => $this->id ?? null,
+            'id'      => $this->id ?? null,
             'notes'    => $this->notes ?? '',
             'datetime' => $this->datetime ?? now(),
         ]);

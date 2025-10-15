@@ -2,17 +2,15 @@
 import { router, useForm, usePage } from "@inertiajs/vue3";
 import { handleSubmit } from "@/helpers/client-req-handler";
 import { scrollToFirstErrorField } from "@/helpers/utils";
-import { createOptions } from "@/helpers/options";
-import { onMounted, watch } from "vue";
 
 const page = usePage();
-const title = "Tambah Retur Penjualan";
+const title = "Tambah Retur Pembelian";
 const form = useForm({
   code: page.props.data.code,
 });
 
 const submit = () =>
-  handleSubmit({ form, url: route("admin.sales-order-return.add") });
+  handleSubmit({ form, url: route("admin.purchase-order-return.add") });
 </script>
 
 <template>
@@ -27,7 +25,7 @@ const submit = () =>
           color="grey-7"
           flat
           rounded
-          @click="$inertia.get(route('admin.sales-order-return.index'))"
+          @click="$inertia.get(route('admin.finance-account.index'))"
         />
       </div>
     </template>
@@ -66,7 +64,7 @@ const submit = () =>
                 icon="cancel"
                 label="Batal"
                 :disable="form.processing"
-                @click="router.get(route('admin.finance-account.index'))"
+                @click="router.get(route('admin.purchase-order-return.index'))"
               />
             </q-card-section>
           </q-card>

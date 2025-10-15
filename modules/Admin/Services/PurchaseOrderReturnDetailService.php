@@ -3,13 +3,13 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
+ *
  * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
+ *
  * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
+ *
  * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
@@ -17,8 +17,10 @@
 namespace Modules\Admin\Services;
 
 use App\Exceptions\BusinessRuleViolationException;
-use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderDetail;
+use App\Models\PurchaseOrderReturn;
+use App\Models\PurchaseOrderReturnDetail;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 
 class PurchaseOrderReturnDetailService
@@ -27,97 +29,162 @@ class PurchaseOrderReturnDetailService
         protected ProductService $productService
     ) {}
 
-    public function findItemOrFail($id): PurchaseOrderDetail
+    // OK
+    public function findItemOrFail($id): PurchaseOrderReturnDetail
     {
-        return PurchaseOrderDetail::with(['parent'])->findOrFail($id);
+        return PurchaseOrderReturnDetail::with(['parent'])->findOrFail($id);
     }
 
-    private function ensureOrderIsEditable(PurchaseOrder $order)
+    // OK
+    private function ensureOrderIsEditable(PurchaseOrderReturn $order)
     {
-        if ($order->status != PurchaseOrder::Status_Draft) {
+        if ($order->status != PurchaseOrderReturn::Status_Draft) {
             throw new BusinessRuleViolationException('Order sudah tidak dapat diubah.');
         }
     }
 
-    public function addItem(PurchaseOrder $order, array $data, bool $merge = false): PurchaseOrderDetail
+    // TODO: CHECK THIS!!!
+    private function getMaxQuantity($purchase_order_id, $product_id)
     {
-        $this->ensureOrderIsEditable($order);
+        $total_purchase_quantity = PurchaseOrderDetail::where('parent_id', $purchase_order_id)
+            ->where('product_id', $product_id)
+            ->sum('quantity');
 
-        $product  = $this->productService->findProductByCodeOrId($data);
-        $quantity = $data['qty'] ?? 0;
-        $cost     = $data['cost'] ?? $product->cost;
-        $item   = null;
+        $total_returned_quantity = PurchaseOrderReturnDetail::where('product_id', $product_id)
+            ->join('purchase_order_returns as por', 'por.id', '=', 'purchase_order_return_details.purchase_order_return_id')
+            ->where('por.purchase_order_id', $purchase_order_id)
+            ->where('por.status', 'closed')
+            ->sum('purchase_order_return_details.quantity');
 
-        // untuk opsi gabungkan item
+        return $total_purchase_quantity - $total_returned_quantity;
+    }
+
+    // OK
+    public function addItem(PurchaseOrderReturn $orderReturn, array $data): PurchaseOrderReturnDetail
+    {
+        $this->ensureOrderIsEditable($orderReturn);
+
+        $merge = $data['merge'] ?? false;
+        $product = $this->productService->findProductByCodeOrId($data);
+        $orderDetail = PurchaseOrderDetail::where('parent_id', $orderReturn->purchase_order_id)
+            ->where('product_id', $product->id)
+            ->first();
+        $maxQuantity = $this->getMaxQuantity($orderReturn->purchase_order_id, $product->id);
+
+        if (!$orderDetail) {
+            throw new ModelNotFoundException('Item tidak ditemukan');
+        }
+
+        $quantity = $data['qty'] ?? 1;
+        $data['price'] = $data['price'] ?? null;
+        $price = null;
+
+        if (!$price) {
+            $price = $orderDetail->price;
+        }
+
+        if ($product->price_editable && $data['price'] !== null) {
+            $price = $data['price'];
+        }
+
+        $item = null;
         if ($merge) {
-            $item = PurchaseOrderDetail::where('parent_id', '=', $order->id)
+            // kalo gabung cari rekaman yang sudah ada
+            $item = PurchaseOrderReturnDetail::where('purchase_order_return_id', '=', $orderReturn->id)
                 ->where('product_id', '=', $product->id)
                 ->get()
                 ->first();
         }
 
         if ($item) {
-            // increment quantity jika digabung
-            $item->addQuantity($quantity);
+            // kurangi dulu dengan subtotal sebelum hitungan baru
+            $orderReturn->total_cost  -= $item->subtotal_cost;
+            $orderReturn->total_price -= $item->subtotal_price;
+
+            // kalau sudah ada cukup tambaih qty saja
+            $item->quantity += $quantity;
+
+            // perbarui subtotal
+            $item->subtotal_cost  = $item->cost  * $item->quantity;
+            $item->subtotal_price = $item->price * $item->quantity;
         } else {
-            $item = new PurchaseOrderDetail([
-                'parent_id' => $order->id,
-                'product_id' => $product->id,
-                'product_name' => $product->name,
-                'product_barcode' => $product->barcode,
-                'product_uom' => $product->uom,
+            $returnDetail = new PurchaseOrderReturnDetail([
+                'purchase_order_return_id' => $orderReturn->id,
+                'product_id' => $orderDetail->product_id,
+                'product_name' => $orderDetail->product_name,
+                'product_barcode' => $orderDetail->product_barcode ?? '',
+                'product_uom' => $orderDetail->product_uom,
                 'quantity' => $quantity,
-                'cost' => $cost,
-                'subtotal_cost' => $quantity * $cost,
+                'cost' => $orderDetail->cost,
+                'subtotal_cost' => $quantity * $orderDetail->cost,
+                'price' => $price,
+                'subtotal_price' => $quantity * $price,
                 'notes' => '',
             ]);
         }
 
-        return DB::transaction(function () use ($item, $order) {
-            $item->save();
+        if ($returnDetail->quantity > $maxQuantity) {
+            throw new BusinessRuleViolationException('Kwantitas retur melebihi batas.');
+        }
 
-            $order->updateTotals();
-            $order->save();
+        return DB::transaction(function () use ($orderReturn, $returnDetail) {
+            $returnDetail->save();
 
-            return $item;
+            $orderReturn->updateTotals();
+            $orderReturn->save();
+
+            return $returnDetail;
         });
     }
 
-    public function updateItem(PurchaseOrderDetail $item, array $data): void
+    // OK
+    public function updateItem(PurchaseOrderReturnDetail $item, array $data): void
     {
         /**
-         * @var PurchaseOrder $order
+         * @var PurchaseOrderReturn
+         */
+        $order = $item->parent;
+        $maxQuantity = $this->getMaxQuantity($order->purchase_order_id, $item->product_id);
+
+        $this->ensureOrderIsEditable($order);
+
+        $order->total_cost  -= $item->subtotal_cost;
+
+        $item->quantity = $data['qty'] ?? 0;
+
+        if ($item->quantity <= 0 || $item->quantity > $maxQuantity) {
+            throw new BusinessRuleViolationException('Kwantitas tidak valid atau melebihi batas.');
+        }
+
+        // FIXME: kalau bukan price berarti cost
+        $cost = $data['cost'] ?? $data['price'] ?? null;
+        if ($cost !== null && $cost >= 0) {
+            $item->cost = $cost;
+        }
+
+        // perbarui subtotal
+        $item->subtotal_cost  = $item->cost  * $item->quantity;
+        $item->notes = $data['notes'] ?? '';
+
+        DB::transaction(function () use ($order, $item) {
+            $item->save();
+            $order->updateTotals();
+            $order->save();
+        });
+    }
+
+    // OK
+    public function deleteItem(PurchaseOrderReturnDetail $item): void
+    {
+        /**
+         * @var PurchaseOrderReturn
          */
         $order = $item->parent;
 
         $this->ensureOrderIsEditable($order);
 
-        $item->quantity = $data['qty'] ?? 0.;
-        $item->cost     = $data['cost'] ?? null;
-        $item->notes    = $data['notes'] ?? '';
-
-        DB::transaction(function () use ($item, $order) {
-            $item->updateTotals();
-            $item->save();
-
-            $order->updateTotals();
-            $order->save();
-        });
-    }
-
-    public function removeItem(PurchaseOrderDetail $item): void
-    {
-        /**
-         * @var PurchaseOrder $order
-         */
-        $order = $item->parent;
-
-        $this->ensureOrderIsEditable($order);
-
-        DB::transaction(function () use ($item, $order) {
-
+        DB::transaction(function () use ($order, $item) {
             $item->delete();
-
             $order->updateTotals();
             $order->save();
         });

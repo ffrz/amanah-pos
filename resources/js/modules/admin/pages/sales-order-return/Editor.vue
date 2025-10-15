@@ -236,11 +236,8 @@ const updateItem = () => {
   const data = {
     id: item.id,
     qty: item.quantity,
+    price: item.price,
   };
-
-  // if (item.product.price_editable) {
-  //   data.price = item.price;
-  // }
 
   if (item.notes) {
     data.notes = item.notes;

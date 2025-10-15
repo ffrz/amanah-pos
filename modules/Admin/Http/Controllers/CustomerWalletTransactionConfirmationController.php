@@ -75,7 +75,7 @@ class CustomerWalletTransactionConfirmationController extends Controller
 
         $this->service->save($item, $action_status_map[$request->action]);
 
-        return JsonResponseHelper::success($item, "Konfirmasi topup #$item->formatted_id telah diterima.");
+        return JsonResponseHelper::success($item, "Konfirmasi topup #$item->code telah diterima.");
     }
 
     public function delete($id)
@@ -84,6 +84,6 @@ class CustomerWalletTransactionConfirmationController extends Controller
 
         $item = $this->service->delete($item);
 
-        return JsonResponseHelper::success($item, "Konfirmasi topup #$item->formatted_id telah dihapus.");
+        return JsonResponseHelper::success($item, "Konfirmasi topup #$item->code telah dihapus.");
     }
 }

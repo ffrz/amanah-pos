@@ -125,6 +125,12 @@ class UserActivityLog extends Model
     public const Name_PurchaseOrder_Cancel = 'purchase-order.cancel';
     public const Name_PurchaseOrder_AddPayment    = 'sales-purchase.add-payment';
     public const Name_PurchaseOrder_DeletePayment = 'sales-purchase.delete-payment';
+    public const Name_PurchaseOrderReturn_Create = 'purchase-order-return.create';
+    public const Name_PurchaseOrderReturn_Close  = 'purchase-order-return.close';
+    public const Name_PurchaseOrderReturn_Delete = 'purchase-order-return.delete';
+    public const Name_PurchaseOrderReturn_Cancel = 'purchase-order-return.cancel';
+    public const Name_PurchaseOrderReturn_AddRefund    = 'purchase-order-return.add-refund';
+    public const Name_PurchaseOrderReturn_DeleteRefund = 'purchase-order-return.delete-refund';
 
     // Sales Order
     public const Name_Customer_Create = 'customer.create';

@@ -67,9 +67,9 @@ const pagination = ref({
 });
 const columns = [
   {
-    name: "id",
+    name: "code",
     label: "Info Order",
-    field: "id",
+    field: "code",
     align: "left",
     sortable: true,
   },
@@ -338,7 +338,7 @@ watch(
             class="cursor-pointer"
             @click.prevent="onRowClicked(props.row)"
           >
-            <q-td key="id" :props="props" class="wrap-column">
+            <q-td key="code" :props="props" class="wrap-column">
               <div>
                 <q-icon name="tag" />
                 {{ props.row.code }}

@@ -18,7 +18,6 @@ namespace App\Models;
 
 use App\Models\Traits\HasDocumentVersions;
 use App\Models\Traits\HasTransactionCode;
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -149,5 +148,25 @@ class PurchaseOrderReturn extends BaseModel
         // Meskipun ini adalah 'refund', secara konseptual ini adalah 
         // penerimaan uang kembali (credit) dari supplier.
         return $this->hasMany(PurchaseOrderRefund::class);
+    }
+
+    public function updateTotals(): void
+    {
+        $this->total_cost = $this->details()->sum('subtotal_cost');
+        // TODO: hitung pajak dan dan diskon disini
+        $this->grand_total = $this->total_cost;
+    }
+
+    public function updateTotalRefunded($requestedAmount)
+    {
+        $this->total_refunded += $requestedAmount;
+        $this->remaining_refund = $this->grand_total - $this->total_refunded;
+        if ($this->total_refunded >= $this->grand_total) {
+            $this->refund_status = PurchaseOrderReturn::RefundStatus_FullyRefunded;
+        } else if ($this->total_refunded > 0) {
+            $this->refund_status = PurchaseOrderReturn::RefundStatus_PartiallyRefunded;
+        } else {
+            $this->refund_status = PurchaseOrderReturn::RefundStatus_Pending;
+        }
     }
 }

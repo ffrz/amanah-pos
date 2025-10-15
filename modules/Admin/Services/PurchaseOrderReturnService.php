@@ -17,262 +17,34 @@
 namespace Modules\Admin\Services;
 
 use App\Exceptions\BusinessRuleViolationException;
-
 use App\Models\Product;
 use App\Models\PurchaseOrder;
-use App\Models\PurchaseOrderDetail;
+use App\Models\PurchaseOrderReturn;
 use App\Models\StockMovement;
-use App\Models\Supplier;
 use App\Models\UserActivityLog;
-use Carbon\Carbon;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
 class PurchaseOrderReturnService
 {
     public function __construct(
-        protected PurchaseOrderPaymentService $paymentService,
+        protected PurchaseOrderReturnRefundService $refundService,
         protected UserActivityLogService $userActivityLogService,
         protected DocumentVersionService $documentVersionService,
         protected FinanceTransactionService $financeTransactionService,
         protected StockMovementService $stockMovementService,
         protected ProductService $productService,
         protected SupplierService $supplierService,
+        protected CashierSessionService $cashierSessionService,
     ) {}
 
-    public function findOrderOrFail(int $id): PurchaseOrder
+    // OK
+    public function getData(array $options)
     {
-        return PurchaseOrder::with([
-            'supplier',
-            'details',
-            'payments',
-            'details.product',
-            'payments.account'
-        ])->findOrFail($id);
-    }
-
-    public function findOrderDetailOrFail(int $id): PurchaseOrderDetail
-    {
-        return PurchaseOrderDetail::findOrFail($id);
-    }
-
-    public function createOrder(): PurchaseOrder
-    {
-        $item = new PurchaseOrder([
-            'type' => PurchaseOrder::Type_Pickup,
-            'datetime' => Carbon::now(),
-            'status' => PurchaseOrder::Status_Draft,
-            'payment_status' => PurchaseOrder::PaymentStatus_Unpaid,
-            'delivery_status' => PurchaseOrder::DeliveryStatus_ReadyForPickUp,
-        ]);
-
-        return DB::transaction(function () use ($item) {
-            $item->save();
-
-            $this->documentVersionService->createVersion($item);
-
-            $this->userActivityLogService->log(
-                UserActivityLog::Category_PurchaseOrder,
-                UserActivityLog::Name_PurchaseOrder_Create,
-                "Order pembelian $item->code telah dibuat.",
-                [
-                    'data' => $item->toArray(),
-                    'formatter' => 'puchase-order',
-                ]
-            );
-
-            return $item;
-        });
-    }
-
-    public function editOrder(int $id): PurchaseOrder
-    {
-        $item = $this->findOrderOrFail($id);
-
-        $this->ensureOrderIsEditable($item);
-
-        return $item;
-    }
-
-    public function updateOrder(PurchaseOrder $item, array $data): PurchaseOrder
-    {
-        $this->ensureOrderIsEditable($item);
-
-        if (isset($data['supplier_id'])) {
-            $supplier = $data['supplier_id'] ? Supplier::findOrFail($data['supplier_id']) : null;
-
-            // WARNING: logika ini perlu diperbarui jika mendukung customization di frontend
-            // saat ini info supplier selalu diperbarui dari data supplier
-            // karena frontend tidak mendukung customization
-            if ($supplier) {
-                $item->supplier_id      = $supplier->id;
-                $item->supplier_name    = $supplier->name;
-                $item->supplier_phone   = $supplier->phone;
-                $item->supplier_address = $supplier->address;
-            }
-        }
-
-        $item->notes = $data['notes'];
-        $item->datetime = $data['datetime'];
-
-        return DB::transaction(function () use ($item) {
-            $item->save();
-            // kita tidak mencatat log dan lacak version di penyimpanan ini
-            // untuk menghemat ruang dan meminimalisir interaksi database
-            return $item;
-        });
-    }
-
-    public function cancelOrder(PurchaseOrder $item): PurchaseOrder
-    {
-        $this->ensureOrderIsEditable($item);
-
-        $item->status = PurchaseOrder::Status_Canceled;
-
-        return DB::transaction(function () use ($item) {
-            $item->save();
-
-            $this->documentVersionService->createVersion($item);
-
-            $this->userActivityLogService->log(
-                UserActivityLog::Category_PurchaseOrder,
-                UserActivityLog::Name_PurchaseOrder_Cancel,
-                "Order pembelian $item->code telah dibatalkan.",
-                [
-                    'data' => $item->toArray(),
-                    'formatter' => 'puchase-order',
-                ]
-            );
-
-            return $item;
-        });
-    }
-
-    private function updateTotalAndValidateClientTotal($order, $client_total)
-    {
-        $order->updateTotals();
-        $clientTotal = intval($client_total);
-        $serverTotal = intval($order->grand_total);
-        if ($serverTotal !== $clientTotal) {
-            throw new BusinessRuleViolationException('Gagal menyimpan transaksi, total tidak sinkron. Coba refresh halaman!');
-        }
-    }
-
-    private function processPurchaseOrderStockIn(PurchaseOrder $order)
-    {
-        // 5. Perbarui stok produk secara massal
-        foreach ($order->details as $detail) {
-            $productType = $detail->product->type;
-            // TODO: Tambahkan ke sini untuk skip tipe produk yang stoknya tidak dilacak
-            if (
-                $productType == Product::Type_NonStocked
-                || $productType == Product::Type_Service
-            ) {
-                continue;
-            }
-
-            $product = $detail->product;
-
-            $this->stockMovementService->processStockIn([
-                'product_id'      => $detail->product_id,
-                'product_name'    => $detail->product_name,
-                'uom'             => $detail->product_uom,
-                'ref_id'          => $detail->id,
-                'ref_type'        => StockMovement::RefType_PurchaseOrderDetail,
-                'quantity'        => $detail->quantity,
-                'quantity_before' => $product->stock,
-                'quantity_after'  => $product->stock + $detail->quantity,
-                'notes'           => "Transaksi pembelian #$order->code",
-            ]);
-
-            $product->cost = $detail->cost;
-            $product->save();
-        }
-    }
-
-    private function processPurchaseOrderStockOut(PurchaseOrder $order)
-    {
-        foreach ($order->details as $detail) {
-            $this->productService->addToStock($detail->product, -abs($detail->quantity));
-            $this->stockMovementService->deleteByRef($detail->id, StockMovement::RefType_PurchaseOrderDetail);
-        }
-    }
-
-    public function closeOrder(PurchaseOrder $order, array $data)
-    {
-        DB::transaction(function () use ($order, $data) {
-            $this->updateTotalAndValidateClientTotal($order, $data['total'] ?? 0);
-
-            $order->remaining_debt = $order->grand_total;
-            $order->due_date = $data['due_date'] ?? null;
-            $order->delivery_status = PurchaseOrder::DeliveryStatus_PickedUp;
-            $order->status = PurchaseOrder::Status_Closed;
-            $order->save();
-
-            if ($order->supplier_id) {
-                // di awal kita catat sebagai utang dulu
-                // Utang ke supplier adalah nilai negatif
-                $this->supplierService->addToBalance($order->supplier, -abs($order->grand_total));
-            }
-
-            // saat payment, utang akan dikurangi otomatis
-            $this->paymentService->addPayments($order, $data['payments'] ?? []);
-
-            $this->processPurchaseOrderStockIn($order);
-
-            $this->documentVersionService->createVersion($order);
-
-            $this->userActivityLogService->log(
-                UserActivityLog::Category_PurchaseOrder,
-                UserActivityLog::Name_PurchaseOrder_Close,
-                "Order pembelian $order->code telah ditutup.",
-                [
-                    'data' => $order->toArray(),
-                    'formatter' => 'puchase-order',
-                ]
-            );
-        });
-    }
-
-    public function deleteOrder(PurchaseOrder $order): PurchaseOrder
-    {
-        return DB::transaction(function () use ($order) {
-            if ($order->status == PurchaseOrder::Status_Closed) {
-                $this->processPurchaseOrderStockOut($order);
-
-                if ($order->supplier_id) {
-                    $this->supplierService->addToBalance($order->supplier, abs($order->grand_total));
-                }
-
-                foreach ($order->payments as $payment) {
-                    // ketika payment dihapus, kalau supplier_id diset otomatis jadi utang
-                    $this->paymentService->deletePayment($payment);
-                }
-            }
-
-            $order->delete();
-
-            $this->documentVersionService->createDeletedVersion($order);
-
-            $this->userActivityLogService->log(
-                UserActivityLog::Category_PurchaseOrder,
-                UserActivityLog::Name_PurchaseOrder_Delete,
-                "Order pembelian $order->code telah dihapus.",
-                [
-                    'data' => $order->toArray(),
-                    'formatter' => 'puchase-order',
-                ]
-            );
-
-            return $order;
-        });
-    }
-
-    public function getData(array $options): LengthAwarePaginator
-    {
+        $orderBy = $options['order_by'];
+        $orderType = $options['order_type'];
         $filter = $options['filter'];
 
-        $q = PurchaseOrder::with(['supplier', 'details', 'details.product']);
+        $q = PurchaseOrderReturn::with(['purchaseOrder', 'supplier', 'details', 'details.product']);
 
         if (!empty($filter['search'])) {
             $q->where(function ($q) use ($filter) {
@@ -294,21 +66,11 @@ class PurchaseOrderReturnService
             if (!is_array($filter['status'])) {
                 $filter['status'] = [$filter['status']];
             }
-
-            $statuses = $filter['status'];
-            $q->where(function ($q) use ($statuses) {
-                foreach ($statuses as $status) {
-                    $q->orWhere('status', '=', $status);
-                }
-            });
+            $q->whereIn('status', $filter['status']);
         }
 
-        if (!empty($filter['payment_status']) && $filter['payment_status'] != 'all') {
-            $q->where('payment_status', '=', $filter['payment_status']);
-        }
-
-        if (!empty($filter['delivery_status']) && $filter['delivery_status'] != 'all') {
-            $q->where('delivery_status', '=', $filter['delivery_status']);
+        if (!empty($filter['refund_status']) && $filter['refund_status'] != 'all') {
+            $q->where('refund_status', '=', $filter['refund_status']);
         }
 
         if (!empty($filter['year']) && $filter['year'] !== 'all') {
@@ -323,18 +85,174 @@ class PurchaseOrderReturnService
             $q->where('supplier_id', $filter['supplier_id']);
         }
 
+        if (!empty($filter['cashier_session_id']) && $filter['cashier_session_id'] !== 'all') {
+            $q->where('cashier_session_id', $filter['cashier_session_id']);
+        }
+
         // $q->select(['id', 'total_price', 'datetime', 'status', 'payment_status', 'delivery_status'])
-        $q->orderBy($options['order_by'], $options['order_type']);
+        $q->orderBy($orderBy, $orderType);
 
         return $q->paginate($options['per_page']);
     }
 
-
-
-    private function ensureOrderIsEditable(PurchaseOrder $order)
+    public function createOrderReturn(PurchaseOrder $order): PurchaseOrderReturn
     {
-        if ($order->status != PurchaseOrder::Status_Draft) {
+        if ($order->status !== PurchaseOrder::Status_Closed) {
+            throw new BusinessRuleViolationException('Transaksi belum selesai tidak dapat diretur!');
+        }
+
+        $item = new PurchaseOrderReturn([
+            'purchase_order_id' => $order->id,
+            'supplier_id' => $order->supplier_id,
+            'supplier_name' => $order->supplier_name,
+            'supplier_phone' => $order->supplier_phone,
+            'supplier_address' => $order->supplier_address,
+            'status' => PurchaseOrderReturn::Status_Draft,
+            'refund_status' => PurchaseOrderReturn::RefundStatus_Pending,
+            'grand_total' => $order->grand_total,
+            'datetime' => now(),
+        ]);
+        $item->save();
+        return $item;
+    }
+
+    // OK
+    public function findOrderOrFail(int $id, $relations = ['purchaseOrder', 'details', 'supplier'], $cols = "*"): PurchaseOrderReturn
+    {
+        return PurchaseOrderReturn::with($relations)->findOrFail($id, $cols);
+    }
+
+    // OK
+    public function editOrder(PurchaseOrderReturn $order): PurchaseOrderReturn
+    {
+        $this->ensureOrderIsEditable($order);
+
+        return $order;
+    }
+
+    // OK
+    public function updateOrder(PurchaseOrderReturn $item, array $data): PurchaseOrderReturn
+    {
+        $this->ensureOrderIsEditable($item);
+
+        $item->notes = $data['notes'];
+        $item->datetime = $data['datetime'];
+
+        return DB::transaction(function () use ($item) {
+            $item->save();
+            return $item;
+        });
+    }
+
+    // OK
+    public function cancelOrder(PurchaseOrderReturn $orderReturn): PurchaseOrderReturn
+    {
+        $this->ensureOrderIsEditable($orderReturn);
+
+        $orderReturn->status = PurchaseOrderReturn::Status_Canceled;
+
+        return DB::transaction(function () use ($orderReturn) {
+            $orderReturn->save();
+
+            $this->documentVersionService->createVersion($orderReturn);
+
+            $this->userActivityLogService->log(
+                UserActivityLog::Category_PurchaseOrderReturn,
+                UserActivityLog::Name_PurchaseOrderReturn_Cancel,
+                "Retur pembelian $orderReturn->code telah dibatalkan.",
+                [
+                    'data' => $orderReturn->toArray(),
+                    'formatter' => 'purchase-order-return',
+                ]
+            );
+
+            return $orderReturn;
+        });
+    }
+
+    public function getOrderWithDetails($id): PurchaseOrderReturn
+    {
+        return PurchaseOrderReturn::with([
+            'supplier',
+            'details',
+            'refunds',
+            'refunds.account',
+        ])
+            ->findOrFail($id);
+    }
+
+    public function closeOrderReturn(PurchaseOrderReturn $order, array $data)
+    {
+        $this->ensureOrderIsEditable($order);
+
+        DB::transaction(function () use ($order, $data) {
+            $order->status = PurchaseOrderReturn::Status_Closed;
+            $order->updateTotals();
+            $order->remaining_refund = $order->grand_total;
+            $order->save();
+            $this->processPurchaseOrderReturnStockOut($order);
+        });
+    }
+
+    // IN PROGRESS
+    public function deleteOrderReturn(PurchaseOrderReturn $order)
+    {
+        DB::transaction(function () use ($order) {
+            if ($order->status == PurchaseOrderReturn::Status_Closed) {
+                $this->reverseStock($order);
+                $this->refundService->deleteRefunds($order);
+            }
+            $order->delete();
+        });
+    }
+
+    // OK
+    private function ensureOrderIsEditable(PurchaseOrderReturn $orderReturn)
+    {
+        if ($orderReturn->status != PurchaseOrderReturn::Status_Draft) {
             throw new BusinessRuleViolationException('Order sudah tidak dapat diubah.');
+        }
+    }
+
+    // OK
+    private function processPurchaseOrderReturnStockOut(PurchaseOrderReturn $order)
+    {
+        foreach ($order->details as $detail) {
+            $productType = $detail->product->type;
+            if (
+                $productType == Product::Type_NonStocked
+                || $productType == Product::Type_Service
+            ) {
+                continue;
+            }
+
+            $quantity = $detail->quantity;
+
+            StockMovement::create([
+                'product_id'      => $detail->product_id,
+                'product_name'    => $detail->product_name,
+                'uom'             => $detail->product_uom,
+                'ref_id'          => $detail->id,
+                'ref_type'        => StockMovement::RefType_PurchaseOrderReturnDetail,
+                'quantity'        => -$quantity,
+                'quantity_before' => $detail->product->stock,
+                'quantity_after'  => $detail->product->stock - $quantity,
+                'notes'           => "Retur pembelian #$order->code",
+            ]);
+
+            Product::where('id', $detail->product_id)->decrement('stock', $quantity);
+        }
+    }
+
+    // OK
+    private function reverseStock(PurchaseOrderReturn $order)
+    {
+        foreach ($order->details as $detail) {
+            Product::where('id', $detail->product_id)->decrement('stock', $detail->quantity);
+
+            StockMovement::where('ref_type', StockMovement::RefType_PurchaseOrderReturnDetail)
+                ->where('ref_id', $detail->id)
+                ->delete();
         }
     }
 }

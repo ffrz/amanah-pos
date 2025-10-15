@@ -19,150 +19,181 @@ namespace Modules\Admin\Services;
 use App\Exceptions\BusinessRuleViolationException;
 use App\Models\FinanceAccount;
 use App\Models\FinanceTransaction;
-use App\Models\PurchaseOrder;
-use App\Models\PurchaseOrderPayment;
+use App\Models\PurchaseOrderRefund;
+use App\Models\PurchaseOrderReturn;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
 class PurchaseOrderReturnRefundService
 {
     public function __construct(
-        protected SupplierService $supplierService
+        protected SupplierService $supplierService,
+        protected CashierSessionService $cashierSessionService,
     ) {}
 
-    public function findOrFail(int $id)
+    public function findOrFail(int $id): PurchaseOrderRefund
     {
-        return PurchaseOrderPayment::with(['order', 'order.supplier'])->findOrFail($id);
+        return PurchaseOrderRefund::with(['purchaseOrderReturn', 'purchaseOrderReturn.Supplier'])->findOrFail($id);
     }
 
-    public function addPayments(PurchaseOrder $order, array $payments): void
+    public function addRefund(PurchaseOrderReturn $order, array $data): void
     {
-        if ($order->remaining_debt <= 0) {
+        $this->ensureOrderIsProcessable($order);
+
+        if ($data['amount'] <= 0) {
+            throw new BusinessRuleViolationException('Jumlah refund harus lebih dari nol.');
+        }
+
+        if ($data['amount'] > ($order->purchaseOrder->total_paid - $order->total_refunded)) {
+            throw new BusinessRuleViolationException('Jumlah refund melebihi batas yang diperbolehkan.');
+        }
+
+        if ($order->remaining_refund <= 0) {
             throw new BusinessRuleViolationException('Pesanan ini sudah lunas.');
         }
 
-        DB::transaction(function () use ($order, $payments) {
-            $totalPaidAmount = 0;
-
-            foreach ($payments as $inputPayment) {
-                $amount = intval($inputPayment['amount']);
-
-                if ($order->remaining_debt - $totalPaidAmount < $amount) {
-                    throw new BusinessRuleViolationException('Jumlah pembayaran melebihi sisa tagihan.');
-                }
-
-                $totalPaidAmount += $amount;
-
-                $payment = $this->createPaymentRecord($order, $inputPayment['id'] ?? null, $amount);
-
-                $this->processFinancialRecords($payment);
-
-                $this->updateSupplierDebtOnPayment($payment);
-            }
-
-            $order->applyPaymentUpdate($totalPaidAmount);
-
+        DB::transaction(function () use ($order, $data) {
+            $amount = intval($data['amount']);
+            $result = $this->processAndValidatePaymentMethod($order, $data['id'], $amount);
+            $refund = $this->createRefundRecord($order, $result);
+            $this->processFinancialRecords($refund);
+            $order->updateTotalRefunded($amount);
             $order->save();
         });
     }
 
-    public function deletePayment(PurchaseOrderPayment $payment): void
+    private function processAndValidatePaymentMethod($order, $type_or_id, $amount): array
     {
-        DB::transaction(function () use ($payment) {
-            /**
-             * @var PurchaseOrder
-             */
-            $order = $payment->order;
-
-            if ($order->status !== PurchaseOrder::Status_Closed) {
-                throw new BusinessRuleViolationException('Tidak dapat menghapus pembayaran dari order yang belum selesai.');
+        $accountId = null;
+        $type = null;
+        if ($type_or_id === 'cash') {
+            $type = PurchaseOrderRefund::Type_Cash;
+            $session = $this->cashierSessionService->getActiveSession();
+            if (!$session) {
+                throw new BusinessRuleViolationException("Anda belum memulai sesi kasir.");
             }
+            $accountId = $session->cashierTerminal->financeAccount->id;
+        } else if (intval($type_or_id)) {
+            $type = PurchaseOrderRefund::Type_Transfer;
+            $accountId = (int)$type_or_id;
+        }
 
-            $this->reverseFinancialRecords($payment);
-
-            $this->reverseSupplierDebtOnPaymentDeletion($payment);
-
-            $payment->delete();
-
-            $order->applyPaymentUpdate(-$payment->amount);
-            $order->save();
-        });
-    }
-
-    // ---------------------------------------------
-    //              HELPER METHODS
-    // ---------------------------------------------
-
-    /**
-     * Membuat record pembayaran dan menentukan tipe/akun.
-     */
-    private function createPaymentRecord(PurchaseOrder $order, $accountId, int $amount): PurchaseOrderPayment
-    {
-        $payment = new PurchaseOrderPayment([
-            'order_id' => $order->id,
+        return [
             'finance_account_id' => $accountId,
-            'supplier_id' => $order->supplier?->id,
-            'type' => $accountId ? PurchaseOrderPayment::Type_Transfer : PurchaseOrderPayment::Type_Cash,
+            'payment_type' => $type,
             'amount' => $amount,
+        ];
+    }
+
+    public function deleteRefunds(PurchaseOrderReturn $orderReturn): void
+    {
+        $this->ensureOrderIsProcessable($orderReturn);
+
+        DB::transaction(function () use ($orderReturn) {
+            $orderReturn->loadMissing('refunds');
+            $total_amount = $this->deleteRefundsImpl($orderReturn->refunds);
+            $orderReturn->updateTotalRefunded($total_amount);
+            $orderReturn->save();
+        });
+    }
+
+    public function deleteRefund(PurchaseOrderRefund $refund): void
+    {
+        /**
+         * @var PurchaseOrderReturn
+         */
+        $returnOrder = $refund->purchaseOrderReturn;
+        $this->ensureOrderIsProcessable($returnOrder);
+
+        DB::transaction(function () use ($returnOrder, $refund) {
+            $total_amount = $this->deleteRefundsImpl([$refund]);
+            $returnOrder->updateTotalRefunded(-$total_amount);
+            $returnOrder->save();
+        });
+    }
+
+    // ---------------------------------------------
+    //              HELPER METHODS
+    // ---------------------------------------------
+
+    /**
+     * Memastikan order dapat diproses. Penghapusan pembayaran hanya boleh dilakukan
+     * pada order yang sudah ditutup/selesai (Status_Closed).
+     */
+    private function ensureOrderIsProcessable(PurchaseOrderReturn $order)
+    {
+        if ($order->status !== PurchaseOrderReturn::Status_Closed) {
+            throw new BusinessRuleViolationException('Tidak dapat memproses refund pembayaran.');
+        }
+    }
+
+    /**
+     * Logika inti untuk membalikkan transaksi dan menghapus record pembayaran.
+     * Digunakan oleh deletePayment dan deletePayments.
+     */
+    private function deleteRefundsImpl(array|Collection $refunds)
+    {
+        $total_amount = 0;
+        foreach ($refunds as $refund) {
+            $this->reverseFinancialRecords($refund);
+            $refund->delete();
+            $total_amount += $refund->amount;
+        }
+        return $total_amount;
+    }
+
+    // OK
+    private function createRefundRecord(PurchaseOrderReturn $order, array $data): PurchaseOrderRefund
+    {
+        $refund = new PurchaseOrderRefund([
+            'purchase_order_return_id' => $order->id,
+            'finance_account_id' => $data['finance_account_id'],
+            'supplier_id' => $order->supplier?->id,
+            'type' => $data['payment_type'],
+            'amount' => $data['amount'],
+            'notes' => $data['notes'] ?? '',
         ]);
-
-        $payment->save();
-
-        return $payment;
+        $refund->save();
+        return $refund;
     }
 
-    /**
-     * Mencatat transaksi keuangan (pengeluaran) dan mengurangi saldo akun.
-     */
-    private function processFinancialRecords(PurchaseOrderPayment $payment): void
+    // OK
+    private function processFinancialRecords(PurchaseOrderRefund $refund): void
     {
-        $order = $payment->order;
+        if ($refund->type === PurchaseOrderRefund::Type_Transfer || $refund->type === PurchaseOrderRefund::Type_Cash) {
+            if ($refund->finance_account_id) {
+                // membuat rekaman transaksi keuangan
+                FinanceTransaction::create([
+                    'account_id' => $refund->finance_account_id,
+                    'datetime' => now(),
+                    'type' => FinanceTransaction::Type_Expense,
+                    'amount' => $refund->amount,
+                    'ref_id' => $refund->id,
+                    'ref_type' => FinanceTransaction::RefType_PurchaseOrderReturnRefund,
+                    'notes' => "Pembayaran transaksi #{$refund->purchaseOrderReturn->code}",
+                ]);
 
-        if ($payment->type === PurchaseOrderPayment::Type_Transfer) {
-            FinanceTransaction::create([
-                'account_id' => $payment->finance_account_id,
-                'datetime' => now(),
-                'type' => FinanceTransaction::Type_Expense,
-                // Pembayaran adalah pengeluaran (negatif)
-                'amount' => -$payment->amount,
-                'ref_id' => $payment->id,
-                'ref_type' => FinanceTransaction::RefType_PurchaseOrderPayment,
-                'notes' => "Pembayaran transaksi #$order->code",
-            ]);
-
-            FinanceAccount::where('id', $payment->finance_account_id)
-                ->decrement('balance', abs($payment->amount));
+                // menambah saldo akun keuangan
+                FinanceAccount::where('id', $refund->finance_account_id)
+                    ->increment('balance', $refund->amount);
+            }
         }
     }
 
-    /**
-     * Memperbarui saldo utang supplier saat pembayaran diterima.
-     */
-    private function updateSupplierDebtOnPayment(PurchaseOrderPayment $payment): void
+    // OK
+    private function reverseFinancialRecords(PurchaseOrderRefund $payment): void
     {
-        if (!$payment->order->supplier_id) return;
+        if ($payment->type === PurchaseOrderRefund::Type_Transfer || $payment->type === PurchaseOrderRefund::Type_Cash) {
+            if ($payment->finance_account_id) {
+                // Hapus Transaksi Keuangan
+                FinanceTransaction::where('ref_id', $payment->id)
+                    ->where('ref_type', FinanceTransaction::RefType_PurchaseOrderReturnRefund)
+                    ->delete();
 
-        // Pembayaran mengurangi utang, jadi nilainya positif
-        $this->supplierService->addToBalance($payment->order->supplier, abs($payment->amount));
-    }
-
-    /**
-     * Membalikkan transaksi keuangan (menghapus record transaksi dan mengembalikan saldo akun).
-     */
-    private function reverseFinancialRecords(PurchaseOrderPayment $payment): void
-    {
-        FinanceTransaction::deleteByRef($payment->id, FinanceTransaction::RefType_PurchaseOrderPayment);
-
-        if ($payment->finance_account_id) {
-            FinanceAccount::incrementBalance($payment->finance_account_id, abs($payment->amount));
+                // Kembalikan Saldo Akun Keuangan (membalikkan decrement saat bayar)
+                FinanceAccount::where('id', $payment->finance_account_id)
+                    ->decrement('balance', $payment->amount);
+            }
         }
-    }
-
-    /**
-     * Membalikkan utang supplier saat pembayaran dihapus.
-     */
-    private function reverseSupplierDebtOnPaymentDeletion(PurchaseOrderPayment $payment): void
-    {
-        if (!$payment->order->supplier_id) return;
-        $this->supplierService->addToBalance($payment->order->supplier, -abs($payment->amount));
     }
 }

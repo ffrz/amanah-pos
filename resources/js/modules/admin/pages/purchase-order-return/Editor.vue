@@ -1,12 +1,15 @@
 <script setup>
+// TODO:
+// - Buang supplier autocomplete, cukup tampilkan langsung suppliernya jika ada
+// - Perbarui Product browser agar hanya tampilkan produk yang dibeli saja
+// - Buat mekanisme potongan retur dengan cara edit harga saja supaya cepat
+
 import { router, usePage } from "@inertiajs/vue3";
 import { ref, computed, nextTick, onMounted, onUnmounted, reactive } from "vue";
 import { Dialog, useQuasar } from "quasar";
 import axios from "axios";
 
 import ItemListTable from "./editor/ItemsListTable.vue";
-import PaymentDialog from "./editor/PaymentDialog.vue";
-import ProductBrowserDialog from "@/components/ProductBrowserDialog.vue";
 import CheckBox from "@/components/CheckBox.vue";
 import ItemEditorDialog from "./editor/ItemEditorDialog.vue";
 import DigitalClock from "@/components/DigitalClock.vue";
@@ -21,7 +24,7 @@ import { useFullscreen } from "@/composables/useFullscreen";
 import { showError, showWarning, showInfo } from "@/composables/useNotify";
 import OrderInfoDialog from "./editor/OrderInfoDialog.vue";
 import LongTextView from "@/components/LongTextView.vue";
-import SuccessDialog from "./editor/SuccessDialog.vue";
+import ProductBrowserDialog from "@/components/ProductBrowserDialog.vue";
 
 const $q = useQuasar();
 const page = usePage();
@@ -33,16 +36,13 @@ const showHelpDialog = ref(false);
 const authLayoutRef = ref(null);
 const targetDiv = ref(null);
 const { isFullscreen, toggleFullscreen } = useFullscreen(targetDiv);
-const title = page.props.data.code;
+const title = "Retur #" + page.props.data.code;
 const supplier = ref(page.props.data.supplier);
-const payment = ref(null);
 const userInput = ref("");
 const isProcessing = ref(false);
-const showPaymentDialog = ref(false);
 const showProductBrowserDialog = ref(false);
 const showItemEditorDialog = ref(false);
 const showOrderInfoDialog = ref(false);
-const showSuccessDialog = ref(false);
 const itemToEdit = ref(null);
 
 const form = reactive({
@@ -59,7 +59,7 @@ const form = reactive({
 
 const total = computed(() => {
   return form.items.reduce((sum, item) => {
-    return sum + item.cost * item.quantity;
+    return sum + item.price * item.quantity;
   }, 0);
 });
 
@@ -80,8 +80,8 @@ const validateQuantity = (qty) => {
   return true;
 };
 
-const validateCost = (cost) => {
-  if (isNaN(cost) || cost < 0) {
+const validatePrice = (price) => {
+  if (isNaN(price) || price < 0) {
     showWarning("Harga tidak valid.", "top");
     return false;
   }
@@ -118,7 +118,7 @@ const addItem = async () => {
 
   let inputQuantity = 1;
   let inputBarcode = "";
-  let inputCost = null;
+  let inputPrice = null;
 
   if (parts.length === 1) {
     inputBarcode = parts[0];
@@ -126,7 +126,7 @@ const addItem = async () => {
     inputQuantity = parseInt(parts[0]);
     inputBarcode = parts[1];
     if (parts.length === 3) {
-      inputCost = parseFloat(parts[2]);
+      inputPrice = parseFloat(parts[2]);
     }
   } else {
     showWarning("Input tidak valid.", "top");
@@ -141,18 +141,18 @@ const addItem = async () => {
   if (
     !validateBarcode(inputBarcode) &&
     !validateQuantity(inputQuantity) &&
-    !validateCost(inputCost)
+    !validatePrice(inputPrice)
   ) {
     return;
   }
 
   isProcessing.value = true;
   await axios
-    .post(route("admin.purchase-order.add-item"), {
+    .post(route("admin.purchase-order-return.add-item"), {
       order_id: form.id,
       product_code: inputBarcode,
       qty: inputQuantity,
-      cost: inputCost,
+      price: inputPrice,
       merge: mergeItem.value,
     })
     .then((response) => {
@@ -172,7 +172,7 @@ const addItem = async () => {
       }
 
       userInput.value = "";
-      if (inputCost !== null && inputCost !== parseFloat(currentItem.cost)) {
+      if (inputPrice !== null && inputPrice !== parseFloat(currentItem.price)) {
         showWarning("Harga tidak dapat diubah!", "top");
       }
     })
@@ -208,7 +208,7 @@ const removeItem = (item) => {
   }).onOk(() => {
     isProcessing.value = true;
     axios
-      .post(route("admin.purchase-order.remove-item"), { id: item.id })
+      .post(route("admin.purchase-order-return.remove-item"), { id: item.id })
       .then(() => {
         const index = form.items.findIndex((data) => data.id === item.id);
         if (index !== -1) {
@@ -244,7 +244,7 @@ const updateItem = () => {
   }
 
   axios
-    .post(route("admin.purchase-order.update-item"), data)
+    .post(route("admin.purchase-order-return.update-item"), data)
     .then((response) => {
       const item = response.data.data;
       const index = form.items.findIndex((data) => data.id === item.id);
@@ -252,6 +252,7 @@ const updateItem = () => {
         form.items[index] = item;
         showInfo("Item telah diperbarui", "top");
       }
+      showItemEditorDialog.value = false;
     })
     .catch((error) => {
       showError(
@@ -267,6 +268,16 @@ const updateItem = () => {
 
 onMounted(() => {
   const handler = (e) => {
+    // abaikan jika ada dialog yang sedang terbuka
+    if (
+      showHelpDialog.value ||
+      showItemEditorDialog.value ||
+      showProductBrowserDialog.value ||
+      showOrderInfoDialog.value
+    ) {
+      return;
+    }
+
     if (e.key === "F1") {
       e.preventDefault();
       showHelpDialog.value = true;
@@ -279,9 +290,9 @@ onMounted(() => {
     } else if (e.key === "F4") {
       e.preventDefault();
       mergeItem.value = !mergeItem.value;
-    } else if (e.key === "F10") {
+    } else if (e.key === "F10" || (e.ctrlKey && e.key === "Enter")) {
       e.preventDefault();
-      showPaymentDialog.value = true;
+      closeOrder();
     } else if (e.key === "F11") {
       e.preventDefault();
       handleFullScreenClicked();
@@ -304,30 +315,18 @@ onMounted(() => {
   });
 });
 
-const handleSupplierSelected = async (data) => {
-  supplier.value = data;
-  form.supplier_id = data?.id;
-  await updateOrder();
-
-  if (data?.id) {
-    userInputRef.value.focus();
-  } else {
-    supplierAutocompleteRef.value.focus();
-  }
-};
-
 const updateOrder = async () => {
   isProcessing.value = true;
 
   const data = {
     id: form.id,
-    supplier_id: form.supplier_id,
+    supplier_id: form.supplier_id ?? null,
     datetime: formatDateTimeForEditing(form.datetime),
     notes: form.notes,
   };
 
   await axios
-    .post(route("admin.purchase-order.update"), data)
+    .post(route("admin.purchase-order-return.update"), data)
     .then((response) => {
       const updated = response.data.data.id;
       form.supplier_id = updated.supplier_id;
@@ -344,31 +343,41 @@ const updateOrder = async () => {
     });
 };
 
-const handlePayment = (data) => {
+const closeOrder = (data) => {
   if (form.items.length === 0) {
     showInfo("Item masih kosong", "top");
     return;
   }
 
-  const payload = {
-    id: form.id,
-    ...data,
-  };
+  Dialog.create({
+    title: "Konfirmasi Selesai",
+    icon: "question",
+    message: `Selesaikan transaksi #${form.code}?`,
+    focus: "cancel",
+    cancel: true,
+    persistent: true,
+  }).onOk(() => {
+    isProcessing.value = true;
+    axios
+      .post(route("admin.purchase-order-return.close", { id: form.id }))
+      .then((response) => {
+        showInfo("Transaksi selesai");
+        router.get(
+          route("admin.purchase-order-return.detail", {
+            id: form.id,
+          })
+        );
 
-  isProcessing.value = true;
-  axios
-    .post(route("admin.purchase-order.close"), payload)
-    .then((response) => {
-      showInfo("Transaksi selesai");
-      router.visit(route("admin.purchase-order.detail", { id: form.id }));
-    })
-    .catch((error) => {
-      showError(error.response?.data?.message);
-      console.error(error);
-    })
-    .finally(() => {
-      isProcessing.value = false;
-    });
+        return;
+      })
+      .catch((error) => {
+        showError(error.response?.data?.message);
+        console.error(error);
+      })
+      .finally(() => {
+        isProcessing.value = false;
+      });
+  });
 };
 
 const cancelOrder = () => {
@@ -382,14 +391,16 @@ const cancelOrder = () => {
   }).onOk(() => {
     axios
       .post(
-        route("admin.purchase-order.cancel", {
+        route("admin.purchase-order-return.cancel", {
           id: form.id,
         }),
         { id: form.id }
       )
       .then(() => {
         showInfo("Transaksi telah dibatalkan.");
-        router.visit(route("admin.purchase-order.detail", { id: form.id }));
+        router.visit(
+          route("admin.purchase-order-return.detail", { id: form.id })
+        );
       })
       .catch((error) => {
         const errorMessage =
@@ -407,10 +418,18 @@ const cancelOrder = () => {
 
 const invoicePreview = () => {
   window.open(
-    route("admin.purchase-order.detail", { id: form.id }) + "?preview=1",
+    route("admin.purchase-order-return.detail", { id: form.id }) + "?preview=1",
     "_blank"
   );
 };
+
+const isValidWalletBalance = computed(() => {
+  if (supplier.value) {
+    return supplier.value.wallet_balance >= total.value;
+  }
+
+  return true;
+});
 </script>
 
 <template>
@@ -426,7 +445,7 @@ const invoicePreview = () => {
           color="grey-7"
           flat
           rounded
-          @click="router.get(route('admin.purchase-order.index'))"
+          @click="router.get(route('admin.purchase-order-return.index'))"
         />
       </div>
     </template>
@@ -463,19 +482,35 @@ const invoicePreview = () => {
                 class="custom-select full-width col col-12 bg-white q-pa-sm"
                 v-model="supplier"
                 label="Pemasok"
-                :disable="isProcessing"
-                @supplier-selected="handleSupplierSelected"
+                disable
                 :min-length="1"
                 outlined
                 autofocus
               />
-              <div class="text-grey q-mt-xs q-ml-sm">
-                Saldo:
-                {{
-                  supplier
-                    ? "Rp. " + formatNumber(supplier ? supplier.balance : 0)
-                    : "Tidak tersedia"
-                }}
+              <div class="row" v-if="supplier">
+                <div
+                  class="q-mt-xs q-ml-sm text-bold"
+                  :class="isValidWalletBalance ? 'text-green' : 'text-red'"
+                >
+                  Wallet:
+                  {{
+                    supplier
+                      ? "Rp. " +
+                        formatNumber(supplier ? supplier.wallet_balance : 0)
+                      : "Tidak tersedia"
+                  }}
+                </div>
+                <div
+                  class="q-mt-xs q-ml-sm text-bold"
+                  :class="supplier.balance >= 0 ? 'text-green' : 'text-red'"
+                >
+                  Utang / Piutang:
+                  {{
+                    supplier
+                      ? "Rp. " + formatNumber(supplier ? supplier.balance : 0)
+                      : "Tidak tersedia"
+                  }}
+                </div>
               </div>
             </div>
           </div>
@@ -548,7 +583,8 @@ const invoicePreview = () => {
 
           <div class="col" v-if="$q.screen.gt.sm">
             <div class="q-pa-sm q-pb-none text-grey-8">
-              <div>#: {{ form.code }}</div>
+              <div>Return #: {{ form.code }}</div>
+              <div>Order #: {{ page.props.data.purchase_order.code }}</div>
               <div>{{ formatDateTime(form.datetime) }}</div>
             </div>
           </div>
@@ -570,12 +606,12 @@ const invoicePreview = () => {
           <div class="col q-py-sm">
             <q-btn
               class="full-width q-py-none"
-              label="Bayar"
+              label="Selesai"
               color="primary"
               icon="payment"
-              @click="showPaymentDialog = true"
+              @click="closeOrder()"
               :disable="
-                !$can('admin.purchase-order.close') ||
+                !$can('admin.purchase-order-return.close') ||
                 isProcessing ||
                 form.items.length === 0 ||
                 form.status !== 'draft'
@@ -648,17 +684,8 @@ const invoicePreview = () => {
         @save="updateItem()"
         :is-processing="isProcessing"
       />
-      <PaymentDialog
-        v-model="showPaymentDialog"
-        @accepted="handlePayment"
-        :form="form"
-        :supplier="supplier"
-        :total="total"
-        :accounts="page.props.accounts"
-      />
       <ProductBrowserDialog
         v-model="showProductBrowserDialog"
-        :show-cost="true"
         @product-selected="handleProductSelection"
       />
       <OrderInfoDialog
@@ -668,13 +695,6 @@ const invoicePreview = () => {
         :is-processing="isProcessing"
       />
       <HelpDialog v-model="showHelpDialog" />
-      <SuccessDialog
-        v-model="showSuccessDialog"
-        :order="form"
-        :supplier="supplier"
-        :total="total"
-        :payment="payment"
-      />
     </q-page>
   </authenticated-layout>
 </template>
