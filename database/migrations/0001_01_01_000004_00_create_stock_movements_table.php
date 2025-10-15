@@ -31,6 +31,7 @@ return new class extends Migration
 
             // Custom Polymorphic Index
             $table->unsignedBigInteger('ref_id')->nullable();
+            $table->string('code', 255)->unique();
             $table->string('ref_type', 40)->default('');
             $table->index(['ref_type', 'ref_id']); // Combined index for fast polymorphic lookups
 
