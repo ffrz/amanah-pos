@@ -23,8 +23,6 @@ Homestead.json
 .phpunit.result.cache
 vendor.zip
 /public/uploads
-/public/uploads
-/public/uploads/wallet-topup-confirmations
 /public/uploads/wallet-topup-confirmations
 
 # Playwright
@@ -32,5 +30,6 @@ vendor.zip
 /playwright-report/
 /blob-report/
 /playwright/.cache/
-deploy/tenants.json
+
+# Deployment configuration
 deploy/config.json

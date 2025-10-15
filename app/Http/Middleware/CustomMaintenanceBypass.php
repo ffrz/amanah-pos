@@ -3,8 +3,6 @@
 namespace App\Http\Middleware;
 
 use Closure;
-use Illuminate\Foundation\Http\Exceptions\MaintenanceModeException;
-use Illuminate\Support\Facades\App;
 
 class CustomMaintenanceBypass
 {
