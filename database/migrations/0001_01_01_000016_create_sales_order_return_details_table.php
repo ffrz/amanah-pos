@@ -29,6 +29,11 @@ return new class extends Migration
             $table->string('product_description', 100)->default('');
             $table->string('product_uom', 40)->default('');
             $table->decimal('quantity', 18, 3)->default(0.);
+
+            $table->decimal('user_input_qty', 10, 3)->nullable();  // Kuantitas yang dimasukkan Kasir/Admin
+            $table->string('user_input_uom', 20)->nullable();      // Satuan yang dipilih (e.g., 'Box')
+            $table->decimal('conversion_rate', 10, 3)->nullable(); // Nilai konversi saat transaksi
+
             $table->decimal('cost', 18, 2)->default(0.);
             $table->decimal('price', 18, 2)->default(0.);
             $table->decimal('subtotal_cost', 18, 2)->default(0.);

@@ -3,13 +3,13 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
+ *
  * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
+ *
  * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
+ *
  * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
@@ -47,7 +47,15 @@ return new class extends Migration
             $table->datetime('discount_end_date')->nullable();
             $table->string('discount_reason', 150)->nullable();
 
-            $table->string('uom')->default('');
+            $table->string('uom', 20)->nullable()->default('');
+
+            // multis satuan
+            $table->string('uom_2', 20)->nullable()->default('');
+            $table->decimal('uom_2_qty', 10, 3)->nullable()->default('');
+
+            $table->string('uom_3', 20)->nullable()->default('');
+            $table->decimal('uom_3_qty', 10, 3)->nullable()->default('');
+
             $table->text('notes')->nullable();
             $table->decimal('stock', 10, 3)->default(0.)->index();
             $table->decimal('min_stock', 10, 3)->default(0.);

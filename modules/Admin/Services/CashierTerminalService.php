@@ -153,7 +153,6 @@ class CashierTerminalService
         }
 
         return DB::transaction(function () use ($item) {
-
             $name = $item->name;
             $item->delete();
 
