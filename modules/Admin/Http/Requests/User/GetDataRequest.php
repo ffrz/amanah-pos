@@ -3,13 +3,13 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
+ *
  * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
+ *
  * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
+ *
  * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
@@ -33,7 +33,6 @@ class GetDataRequest extends DefaultGetDataRequest
 
         return array_merge($rules, [
             'order_by'    => ['nullable', 'string', Rule::in(['id', 'username', 'name'])],
-            'filter.search' => ['nullable', 'string', 'max:100'],
         ]);
     }
 }
