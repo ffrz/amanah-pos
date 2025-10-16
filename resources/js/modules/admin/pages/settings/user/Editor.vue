@@ -4,11 +4,13 @@ import { handleSubmit } from "@/helpers/client-req-handler";
 import { createOptions } from "@/helpers/options";
 import { validateUsername } from "@/helpers/validations";
 import { useForm, usePage } from "@inertiajs/vue3";
+import { ref } from "vue";
 
 const types = createOptions(window.CONSTANTS.USER_TYPES);
 const page = usePage();
 const roles = page.props.roles;
 const title = !!page.props.data.id ? "Edit Pengguna" : "Tambah Pengguna";
+const showPassword = ref(!page.props.data.id ? true : false);
 
 // Terapkan mapping di sini untuk memastikan form.roles selalu array of ID integer
 const initialRoles = page.props.data.roles;
@@ -20,10 +22,9 @@ const form = useForm({
   id: page.props.data.id,
   name: page.props.data.name,
   username: page.props.data.username,
-  password: "",
+  password: !page.props.data.id ? "12345" : null,
   type: !!page.props.data.type ? page.props.data.type : types[0].value,
   active: !!page.props.data.active,
-  // Gunakan array ID yang sudah di-map di sini
   roles: roleIds,
 });
 
@@ -81,14 +82,20 @@ const submit = () => handleSubmit({ form, url: route("admin.user.save") });
               />
               <q-input
                 v-model="form.password"
-                type="password"
                 label="Kata Sandi"
                 lazy-rules
                 :disable="form.processing"
                 :error="!!form.errors.password"
                 :error-message="form.errors.password"
                 hide-bottom-space
-              />
+                :type="showPassword ? 'text' : 'password'"
+              >
+                <template v-slot:append>
+                  <q-btn dense flat round @click="showPassword = !showPassword"
+                    ><q-icon :name="showPassword ? 'key_off' : 'key'"
+                  /></q-btn>
+                </template>
+              </q-input>
               <q-select
                 v-model="form.type"
                 label="Jenis Akun"
