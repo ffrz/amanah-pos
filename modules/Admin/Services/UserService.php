@@ -3,13 +3,13 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
+ *
  * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
+ *
  * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
+ *
  * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
@@ -108,34 +108,46 @@ class UserService
     public function save(User $user, array $data): User
     {
         $isNew = empty($data['id']);
-        $roles = $data['roles'];
-        $oldData = $user->toArray();
+        $newRoleNames = $data['roles'];
+        $currentRoleNames = $user->roles->pluck('name')->toArray();
 
         $user->fill($data);
 
-        if (empty($user->getDirty())) {
+        $modelDirty = !empty($user->getDirty());
+        $passwordDirty = !empty($data['password']);
+        $rolesChanged = !empty(array_diff($currentRoleNames, $newRoleNames)) ||
+            !empty(array_diff($newRoleNames, $currentRoleNames));
+
+        if (!$modelDirty && !$passwordDirty && !$rolesChanged) {
             throw new ModelNotModifiedException();
         }
 
-        if (!empty($data['password'])) {
+        $oldData = $user->toArray();
+        $oldData['roles'] = $currentRoleNames;
+
+        if ($passwordDirty) {
             $user->password = Hash::make($data['password']);
             $oldData['password'] = '*****';
         }
 
-        return DB::transaction(function () use ($user, $isNew, $roles, $oldData) {
-            $user->save();
+        return DB::transaction(function () use ($user, $isNew, $newRoleNames, $oldData) {
+            if (!empty($user->getDirty()) || empty($user->id)) {
+                $user->save();
+            }
 
             if ($user->type === User::Type_SuperUser) {
                 $user->syncRoles([]);
             } else {
-                $user->syncRoles($roles);
+                $user->syncRoles($newRoleNames);
             }
 
             $user->load('roles');
 
+            // Log Document Version dan Activity
             $this->documentVersionService->createVersion($user);
 
             $newData = $user->toArray();
+            $newData['roles'] = $user->roles->pluck('name')->toArray();
 
             if (!empty($oldData['password'])) {
                 $newData['password'] = '******';
