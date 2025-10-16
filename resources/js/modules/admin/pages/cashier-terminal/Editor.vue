@@ -5,7 +5,7 @@ import { scrollToFirstErrorField } from "@/helpers/utils";
 import StandardCheckBox from "@/components/StandardCheckBox.vue";
 
 const page = usePage();
-const title = (!!page.props.data.id ? "Edit" : "Tambah") + " Pelanggan";
+const title = (!!page.props.data.id ? "Edit" : "Tambah") + " Terminal";
 const form = useForm({
   id: page.props.data.id,
   name: page.props.data.name,
