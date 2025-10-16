@@ -195,6 +195,29 @@ const props = defineProps({
         </div>
       </div>
       <div class="col-12 col-sm-6">
+        <tempate v-if="props.data.change > 0">
+          <div class="row justify-end q-gutter-y-xs">
+            <div class="col-12 row justify-between">
+              <div class="text-subtitle2 text-grey-7">Jumlah Bayar</div>
+              <div class="text-subtitle2 text-bold">
+                {{
+                  formatNumber(
+                    parseInt(props.data.total_paid) +
+                      parseInt(props.data.change)
+                  )
+                }}
+              </div>
+            </div>
+          </div>
+          <div class="row justify-end q-gutter-y-xs">
+            <div class="col-12 row justify-between">
+              <div class="text-subtitle2 text-grey-7">Kembalian</div>
+              <div class="text-subtitle2 text-bold">
+                {{ formatNumber(props.data.change) }}
+              </div>
+            </div>
+          </div>
+        </tempate>
         <div class="row justify-end q-gutter-y-xs">
           <div class="col-12 row justify-between">
             <div class="text-subtitle2 text-grey-7">Grand Total (Rp)</div>

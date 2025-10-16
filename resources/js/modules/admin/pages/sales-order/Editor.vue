@@ -296,7 +296,9 @@ onMounted(() => {
       mergeItem.value = !mergeItem.value;
     } else if (e.key === "F10" || (e.ctrlKey && e.key === "Enter")) {
       e.preventDefault();
-      showPaymentDialog.value = true;
+      if (isValidOrder.value) {
+        showPaymentDialog.value = true;
+      }
     } else if (e.key === "F11") {
       e.preventDefault();
       handleFullScreenClicked();
@@ -451,6 +453,19 @@ const isValidWalletBalance = computed(() => {
   }
 
   return true;
+});
+
+import { getCurrentInstance } from "vue";
+
+const isValidOrder = computed(() => {
+  return (
+    getCurrentInstance().appContext.config.globalProperties.$can(
+      "admin.sales-order.close"
+    ) &&
+    !isProcessing.value &&
+    form.items.length !== 0 &&
+    form.status === "draft"
+  );
 });
 </script>
 
@@ -636,12 +651,7 @@ const isValidWalletBalance = computed(() => {
               color="primary"
               icon="payment"
               @click="showPaymentDialog = true"
-              :disable="
-                !$can('admin.sales-order.close') ||
-                isProcessing ||
-                form.items.length === 0 ||
-                form.status !== 'draft'
-              "
+              :disable="!isValidOrder"
               :loading="isProcessing"
             />
           </div>

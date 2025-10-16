@@ -3,13 +3,13 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
+ *
  * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
+ *
  * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
+ *
  * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
@@ -223,20 +223,74 @@ class SalesOrderService
                     ->decrement('balance', $order->grand_total);
             }
 
+            // Logika handle kembalian
+            if ($data['change'] > 0) {
+                // hitung ulang di server agar lebih aman
+                $order->change = $data['change'];
+                $data['payments'] = $this->adjustCashPaymentForChange($order, $data['payments']);
+            }
+
             // Simpan dan proses pembayaran
             $this->paymentService->addPayments($order, $data['payments'] ?? []);
 
             // Update kembalian
-            $order->change = max(0, $order->total_paid - $order->grand_total);
             $order->save();
 
             // Perbarui stok produk secara massal
             $this->processSalesOrderStockOut($order);
 
-            // update settings
-            // FIXME: seharusnya ini dipindahkan ke user settings agar tidak semua user terdampak
+            // TODO: seharusnya ini dipindahkan ke user settings agar tidak semua user terdampak
             Setting::setValue('pos.after_payment_action', $data['after_payment_action'] ?? 'print');
         });
+    }
+
+    /**
+     * Menyesuaikan jumlah pembayaran tunai dengan memotong jumlah kembalian (change).
+     * Kembalian harus selalu dipotong dari pembayaran 'cash'.
+     *
+     * @param SalesOrder $order Model Order yang sudah memiliki 'change' yang benar.
+     * @param array $payments Array pembayaran dari input $data.
+     * @return array Array pembayaran yang sudah disesuaikan.
+     */
+    private function adjustCashPaymentForChange(SalesOrder $order, array $payments): array
+    {
+        // Pastikan ada kembalian
+        if ($order->change <= 0) {
+            return $payments; // Tidak perlu penyesuaian
+        }
+
+        $cashIndex = -1;
+        $cashAmount = 0;
+        $cashPaymentCount = 0;
+
+        // Cari indeks pembayaran 'cash' dan total jumlahnya
+        foreach ($payments as $index => $payment) {
+            if ($payment['id'] === 'cash') {
+
+                if ($cashIndex !== -1) {
+                    // Melarang lebih dari satu entri cash
+                    throw new BusinessRuleViolationException('Hanya boleh ada 1 pembayaran tunai per transaksi.');
+                }
+
+                $cashPaymentCount++;
+                $cashIndex = $index;
+                $cashAmount += $payment['amount'];
+            }
+        }
+
+        if ($cashIndex === -1) {
+            throw new BusinessRuleViolationException('Kembalian hanya berlaku untuk transaksi tunai.');
+        }
+
+        $newCashAmount = $cashAmount - $order->change;
+
+        if ($newCashAmount < 0) {
+            throw new BusinessRuleViolationException('Jumlah tunai yang dibayarkan tidak mencukupi untuk menutupi kembalian yang dibutuhkan. Transaksi overpayment tidak didukung!');
+        }
+
+        $payments[$cashIndex]['amount'] = $newCashAmount;
+
+        return $payments;
     }
 
     public function deleteOrder(SalesOrder $order)
@@ -317,9 +371,6 @@ class SalesOrderService
                 'quantity_after'  => $product->stock - $quantity,
                 'notes'           => "Transaksi penjualan #$order->code",
             ]);
-
-            // FIXME: ada bugs, quantity dikali 2 di rekaman tertentu,
-            // mungkin ketika detail lebih dari 1
 
             Product::where('id', $detail->product_id)->decrement('stock', $quantity);
         }
