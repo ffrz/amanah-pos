@@ -16,13 +16,13 @@
 
 namespace Modules\Admin\Services;
 
+use App\Exceptions\BusinessRuleViolationException;
 use App\Exceptions\ModelNotModifiedException;
 use App\Models\CashierTerminal;
 use App\Models\FinanceAccount;
 use App\Models\UserActivityLog;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 
 class CashierTerminalService
@@ -62,7 +62,7 @@ class CashierTerminalService
     /**
      * Mengambil Cashier Terminal berdasarkan ID dengan relasi detail.
      */
-    public function find(int $id): CashierTerminal
+    public function findOrFail(int $id): CashierTerminal
     {
         return CashierTerminal::with(['financeAccount', 'creator', 'updater'])->findOrFail($id);
     }
@@ -145,22 +145,29 @@ class CashierTerminalService
     /**
      * Menghapus Terminal Kasir.
      */
-    public function delete($item): CashierTerminal
+    public function delete(CashierTerminal $item): CashierTerminal
     {
+        $activeSession = app(CashierSessionService::class)->getActiveSession();
+        if ($activeSession && $activeSession->cashier_terminal_id == $item->id) {
+            throw new BusinessRuleViolationException('Tidak dapat menghapus terminal saat sedang ada sesi aktif!');
+        }
+
         return DB::transaction(function () use ($item) {
-            $item = $item->delete();
+
+            $name = $item->name;
+            $item->delete();
 
             $this->userActivityLogService->log(
                 UserActivityLog::Category_CashierTerminal,
                 UserActivityLog::Name_CashierTerminal_Delete,
-                "Terminal kasir $item->name telah dihapus.",
+                "Terminal kasir $name telah dihapus.",
                 $item->getAttributes(),
             );
 
             $this->documentVersionService->createDeletedVersion($item);
-        });
 
-        return $item;
+            return $item;
+        });
     }
 
     /**
@@ -194,13 +201,13 @@ class CashierTerminalService
 
     public function findOrCreate($id): CashierTerminal
     {
-        return $id ? $this->find($id) : new CashierTerminal(
+        return $id ? $this->findOrFail($id) : new CashierTerminal(
             ['active' => true]
         );
     }
 
     public function duplicate(int $id): CashierTerminal
     {
-        return $this->find($id)->replicate();
+        return $this->findOrFail($id)->replicate();
     }
 }
