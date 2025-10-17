@@ -4,8 +4,8 @@ import { useForm } from "@inertiajs/vue3";
 import { ref } from "vue";
 
 let form = useForm({
-  code: "2025001",
-  password: "12345",
+  code: window.CONFIG.APP_DEMO ? "CST-0001" : "",
+  password: window.CONFIG.APP_DEMO ? "12345" : "",
   remember: true,
 });
 
