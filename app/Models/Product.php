@@ -37,11 +37,13 @@ class Product extends BaseModel
         'product_id',
         'category_id',
         'supplier_id',
+        'tax_scheme_id',
+
         'name',
-        'barcode',
         'description',
         'active',
         'price_editable',
+        'tax_enabled',
         'type',
         'cost',
         'price_1',
@@ -56,6 +58,16 @@ class Product extends BaseModel
         'discount_reason',
 
         'uom',
+        'barcode',
+
+        'uom_2',
+        'uom_2_barcode',
+        'uom_2_quantity',
+
+        'uom_3',
+        'uom_3_barcode',
+        'uom_3_quantity',
+
         'stock',
         'min_stock',
         'max_stock',
@@ -115,11 +127,13 @@ class Product extends BaseModel
             'product_id'  => 'integer',
             'category_id' => 'integer',
             'supplier_id' => 'integer',
+            'tax_scheme_id' => 'integer',
+
             'name'        => 'string',
-            'barcode'     => 'string',
             'description' => 'string',
             'active'      => 'boolean',
             'price_editable' => 'boolean',
+            'tax_enabled' => 'boolean',
             'type'       => 'string',
             'cost'       => 'decimal:2',
             'price_1'    => 'decimal:2',
@@ -131,7 +145,17 @@ class Product extends BaseModel
             'discount_end_datetime' => 'datetime',
             'discount_reason' => 'string',
 
-            'uom'        => 'string',
+            'uom'     => 'string',
+            'barcode' => 'string',
+
+            'uom_2'          => 'string',
+            'uom_2_barcode'  => 'string',
+            'uom_2_quantity' => 'decimal:3',
+
+            'uom_3'          => 'string',
+            'uom_3_barcode'  => 'string',
+            'uom_3_quantity' => 'decimal:3',
+
             'stock'      => 'decimal:3',
             'min_stock'  => 'decimal:3',
             'max_stock'  => 'decimal:3',

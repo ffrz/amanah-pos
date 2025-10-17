@@ -37,6 +37,7 @@ return new class extends Migration
             $table->string('type', 20)->index();
             $table->boolean('active')->default(true)->index();
             $table->boolean('price_editable')->default(false);
+            $table->boolean('tax_enabled')->default(false);
             $table->decimal('cost', 10, 2)->default(0.);
             $table->decimal('price_1', 10, 2)->default(0.);
             $table->decimal('price_2', 10, 2)->default(0.);
@@ -54,11 +55,11 @@ return new class extends Migration
             // multis satuan
             $table->string('uom_2', 20)->nullable()->default('');
             $table->string('uom_2_barcode', 40)->nullable()->default('');
-            $table->decimal('uom_2_qty', 10, 3)->nullable()->default(0.);
+            $table->decimal('uom_2_quantity', 10, 3)->nullable()->default(0.);
 
             $table->string('uom_3', 20)->nullable()->default('');
             $table->string('uom_3_barcode', 40)->nullable()->default('');
-            $table->decimal('uom_3_qty', 10, 3)->nullable()->default(0.);
+            $table->decimal('uom_3_quantity', 10, 3)->nullable()->default(0.);
 
             $table->text('notes')->nullable();
             $table->decimal('stock', 10, 3)->default(0.)->index();

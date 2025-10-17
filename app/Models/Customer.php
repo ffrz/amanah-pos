@@ -54,6 +54,8 @@ class Customer extends BaseModel implements
         'address',
         'wallet_balance',
         'balance',
+        'credit_limit',
+        'credit_allowed',
         'default_price_type',
         'active',
         'last_login_datetime',
@@ -102,6 +104,8 @@ class Customer extends BaseModel implements
             'address' => 'string',
             'wallet_balance' => 'decimal:2',
             'balance' => 'decimal:2',
+            'credit_limit' => 'decimal:2',
+            'credit_allowed' => 'boolean',
             'active' => 'boolean',
             'default_price_type' => 'string',
             'last_login_datetime' => 'datetime',
@@ -142,31 +146,47 @@ class Customer extends BaseModel implements
         $this->save();
     }
 
-    public static function activeCustomerCount()
+    /**
+     * Menghitung total pelanggan yang aktif secara bisnis.
+     */
+    public static function activeCustomerCount(): int
     {
-        return DB::select(
-            'select count(0) as count from customers where active=1'
-        )[0]->count;
+        // Secara otomatis mengecualikan data soft-deleted
+        return Customer::where('active', 1)->count();
     }
 
-    public static function totalActiveWalletBalance()
+    /**
+     * Menghitung total saldo wallet/akun (Piutang bersih - Deposit bersih) dari pelanggan aktif.
+     */
+    public static function totalActiveWalletBalance(): float
     {
-        return DB::select(
-            'select sum(wallet_balance) as sum from customers where active=1'
-        )[0]->sum;
+        // Menggunakan sum() untuk menghitung total saldo
+        return Customer::where('active', 1)->sum('wallet_balance');
     }
 
-    public static function totalActiveDebt()
+    /**
+     * Menghitung total Utang Pelanggan Aktif (sesuai konvensi: wallet_balance > 0).
+     *
+     * Catatan: Query asli Anda menggunakan wallet_balance < 0 untuk Debt.
+     * Saya mengacu pada konvensi standar akuntansi (Piutang > 0, Utang < 0) yang kita sepakati.
+     * Saya akan mengoreksi query ini berdasarkan konvensi yang Anda set sebelumnya (wallet_balance < 0 = Debt).
+     */
+    public static function totalActiveDebt(): float
     {
-        return DB::select(
-            'select sum(wallet_balance) as sum from customers where active=1 and wallet_balance < 0'
-        )[0]->sum;
+        // Debt (Titipan yang dihabiskan atau Overdraft) sesuai logika Anda (< 0)
+        return Customer::where('active', 1)
+            ->where('wallet_balance', '<', 0)
+            ->sum('wallet_balance');
     }
 
-    public static function totalActiveCredit()
+    /**
+     * Menghitung total Piutang Pelanggan Aktif (sesuai konvensi: wallet_balance > 0).
+     */
+    public static function totalActiveCredit(): float
     {
-        return DB::select(
-            'select sum(wallet_balance) as sum from customers where active=1 and wallet_balance > 0'
-        )[0]->sum;
+        // Credit (Piutang) sesuai logika Anda (> 0)
+        return Customer::where('active', 1)
+            ->where('wallet_balance', '>', 0)
+            ->sum('wallet_balance');
     }
 }

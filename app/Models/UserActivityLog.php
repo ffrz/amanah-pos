@@ -53,6 +53,7 @@ class UserActivityLog extends Model
     public const Category_CashierSession = 'cashier-session';
     public const Category_CustomerWallet = 'customer-wallet';
     public const Category_StockAdjustment = 'stock-adjustment';
+    public const Category_TaxScheme = 'tax-scheme';
 
     /**
      * Array pemetaan Kategori untuk tampilan (Opsional, tapi konsisten)
@@ -81,6 +82,7 @@ class UserActivityLog extends Model
         self::Category_CashierSession => 'Manajemen Sesi Kasir',
         self::Category_CustomerWallet => 'Manajemen Walet Pelanggan',
         self::Category_StockAdjustment => 'Manajemen Penyesuaian Stok',
+        self::Category_TaxScheme => 'Manajemen Skema Pajak',
     ];
 
     /**
@@ -191,6 +193,10 @@ class UserActivityLog extends Model
     public const Name_StockAdjustment_Cancel = 'stock-adjustment.cancel';
     public const Name_StockAdjustment_Delete = 'stock-adjustment.delete';
 
+    public const Name_TaxScheme_Create = 'tax-scheme.create';
+    public const Name_TaxScheme_Update = 'tax-scheme.update';
+    public const Name_TaxScheme_Delete = 'tax-scheme.delete';
+
     /**
      * Array pemetaan Nama Aktivitas
      */
@@ -273,6 +279,10 @@ class UserActivityLog extends Model
         self::Name_StockAdjustment_Close  => 'Menutup Penyesuaian Stok',
         self::Name_StockAdjustment_Cancel => 'Membatalkan Penyesuaian Stok',
         self::Name_StockAdjustment_Delete => 'Menghapus Penyesuaian Stok',
+
+        self::Name_TaxScheme_Create => 'Membuat Skema Pajak',
+        self::Name_TaxScheme_Update => 'Memperbarui Skema Pajak',
+        self::Name_TaxScheme_Delete => 'Menghapus Skema Pajak',
     ];
 
     // Kolom yang dapat diisi massal

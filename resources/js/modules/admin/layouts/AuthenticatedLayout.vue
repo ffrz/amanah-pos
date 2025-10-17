@@ -628,6 +628,21 @@ defineExpose({
             </q-item>
 
             <q-item
+              v-if="$can('admin.tax-scheme.index')"
+              class="subnav"
+              clickable
+              v-ripple
+              :active="$page.url.startsWith('/admin/settings/tax-schemes')"
+              @click="router.get(route('admin.tax-scheme.index'))"
+            >
+              <q-item-section avatar>
+                <q-icon name="credit_card_gear" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Skema Pajak</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item
               v-if="$can('admin.pos-settings.edit')"
               class="subnav"
               clickable
@@ -690,6 +705,22 @@ defineExpose({
               </q-item-section>
               <q-item-section>
                 <q-item-label>Database</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item
+              class="subnav"
+              clickable
+              v-ripple
+              :active="
+                $page.url.startsWith('/admin/settings/system-information')
+              "
+              @click="router.get(route('admin.settings.system-information'))"
+            >
+              <q-item-section avatar>
+                <q-icon name="info" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Informasi Sistem</q-item-label>
               </q-item-section>
             </q-item>
           </q-expansion-item>

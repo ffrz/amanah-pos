@@ -18,20 +18,32 @@ const form = useForm({
   id: page.props.data.id,
   category_id: page.props.data.category_id,
   supplier_id: page.props.data.supplier_id,
+  tax_scheme_id: page.props.data.tax_scheme_id,
   type: page.props.data.type || "",
   name: page.props.data.name || "",
-  barcode: page.props.data.barcode || "",
   description: page.props.data.description || "",
   stock: parseFloat(page.props.data.stock) || 0,
   min_stock: parseFloat(page.props.data.min_stock) || 0,
   max_stock: parseFloat(page.props.data.max_stock) || 0,
+
   uom: page.props.data.uom || "",
+  barcode: page.props.data.barcode || "",
+
+  uom_2: page.props.data.uom || "",
+  uom_2_barcode: page.props.data.barcode || "",
+  uom_2_quantity: parseFloat(page.props.data.uom_2_quantity) || 0,
+
+  uom_3: page.props.data.uom || "",
+  uom_3_barcode: page.props.data.barcode || "",
+  uom_3_quantity: parseFloat(page.props.data.uom_3_quantity) || 0,
+
   cost: parseFloat(page.props.data.cost) || 0,
   price_1: parseFloat(page.props.data.price_1) || 0,
   price_2: parseFloat(page.props.data.price_2) || 0,
   price_3: parseFloat(page.props.data.price_3) || 0,
   active: !!page.props.data.active,
   price_editable: !!page.props.data.price_editable,
+  tax_enabled: !!page.props.data.tax_enabled,
   notes: page.props.data.notes || "",
 });
 
@@ -129,7 +141,7 @@ const margin3 = computed(() => {
                 autogrow
                 counter
                 maxlength="200"
-                label="Deskripsi"
+                label="Deskripsi (Opsional)"
                 lazy-rules
                 :disable="form.processing"
                 :error="!!form.errors.description"
@@ -138,7 +150,7 @@ const margin3 = computed(() => {
               />
               <q-select
                 v-model="form.category_id"
-                label="Kategori"
+                label="Kategori (Opsional)"
                 use-input
                 input-debounce="300"
                 clearable
@@ -162,7 +174,7 @@ const margin3 = computed(() => {
               <q-select
                 v-if="$can('admin.product:view-supplier')"
                 v-model="form.supplier_id"
-                label="Supplier"
+                label="Supplier (Opsional)"
                 use-input
                 input-debounce="300"
                 clearable
@@ -183,22 +195,14 @@ const margin3 = computed(() => {
                 </template>
               </q-select>
               <CheckBox
+                class="q-mt-md"
                 v-model="form.active"
                 :disable="form.processing"
-                label="Aktif"
+                label="Produk Aktif (Ditampilkan)"
               />
               <div class="text-subtitle1 q-pt-lg">Info Inventori</div>
+              <div class="text-subtitle2 q-pt-lg">Satuan Dasar</div>
               <div class="row q-gutter-md">
-                <q-input
-                  v-model.trim="form.barcode"
-                  label="Barcode"
-                  lazy-rules
-                  :error="!!form.errors.barcode"
-                  :disable="form.processing"
-                  :error-message="form.errors.barcode"
-                  hide-bottom-space
-                  class="col"
-                />
                 <q-input
                   v-model.trim="form.uom"
                   label="Satuan"
@@ -209,11 +213,91 @@ const margin3 = computed(() => {
                   hide-bottom-space
                   class="col"
                 />
+                <q-input
+                  v-model.trim="form.barcode"
+                  label="Barcode"
+                  lazy-rules
+                  :error="!!form.errors.barcode"
+                  :disable="form.processing"
+                  :error-message="form.errors.barcode"
+                  hide-bottom-space
+                  class="col"
+                />
+              </div>
+              <div class="text-subtitle2 q-pt-lg">Satuan 2 (Opsional)</div>
+              <div class="row q-gutter-md">
+                <q-input
+                  v-model.trim="form.uom_2"
+                  label="Satuan"
+                  lazy-rules
+                  :error="!!form.errors.uom_2"
+                  :disable="form.processing"
+                  :error-message="form.errors.uom_2"
+                  hide-bottom-space
+                  class="col"
+                />
+                <LocaleNumberInput
+                  v-model:modelValue="form.uom_2_quantity"
+                  label="Kwantitas"
+                  lazyRules
+                  :disable="form.processing"
+                  :error="!!form.errors.uom_2_quantity"
+                  :errorMessage="form.errors.uom_2_quantity"
+                  hide-bottom-space
+                  class="col"
+                />
+                <q-input
+                  v-model.trim="form.uom_2_barcode"
+                  label="Barcode"
+                  lazy-rules
+                  :error="!!form.errors.uom_2_barcode"
+                  :disable="form.processing"
+                  :error-message="form.errors.uom_2_barcode"
+                  hide-bottom-space
+                  class="col"
+                />
+              </div>
+              <div class="text-subtitle2 q-pt-lg">Satuan 3 (Opsional)</div>
+              <div class="row q-gutter-md">
+                <q-input
+                  v-model.trim="form.uom_3"
+                  label="Satuan"
+                  lazy-rules
+                  :error="!!form.errors.uom_3"
+                  :disable="form.processing"
+                  :error-message="form.errors.uom_3"
+                  hide-bottom-space
+                  class="col"
+                />
+                <LocaleNumberInput
+                  v-model:modelValue="form.uom_3_quantity"
+                  label="Kwantitas"
+                  lazyRules
+                  :disable="form.processing"
+                  :error="!!form.errors.uom_3_quantity"
+                  :errorMessage="form.errors.uom_3_quantity"
+                  hide-bottom-space
+                  class="col"
+                />
+                <q-input
+                  v-model.trim="form.uom_3_barcode"
+                  label="Barcode"
+                  lazy-rules
+                  :error="!!form.errors.uom_3_barcode"
+                  :disable="form.processing"
+                  :error-message="form.errors.uom_3_barcode"
+                  hide-bottom-space
+                  class="col"
+                />
+              </div>
+
+              <div class="text-subtitle2 q-pt-lg">
+                Stok ({{ form.uom ? form.uom : "unit" }})
               </div>
               <div class="row q-gutter-md">
                 <LocaleNumberInput
                   v-model:modelValue="form.stock"
-                  label="Stok"
+                  label="Stok Aktual"
                   lazyRules
                   :disable="form.processing"
                   :error="!!form.errors.stock"
@@ -243,11 +327,6 @@ const margin3 = computed(() => {
                 />
               </div>
               <div class="text-subtitle1 q-pt-lg">Info Harga</div>
-              <CheckBox
-                v-model="form.price_editable"
-                :disable="form.processing"
-                label="Harga bisa diubah saat penjualan"
-              />
               <LocaleNumberInput
                 v-if="$can('admin.product:view-cost')"
                 v-model:modelValue="form.cost"
@@ -311,6 +390,14 @@ const margin3 = computed(() => {
                   </div>
                 </div>
               </div>
+
+              <CheckBox
+                v-model="form.price_editable"
+                :disable="form.processing"
+                label="Harga bisa diubah saat penjualan"
+              />
+
+              <div class="text-subtitle1 q-pt-lg">Pajak</div>
 
               <div class="text-subtitle1 q-pt-lg">Info Lainnya</div>
               <q-input

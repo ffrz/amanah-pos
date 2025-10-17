@@ -40,6 +40,7 @@ use App\Models\SalesOrderReturn;
 use App\Models\StockAdjustment;
 use App\Models\StockMovement;
 use App\Models\Supplier;
+use App\Models\TaxScheme;
 use App\Models\User;
 use Modules\Admin\Policies\DefaultPolicy;
 use Modules\Admin\Policies\OnlyAuthorPolicy;
@@ -85,6 +86,7 @@ class AuthServiceProvider extends ServiceProvider
         PurchaseOrderRefund::class => DefaultPolicy::class,
         CustomerWalletTransactionConfirmation::class => DefaultPolicy::class,
         CustomerWalletTransaction::class => DefaultPolicy::class,
+        TaxScheme::class => DefaultPolicy::class,
     ];
 
     /**

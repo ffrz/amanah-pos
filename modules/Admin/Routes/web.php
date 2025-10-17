@@ -46,6 +46,7 @@ use Modules\Admin\Http\Controllers\Settings\UserRoleController;
 use Modules\Admin\Http\Controllers\Settings\DatabaseSettingsController;
 use Modules\Admin\Http\Controllers\Settings\PosSettingsController;
 use Modules\Admin\Http\Controllers\Settings\UserActivityLogController;
+use Modules\Admin\Http\Controllers\TaxSchemeController;
 
 Route::middleware(NonAuthenticated::class)
     ->group(function () {
@@ -70,6 +71,9 @@ Route::middleware([Auth::class])
             Route::get('profile/edit', [UserProfileController::class, 'edit'])->name('admin.user-profile.edit');
             Route::post('profile/update', [UserProfileController::class, 'update'])->name('admin.user-profile.update');
             Route::post('profile/update-password', [UserProfileController::class, 'updatePassword'])->name('admin.user-profile.update-password');
+            Route::get('system-information', function () {
+                return inertia('settings/SystemInformation');
+            })->name('admin.settings.system-information');
         });
 
         Route::middleware([CheckAdminRoutePermission::class])->group(function () {
@@ -350,6 +354,16 @@ Route::middleware([Auth::class])
                     Route::get('edit/{id}', [UserRoleController::class, 'editor'])->name('admin.user-role.edit');
                     Route::post('save', [UserRoleController::class, 'save'])->name('admin.user-role.save');
                     Route::post('delete/{id}', [UserRoleController::class, 'delete'])->name('admin.user-role.delete');
+                });
+
+                Route::prefix('tax-schemes')->group(function () {
+                    Route::get('', [TaxSchemeController::class, 'index'])->name('admin.tax-scheme.index');
+                    Route::get('data', [TaxSchemeController::class, 'data'])->name('admin.tax-scheme.data');
+                    Route::get('add', [TaxSchemeController::class, 'editor'])->name('admin.tax-scheme.add');
+                    Route::get('duplicate/{id}', [TaxSchemeController::class, 'duplicate'])->name('admin.tax-scheme.duplicate');
+                    Route::get('edit/{id}', [TaxSchemeController::class, 'editor'])->name('admin.tax-scheme.edit');
+                    Route::post('save', [TaxSchemeController::class, 'save'])->name('admin.tax-scheme.save');
+                    Route::post('delete/{id}', [TaxSchemeController::class, 'delete'])->name('admin.tax-scheme.delete');
                 });
             });
         });
