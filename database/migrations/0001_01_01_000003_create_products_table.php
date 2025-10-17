@@ -29,6 +29,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('category_id')->nullable()->constrained('product_categories')->onDelete('restrict');
             $table->foreignId('supplier_id')->nullable()->constrained('suppliers')->onDelete('restrict');
+            $table->foreignId('tax_scheme_id')->nullable()->constrained('tax_schemes')->onDelete('restrict');
+
             $table->string('name', 255)->unique();
             $table->string('barcode', 255)->default('')->index();
             $table->text('description')->nullable();
@@ -51,10 +53,12 @@ return new class extends Migration
 
             // multis satuan
             $table->string('uom_2', 20)->nullable()->default('');
-            $table->decimal('uom_2_qty', 10, 3)->nullable()->default('');
+            $table->string('uom_2_barcode', 40)->nullable()->default('');
+            $table->decimal('uom_2_qty', 10, 3)->nullable()->default(0.);
 
             $table->string('uom_3', 20)->nullable()->default('');
-            $table->decimal('uom_3_qty', 10, 3)->nullable()->default('');
+            $table->string('uom_3_barcode', 40)->nullable()->default('');
+            $table->decimal('uom_3_qty', 10, 3)->nullable()->default(0.);
 
             $table->text('notes')->nullable();
             $table->decimal('stock', 10, 3)->default(0.)->index();
