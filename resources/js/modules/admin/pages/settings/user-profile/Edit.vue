@@ -2,7 +2,7 @@
 import UpdatePasswordForm from "./partials/UpdatePasswordForm.vue";
 import UpdateProfileInformationForm from "./partials/UpdateProfileInformationForm.vue";
 
-const title = "Profil Saya";
+const title = "Pengaturan Pribadi";
 </script>
 
 <template>

@@ -29,7 +29,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('category_id')->nullable()->constrained('product_categories')->onDelete('restrict');
             $table->foreignId('supplier_id')->nullable()->constrained('suppliers')->onDelete('restrict');
-            $table->foreignId('tax_scheme_id')->nullable()->constrained('tax_schemes')->onDelete('restrict');
+            // $table->foreignId('tax_scheme_id')->nullable()->constrained('tax_schemes')->onDelete('restrict');
 
             $table->string('name', 255)->unique();
             $table->string('barcode', 255)->default('')->index();
@@ -37,30 +37,13 @@ return new class extends Migration
             $table->string('type', 20)->index();
             $table->boolean('active')->default(true)->index();
             $table->boolean('price_editable')->default(false);
-            $table->boolean('tax_enabled')->default(false);
+            // $table->boolean('tax_enabled')->default(false);
             $table->decimal('cost', 10, 2)->default(0.);
             $table->decimal('price_1', 10, 2)->default(0.);
             $table->decimal('price_2', 10, 2)->default(0.);
             $table->decimal('price_3', 10, 2)->default(0.);
-
             $table->date('expiry_date', 'date')->nullable();
-
-            $table->decimal('discount_percentage', 5, 2)->default(0.00);
-            $table->datetime('discount_start_date')->nullable();
-            $table->datetime('discount_end_date')->nullable();
-            $table->string('discount_reason', 150)->nullable();
-
             $table->string('uom', 20)->nullable()->default('');
-
-            // multis satuan
-            $table->string('uom_2', 20)->nullable()->default('');
-            $table->string('uom_2_barcode', 40)->nullable()->default('');
-            $table->decimal('uom_2_quantity', 10, 3)->nullable()->default(0.);
-
-            $table->string('uom_3', 20)->nullable()->default('');
-            $table->string('uom_3_barcode', 40)->nullable()->default('');
-            $table->decimal('uom_3_quantity', 10, 3)->nullable()->default(0.);
-
             $table->text('notes')->nullable();
             $table->decimal('stock', 10, 3)->default(0.)->index();
             $table->decimal('min_stock', 10, 3)->default(0.);

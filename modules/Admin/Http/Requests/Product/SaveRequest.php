@@ -36,7 +36,7 @@ class SaveRequest extends FormRequest
             'id' => 'nullable|integer|exists:products,id',
             'category_id' => ['nullable', Rule::exists('product_categories', 'id')],
             'supplier_id' => ['nullable', Rule::exists('suppliers', 'id')],
-            'tax_scheme_id' => ['nullable', Rule::exists('tax_schemes', 'id')],
+            // 'tax_scheme_id' => ['nullable', Rule::exists('tax_schemes', 'id')],
             'type' => ['nullable', Rule::in(array_keys(Product::Types))],
             'name' => [
                 'required',
@@ -49,13 +49,13 @@ class SaveRequest extends FormRequest
             'uom'       => ['sometimes', 'nullable', 'string', 'max:255'],
             'barcode'   => ['sometimes', 'nullable', 'string', 'max:255'],
 
-            'uom_2' => 'nullable|string|max:40',
-            'uom_2_barcode'  => 'nullable|string|max:40',
-            'uom_2_quantity' => 'nullable|numeric',
+            // 'uom_2' => 'nullable|string|max:40',
+            // 'uom_2_barcode'  => 'nullable|string|max:40',
+            // 'uom_2_quantity' => 'nullable|numeric',
 
-            'uom_3' => 'nullable|string|max:40',
-            'uom_3_barcode'  => 'nullable|string|max:40',
-            'uom_3_quantity' => 'nullable|numeric',
+            // 'uom_3' => 'nullable|string|max:40',
+            // 'uom_3_barcode'  => 'nullable|string|max:40',
+            // 'uom_3_quantity' => 'nullable|numeric',
 
             'stock'     => ['sometimes', 'numeric'],
             'min_stock' => ['sometimes', 'numeric'],
@@ -66,7 +66,7 @@ class SaveRequest extends FormRequest
             'price_3'   => ['sometimes', 'numeric'],
             'active'    => ['sometimes', 'boolean'],
             'price_editable' => ['nullable', 'boolean'],
-            'tax_enabled' => ['nullable', 'boolean'],
+            // 'tax_enabled' => ['nullable', 'boolean'],
             'notes'     => ['sometimes', 'nullable', 'string', 'max:1000'],
         ];
     }

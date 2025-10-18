@@ -3,14 +3,11 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
- * EN: Unauthorized use, copying, modification, or distribution is prohibited.
+ * * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
- * See the LICENSE file in the project root for full license information.
+ * * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
- * GitHub: https://github.com/ffrz
+ * * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
 
@@ -19,10 +16,10 @@ namespace Modules\Admin\Services;
 use App\Exceptions\ModelNotModifiedException;
 use App\Models\ProductCategory;
 use App\Models\UserActivityLog;
-
-use Illuminate\Database\Eloquent\Builder;
+use App\Repositories\Contracts\ProductCategoryRepositoryInterface;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
@@ -34,38 +31,28 @@ use Throwable;
  */
 class ProductCategoryService
 {
+    // Konstanta untuk Kunci Cache (agar tidak bentrok dengan Service lain)
+    public const CACHE_KEY_PRODUCT_CATEGORIES = 'common_data:product_categories';
+    public const CACHE_TTL_MINUTES = 60; // Cache selama 60 menit (1 jam)
+
     /**
      * @param UserActivityLogService $userActivityLogService Service untuk mencatat aktivitas pengguna.
+     * @param ProductCategoryRepositoryInterface $categoryRepository Repository untuk akses data Kategori Produk.
      */
     public function __construct(
-        protected UserActivityLogService $userActivityLogService
+        protected UserActivityLogService $userActivityLogService,
+        protected ProductCategoryRepositoryInterface $categoryRepository
     ) {}
 
     /**
      * Mengambil data kategori produk dengan pemfilteran dan paginasi.
      *
-     * @param array $filter Array berisi kriteria filter, seperti ['search' => 'kata_kunci'].
-     * @param string $orderBy Kolom yang digunakan untuk mengurutkan data (e.g., 'name', 'created_at').
-     * @param string $orderType Tipe urutan ('asc' atau 'desc').
-     * @param int $perPage Jumlah item per halaman untuk paginasi.
+     * @param array $options Array berisi kriteria filter, seperti ['search' => 'kata_kunci'].
      * @return LengthAwarePaginator
      */
     public function getData($options): LengthAwarePaginator
     {
-        $q = ProductCategory::query();
-
-        $filter = $options['filter'];
-
-        if (!empty($filter['search'])) {
-            $q->where(function (Builder $q) use ($filter) {
-                $q->where('name', 'like', '%' . $filter['search'] . '%')
-                    ->orWhere('description', 'like', '%' . $filter['search'] . '%');
-            });
-        }
-
-        $q->orderBy($options['order_by'], $options['order_type']);
-
-        return $q->paginate($options['per_page'])->withQueryString();
+        return $this->categoryRepository->getData($options);
     }
 
     /**
@@ -77,7 +64,7 @@ class ProductCategoryService
      */
     public function find(int $id): ProductCategory
     {
-        return ProductCategory::findOrFail($id);
+        return $this->categoryRepository->find($id);
     }
 
     /**
@@ -89,7 +76,7 @@ class ProductCategoryService
      */
     public function findOrCreate($id): ProductCategory
     {
-        return $id ? $this->find($id) : new ProductCategory();
+        return $this->categoryRepository->findOrCreate($id);
     }
 
     /**
@@ -124,7 +111,8 @@ class ProductCategoryService
         }
 
         return DB::transaction(function () use ($item, $oldData, $isNew) {
-            $item->save();
+            $item = $this->categoryRepository->save($item);
+            Cache::forget(self::CACHE_KEY_PRODUCT_CATEGORIES);
 
             if ($isNew) {
                 $this->userActivityLogService->log(
@@ -163,7 +151,8 @@ class ProductCategoryService
     public function delete(ProductCategory $item)
     {
         return DB::transaction(function () use ($item) {
-            $item->delete();
+            $this->categoryRepository->delete($item);
+            Cache::forget(self::CACHE_KEY_PRODUCT_CATEGORIES);
 
             $this->userActivityLogService->log(
                 UserActivityLog::Category_ProductCategory,
@@ -176,6 +165,18 @@ class ProductCategoryService
             );
 
             return $item;
+        });
+    }
+
+    public function getAllProductCategories()
+    {
+        $cacheTtl = now()->addMinutes(self::CACHE_TTL_MINUTES);
+        $cacheKey = self::CACHE_KEY_PRODUCT_CATEGORIES;
+        return Cache::remember($cacheKey, $cacheTtl, function () {
+            return $this->categoryRepository->getAll(
+                ['id', 'name'],
+                ['order_by' => 'name', 'order_type' => 'asc'],
+            );
         });
     }
 }

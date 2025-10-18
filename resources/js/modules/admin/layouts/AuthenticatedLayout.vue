@@ -126,34 +126,15 @@ defineExpose({
                 clickable
                 v-ripple
                 :active="$page.url.startsWith('/admin/settings/profile')"
-                @click="router.get(route('admin.profile.edit'))"
+                @click="router.get(route('admin.user-profile.edit'))"
               >
                 <q-item-section>
                   <q-item-label
-                    ><q-icon name="manage_accounts" class="q-mr-sm" /> Profil
-                    Saya</q-item-label
+                    ><q-icon name="manage_accounts" class="q-mr-sm" />
+                    Pengaturan Pribadi</q-item-label
                   >
                 </q-item-section>
               </q-item>
-              <q-item
-                v-close-popup
-                v-if="$can('admin.company-profile.edit')"
-                class="subnav"
-                clickable
-                v-ripple
-                :active="
-                  $page.url.startsWith('/admin/settings/company-profile')
-                "
-                @click="router.get(route('admin.company-profile.edit'))"
-              >
-                <q-item-section>
-                  <q-item-label
-                    ><q-icon name="home_work" class="q-mr-sm" /> Profil
-                    Perusahaan</q-item-label
-                  >
-                </q-item-section>
-              </q-item>
-              <q-separator />
               <q-item
                 clickable
                 v-close-popup
@@ -196,6 +177,36 @@ defineExpose({
               <q-item-label>Dashboard</q-item-label>
             </q-item-section>
           </q-item>
+          <q-expansion-item icon="shortcut" label="Buat Baru">
+            <q-item
+              v-if="$can('admin.sales-order.add')"
+              class="subnav"
+              clickable
+              v-ripple
+              @click="router.get(route('admin.sales-order.add'))"
+            >
+              <q-item-section avatar>
+                <q-icon name="add_shopping_cart" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Penjualan</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item
+              v-if="$can('admin.customer.add')"
+              class="subnav"
+              clickable
+              v-ripple
+              @click="router.get(route('admin.customer.add'))"
+            >
+              <q-item-section avatar>
+                <q-icon name="group_add" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Pelanggan</q-item-label>
+              </q-item-section>
+            </q-item>
+          </q-expansion-item>
           <q-expansion-item
             v-if="
               $can('admin.sales-order.index') ||
@@ -724,35 +735,6 @@ defineExpose({
               </q-item-section>
             </q-item>
           </q-expansion-item>
-
-          <q-item
-            clickable
-            v-ripple
-            :active="$page.url.startsWith('/admin/settings/profile')"
-            @click="router.get(route('admin.user-profile.edit'))"
-          >
-            <q-item-section avatar>
-              <q-icon name="manage_accounts" />
-            </q-item-section>
-            <q-item-section>
-              <q-item-label>Profil Saya</q-item-label>
-            </q-item-section>
-          </q-item>
-
-          <q-item
-            clickable
-            v-close-popup
-            v-ripple
-            style="color: inherit"
-            :href="route('admin.auth.logout')"
-          >
-            <q-item-section avatar>
-              <q-icon name="logout" />
-            </q-item-section>
-            <q-item-section>
-              <q-item-label>Logout</q-item-label>
-            </q-item-section>
-          </q-item>
           <div class="absolute-bottom text-grey-6 q-pa-md">
             &copy; 2025 -
             {{ $config.APP_NAME + " v" + $config.APP_VERSION_STR }}

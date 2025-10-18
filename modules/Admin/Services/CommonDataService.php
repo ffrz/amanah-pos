@@ -3,14 +3,11 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
- * EN: Unauthorized use, copying, modification, or distribution is prohibited.
+ * * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
- * See the LICENSE file in the project root for full license information.
+ * * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
- * GitHub: https://github.com/ffrz
+ * * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
 
@@ -20,25 +17,33 @@ use App\Models\Customer;
 use App\Models\FinanceAccount;
 use App\Models\OperationalCostCategory;
 use App\Models\Product;
-use App\Models\ProductCategory;
 use App\Models\Supplier;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
+
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 class CommonDataService
 {
     /**
-     * Get product categories.
-     *
-     * @return \Illuminate\Database\Eloquent\Collection
+     * Injeksi dependensi Repository
+     * @param ProductCategoryRepositoryInterface $productCategoryRepository
      */
-    public function getProductCategories($fields = ['id', 'name'])
+    public function __construct()
     {
-        $query = ProductCategory::query()
-            ->orderBy('name');
+        // Dependencies untuk service lain (Supplier, Customer, dll.) 
+        // harus diinjeksikan di sini juga jika metode mereka direfaktor.
+    }
 
-        return $query->get($fields);
+    /**
+     * Get product categories (Cached).
+     *
+     * @return Collection
+     */
+    public function getProductCategories(): Collection
+    {
+        return app(ProductCategoryService::class)->getAllProductCategories();
     }
 
     /**
@@ -48,6 +53,7 @@ class CommonDataService
      */
     public function getSuppliers($fields = ['id', 'code', 'name', 'phone_1'], $activeOnly = true)
     {
+        // TODO: Refactor ini dengan SupplierRepositoryInterface dan implementasi caching.
         $query = Supplier::query();
 
         if ($activeOnly) {
@@ -66,6 +72,7 @@ class CommonDataService
      */
     public function getCustomers($fields = ['id', 'code', 'name'], $activeOnly = true)
     {
+        // TODO: Refactor ini dengan CustomerRepositoryInterface dan implementasi caching.
         $query = Customer::query();
 
         if ($activeOnly) {
@@ -84,6 +91,7 @@ class CommonDataService
      */
     public function getFinanceAccounts($fields = ['id', 'name', 'type', 'bank', 'number', 'holder', 'balance'], $activeOnly = true)
     {
+        // TODO: Refactor ini dengan FinanceAccountRepositoryInterface dan implementasi caching.
         $query = FinanceAccount::query();
 
         if ($activeOnly) {
@@ -100,6 +108,7 @@ class CommonDataService
      */
     public function getOperationalCategories($fields = ['id', 'name'])
     {
+        // TODO: Refactor ini dengan OperationalCostCategoryRepositoryInterface dan implementasi caching.
         $query = OperationalCostCategory::query()
             ->orderBy('name');
 
@@ -108,21 +117,25 @@ class CommonDataService
 
     public function getAclPermissions()
     {
+        // TODO: Pertimbangkan caching di sini.
         return Permission::all();
     }
 
     public function getRoles()
     {
+        // TODO: Pertimbangkan caching di sini.
         return Role::orderBy('name', 'asc')->get();
     }
 
     public function getAllUsers($cols = ['*'])
     {
+        // TODO: Pertimbangkan caching di sini.
         return User::query()->select($cols)->orderBy('name', 'asc')->get();
     }
 
     public function getProducts($fields = ['id', 'name', 'description'], $activeOnly = true)
     {
+        // TODO: Refactor ini dengan ProductRepositoryInterface dan implementasi caching.
         $query = Product::query();
 
         if ($activeOnly) {

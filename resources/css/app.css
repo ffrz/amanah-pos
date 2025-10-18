@@ -29,11 +29,18 @@ a:hover {
 }
 
 #main-nav .q-item {
-  min-height: 36px !important;
+  min-height: 46px !important;
+}
+
+#main-nav .q-item:not(.subnav) {
+  border-bottom: 1px solid #ddd;
+}
+
+#main-nav .subnav:not(.q-item--active) .q-item__section--avatar {
+  visibility: hidden;
 }
 
 #main-nav .subnav {
-  padding-left: 35px;
   box-shadow: inset 2px 0 0 #888;
 }
 

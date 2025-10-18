@@ -34,7 +34,7 @@ return new class extends Migration
             $table->string('phone', 100)->nullable()->default('')->index();
             $table->string('address', 200)->nullable()->default('');
 
-            $table->decimal('wallet_balance', 15, 0)->default(0.)->index();
+            $table->decimal('wallet_balance', 15, 0)->default(0.)->index(); // deposit
             $table->decimal('balance', 15, 0)->default(0)->index();
             $table->boolean('active')->default(true)->index();
 
