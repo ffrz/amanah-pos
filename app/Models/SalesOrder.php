@@ -218,12 +218,21 @@ class SalesOrder extends BaseModel
         return $this->belongsTo(CashierSession::class, 'cashier_session_id');
     }
 
-    public function updateTotalPaid($totalPaid)
+    public function updateTotalPaid()
     {
-        $this->total_paid = $totalPaid;
-        $this->remaining_debt = max(0, $this->grand_total - $this->total_paid);
+        // ignore total paid karena kita ganti mekanisme
+        $this->total_paid = $this->payments()->sum('amount');
 
-        if ($this->total_paid >= $this->grand_total) {
+        // harusnya disini ambil data semua returan, kurangi grand tota dengan total retur yang telah di close
+        $totalRefund = SalesOrderReturn::where('sales_order_id', $this->id)
+            ->where('status', SalesOrderReturn::Status_Closed)
+            ->whereNull('deleted_at')
+            ->sum('grand_total');
+
+        // kenapa total refund masih gede?
+        $this->remaining_debt = max(0, $this->grand_total - $totalRefund - $this->total_paid);
+
+        if ($this->remaining_debt == 0) {
             $this->payment_status = SalesOrder::PaymentStatus_FullyPaid;
         } else if ($this->total_paid > 0) {
             $this->payment_status = SalesOrder::PaymentStatus_PartiallyPaid;

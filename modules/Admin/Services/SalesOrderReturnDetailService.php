@@ -53,6 +53,7 @@ class SalesOrderReturnDetailService
         $total_returned_quantity = SalesOrderReturnDetail::where('product_id', $product_id)
             ->join('sales_order_returns as sor', 'sor.id', '=', 'sales_order_return_details.sales_order_return_id')
             ->where('sor.sales_order_id', $sales_order_id)
+            ->whereNull('sor.deleted_at')
             ->where('sor.status', 'closed')
             ->sum('sales_order_return_details.quantity');
 

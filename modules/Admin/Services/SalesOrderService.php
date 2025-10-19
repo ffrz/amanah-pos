@@ -230,7 +230,7 @@ class SalesOrderService
             }
 
             // Logika handle kembalian
-            if ($data['change'] > 0) {
+            if (isset($data['change']) && $data['change'] > 0) {
                 // hitung ulang di server agar lebih aman
                 $order->change = $data['change'];
                 $data['payments'] = $this->adjustCashPaymentForChange($order, $data['payments']);

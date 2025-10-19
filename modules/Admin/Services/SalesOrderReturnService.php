@@ -181,16 +181,29 @@ class SalesOrderReturnService
             ->findOrFail($id);
     }
 
-    public function closeOrderReturn(SalesOrderReturn $order, array $data)
+    public function closeOrderReturn(SalesOrderReturn $salesOrderReturn, array $data)
     {
-        $this->ensureOrderIsEditable($order);
+        $this->ensureOrderIsEditable($salesOrderReturn);
 
-        DB::transaction(function () use ($order, $data) {
-            $order->status = SalesOrderReturn::Status_Closed;
-            $order->updateTotals();
-            $order->remaining_refund = $order->grand_total;
-            $order->save();
-            $this->processSalesOrderReturnStockIn($order);
+        DB::transaction(function () use ($salesOrderReturn, $data) {
+            $salesOrderReturn->status = SalesOrderReturn::Status_Closed;
+            $salesOrderReturn->updateTotals();
+
+            $salesOrder = $salesOrderReturn->salesOrder;
+            if ($salesOrder->remaining_debt > 0) {
+                $salesOrder->updateTotalPaid();
+                $salesOrder->save();
+
+                // FIXME: masih perlu update logic ini!
+                $customer = $salesOrder->customer;
+                $customer->balance += $salesOrderReturn->grand_total;
+                $customer->save();
+            } else {
+                $salesOrderReturn->remaining_refund = $salesOrderReturn->grand_total;
+            }
+
+            $salesOrderReturn->save();
+            $this->processSalesOrderReturnStockIn($salesOrderReturn);
         });
     }
 

@@ -102,6 +102,7 @@ class SalesOrderPaymentService
             // Memastikan relasi payments terload sebelum diteruskan ke impl
             $order->loadMissing('payments');
             $total_amount = $this->deletePaymentsImpl($order->payments);
+
             $order->updateTotalPaid($order->total_paid - $total_amount);
             $order->save();
         });
@@ -120,8 +121,8 @@ class SalesOrderPaymentService
         }
 
         DB::transaction(function () use ($order, $payment) {
-            $total_amount = $this->deletePaymentsImpl([$payment]);
-            $order->updateTotalPaid($order->total_paid - $total_amount);
+            $this->deletePaymentsImpl([$payment]);
+            $order->updateTotalPaid();
             $order->save();
         });
     }
