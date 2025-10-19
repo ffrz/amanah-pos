@@ -49,6 +49,12 @@ class Product extends BaseModel
         'price_1',
         'price_2',
         'price_3',
+        'price_1_markup',
+        'price_2_markup',
+        'price_3_markup',
+        'price_1_option',
+        'price_2_option',
+        'price_3_option',
 
         'expiry_date',
 
@@ -134,11 +140,17 @@ class Product extends BaseModel
             'active'      => 'boolean',
             'price_editable' => 'boolean',
             'tax_enabled' => 'boolean',
-            'type'       => 'string',
-            'cost'       => 'decimal:2',
-            'price_1'    => 'decimal:2',
-            'price_2'    => 'decimal:2',
-            'price_3'    => 'decimal:2',
+            'type'    => 'string',
+            'cost'    => 'decimal:2',
+            'price_1' => 'decimal:2',
+            'price_2' => 'decimal:2',
+            'price_3' => 'decimal:2',
+            'price_1_markup' => 'decimal:2',
+            'price_2_markup' => 'decimal:2',
+            'price_3_markup' => 'decimal:2',
+            'price_1_option' => 'string',
+            'price_2_option' => 'string',
+            'price_3_option' => 'string',
 
             'discount_percentage' => 'decimal:2',
             'discount_start_datetime' => 'datetime',
@@ -147,14 +159,6 @@ class Product extends BaseModel
 
             'uom'     => 'string',
             'barcode' => 'string',
-
-            // 'uom_2'          => 'string',
-            // 'uom_2_barcode'  => 'string',
-            // 'uom_2_quantity' => 'decimal:3',
-
-            // 'uom_3'          => 'string',
-            // 'uom_3_barcode'  => 'string',
-            // 'uom_3_quantity' => 'decimal:3',
 
             'stock'      => 'decimal:3',
             'min_stock'  => 'decimal:3',

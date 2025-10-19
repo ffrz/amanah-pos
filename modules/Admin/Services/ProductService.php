@@ -160,6 +160,7 @@ class ProductService
      */
     public function save(Product $item, array $data): Product
     {
+
         $isNew = !$item->id;
         $oldStock = $item->stock;
         $oldData = $isNew ? [] : $item->toArray();

@@ -15,7 +15,10 @@ const $q = useQuasar();
 const marginInfo = (price) => {
   const val =
     price > 0
-      ? formatNumber(((price - props.product.cost) / price) * 100, 2)
+      ? formatNumber(
+          ((price - props.product.cost) / props.product.cost) * 100,
+          2
+        )
       : 0;
   return `${val}%`;
 };

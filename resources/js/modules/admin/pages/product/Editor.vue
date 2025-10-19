@@ -17,21 +17,21 @@ const types = createOptions(window.CONSTANTS.PRODUCT_TYPES);
 // Flag untuk mencegah loop tak terbatas (infinite loop) saat sinkronisasi
 const isSyncing = ref(false);
 
-const calculatePricePercentage = (field) => {};
+const calculatePricemarkup = (field) => {};
 // Tentukan nilai awal untuk persentase margin (Penting!)
-const initialPrice1Percentage =
+const initialPrice1markup =
   page.props.data.price_1 && page.props.data.cost > 0
     ? ((page.props.data.price_1 - page.props.data.cost) /
         page.props.data.cost) *
       100
     : 0;
-const initialPrice2Percentage =
+const initialPrice2markup =
   page.props.data.price_2 && page.props.data.cost > 0
     ? ((page.props.data.price_2 - page.props.data.cost) /
         page.props.data.cost) *
       100
     : 0;
-const initialPrice3Percentage =
+const initialPrice3markup =
   page.props.data.price_3 && page.props.data.cost > 0
     ? ((page.props.data.price_3 - page.props.data.cost) /
         page.props.data.cost) *
@@ -59,9 +59,13 @@ const form = useForm({
   price_3: parseFloat(page.props.data.price_3) || 0,
 
   // Set nilai awal margin berdasarkan perhitungan di atas
-  price_1_percentage: parseFloat(initialPrice1Percentage.toFixed(2)),
-  price_2_percentage: parseFloat(initialPrice2Percentage.toFixed(2)),
-  price_3_percentage: parseFloat(initialPrice3Percentage.toFixed(2)),
+  price_1_markup: parseFloat(page.props.data.price_1_markup),
+  price_2_markup: parseFloat(page.props.data.price_2_markup),
+  price_3_markup: parseFloat(page.props.data.price_3_markup),
+
+  price_1_option: page.props.data.price_1_option ?? "price",
+  price_2_option: page.props.data.price_2_option ?? "price",
+  price_3_option: page.props.data.price_3_option ?? "price",
 
   active: !!page.props.data.active,
   price_editable: !!page.props.data.price_editable,
@@ -114,15 +118,23 @@ watch(
     // Set flag
     isSyncing.value = true;
 
-    // Recalculate all prices based on current margin percentage
-    if (newCost > form.price_1) {
-      form.price_1 = calculatePrice(newCost, form.price_1_percentage);
+    // Recalculate all prices based on current margin markup
+    if (form.price_1_option == "markup") {
+      form.price_1 = calculatePrice(newCost, form.price_1_markup);
+    } else {
+      form.price_1_markup = calculateMargin(form.price_1, newCost);
     }
-    if (newCost > form.price_2) {
-      form.price_2 = calculatePrice(newCost, form.price_2_percentage);
+
+    if (form.price_2_option == "markup") {
+      form.price_2 = calculatePrice(newCost, form.price_2_markup);
+    } else {
+      form.price_2_markup = calculateMargin(form.price_2, newCost);
     }
-    if (newCost > form.price_3) {
-      form.price_3 = calculatePrice(newCost, form.price_3_percentage);
+
+    if (form.price_3_option == "markup") {
+      form.price_3 = calculatePrice(newCost, form.price_3_markup);
+    } else {
+      form.price_3_markup = calculateMargin(form.price_3, newCost);
     }
 
     // Reset flag setelah selesai
@@ -131,49 +143,47 @@ watch(
   { immediate: false }
 );
 
-// // 2. Setup Sync untuk setiap level harga
-// const setupPriceMarginSync = (priceIndex) => {
-//   const priceKey = `price_${priceIndex}`;
-//   const marginKey = `price_${priceIndex}_percentage`;
+// 2. Setup Sync untuk setiap level harga
+const setupPriceMarginSync = (priceIndex) => {
+  const priceKey = `price_${priceIndex}`;
+  const marginKey = `price_${priceIndex}_markup`;
+  const optionKey = `price_${priceIndex}_option`;
 
-//   // Watcher A: Harga Jual berubah -> Margin Persen diperbarui
-//   watch(
-//     () => form[priceKey],
-//     (newPrice) => {
-//       if (isSyncing.value) return; // Hentikan jika sedang dalam proses sinkronisasi
+  // Watcher A: Harga Jual berubah -> Margin Persen diperbarui
+  watch(
+    () => form[priceKey],
+    (newPrice) => {
+      if (form[optionKey] == "markup") return;
+      if (isSyncing.value) return; // Hentikan jika sedang dalam proses sinkronisasi
 
-//       isSyncing.value = true;
+      isSyncing.value = true;
 
-//       // Hitung margin baru dan update form
-//       const newMargin = calculateMargin(newPrice, form.cost);
-//       form[marginKey] = parseFloat(newMargin.toFixed(2));
+      // Hitung margin baru dan update form
+      const newMargin = calculateMargin(newPrice, form.cost);
+      form[marginKey] = parseFloat(newMargin.toFixed(2));
 
-//       isSyncing.value = false;
-//     },
-//     { deep: false }
-//   );
+      isSyncing.value = false;
+    },
+    { deep: false }
+  );
 
-//   // Watcher B: Margin Persen berubah -> Harga Jual diperbarui
-//   watch(
-//     () => form[marginKey],
-//     (newMargin) => {
-//       if (isSyncing.value) return; // Hentikan jika sedang dalam proses sinkronisasi
-
-//       isSyncing.value = true;
-
-//       // Hitung harga baru dan update form
-//       form[priceKey] = calculatePrice(form.cost, newMargin);
-
-//       isSyncing.value = false;
-//     },
-//     { deep: false }
-//   );
-// };
+  watch(
+    () => form[marginKey],
+    (newMargin) => {
+      if (form[optionKey] == "price") return;
+      if (isSyncing.value) return;
+      isSyncing.value = true;
+      form[priceKey] = calculatePrice(form.cost, newMargin);
+      isSyncing.value = false;
+    },
+    { deep: false }
+  );
+};
 
 // // Aplikasikan sinkronisasi untuk Harga 1, 2, dan 3
-// setupPriceMarginSync(1);
-// setupPriceMarginSync(2);
-// setupPriceMarginSync(3);
+setupPriceMarginSync(1);
+setupPriceMarginSync(2);
+setupPriceMarginSync(3);
 
 // --- END LOGIKA SINKRONISASI ---
 </script>
@@ -372,7 +382,7 @@ watch(
                   class="col"
                 />
               </div>
-              <div class="text-subtitle1 q-pt-lg">Info Harga</div>
+              <div class="text-subtitle1 q-pt-lg">Harga & Modal</div>
               <LocaleNumberInput
                 v-if="$can('admin.product:view-cost')"
                 v-model:modelValue="form.cost"
@@ -383,77 +393,165 @@ watch(
                 :errorMessage="form.errors.cost"
                 hide-bottom-space
               />
-              <div class="row q-gutter-md">
-                <div class="col">
-                  <LocaleNumberInput
-                    dense
-                    v-model:modelValue="form.price_1"
-                    label="Harga Eceran"
-                    lazyRules
-                    :disable="form.processing"
-                    :error="!!form.errors.price_1"
-                    :errorMessage="form.errors.price_1"
-                    hide-bottom-space
-                  />
-                  <!-- DIGANTI KE PERCENTINPUT -->
-                  <PercentInput
-                    dense
-                    v-model:modelValue="form.price_1_percentage"
-                    label="Margin Eceran (%)"
-                    lazyRules
-                    :disable="form.processing"
-                    :error="!!form.errors.price_1_percentage"
-                    :errorMessage="form.errors.price_1_percentage"
-                    hide-bottom-space
-                  />
-                </div>
-                <div class="col">
-                  <LocaleNumberInput
-                    dense
-                    v-model:modelValue="form.price_2"
-                    label="Harga Partai"
-                    lazyRules
-                    :disable="form.processing"
-                    :error="!!form.errors.price_2"
-                    :errorMessage="form.errors.price_2"
-                    hide-bottom-space
-                  />
-                  <!-- DIGANTI KE PERCENTINPUT -->
-                  <PercentInput
-                    dense
-                    v-model:modelValue="form.price_2_percentage"
-                    label="Margin Partai (%)"
-                    lazyRules
-                    :disable="form.processing"
-                    :error="!!form.errors.price_2_percentage"
-                    :errorMessage="form.errors.price_2_percentage"
-                    hide-bottom-space
-                  />
-                </div>
-                <div class="col">
-                  <LocaleNumberInput
-                    dense
-                    v-model:modelValue="form.price_3"
-                    label="Harga Grosir"
-                    lazyRules
-                    :disable="form.processing"
-                    :error="!!form.errors.price_3"
-                    :errorMessage="form.errors.price_3"
-                    hide-bottom-space
-                  />
-                  <!-- DIGANTI KE PERCENTINPUT -->
-                  <PercentInput
-                    dense
-                    v-model:modelValue="form.price_3_percentage"
-                    label="Margin Grosir (%)"
-                    lazyRules
-                    :disable="form.processing"
-                    :error="!!form.errors.price_3_percentage"
-                    :errorMessage="form.errors.price_3_percentage"
-                    hide-bottom-space
-                  />
-                </div>
-              </div>
+              <table class="q-mt-md full-width">
+                <thead class="text-grey-6">
+                  <tr>
+                    <th style="width: 25%">Harga</th>
+                    <th style="width: 25%">Markup (%)</th>
+                    <th></th>
+                    <th style="width: 25%">Harga Jual (Rp)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="no-wrap">Harga Eceran</td>
+                    <td>
+                      <PercentInput
+                        class="col-3"
+                        filled
+                        dense
+                        v-model:modelValue="form.price_1_markup"
+                        lazyRules
+                        :readonly="form.price_1_option != 'markup'"
+                        :disable="form.processing"
+                        :error="!!form.errors.price_1_markup"
+                        :errorMessage="form.errors.price_1_markup"
+                        hide-bottom-space
+                        :max-decimals="2"
+                      />
+                    </td>
+                    <td>
+                      <q-btn-toggle
+                        v-model="form.price_1_option"
+                        dense
+                        spread
+                        class="col-3"
+                        no-caps
+                        rounded
+                        toggle-color="primary"
+                        color="white"
+                        text-color="primary"
+                        :options="[
+                          { label: '%', value: 'markup' },
+                          { label: 'Rp', value: 'price' },
+                        ]"
+                      />
+                    </td>
+                    <td>
+                      <LocaleNumberInput
+                        filled
+                        class="col-3"
+                        dense
+                        v-model:modelValue="form.price_1"
+                        lazyRules
+                        :disable="form.processing"
+                        :readonly="form.price_1_option == 'markup'"
+                        :error="!!form.errors.price_1"
+                        :errorMessage="form.errors.price_1"
+                        hide-bottom-space
+                      />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="no-wrap">Harga Partai</td>
+                    <td>
+                      <PercentInput
+                        class="col-3"
+                        filled
+                        dense
+                        v-model:modelValue="form.price_2_markup"
+                        lazyRules
+                        :readonly="form.price_2_option != 'markup'"
+                        :disable="form.processing"
+                        :error="!!form.errors.price_2_markup"
+                        :errorMessage="form.errors.price_2_markup"
+                        hide-bottom-space
+                        :max-decimals="2"
+                      />
+                    </td>
+                    <td>
+                      <q-btn-toggle
+                        v-model="form.price_2_option"
+                        dense
+                        spread
+                        class="col-3"
+                        no-caps
+                        rounded
+                        toggle-color="primary"
+                        color="white"
+                        text-color="primary"
+                        :options="[
+                          { label: '%', value: 'markup' },
+                          { label: 'Rp', value: 'price' },
+                        ]"
+                      />
+                    </td>
+                    <td>
+                      <LocaleNumberInput
+                        filled
+                        class="col-3"
+                        dense
+                        v-model:modelValue="form.price_2"
+                        lazyRules
+                        :readonly="form.price_2_option == 'markup'"
+                        :disable="form.processing"
+                        :error="!!form.errors.price_2"
+                        :errorMessage="form.errors.price_2"
+                        hide-bottom-space
+                      />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="no-wrap">Harga Grosir</td>
+                    <td>
+                      <PercentInput
+                        class="col-3"
+                        filled
+                        dense
+                        v-model:modelValue="form.price_3_markup"
+                        lazyRules
+                        :disable="form.processing"
+                        :readonly="form.price_3_option != 'markup'"
+                        :error="!!form.errors.price_3_markup"
+                        :errorMessage="form.errors.price_3_markup"
+                        hide-bottom-space
+                        :max-decimals="2"
+                      />
+                    </td>
+                    <td>
+                      <q-btn-toggle
+                        v-model="form.price_3_option"
+                        dense
+                        spread
+                        class="col-3"
+                        no-caps
+                        rounded
+                        toggle-color="primary"
+                        color="white"
+                        text-color="primary"
+                        :options="[
+                          { label: '%', value: 'markup' },
+                          { label: 'Rp', value: 'price' },
+                        ]"
+                      />
+                    </td>
+                    <td>
+                      <LocaleNumberInput
+                        filled
+                        class="col-3"
+                        dense
+                        v-model:modelValue="form.price_3"
+                        lazyRules
+                        :disable="form.processing"
+                        :readonly="form.price_3_option == 'markup'"
+                        :error="!!form.errors.price_3"
+                        :errorMessage="form.errors.price_3"
+                        hide-bottom-space
+                      />
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
 
               <CheckBox
                 class="q-mt-sm"

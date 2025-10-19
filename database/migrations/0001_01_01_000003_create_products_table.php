@@ -42,6 +42,15 @@ return new class extends Migration
             $table->decimal('price_1', 10, 2)->default(0.);
             $table->decimal('price_2', 10, 2)->default(0.);
             $table->decimal('price_3', 10, 2)->default(0.);
+
+            $table->decimal('price_1_markup', 5, 2)->default(0.);
+            $table->decimal('price_2_markup', 5, 2)->default(0.);
+            $table->decimal('price_3_markup', 5, 2)->default(0.);
+
+            $table->string('price_1_option')->default('price');
+            $table->string('price_2_option')->default('price');
+            $table->string('price_3_option')->default('price');
+
             $table->date('expiry_date', 'date')->nullable();
             $table->string('uom', 20)->nullable()->default('');
             $table->text('notes')->nullable();

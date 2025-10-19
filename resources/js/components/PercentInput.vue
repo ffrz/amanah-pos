@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import { ref, useSlots, watch } from "vue";
+import { nextTick, ref, useSlots, watch } from "vue";
 import { QInput } from "quasar";
 
 const qInputRef = ref<InstanceType<typeof QInput> | null>(null);
 const slots = useSlots();
+
+// 1. STATE BARU: Untuk melacak fokus
+const isFocused = ref(false);
 
 // Expose focus & select methods
 defineExpose({
@@ -25,9 +28,9 @@ defineExpose({
 // Props
 const props = defineProps({
   modelValue: {
-    type: [Number, null], // <-- UBAH INI
-    required: false, // Jika bisa null, sebaiknya jangan required
-    default: 0, // Opsional: Tetapkan 0 sebagai nilai default yang aman
+    type: [Number, null],
+    required: false,
+    default: 0,
   },
   label: {
     type: [String, undefined],
@@ -67,63 +70,92 @@ const { decimalSeparator, thousandSeparator } = getLocaleSeparators(
   props.locale
 );
 
-// Format number
-const formatNumber = (value: number) => {
+// Format number (Hanya digunakan saat BLUR atau initial load)
+const formatNumber = (value: number | null): string => {
   if (value === null || value === undefined || isNaN(value)) {
+    // Jika null/NaN, kembalikan string kosong agar mudah diketik, kecuali maxDecimals=0
+    if (props.maxDecimals > 0) return "";
     value = 0;
   }
   return new Intl.NumberFormat(props.locale, {
+    // Memaksa minimumFractionDigits yang memicu bug jika digunakan saat onInput
     minimumFractionDigits: props.maxDecimals,
     maximumFractionDigits: props.maxDecimals,
   }).format(value);
 };
 
-// Sync displayValue with modelValue
+// 2. Sync displayValue dengan modelValue
 watch(
   () => props.modelValue,
   (newValue) => {
-    displayValue.value = formatNumber(newValue);
+    // HANYA format jika input TIDAK difokuskan. Ini MENCEGAH overriding saat mengetik.
+    if (!isFocused.value) {
+      displayValue.value = formatNumber(newValue);
+    }
   },
   { immediate: true }
 );
 
-// Sanitize input
+// Sanitize input (logika tetap)
 const sanitizeInput = (value: string): number | null => {
-  const regex = props.allowNegative
-    ? /^-?[0-9]+([.,][0-9]*)?$/
-    : /^[0-9]+([.,][0-9]*)?$/;
-
+  // Regex dan pembersihan string mentah
   const sanitized = value
     .replace(/[^0-9.,-]+/g, "")
     .replace(new RegExp(`\\${thousandSeparator}`, "g"), "")
+    // Ganti separator locale ke dot agar parseFloat bekerja
     .replace(new RegExp(`\\${decimalSeparator}`, "g"), ".");
 
-  // This is the bug fix. If the input is empty or just a minus sign, return null.
   if (sanitized === "" || sanitized === "-") {
     return null;
   }
 
   const parsed = parseFloat(sanitized);
+
+  // Tetap gunakan toFixed untuk membatasi presisi nilai modelValue yang di-emit
   return isNaN(parsed) ? null : parseFloat(parsed.toFixed(props.maxDecimals));
 };
 
-const emitUpdate = () => {
-  const sanitizedValue = sanitizeInput(displayValue.value);
-  emit("update:modelValue", sanitizedValue);
+// Input handlers
+// 3. ON FOCUS: Bersihkan tampilan untuk pengeditan yang mudah
+const onFocus = () => {
+  isFocused.value = true;
+  // Konversi nilai display yang mungkin sudah terformat ribuan
+  const sanitizedNumber = sanitizeInput(displayValue.value);
+
+  // if (sanitizedNumber === null) {
+  //   displayValue.value = "";
+  // } else {
+  //   // Tampilkan string tanpa pemisah ribuan, tetapi dengan pemisah desimal locale
+  //   displayValue.value = sanitizedNumber
+  //     .toString()
+  //     .replace(".", decimalSeparator);
+  // }
+
+  nextTick(() => {
+    qInputRef.value?.select();
+  });
 };
 
-// Input handlers
+// 4. ON INPUT: Hanya perbarui tampilan mentah, JANGAN EMIT
 const onInput = (value: string) => {
   displayValue.value = value;
-  emitUpdate();
+  // Hapus emitUpdate() dari sini!
 };
 
+// 5. ON BLUR: Sanitasi, Emit, dan Format Ulang Tampilan
 const onBlur = () => {
-  displayValue.value = formatNumber(sanitizeInput(displayValue.value));
-  emitUpdate();
+  isFocused.value = false;
+
+  const sanitizedValue = sanitizeInput(displayValue.value);
+
+  // Emit nilai yang sudah disanitasi dan dibatasi presisinya
+  emit("update:modelValue", sanitizedValue);
+
+  // Terapkan format akhir ke displayValue untuk presentasi (dengan minimumFractionDigits)
+  displayValue.value = formatNumber(sanitizedValue);
 };
 
-// Keyboard filter
+// Keyboard filter (tetap sama)
 const filterInput = (event: KeyboardEvent) => {
   const allowedKeys = [
     "Backspace",
@@ -163,8 +195,8 @@ const filterInput = (event: KeyboardEvent) => {
     :outlined="props.outlined"
     @update:model-value="onInput"
     @blur="onBlur"
+    @focus="onFocus"
     @keydown="filterInput"
-    @focus="qInputRef.select()"
     :lazy-rules="props.lazyRules"
     :disable="props.disable"
     :error="props.error"
@@ -175,7 +207,6 @@ const filterInput = (event: KeyboardEvent) => {
       <slot name="prepend"></slot>
     </template>
     <template v-if="slots.append" v-slot:append>
-      %
       <slot name="append"></slot>
     </template>
   </q-input>
