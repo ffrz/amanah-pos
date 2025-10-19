@@ -11,7 +11,7 @@ const props = defineProps({
 });
 
 const remainingPayment = computed(() => {
-  return props.data.grand_total - props.data.total_paid;
+  return props.data.remaining_debt;
 });
 
 const $q = useQuasar();

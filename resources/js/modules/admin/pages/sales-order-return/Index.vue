@@ -201,7 +201,7 @@ const onFilterChange = () => {
 
 const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return columns;
-  return columns.filter((col) => col.name === "id" || col.name === "action");
+  return columns.filter((col) => col.name === "code" || col.name === "action");
 });
 
 watch(
