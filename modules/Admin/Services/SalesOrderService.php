@@ -103,6 +103,12 @@ class SalesOrderService
 
     public function createOrder(): SalesOrder
     {
+        $item = SalesOrder::where('status', SalesOrder::Status_Draft)
+            ->where('created_by', Auth::user()->id)
+            ->where('grand_total', 0)
+            ->orderBy('id', 'desc')
+            ->first();
+
         $item = new SalesOrder([
             'type' => SalesOrder::Type_Pickup,
             'datetime' => Carbon::now(),
@@ -110,8 +116,8 @@ class SalesOrderService
             'payment_status' => SalesOrder::PaymentStatus_Unpaid,
             'delivery_status' => SalesOrder::DeliveryStatus_ReadyForPickUp,
         ]);
-        $item->cashier_id = Auth::user()->id;
         $activeSession = $this->cashierSessionService->getActiveSession();
+        $item->cashier_id = Auth::user()->id;
         $item->cashier_session_id = $activeSession ? $activeSession->id : null;
         $item->save();
         return $item;

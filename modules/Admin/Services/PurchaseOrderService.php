@@ -26,6 +26,7 @@ use App\Models\Supplier;
 use App\Models\UserActivityLog;
 use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class PurchaseOrderService
@@ -58,6 +59,16 @@ class PurchaseOrderService
 
     public function createOrder(): PurchaseOrder
     {
+        $item = PurchaseOrder::where('status', PurchaseOrder::Status_Draft)
+            ->where('created_by', Auth::user()->id)
+            ->where('grand_total', 0)
+            ->orderBy('id', 'desc')
+            ->first();
+
+        if ($item) {
+            return $item;
+        }
+
         $item = new PurchaseOrder([
             'type' => PurchaseOrder::Type_Pickup,
             'datetime' => Carbon::now(),
