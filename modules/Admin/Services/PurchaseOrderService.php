@@ -159,7 +159,7 @@ class PurchaseOrderService
         });
     }
 
-    private function updateTotalAndValidateClientTotal($order, $client_total)
+    private function updateTotalAndValidateClientTotal(PurchaseOrder $order, $client_total)
     {
         $order->updateTotals();
         $clientTotal = intval($client_total);
@@ -215,19 +215,18 @@ class PurchaseOrderService
             $this->updateTotalAndValidateClientTotal($order, $data['total'] ?? 0);
 
             $order->remaining_debt = $order->grand_total;
+            $totalPaidAmount = $this->paymentService->addPaymentsWithoutUpdatingCustomerBalance($order, $data['payments'] ?? []);
+
             $order->due_date = $data['due_date'] ?? null;
             $order->delivery_status = PurchaseOrder::DeliveryStatus_PickedUp;
             $order->status = PurchaseOrder::Status_Closed;
+            $order->total_paid = $totalPaidAmount;
+            $order->remaining_debt = $order->grand_total - $order->total_paid;
             $order->save();
 
-            if ($order->supplier_id) {
-                // di awal kita catat sebagai utang dulu
-                // Utang ke supplier adalah nilai negatif
+            if ($order->supplier_id && $order->remaining_debt != 0.001) {
                 $this->supplierService->addToBalance($order->supplier, -abs($order->grand_total));
             }
-
-            // saat payment, utang akan dikurangi otomatis
-            $this->paymentService->addPayments($order, $data['payments'] ?? []);
 
             $this->processPurchaseOrderStockIn($order);
 

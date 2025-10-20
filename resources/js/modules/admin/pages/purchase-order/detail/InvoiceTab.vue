@@ -144,32 +144,23 @@ const props = defineProps({
         </thead>
         <tbody>
           <tr v-for="item in props.data.details" :key="item.id">
-            <td class="q-pa-sm" style="border-bottom: 1px solid #eee">
+            <td class="q-pa-sm">
               <i-link
                 :href="route('admin.product.detail', { id: item.product_id })"
               >
                 {{ item.product_name }}
               </i-link>
             </td>
-            <td
-              class="text-right q-pa-sm"
-              style="border-bottom: 1px solid #eee"
-            >
+            <td class="text-right q-pa-sm">
               {{ item.quantity }}
             </td>
             <td>
               {{ item.product_uom }}
             </td>
-            <td
-              class="text-right q-pa-sm"
-              style="border-bottom: 1px solid #eee"
-            >
+            <td class="text-right q-pa-sm">
               {{ formatNumber(item.cost) }}
             </td>
-            <td
-              class="text-right q-pa-sm"
-              style="border-bottom: 1px solid #eee"
-            >
+            <td class="text-right q-pa-sm">
               {{ formatNumber(item.subtotal_cost) }}
             </td>
           </tr>

@@ -21,6 +21,7 @@ use App\Models\FinanceAccount;
 use App\Models\FinanceTransaction;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderPayment;
+use App\Models\Supplier;
 use Illuminate\Support\Facades\DB;
 
 class PurchaseOrderPaymentService
@@ -34,6 +35,31 @@ class PurchaseOrderPaymentService
         return PurchaseOrderPayment::with(['order', 'order.supplier'])->findOrFail($id);
     }
 
+    public function addPaymentsWithoutUpdatingCustomerBalance(PurchaseOrder $order, array $payments): float
+    {
+        if ($order->remaining_debt <= 0) {
+            throw new BusinessRuleViolationException('Pesanan ini sudah lunas.');
+        }
+
+        $totalPaidAmount = 0;
+
+        foreach ($payments as $inputPayment) {
+            $amount = intval($inputPayment['amount']);
+
+            if ($order->remaining_debt - $totalPaidAmount < $amount) {
+                throw new BusinessRuleViolationException('Jumlah pembayaran melebihi sisa tagihan.');
+            }
+
+            $totalPaidAmount += $amount;
+
+            $payment = $this->createPaymentRecord($order, $inputPayment['id'] ?? null, $amount);
+
+            $this->processFinancialRecords($payment);
+        }
+
+        return $totalPaidAmount;
+    }
+
     public function addPayments(PurchaseOrder $order, array $payments): void
     {
         if ($order->remaining_debt <= 0) {
@@ -41,26 +67,9 @@ class PurchaseOrderPaymentService
         }
 
         DB::transaction(function () use ($order, $payments) {
-            $totalPaidAmount = 0;
-
-            foreach ($payments as $inputPayment) {
-                $amount = intval($inputPayment['amount']);
-
-                if ($order->remaining_debt - $totalPaidAmount < $amount) {
-                    throw new BusinessRuleViolationException('Jumlah pembayaran melebihi sisa tagihan.');
-                }
-
-                $totalPaidAmount += $amount;
-
-                $payment = $this->createPaymentRecord($order, $inputPayment['id'] ?? null, $amount);
-
-                $this->processFinancialRecords($payment);
-
-                $this->updateSupplierDebtOnPayment($payment);
-            }
-
+            $totalPaidAmount = $this->addPaymentsWithoutUpdatingCustomerBalance($order, $payments);
+            $this->supplierService->addToBalance($order->supplier, abs($totalPaidAmount));
             $order->applyPaymentUpdate($totalPaidAmount);
-
             $order->save();
         });
     }
@@ -132,17 +141,6 @@ class PurchaseOrderPaymentService
             FinanceAccount::where('id', $payment->finance_account_id)
                 ->decrement('balance', abs($payment->amount));
         }
-    }
-
-    /**
-     * Memperbarui saldo utang supplier saat pembayaran diterima.
-     */
-    private function updateSupplierDebtOnPayment(PurchaseOrderPayment $payment): void
-    {
-        if (!$payment->order->supplier_id) return;
-
-        // Pembayaran mengurangi utang, jadi nilainya positif
-        $this->supplierService->addToBalance($payment->order->supplier, abs($payment->amount));
     }
 
     /**

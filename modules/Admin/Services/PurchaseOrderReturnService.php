@@ -187,8 +187,18 @@ class PurchaseOrderReturnService
 
         DB::transaction(function () use ($order, $data) {
             $order->status = PurchaseOrderReturn::Status_Closed;
-            $order->updateTotals();
-            $order->remaining_refund = $order->grand_total;
+
+            if ($order->supplier_id && $order->purchaseOrder->remaining_debt > 0) {
+                $order->purchaseOrder->remaining_debt -= $order->remaining_refund;
+                $order->purchaseOrder->save();
+
+                $order->supplier->balance += $order->remaining_refund;
+                $order->supplier->save();
+            } else {
+                // untuk cash dan transaksi lunas gak perlu dihandle, langsung kasih refund
+                $order->remaining_refund = $order->grand_total;
+            }
+
             $order->save();
             $this->processPurchaseOrderReturnStockOut($order);
         });

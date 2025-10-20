@@ -38,7 +38,7 @@ const props = defineProps({
                   >
                     <q-icon class="inline-icon" name="person" />
                     {{ props.data.supplier_name }} ({{
-                      props.data.supplier_code
+                      props.data.supplier?.code
                     }})
                   </i-link>
                 </template>

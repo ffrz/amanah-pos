@@ -3,13 +3,13 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
+ *
  * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
+ *
  * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
+ *
  * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
@@ -30,7 +30,7 @@ class CustomerSeeder extends Seeder
         $faker = Faker::create('id_ID'); // pakai locale Indonesia jika perlu
         $password = Hash::make('12345');
 
-        for ($i = 1; $i <= 100; $i++) {
+        for ($i = 1; $i <= 10; $i++) {
             $phone = $faker->unique()->numerify('08##########');
             $code = $faker->randomElement(['2025']) . str_pad($i, 3, '0', STR_PAD_LEFT);
 
