@@ -59,7 +59,7 @@ const form = reactive({
 
 const total = computed(() => {
   return form.items.reduce((sum, item) => {
-    return sum + item.price * item.quantity;
+    return sum + item.cost * item.quantity;
   }, 0);
 });
 

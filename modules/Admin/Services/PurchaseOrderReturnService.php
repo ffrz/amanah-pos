@@ -186,9 +186,24 @@ class PurchaseOrderReturnService
         $this->ensureOrderIsEditable($order);
 
         DB::transaction(function () use ($order, $data) {
+            $order->updateTotals(); // boleh remove baris ini kalau sudah yakin sinkron
             $order->status = PurchaseOrderReturn::Status_Closed;
-            $order->updateTotals();
             $order->remaining_refund = $order->grand_total;
+
+            $purchaseOrder = $order->purchaseOrder;
+            $purchaseOrder->remaining_debt -= $order->grand_total;
+            $purchaseOrder->save();
+
+            // if ($order->supplier_id && $order->purchaseOrder->remaining_debt > 0) {
+            //     $purchaseOrder = $order->purchaseOrder;
+            //     $purchaseOrder->remaining_debt -= $order->grand_total;
+            //     $purchaseOrder->save();
+            // } else {
+            //     $order->remaining_refund = $order->grand_total;
+            // }
+
+            dd($purchaseOrder->remaining_debt, $order->remaining_refund);
+
             $order->save();
             $this->processPurchaseOrderReturnStockOut($order);
         });

@@ -5,7 +5,7 @@ import { ref } from "vue";
 import MainInfoTab from "./detail/MainInfoTab.vue";
 import WalletHistoryTab from "./detail/WalletHistoryTab.vue";
 import OrderHistoryTab from "./detail/OrderHistoryTab.vue";
-import DocumentVersionHistoryList from "@/components/DocumentVersionHistoryList.vue";
+// import DocumentVersionHistoryList from "@/components/DocumentVersionHistoryList.vue";
 
 const page = usePage();
 const title = "Rincian Pelanggan";
@@ -87,7 +87,7 @@ const $q = useQuasar();
               <q-tab name="main" label="Info Utama" />
               <q-tab name="history" label="Riwayat Wallet" />
               <q-tab name="order-history" label="Riwayat Order" />
-              <q-tab name="version-history" label="Riwayat Dokumen" />
+              <!-- <q-tab name="version-history" label="Riwayat Dokumen" /> -->
             </q-tabs>
             <q-tab-panels v-model="tab" animated>
               <q-tab-panel name="main">
@@ -99,12 +99,12 @@ const $q = useQuasar();
               <q-tab-panel name="order-history" class="q-pa-xs">
                 <OrderHistoryTab />
               </q-tab-panel>
-              <q-tab-panel name="version-history" class="q-pa-xs">
+              <!-- <q-tab-panel name="version-history" class="q-pa-xs">
                 <DocumentVersionHistoryList
                   :document-id="page.props.data.id"
                   document-type="customer"
                 />
-              </q-tab-panel>
+              </q-tab-panel> -->
             </q-tab-panels>
           </q-card>
         </div>

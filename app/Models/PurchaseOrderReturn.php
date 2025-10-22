@@ -145,7 +145,7 @@ class PurchaseOrderReturn extends BaseModel
 
     public function refunds(): HasMany
     {
-        // Meskipun ini adalah 'refund', secara konseptual ini adalah 
+        // Meskipun ini adalah 'refund', secara konseptual ini adalah
         // penerimaan uang kembali (credit) dari supplier.
         return $this->hasMany(PurchaseOrderRefund::class);
     }

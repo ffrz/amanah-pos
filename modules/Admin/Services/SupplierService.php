@@ -187,10 +187,6 @@ class SupplierService
 
     public function generateSupplierCode(): string
     {
-        $lastId = Supplier::max('id') ?? 0;
-        $nextId = $lastId + 1;
-        $code = str_pad($nextId, 4, '0', STR_PAD_LEFT);
-        $prefix = Setting::value('supplier.code-prefix', 'SUP-');
-        return $prefix . $code;
+        return Supplier::generateCode();
     }
 }

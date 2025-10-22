@@ -8,7 +8,7 @@ import { createOptions } from "@/helpers/options";
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
 import CheckBox from "@/components/CheckBox.vue";
 import PercentInput from "@/components/PercentInput.vue";
-import { ref, watch } from "vue"; // <-- Import ref dan watch
+import { onMounted, ref, watch } from "vue"; // <-- Import ref dan watch
 
 const page = usePage();
 const title = (!!page.props.data.id ? "Edit" : "Tambah") + " Produk";
@@ -16,27 +16,6 @@ const types = createOptions(window.CONSTANTS.PRODUCT_TYPES);
 
 // Flag untuk mencegah loop tak terbatas (infinite loop) saat sinkronisasi
 const isSyncing = ref(false);
-
-const calculatePricemarkup = (field) => {};
-// Tentukan nilai awal untuk persentase margin (Penting!)
-const initialPrice1markup =
-  page.props.data.price_1 && page.props.data.cost > 0
-    ? ((page.props.data.price_1 - page.props.data.cost) /
-        page.props.data.cost) *
-      100
-    : 0;
-const initialPrice2markup =
-  page.props.data.price_2 && page.props.data.cost > 0
-    ? ((page.props.data.price_2 - page.props.data.cost) /
-        page.props.data.cost) *
-      100
-    : 0;
-const initialPrice3markup =
-  page.props.data.price_3 && page.props.data.cost > 0
-    ? ((page.props.data.price_3 - page.props.data.cost) /
-        page.props.data.cost) *
-      100
-    : 0;
 
 const form = useForm({
   id: page.props.data.id,
@@ -181,9 +160,15 @@ const setupPriceMarginSync = (priceIndex) => {
 };
 
 // // Aplikasikan sinkronisasi untuk Harga 1, 2, dan 3
-setupPriceMarginSync(1);
-setupPriceMarginSync(2);
-setupPriceMarginSync(3);
+for (let i = 1; i <= 3; i++) {
+  setupPriceMarginSync(i);
+}
+
+onMounted(() => {
+  for (let i = 1; i <= 3; i++) {
+    form[`price_${i}_markup`] = calculateMargin(form[`price_${i}`], form.cost);
+  }
+});
 
 // --- END LOGIKA SINKRONISASI ---
 </script>
@@ -285,7 +270,7 @@ setupPriceMarginSync(3);
               <q-select
                 v-if="$can('admin.product:view-supplier')"
                 v-model="form.supplier_id"
-                label="Supplier (Opsional)"
+                label="Supplier Default (Opsional)"
                 use-input
                 input-debounce="300"
                 clearable
@@ -552,6 +537,14 @@ setupPriceMarginSync(3);
                   </tr>
                 </tbody>
               </table>
+
+              <!-- bisa diaktifkan nanti -->
+              <!-- <CheckBox
+                class="q-mt-sm"
+                v-model="form.autoupdate_price"
+                :disable="form.processing"
+                label="Update harga jual jika modal berubah"
+              /> -->
 
               <CheckBox
                 class="q-mt-sm"
