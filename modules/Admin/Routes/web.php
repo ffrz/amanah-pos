@@ -244,7 +244,6 @@ Route::middleware([Auth::class])
                 Route::get('', [PurchaseOrderReturnController::class, 'index'])->name('admin.purchase-order-return.index');
                 Route::get('data', [PurchaseOrderReturnController::class, 'data'])->name('admin.purchase-order-return.data');
                 Route::get('add', [PurchaseOrderReturnController::class, 'editor'])->name('admin.purchase-order-return.add');
-                Route::match(['get', 'post'], 'add', [PurchaseOrderReturnController::class, 'add'])->name('admin.purchase-order-return.add');
                 Route::get('edit/{id}', [PurchaseOrderReturnController::class, 'editor'])->name('admin.purchase-order-return.edit');
                 Route::get('detail/{id}', [PurchaseOrderReturnController::class, 'detail'])->name('admin.purchase-order-return.detail');
                 Route::post('save', [PurchaseOrderReturnController::class, 'save'])->name('admin.purchase-order-return.save');
