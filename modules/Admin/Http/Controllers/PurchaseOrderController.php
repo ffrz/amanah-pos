@@ -89,8 +89,9 @@ class PurchaseOrderController extends Controller
     {
         $order = $this->service->findOrderOrFail($id);
         $this->authorize('delete', $order);
-        $order = $this->service->deleteOrder($order);
-        return JsonResponseHelper::success($order, "Transaksi #$order->code telah dihapus.");
+        $orderCode = $order->code;
+        $this->service->deleteOrder($order);
+        return JsonResponseHelper::success($order, "Transaksi #$orderCode telah dihapus.");
     }
 
     public function detail($id)

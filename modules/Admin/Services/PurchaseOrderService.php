@@ -209,29 +209,87 @@ class PurchaseOrderService
         }
     }
 
+    public function closeOrderV2(PurchaseOrder $order, array $data)
+    {
+        DB::transaction(function () use ($order, $data) {
+            // hitung ulang total, siapa tahu diperbarui dari perangkat lain
+            $order->total = $order->details()->sum('subtotal_cost');
+
+            // bisa hitung pajak dan diskon dulu di sini
+            $order->grand_total = $order->total;
+            $order->remaining_debt = $order->grand_total;
+            $order->due_date = $data['due_date'] ?? null;
+            $order->delivery_status = PurchaseOrder::DeliveryStatus_PickedUp;
+            $order->status = PurchaseOrder::Status_Closed;
+
+            $clientTotal = intval($data['total'] ?? 0);
+            $serverTotal = intval($order->grand_total);
+
+            if ($serverTotal !== $clientTotal) {
+                throw new BusinessRuleViolationException('Gagal menyimpan transaksi, total tidak sinkron. Coba refresh halaman!');
+            }
+
+            // catat pembayaran
+            $totalPaidAmount = $this->paymentService->addPaymentsWithoutUpdatingCustomerBalance($order, $data['payments'] ?? []);
+
+            // simpan order
+            $order->applyPaymentUpdate($totalPaidAmount);
+            $order->save();
+
+            // catat utang pelanggan
+            if ($order->supplier_id && $order->remaining_debt != 0.001) {
+                $this->supplierService->addToBalance($order->supplier, -abs($order->grand_total));
+            }
+
+            // catat stok
+            $this->processPurchaseOrderStockIn($order);
+
+            // bikin versioning
+            $this->documentVersionService->createVersion($order);
+
+            // log aktifitas
+            $this->userActivityLogService->log(
+                UserActivityLog::Category_PurchaseOrder,
+                UserActivityLog::Name_PurchaseOrder_Close,
+                "Order pembelian $order->code telah ditutup.",
+                [
+                    'data' => $order->toArray(),
+                    'formatter' => 'puchase-order',
+                ]
+            );
+        });
+    }
+
     public function closeOrder(PurchaseOrder $order, array $data)
     {
         DB::transaction(function () use ($order, $data) {
             $this->updateTotalAndValidateClientTotal($order, $data['total'] ?? 0);
 
+            // setitap transaksi yang ditutup harus dicatat dulu sebagai utang
             $order->remaining_debt = $order->grand_total;
+
+            // catat pembayaran
             $totalPaidAmount = $this->paymentService->addPaymentsWithoutUpdatingCustomerBalance($order, $data['payments'] ?? []);
 
+            // simpan order
             $order->due_date = $data['due_date'] ?? null;
             $order->delivery_status = PurchaseOrder::DeliveryStatus_PickedUp;
             $order->status = PurchaseOrder::Status_Closed;
-            $order->total_paid = $totalPaidAmount;
-            $order->remaining_debt = $order->grand_total - $order->total_paid;
+            $order->applyPaymentUpdate($totalPaidAmount);
             $order->save();
 
+            // catat utang pelanggan
             if ($order->supplier_id && $order->remaining_debt != 0.001) {
                 $this->supplierService->addToBalance($order->supplier, -abs($order->grand_total));
             }
 
+            // catat stok
             $this->processPurchaseOrderStockIn($order);
 
+            // bikin versioning
             $this->documentVersionService->createVersion($order);
 
+            // log aktifitas
             $this->userActivityLogService->log(
                 UserActivityLog::Category_PurchaseOrder,
                 UserActivityLog::Name_PurchaseOrder_Close,
@@ -259,6 +317,7 @@ class PurchaseOrderService
                     $this->paymentService->deletePayment($payment);
                 }
             }
+            $code = $order->code;
 
             $order->delete();
 
@@ -267,7 +326,7 @@ class PurchaseOrderService
             $this->userActivityLogService->log(
                 UserActivityLog::Category_PurchaseOrder,
                 UserActivityLog::Name_PurchaseOrder_Delete,
-                "Order pembelian $order->code telah dihapus.",
+                "Order pembelian $code telah dihapus.",
                 [
                     'data' => $order->toArray(),
                     'formatter' => 'puchase-order',

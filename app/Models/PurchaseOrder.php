@@ -198,12 +198,12 @@ class PurchaseOrder extends BaseModel
     public function applyPaymentUpdate(float $amountDelta): void
     {
         $this->total_paid += $amountDelta;
-        // $this->total_paid = $this->payments()->sum('amount');
 
         $totalReturnAmount = PurchaseOrderReturn::where('purchase_order_id', $this->id)
             ->where('status', PurchaseOrderReturn::Status_Closed)
             ->whereNull('deleted_at')
             ->sum('grand_total');
+
         $this->remaining_debt = max(0, $this->grand_total - $totalReturnAmount - $this->total_paid);
 
         if ($this->remaining_debt <= 0.001) {

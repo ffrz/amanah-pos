@@ -376,7 +376,10 @@ watch(
                     {{ props.row.supplier.name }}
                   </my-link>
                 </div>
-                <div>Rp. {{ formatNumber(props.row.grand_total) }}</div>
+                <div>Total: Rp. {{ formatNumber(props.row.grand_total) }}</div>
+                <div v-if="props.row.remaining_debt > 0">
+                  Sisa Utang: Rp. {{ formatNumber(props.row.remaining_debt) }}
+                </div>
                 <div v-if="props.row.notes">
                   <q-icon name="notes" /> {{ props.row.notes }}
                 </div>
@@ -411,6 +414,9 @@ watch(
             </q-td>
             <q-td key="total" :props="props">
               {{ formatNumber(props.row.grand_total) }}
+              <div v-if="props.row.remaining_debt > 0">
+                Sisa Utang: Rp. {{ formatNumber(props.row.remaining_debt) }}
+              </div>
             </q-td>
             <q-td key="notes" :props="props">
               <LongTextView :text="props.row.notes" icon="notes" />
