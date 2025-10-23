@@ -68,7 +68,7 @@ const columns = [
 
 const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return columns;
-  return columns.filter((col) => col.name === "id");
+  return columns.filter((col) => col.name === "code");
 });
 
 onMounted(() => {
