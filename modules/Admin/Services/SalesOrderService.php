@@ -109,6 +109,10 @@ class SalesOrderService
             ->orderBy('id', 'desc')
             ->first();
 
+        if ($item) {
+            return $item;
+        }
+
         $item = new SalesOrder([
             'type' => SalesOrder::Type_Pickup,
             'datetime' => Carbon::now(),
