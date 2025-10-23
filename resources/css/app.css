@@ -324,6 +324,25 @@ table.detail tr:nth-child(even) td {
   padding: 0.25em 0.75em !important;
 }
 
+.q-tab__label {
+  font-weight: normal !important;
+}
+
+.q-tabs {
+  border-bottom: none;
+}
+
 .q-tabs__arrow {
-  background: #fff;
+  background: #eee;
+  border-bottom: 1px solid #ddd;
+}
+
+.q-tab--inactive {
+  background: #eee;
+  border-bottom: 1px solid #ddd;
+}
+
+.q-tab--active {
+  border-left: 1px solid #ddd;
+  border-right: 1px solid #ddd;
 }
