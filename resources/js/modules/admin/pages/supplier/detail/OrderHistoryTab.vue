@@ -6,6 +6,8 @@ import { useQuasar } from "quasar";
 import { computed, onMounted, reactive, ref } from "vue";
 import { formatDateTime, formatNumber } from "@/helpers/formatter";
 import LongTextView from "@/components/LongTextView.vue";
+import PurchaseOrderStatusChip from "@/components/PurchaseOrderStatusChip.vue";
+import PurchaseOrderPaymentStatusChip from "@/components/PurchaseOrderPaymentStatusChip.vue";
 
 const page = usePage();
 const rows = ref([]);
@@ -26,8 +28,14 @@ const columns = [
   { name: "id", label: "Trx", field: "id", align: "left" },
   {
     name: "grand_total",
-    label: "Total",
+    label: "Total (Rp.)",
     field: "grand_total",
+    align: "right",
+  },
+  {
+    name: "remaining_debt",
+    label: "Sisa Utang (Rp.)",
+    field: "remaining_debt",
     align: "right",
   },
   { name: "notes", label: "Catatan", field: "notes", align: "left" },
@@ -113,7 +121,11 @@ const computedColumns = computed(() => {
           <template v-if="$q.screen.lt.md">
             <div class="text-bold">
               <q-icon name="money" class="inline-icon" />
-              Rp. {{ formatNumber(props.row.grand_total) }}
+              Total: Rp. {{ formatNumber(props.row.grand_total) }}
+            </div>
+            <div class="text-bold" v-if="props.row.remaining_debt > 0">
+              <q-icon name="money" class="inline-icon" />
+              Sisa Utang: Rp. {{ formatNumber(props.row.remaining_debt) }}
             </div>
             <div v-if="props.row.notes">
               <LongTextView
@@ -124,27 +136,17 @@ const computedColumns = computed(() => {
             </div>
           </template>
           <div>
-            <q-badge :color="props.row.status == 'closed' ? 'green' : 'red'">
-              {{ $CONSTANTS.SALES_ORDER_STATUSES[props.row.status] }}
-            </q-badge>
-            <q-badge
-              :color="
-                props.row.payment_status == 'fully_paid' ? 'green' : 'red'
-              "
-              class="q-ml-xs"
-            >
-              {{
-                $CONSTANTS.SALES_ORDER_PAYMENT_STATUSES[
-                  props.row.payment_status
-                ]
-              }}
-            </q-badge>
+            <PurchaseOrderStatusChip :status="props.row.status" />
+            <PurchaseOrderPaymentStatusChip
+              :status="props.row.payment_status"
+            />
           </div>
         </q-td>
         <q-td key="grand_total" :props="props">
-          <div>
-            {{ formatNumber(props.row.grand_total) }}
-          </div>
+          {{ formatNumber(props.row.grand_total) }}
+        </q-td>
+        <q-td key="remaining_debt" :props="props">
+          {{ formatNumber(props.row.remaining_debt) }}
         </q-td>
         <q-td key="notes" :props="props" class="wrap-column">
           <LongTextView :text="props.row.notes" />
