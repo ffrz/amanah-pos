@@ -109,7 +109,7 @@ const handleProductSelection = (product) => {
 };
 
 const addItem = async () => {
-  const input = userInput.value.trim();
+  const input = userInput.value?.trim();
   if (input.length === 0) {
     showProductBrowserDialog.value = true;
     return;

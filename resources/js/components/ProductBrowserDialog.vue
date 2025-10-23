@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, reactive, ref, watch } from "vue";
+import { computed, nextTick, onMounted, reactive, ref, watch } from "vue";
 import { formatNumber } from "@/helpers/formatter";
 import { getQueryParams } from "@/helpers/utils";
 import { handleFetchItems } from "@/helpers/client-req-handler";
@@ -105,6 +105,37 @@ onMounted(() => {
   fetchItemsWithoutProps();
 });
 
+// Fungsi untuk melakukan scroll ke baris yang dipilih
+const scrollToSelectedIndex = () => {
+  if (tableRef.value && selectedIndex.value !== -1) {
+    // 1. Hitung Indeks Global Baris Pertama di Halaman Saat Ini
+    const firstIndexOnPage =
+      (pagination.value.page - 1) * pagination.value.rowsPerPage;
+
+    // 2. Konversi Indeks Global (selectedIndex) ke Indeks Lokal (localIndex)
+    const localIndex = selectedIndex.value - firstIndexOnPage;
+
+    // 3. Pastikan aksi scrolling terjadi setelah DOM diupdate (menggunakan nextTick)
+    nextTick(() => {
+      // 4. Periksa apakah indeks lokal valid dan metode scrollTo tersedia
+      if (
+        localIndex >= 0 &&
+        localIndex < rows.value.length &&
+        tableRef.value.scrollTo
+      ) {
+        // Panggil scrollTo menggunakan Indeks Lokal (0, 1, 2, ...)
+        //tableRef.value.scrollTo(localIndex, "center");
+
+        // Opsional: Untuk memastikan baris terpilih terlihat, fokuskan elemennya
+        const rowElement = tableRef.value.$el.querySelector(`.selected-row`);
+        if (rowElement) {
+          rowElement.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+      }
+    });
+  }
+};
+
 const fetchItemsWithoutProps = () => {
   if (props.modelValue === false) return;
   fetchItems();
@@ -112,8 +143,8 @@ const fetchItemsWithoutProps = () => {
 
 const fetchItems = (props = null) => {
   loading.value = true;
-  selectedIndex.value = -1; // Reset selected index on new fetch
-
+  // selectedIndex.value = -1; // Reset selected index on new fetch
+  const initialIndex = selectedIndex.value;
   handleFetchItems({
     pagination,
     filter,
@@ -122,6 +153,24 @@ const fetchItems = (props = null) => {
     url: route("admin.product.data"),
     loading,
     tableRef,
+    onSuccess: () => {
+      if (rows.value.length > 0) {
+        // Jika index awalnya diatur ke 0 (dari handleKeydown) atau -1 (dari fetch awal),
+        // kita set ke 0
+        if (initialIndex === 0 || initialIndex === -1) {
+          selectedIndex.value = 0;
+        }
+
+        // Gunakan nextTick untuk memastikan DOM telah diperbarui (termasuk kelas 'selected-row')
+        // sebelum mencoba melakukan scroll
+        nextTick(() => {
+          scrollToSelectedIndex();
+        });
+      } else {
+        // Jika halaman baru tidak memiliki data
+        selectedIndex.value = -1;
+      }
+    },
   });
 };
 
@@ -141,21 +190,93 @@ const onProductSelect = (product) => {
 
 const handleKeydown = (event) => {
   if (!props.modelValue) {
+    alert("none");
     return;
   }
 
   const listCount = rows.value.length;
   if (listCount === 0) return;
 
+  const firstIndexOnPage =
+    (pagination.value.page - 1) * pagination.value.rowsPerPage;
+  const lastIndexOnPage = firstIndexOnPage + listCount - 1;
+
   if (event.key === "ArrowDown") {
     event.preventDefault();
-    selectedIndex.value = (selectedIndex.value + 1) % listCount;
+
+    // Cek apakah seleksi saat ini BUKAN baris terakhir di halaman
+    if (selectedIndex.value < lastIndexOnPage) {
+      selectedIndex.value = selectedIndex.value + 1;
+      scrollToSelectedIndex();
+    }
+    // 🔥 Tambahan: Izinkan pindah halaman jika ArrowDown ditekan pada baris terakhir
+    else if (selectedIndex.value === lastIndexOnPage) {
+      // Jika sudah di baris terakhir, panggil logika pindah halaman (ArrowRight)
+      // Ini akan memicu paginasi dan mengatur selectedIndex ke baris pertama halaman baru
+      handleKeydown({ key: "ArrowRight", preventDefault: () => {} });
+    }
   } else if (event.key === "ArrowUp") {
     event.preventDefault();
-    selectedIndex.value = (selectedIndex.value - 1 + listCount) % listCount;
+
+    // Cek apakah seleksi saat ini BUKAN baris pertama di halaman
+    if (selectedIndex.value > firstIndexOnPage) {
+      selectedIndex.value = selectedIndex.value - 1;
+      scrollToSelectedIndex();
+    }
+    // 🔥 Tambahan: Izinkan pindah halaman jika ArrowUp ditekan pada baris pertama
+    else if (selectedIndex.value === firstIndexOnPage && firstIndexOnPage > 0) {
+      // Jika sudah di baris pertama, panggil logika pindah halaman (ArrowLeft)
+      // Ini akan memicu paginasi dan mengatur selectedIndex ke baris pertama halaman sebelumnya
+      handleKeydown({ key: "ArrowLeft", preventDefault: () => {} });
+    }
   } else if (event.key === "Enter" && selectedIndex.value !== -1) {
     event.preventDefault();
-    onProductSelect(rows.value[selectedIndex.value]);
+    event.preventDefault();
+
+    // 1. Hitung Indeks Global Baris Pertama di Halaman Saat Ini
+    const firstIndexOnPage =
+      (pagination.value.page - 1) * pagination.value.rowsPerPage;
+
+    // 2. Konversi Indeks Global ke Indeks Lokal (0-based)
+    const localIndex = selectedIndex.value - firstIndexOnPage;
+
+    // 3. Validasi dan Pilih Produk
+    if (localIndex >= 0 && localIndex < listCount) {
+      onProductSelect(rows.value[localIndex]);
+    } else {
+      console.warn(
+        "Kesalahan: selectedIndex global di luar batas halaman saat ini."
+      );
+      // Opsi: Anda mungkin ingin memilih baris terdekat (baris 0) jika terjadi anomali.
+      // onProductSelect(rows.value[0]);
+    }
+  } else if (selectedIndex.value !== -1) {
+    if (event.key === "ArrowRight") {
+      event.preventDefault();
+      const nextPage = pagination.value.page + 1;
+      if (
+        nextPage <=
+        Math.ceil(pagination.value.rowsNumber / pagination.value.rowsPerPage)
+      ) {
+        pagination.value.page = nextPage;
+
+        // 🔥 PERBAIKAN: Hitung indeks global baris pertama halaman baru
+        selectedIndex.value = (nextPage - 1) * pagination.value.rowsPerPage;
+
+        tableRef.value.requestServerInteraction();
+      }
+    } else if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      const prevPage = pagination.value.page - 1;
+      if (prevPage >= 1) {
+        pagination.value.page = prevPage;
+
+        // 🔥 PERBAIKAN: Hitung indeks global baris pertama halaman sebelumnya
+        selectedIndex.value = (prevPage - 1) * pagination.value.rowsPerPage;
+
+        tableRef.value.requestServerInteraction();
+      }
+    }
   }
 };
 
@@ -323,7 +444,9 @@ watch(
 .q-card {
   width: 360px;
 }
+
+.selected-row td,
 .selected-row {
-  background-color: #e0e0e0;
+  background-color: rgb(255, 255, 118) !important;
 }
 </style>

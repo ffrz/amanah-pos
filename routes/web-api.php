@@ -34,6 +34,6 @@ Route::middleware(['auth:web', 'web'])->prefix('web-api')->group(function () {
 
     Route::prefix('/suppliers')->group(function () {
         Route::get('/', [SupplierController::class, 'index'])
-            ->name('web-api.customers.index');
+            ->name('web-api.supplier.index');
     });
 });

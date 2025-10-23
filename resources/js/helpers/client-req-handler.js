@@ -145,7 +145,8 @@ export function handleDelete(data) {
 }
 
 export function handleFetchItems(options) {
-  const { pagination, props, rows, url, loading, filter, tableRef } = options;
+  const { pagination, props, rows, url, loading, filter, tableRef, onSuccess } =
+    options;
 
   let source = props ? props.pagination : pagination.value;
 
@@ -201,6 +202,10 @@ export function handleFetchItems(options) {
       if (props) {
         pagination.value.sortBy = props.pagination.sortBy;
         pagination.value.descending = props.pagination.descending;
+      }
+
+      if (onSuccess) {
+        onSuccess(response);
       }
     })
     .finally(() => {
