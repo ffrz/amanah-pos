@@ -34,6 +34,7 @@ class PurchaseOrder extends BaseModel
     protected $fillable = [
         'code',
         'supplier_id',
+        'supplier_code',
         'supplier_name',
         'supplier_phone',
         'supplier_address',
@@ -118,6 +119,7 @@ class PurchaseOrder extends BaseModel
             'type' => 'string',
 
             'supplier_id'       => 'integer',
+            'supplier_code'     => 'string',
             'supplier_name'     => 'string',
             'supplier_phone'    => 'string',
             'supplier_address'  => 'string',

@@ -117,6 +117,7 @@ class PurchaseOrderService
             // karena frontend tidak mendukung customization
             if ($supplier) {
                 $item->supplier_id      = $supplier->id;
+                $item->supplier_code    = $supplier->code;
                 $item->supplier_name    = $supplier->name;
                 $item->supplier_phone   = $supplier->phone;
                 $item->supplier_address = $supplier->address;
@@ -349,14 +350,14 @@ class PurchaseOrderService
                 $q->orWhere('notes', 'like', '%' . $filter['search'] . '%');
                 $q->orWhere('supplier_code', 'like', '%' . $filter['search'] . '%');
                 $q->orWhere('supplier_name', 'like', '%' . $filter['search'] . '%');
-                $q->orWhere('supplier_phone', 'like', '%' . $filter['search'] . '%');
-                $q->orWhere('supplier_address', 'like', '%' . $filter['search'] . '%');
+                // $q->orWhere('supplier_phone', 'like', '%' . $filter['search'] . '%');
+                // $q->orWhere('supplier_address', 'like', '%' . $filter['search'] . '%');
             });
 
-            $q->orWhereHas('details.product', function ($q) use ($filter) {
-                $q->where('name', 'like', "%" . $filter['search'] . "%")
-                    ->orWhere('barcode', 'like', "%" . $filter['search'] . "%");
-            });
+            // $q->orWhereHas('details.product', function ($q) use ($filter) {
+            //     $q->where('name', 'like', "%" . $filter['search'] . "%")
+            //         ->orWhere('barcode', 'like', "%" . $filter['search'] . "%");
+            // });
         }
 
         if (!empty($filter['status']) && $filter['status'] != 'all') {

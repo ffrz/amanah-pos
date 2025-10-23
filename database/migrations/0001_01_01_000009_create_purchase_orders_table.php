@@ -31,6 +31,7 @@ return new class extends Migration
             $table->string('code', 255)->unique();
             $table->string('type', 40)->nullable()->default('')->index();
 
+            $table->string('supplier_code', 100)->nullable()->default('');
             $table->string('supplier_name', 100)->nullable()->default('');
             $table->string('supplier_phone', 40)->nullable()->default('');
             $table->string('supplier_address', 200)->nullable()->default('');
