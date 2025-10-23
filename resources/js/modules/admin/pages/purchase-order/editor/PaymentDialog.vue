@@ -61,8 +61,8 @@ const remainingTotal = computed(() => {
 const isAmountValid = computed(() => {
   if (!props.supplier) return true;
   const walletPayment = payments.find((p) => p.id === "wallet");
-  const amount = walletPayment ? walletPayment.amount : 0.0;
-  return amount <= props.supplier.balance;
+  if (!walletPayment) return true;
+  return walletPayment.amount <= props.supplier.balance;
 });
 
 const today = new Date();
