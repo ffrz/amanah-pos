@@ -237,9 +237,23 @@ const handlePaymentMethodSelected = (newId, index) => {
       <q-card-section class="q-pt-none">
         <div v-if="customer" class="text-center q-mb-md text-grey-8">
           <div class="text-subtitle2 text-weight-medium">
-            Username: {{ customer.code }} <br />
-            Nama: {{ customer.name }}<br />
-            Saldo: Rp. {{ formatNumber(customer.wallet_balance) }}
+            <div>
+              <my-link
+                :href="route('admin.customer.detail', { id: customer.id })"
+                target="_blank"
+              >
+                {{ customer.code }} - {{ customer.name }}
+              </my-link>
+            </div>
+            <div
+              :class="customer.wallet_balance > 0 ? 'text-green' : 'text-red'"
+            >
+              Saldo Wallet: Rp. {{ formatNumber(customer.wallet_balance) }}
+            </div>
+            <div :class="customer.balance > 0 ? 'text-green' : 'text-red'">
+              {{ customer.balance > 0 ? "Piutang" : "Utang" }}:
+              {{ formatNumber(customer.balance) }}
+            </div>
           </div>
         </div>
         <div class="text-h5 text-center text-primary q-pb-md">

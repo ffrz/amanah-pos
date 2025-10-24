@@ -127,7 +127,9 @@ const onBeforeShow = () => {
                 {{ customer.code }} - {{ customer.name }}
               </my-link>
             </div>
-            <div :class="customer.balance > 0 ? 'text-green' : 'text-red'">
+            <div
+              :class="customer.wallet_balance > 0 ? 'text-green' : 'text-red'"
+            >
               Saldo Wallet: Rp. {{ formatNumber(customer.wallet_balance) }}
             </div>
             <div :class="customer.balance > 0 ? 'text-green' : 'text-red'">
