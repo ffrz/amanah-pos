@@ -23,14 +23,30 @@ const pagination = ref({
 });
 
 const columns = [
-  { name: "id", label: "Trx", field: "id", align: "left" },
+  {
+    name: "id",
+    label: "Trx",
+    field: "id",
+    align: "left",
+  },
   {
     name: "grand_total",
-    label: "Total",
+    label: "Total (Rp)",
     field: "grand_total",
     align: "right",
   },
-  { name: "notes", label: "Catatan", field: "notes", align: "left" },
+  {
+    name: "remaining_debt",
+    label: "Sisa Utang (Rp)",
+    field: "remaining_debt",
+    align: "right",
+  },
+  {
+    name: "notes",
+    label: "Catatan",
+    field: "notes",
+    align: "left",
+  },
 ];
 
 onMounted(() => {
@@ -111,9 +127,13 @@ const computedColumns = computed(() => {
             {{ formatDateTime(props.row.datetime) }}
           </div>
           <template v-if="$q.screen.lt.md">
-            <div class="text-bold">
+            <div>
               <q-icon name="money" class="inline-icon" />
-              Rp. {{ formatNumber(props.row.grand_total) }}
+              Total: Rp. {{ formatNumber(props.row.grand_total) }}
+            </div>
+            <div v-if="props.row.remaining_debt > 0">
+              <q-icon name="money" class="inline-icon" />
+              Sisa Utang Rp. {{ formatNumber(props.row.remaining_debt) }}
             </div>
             <div v-if="props.row.notes">
               <LongTextView
@@ -138,9 +158,10 @@ const computedColumns = computed(() => {
           </div>
         </q-td>
         <q-td key="grand_total" :props="props">
-          <div>
-            {{ formatNumber(props.row.grand_total) }}
-          </div>
+          {{ formatNumber(props.row.grand_total) }}
+        </q-td>
+        <q-td key="remaining_debt" :props="props">
+          {{ formatNumber(props.row.remaining_debt) }}
         </q-td>
         <q-td key="notes" :props="props" class="wrap-column">
           <LongTextView :text="props.row.notes" />

@@ -195,7 +195,7 @@ const props = defineProps({
         </div>
       </div>
       <div class="col-12 col-sm-6">
-        <tempate v-if="props.data.change > 0">
+        <template v-if="props.data.change > 0">
           <div class="row justify-end q-gutter-y-xs">
             <div class="col-12 row justify-between">
               <div class="text-subtitle2 text-grey-7">Jumlah Bayar</div>
@@ -217,7 +217,7 @@ const props = defineProps({
               </div>
             </div>
           </div>
-        </tempate>
+        </template>
         <div class="row justify-end q-gutter-y-xs">
           <div class="col-12 row justify-between">
             <div class="text-subtitle2 text-grey-7">Grand Total (Rp)</div>

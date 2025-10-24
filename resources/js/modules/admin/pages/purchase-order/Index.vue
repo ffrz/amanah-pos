@@ -88,9 +88,15 @@ const columns = [
     align: "left",
   },
   {
-    name: "total",
-    label: "Total",
-    field: "total",
+    name: "grand_total",
+    label: "Total (Rp.)",
+    field: "grand_total",
+    align: "right",
+  },
+  {
+    name: "remaining_debt",
+    label: "Sisa Utang (Rp.)",
+    field: "remaining_debt",
     align: "right",
   },
   {
@@ -412,11 +418,11 @@ watch(
                 </div>
               </div>
             </q-td>
-            <q-td key="total" :props="props">
+            <q-td key="grand_total" :props="props">
               {{ formatNumber(props.row.grand_total) }}
-              <div v-if="props.row.remaining_debt > 0">
-                Sisa Utang: Rp. {{ formatNumber(props.row.remaining_debt) }}
-              </div>
+            </q-td>
+            <q-td key="remaining_debt" :props="props">
+              {{ formatNumber(props.row.remaining_debt) }}
             </q-td>
             <q-td key="notes" :props="props">
               <LongTextView :text="props.row.notes" icon="notes" />
