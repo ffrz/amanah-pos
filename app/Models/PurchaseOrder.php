@@ -151,10 +151,10 @@ class PurchaseOrder extends BaseModel
         return (float) $value;
     }
 
-    protected function getTotalPaidAttribute(string $value): float
-    {
-        return (float) $value;
-    }
+    // protected function getTotalPaidAttribute(string $value): float
+    // {
+    //     return (float) $value;
+    // }
 
     public function getTypeLabelAttribute()
     {
@@ -203,7 +203,6 @@ class PurchaseOrder extends BaseModel
 
         $totalReturnAmount = PurchaseOrderReturn::where('purchase_order_id', $this->id)
             ->where('status', PurchaseOrderReturn::Status_Closed)
-            ->whereNull('deleted_at')
             ->sum('grand_total');
 
         $this->remaining_debt = max(0, $this->grand_total - $totalReturnAmount - $this->total_paid);

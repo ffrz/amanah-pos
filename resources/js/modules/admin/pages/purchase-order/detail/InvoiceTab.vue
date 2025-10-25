@@ -189,6 +189,36 @@ const props = defineProps({
             </div>
           </div>
         </div>
+        <div class="row justify-end q-gutter-y-xs">
+          <div class="col-12 row justify-between">
+            <div class="text-subtitle2 text-grey-7">Total Dibayar (Rp)</div>
+            <div class="text-subtitle2 text-bold">
+              {{ formatNumber(props.data.total_paid) }}
+            </div>
+          </div>
+        </div>
+        <div class="row justify-end q-gutter-y-xs">
+          <div class="col-12 row justify-between">
+            <div class="text-subtitle2 text-grey-7">Total Refund (Rp)</div>
+            <div class="text-subtitle2 text-bold">
+              {{
+                formatNumber(
+                  props.data.grand_total -
+                    props.data.total_paid -
+                    props.data.remaining_debt
+                )
+              }}
+            </div>
+          </div>
+        </div>
+        <div class="row justify-end q-gutter-y-xs">
+          <div class="col-12 row justify-between">
+            <div class="text-subtitle2 text-grey-7">Sisa Tagihan (Rp)</div>
+            <div class="text-subtitle2 text-bold">
+              {{ formatNumber(props.data.remaining_debt) }}
+            </div>
+          </div>
+        </div>
       </div>
     </q-card-section>
   </div>

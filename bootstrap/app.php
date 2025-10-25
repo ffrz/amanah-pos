@@ -80,9 +80,11 @@ return Application::configure(basePath: dirname(__DIR__))
                 $message = $e->getMessage();
             } elseif ($e->getPrevious() instanceof ModelNotFoundException) {
                 $statusCode = Response::HTTP_NOT_FOUND;
-                $message = "Rekaman tidak ditemukan.";
+                $message = $e->getMessage();
+                // $message = "Rekaman tidak ditemukan.";
             } elseif ($e->getPrevious() instanceof AuthorizationException) {
                 $statusCode = Response::HTTP_FORBIDDEN;
+                // $message = $e->getMessage();
                 $message = "Akses ditolak. Anda tidak diizinkan melakukan aksi ini.";
             }
 

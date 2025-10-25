@@ -1,6 +1,6 @@
 <script setup>
 import { formatDateTime, formatNumber } from "@/helpers/formatter";
-import { computed, ref } from "vue";
+import { ref } from "vue";
 import PaymentDialog from "./PaymentDialog.vue";
 import { useQuasar } from "quasar";
 import axios from "axios";
@@ -8,10 +8,6 @@ import { router } from "@inertiajs/vue3";
 
 const props = defineProps({
   data: Object,
-});
-
-const remainingPayment = computed(() => {
-  return props.data.grand_total - props.data.total_paid;
 });
 
 const $q = useQuasar();
@@ -123,7 +119,8 @@ const deletePayment = (payment) => {
       <div class="row">
         <q-btn
           v-if="
-            $can('admin.purchase-order.add-payment') && remainingPayment > 0
+            $can('admin.purchase-order.add-payment') &&
+            props.data.remaining_debt > 0
           "
           label="Tambah"
           color="primary"
@@ -232,7 +229,7 @@ const deletePayment = (payment) => {
           <tr>
             <th class="text-right q-pa-sm" colspan="1">Sisa Tagihan</th>
             <th class="text-right q-pa-sm">
-              {{ formatNumber(remainingPayment) }}
+              {{ formatNumber(props.data.remaining_debt) }}
             </th>
             <td></td>
           </tr>

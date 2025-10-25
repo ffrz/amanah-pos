@@ -223,7 +223,7 @@ watch(
         @click="showFilter = !showFilter"
       />
       <q-btn
-        v-if="$can('admin.purchase-order-return.edit')"
+        v-if="$can('admin.purchase-order-return.add')"
         icon="add"
         dense
         rounded

@@ -135,7 +135,7 @@ const props = defineProps({
               class="text-right q-pa-sm"
               style="border-bottom: 1px solid #eee"
             >
-              {{ formatNumber(item.price) }}
+              {{ formatNumber(item.cost) }}
             </td>
             <td
               class="text-center q-pa-sm"
@@ -147,7 +147,7 @@ const props = defineProps({
               class="text-right q-pa-sm"
               style="border-bottom: 1px solid #eee"
             >
-              {{ formatNumber(item.subtotal_price) }}
+              {{ formatNumber(item.subtotal_cost) }}
             </td>
           </tr>
           <tr v-if="props.data.details.length == 0">

@@ -54,6 +54,7 @@ class PurchaseOrderReturnDetailService
             ->join('purchase_order_returns as por', 'por.id', '=', 'purchase_order_return_details.purchase_order_return_id')
             ->where('por.purchase_order_id', $purchase_order_id)
             ->where('por.status', 'closed')
+            ->whereNull('por.deleted_at')
             ->sum('purchase_order_return_details.quantity');
 
         return $total_purchase_quantity - $total_returned_quantity;

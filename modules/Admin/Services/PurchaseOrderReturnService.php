@@ -190,19 +190,33 @@ class PurchaseOrderReturnService
             $order->status = PurchaseOrderReturn::Status_Closed;
             $order->remaining_refund = $order->grand_total;
 
-            $purchaseOrder = $order->purchaseOrder;
-            $purchaseOrder->remaining_debt -= $order->grand_total;
-            $purchaseOrder->save();
+            if ($order->supplier_id && $order->purchaseOrder->remaining_debt > 0) {
+                $purchaseOrder = $order->purchaseOrder;
+                $supplier = $order->supplier;
 
-            // if ($order->supplier_id && $order->purchaseOrder->remaining_debt > 0) {
-            //     $purchaseOrder = $order->purchaseOrder;
-            //     $purchaseOrder->remaining_debt -= $order->grand_total;
-            //     $purchaseOrder->save();
-            // } else {
-            //     $order->remaining_refund = $order->grand_total;
-            // }
+                $oldOrderBalance = $purchaseOrder->remaining_debt;
 
-            dd($purchaseOrder->remaining_debt, $order->remaining_refund);
+
+                $order->remaining_refund -= abs($purchaseOrder->remaining_debt);
+                if ($order->remaining_refund < 0) {
+                    $order->remaining_refund = 0;
+                    $order->status = PurchaseOrderReturn::RefundStatus_FullyRefunded;
+                }
+
+                $purchaseOrder->remaining_debt -= $order->grand_total;
+                if ($purchaseOrder->remaining_debt < 0) {
+                    $purchaseOrder->remaining_debt = 0;
+                    $purchaseOrder->status = PurchaseOrder::PaymentStatus_FullyPaid;
+                }
+
+                $newOrderBalance = $purchaseOrder->remaining_debt;
+                $balanceDelta = abs($oldOrderBalance - $newOrderBalance);
+
+                $supplier->balance += $balanceDelta;
+
+                $purchaseOrder->save();
+                $supplier->save();
+            }
 
             $order->save();
             $this->processPurchaseOrderReturnStockOut($order);
@@ -214,9 +228,52 @@ class PurchaseOrderReturnService
     {
         DB::transaction(function () use ($order) {
             if ($order->status == PurchaseOrderReturn::Status_Closed) {
+                $returnAmount = $order->grand_total;
+                $purchaseOrder = $order->purchaseOrder;
+                $supplier = $order->supplier;
+
+                // 1. Membalikkan stok
                 $this->reverseStock($order);
+
+                // 2. Menghapus rekaman refund yang terkait
+                // ASUMSI: deleteRefunds() membalikkan total_refunded dan entri kas/bank.
                 $this->refundService->deleteRefunds($order);
+
+                // --- Pembalikan Utang PO Induk (Kebalikan dari Logika Closing) ---
+
+                // A. Tambahkan kembali utang yang dibebaskan
+                $purchaseOrder->remaining_debt += $returnAmount;
+
+                // B. Koreksi Piutang Negatif (Transfer dari remaining_refund PO kembali ke remaining_debt)
+                // Piutang yang tadinya ditransfer dari debt ke refund, sekarang harus dikembalikan.
+                if ($purchaseOrder->remaining_debt > $purchaseOrder->grand_total) {
+                    // Utang yang dibalikkan terlalu besar (lebih besar dari grand_total awal)
+                    // Ini terjadi jika retur sebelumnya menyebabkan PO Fully Paid.
+
+                    // Jika ada remaining_refund yang sebelumnya dibentuk oleh retur ini:
+                    $transferToDebt = abs($purchaseOrder->remaining_debt - $purchaseOrder->grand_total);
+
+                    // Pastikan nilai transfer tidak melebihi remaining_refund yang ada
+                    if ($purchaseOrder->remaining_refund >= $transferToDebt) {
+                        $purchaseOrder->remaining_refund -= $transferToDebt;
+                        $purchaseOrder->remaining_debt -= $transferToDebt; // Kurangi dari debt yang terlalu besar
+                    }
+
+                    // Normalisasi Utang/Status PO
+                    if ($purchaseOrder->remaining_debt > $purchaseOrder->grand_total) {
+                        $purchaseOrder->remaining_debt = $purchaseOrder->grand_total;
+                    }
+                    $purchaseOrder->status = PurchaseOrder::PaymentStatus_PartiallyPaid; // atau sesuai kondisi
+                }
+
+                // C. Pembalikan Saldo Supplier
+                // Saldo supplier berkurang karena utang Anda kembali bertambah.
+                $supplier->balance -= $returnAmount;
+
+                $purchaseOrder->save();
+                $supplier->save();
             }
+
             $order->delete();
         });
     }

@@ -100,7 +100,7 @@ const validateBarcode = (code) => {
 
 // -----
 const handleProductSelection = (product) => {
-  if (userInput.value.endsWith("*")) {
+  if (userInput.value?.endsWith("*")) {
     userInput.value += product.name;
   } else {
     userInput.value = product.name;

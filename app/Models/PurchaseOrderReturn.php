@@ -61,7 +61,7 @@ class PurchaseOrderReturn extends BaseModel
 
     protected $appends = [
         'status_label',
-        'credit_status_label',
+        'refund_status_label',
 
     ];
 
@@ -121,7 +121,7 @@ class PurchaseOrderReturn extends BaseModel
         return self::Statuses[$this->status] ?? '-';
     }
 
-    public function getCreditStatusLabelAttribute(): string
+    public function getRefundStatusLabelAttribute(): string
     {
         return self::RefundStatuses[$this->refund_status] ?? '-';
     }
