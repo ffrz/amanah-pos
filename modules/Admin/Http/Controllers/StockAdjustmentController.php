@@ -86,11 +86,8 @@ class StockAdjustmentController extends Controller
     public function editor($id)
     {
         $item = $this->stockAdjustmentService->find($id);
-
         $this->authorize('update', $item);
-
         $details = $item->details;
-
         return inertia('stock-adjustment/Editor', [
             'item' => $item,
             'details' => $details

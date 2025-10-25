@@ -173,9 +173,12 @@ const deletePayment = (payment) => {
                 class="row items-center q-gutter-x-sm q-mt-xs"
               >
                 <q-icon name="wallet" size="xs" color="grey-7" />
-                <span class="text-caption text-grey-6">{{
-                  item.account.name
-                }}</span>
+                <my-link
+                  :href="route('admin.finance-account.detail', item.account.id)"
+                  target="_blank"
+                >
+                  {{ item.account.name }}
+                </my-link>
               </div>
               <div class="q-mt-xs">
                 <q-badge

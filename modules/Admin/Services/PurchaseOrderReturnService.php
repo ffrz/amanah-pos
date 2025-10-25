@@ -104,6 +104,7 @@ class PurchaseOrderReturnService
         $item = new PurchaseOrderReturn([
             'purchase_order_id' => $order->id,
             'supplier_id' => $order->supplier_id,
+            'supplier_code' => $order->supplier_code,
             'supplier_name' => $order->supplier_name,
             'supplier_phone' => $order->supplier_phone,
             'supplier_address' => $order->supplier_address,
@@ -190,12 +191,10 @@ class PurchaseOrderReturnService
             $order->status = PurchaseOrderReturn::Status_Closed;
             $order->remaining_refund = $order->grand_total;
 
-            if ($order->supplier_id && $order->purchaseOrder->remaining_debt > 0) {
-                $purchaseOrder = $order->purchaseOrder;
-                $supplier = $order->supplier;
+            $purchaseOrder = $order->purchaseOrder;
 
+            if ($purchaseOrder->remaining_debt > 0) {
                 $oldOrderBalance = $purchaseOrder->remaining_debt;
-
 
                 $order->remaining_refund -= abs($purchaseOrder->remaining_debt);
                 if ($order->remaining_refund < 0) {
@@ -212,13 +211,17 @@ class PurchaseOrderReturnService
                 $newOrderBalance = $purchaseOrder->remaining_debt;
                 $balanceDelta = abs($oldOrderBalance - $newOrderBalance);
 
-                $supplier->balance += $balanceDelta;
-
                 $purchaseOrder->save();
-                $supplier->save();
+
+                if ($order->supplier_id) {
+                    $supplier = $order->supplier;
+                    $supplier->balance += $balanceDelta;
+                    $supplier->save();
+                }
             }
 
             $order->save();
+
             $this->processPurchaseOrderReturnStockOut($order);
         });
     }
@@ -228,50 +231,50 @@ class PurchaseOrderReturnService
     {
         DB::transaction(function () use ($order) {
             if ($order->status == PurchaseOrderReturn::Status_Closed) {
-                $returnAmount = $order->grand_total;
                 $purchaseOrder = $order->purchaseOrder;
                 $supplier = $order->supplier;
 
-                // 1. Membalikkan stok
+                $returnAmount = $order->grand_total;
+
                 $this->reverseStock($order);
 
-                // 2. Menghapus rekaman refund yang terkait
-                // ASUMSI: deleteRefunds() membalikkan total_refunded dan entri kas/bank.
                 $this->refundService->deleteRefunds($order);
 
-                // --- Pembalikan Utang PO Induk (Kebalikan dari Logika Closing) ---
+                // tangani utang - piutang di pembelian
+                if ($purchaseOrder->total_paid != $purchaseOrder->grand_total) {
+                    $purchaseOrder->remaining_debt += $returnAmount;
 
-                // A. Tambahkan kembali utang yang dibebaskan
-                $purchaseOrder->remaining_debt += $returnAmount;
-
-                // B. Koreksi Piutang Negatif (Transfer dari remaining_refund PO kembali ke remaining_debt)
-                // Piutang yang tadinya ditransfer dari debt ke refund, sekarang harus dikembalikan.
-                if ($purchaseOrder->remaining_debt > $purchaseOrder->grand_total) {
-                    // Utang yang dibalikkan terlalu besar (lebih besar dari grand_total awal)
-                    // Ini terjadi jika retur sebelumnya menyebabkan PO Fully Paid.
-
-                    // Jika ada remaining_refund yang sebelumnya dibentuk oleh retur ini:
-                    $transferToDebt = abs($purchaseOrder->remaining_debt - $purchaseOrder->grand_total);
-
-                    // Pastikan nilai transfer tidak melebihi remaining_refund yang ada
-                    if ($purchaseOrder->remaining_refund >= $transferToDebt) {
-                        $purchaseOrder->remaining_refund -= $transferToDebt;
-                        $purchaseOrder->remaining_debt -= $transferToDebt; // Kurangi dari debt yang terlalu besar
-                    }
-
-                    // Normalisasi Utang/Status PO
+                    // B. Koreksi Piutang Negatif (Transfer dari remaining_refund PO kembali ke remaining_debt)
+                    // Piutang yang tadinya ditransfer dari debt ke refund, sekarang harus dikembalikan.
                     if ($purchaseOrder->remaining_debt > $purchaseOrder->grand_total) {
-                        $purchaseOrder->remaining_debt = $purchaseOrder->grand_total;
+                        // Utang yang dibalikkan terlalu besar (lebih besar dari grand_total awal)
+                        // Ini terjadi jika retur sebelumnya menyebabkan PO Fully Paid.
+
+                        // Jika ada remaining_refund yang sebelumnya dibentuk oleh retur ini:
+                        $transferToDebt = abs($purchaseOrder->remaining_debt - $purchaseOrder->grand_total);
+
+                        // Pastikan nilai transfer tidak melebihi remaining_refund yang ada
+                        if ($purchaseOrder->remaining_refund >= $transferToDebt) {
+                            $purchaseOrder->remaining_refund -= $transferToDebt;
+                            $purchaseOrder->remaining_debt -= $transferToDebt; // Kurangi dari debt yang terlalu besar
+                        }
+
+                        // Normalisasi Utang/Status PO
+                        if ($purchaseOrder->remaining_debt > $purchaseOrder->grand_total) {
+                            $purchaseOrder->remaining_debt = $purchaseOrder->grand_total;
+                        }
+
+                        $purchaseOrder->payment_status = PurchaseOrder::PaymentStatus_PartiallyPaid;
                     }
-                    $purchaseOrder->status = PurchaseOrder::PaymentStatus_PartiallyPaid; // atau sesuai kondisi
+
+                    $purchaseOrder->save();
                 }
 
-                // C. Pembalikan Saldo Supplier
-                // Saldo supplier berkurang karena utang Anda kembali bertambah.
-                $supplier->balance -= $returnAmount;
-
-                $purchaseOrder->save();
-                $supplier->save();
+                // tangani utang - piutang supplier
+                if ($supplier) {
+                    $supplier->balance -= $returnAmount;
+                    $supplier->save();
+                }
             }
 
             $order->delete();
@@ -320,7 +323,7 @@ class PurchaseOrderReturnService
     private function reverseStock(PurchaseOrderReturn $order)
     {
         foreach ($order->details as $detail) {
-            Product::where('id', $detail->product_id)->decrement('stock', $detail->quantity);
+            Product::where('id', $detail->product_id)->increment('stock', $detail->quantity);
 
             StockMovement::where('ref_type', StockMovement::RefType_PurchaseOrderReturnDetail)
                 ->where('ref_id', $detail->id)

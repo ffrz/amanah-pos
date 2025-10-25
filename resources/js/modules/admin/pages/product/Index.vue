@@ -80,18 +80,18 @@ let columns = [
     field: "price_1",
     align: "right",
   },
-  {
-    name: "price_2",
-    label: "Harga Partai",
-    field: "price_2",
-    align: "right",
-  },
-  {
-    name: "price_3",
-    label: "Harga Grosir",
-    field: "price_3",
-    align: "right",
-  },
+  // {
+  //   name: "price_2",
+  //   label: "Harga Partai",
+  //   field: "price_2",
+  //   align: "right",
+  // },
+  // {
+  //   name: "price_3",
+  //   label: "Harga Grosir",
+  //   field: "price_3",
+  //   align: "right",
+  // },
   {
     name: "action",
     align: "right",
@@ -142,7 +142,7 @@ const { filteredSuppliers, filterSupplierFn } = useSupplierFilter(
 const computedColumns = computed(() => {
   let computedColumns = [...columns];
   if (!showCostColumn.value) {
-    computedColumns.splice(3, 1);
+    computedColumns.splice(2, 1);
   }
 
   if ($q.screen.gt.sm) return computedColumns;
@@ -442,12 +442,12 @@ const goToDetail = (props) => {
             <q-td key="price_1" :props="props" class="wrap-column">
               {{ formatNumber(props.row.price_1) }}
             </q-td>
-            <q-td key="price_2" :props="props" class="wrap-column">
+            <!-- <q-td key="price_2" :props="props" class="wrap-column">
               {{ formatNumber(props.row.price_2) }}
             </q-td>
             <q-td key="price_3" :props="props" class="wrap-column">
               {{ formatNumber(props.row.price_3) }}
-            </q-td>
+            </q-td> -->
             <q-td key="action" :props="props">
               <div class="flex justify-end">
                 <q-btn

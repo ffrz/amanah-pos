@@ -138,7 +138,6 @@ const onBeforeShow = () => {
           label="Simpan"
           color="primary"
           @click="handleSave"
-          v-close-popup
           :disable="isProcessing"
         />
       </q-card-actions>

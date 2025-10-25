@@ -54,11 +54,24 @@ const form = useForm({
 
 const submit = () => handleSubmit({ form, url: route("admin.product.save") });
 
+function initSuppliers(suppliers) {
+  if (page.props.data.id && page.props.data.supplier) {
+    const isSupplierInList = suppliers.some(
+      (s) => s.id === page.props.data.supplier_id
+    );
+
+    if (!isSupplierInList) {
+      suppliers.unshift(page.props.data.supplier);
+    }
+  }
+  return suppliers;
+}
+
 const { filteredCategories, filterCategories } = useProductCategoryFilter(
   page.props.categories
 );
 const { filteredSuppliers, filterSupplierFn } = useSupplierFilter(
-  page.props.suppliers
+  initSuppliers(page.props.suppliers)
 );
 
 // --- LOGIKA SINKRONISASI HARGA JUAL DAN MARGIN ---
@@ -225,12 +238,12 @@ onMounted(() => {
                 emit-value
                 hide-bottom-space
               />
-              <div class="text-warning text-italic">
+              <!-- <div class="text-warning text-italic">
                 Mengganti tipe setelah produk digunakan dapat mempengaruhi stok
-              </div>
+              </div> -->
               <q-input
                 v-model.trim="form.name"
-                label="Nama Produk"
+                label="Kode / Nama Produk"
                 lazy-rules
                 :error="!!form.errors.name"
                 :disable="form.processing"
@@ -240,10 +253,23 @@ onMounted(() => {
                 ]"
                 hide-bottom-space
               />
-              <div class="text-warning text-italic">
+              <q-input
+                v-model.trim="form.description"
+                type="textarea"
+                autogrow
+                counter
+                maxlength="200"
+                label="Deskripsi (Opsional)"
+                lazy-rules
+                :disable="form.processing"
+                :error="!!form.errors.description"
+                :error-message="form.errors.description"
+                hide-bottom-space
+              />
+              <!-- <div class="text-warning text-italic">
                 Mengganti kode/nama setelah produk digunakan dapat mempengaruhi
                 konsistensi data.
-              </div>
+              </div> -->
               <q-select
                 v-model="form.category_id"
                 label="Kategori (Opsional)"
@@ -291,20 +317,6 @@ onMounted(() => {
                 </template>
               </q-select>
 
-              <q-input
-                v-model.trim="form.description"
-                type="textarea"
-                autogrow
-                counter
-                maxlength="200"
-                label="Deskripsi (Opsional)"
-                lazy-rules
-                :disable="form.processing"
-                :error="!!form.errors.description"
-                :error-message="form.errors.description"
-                hide-bottom-space
-              />
-
               <CheckBox
                 class="q-mt-md"
                 v-model="form.active"
@@ -348,7 +360,7 @@ onMounted(() => {
                 />
                 <LocaleNumberInput
                   v-model:modelValue="form.min_stock"
-                  label="Stok Min"
+                  label="Stok Minimum"
                   lazyRules
                   :disable="form.processing"
                   :error="!!form.errors.min_stock"
@@ -356,7 +368,7 @@ onMounted(() => {
                   hide-bottom-space
                   class="col"
                 />
-                <LocaleNumberInput
+                <!-- <LocaleNumberInput
                   v-model:modelValue="form.max_stock"
                   label="Stok Maks"
                   lazyRules
@@ -365,7 +377,7 @@ onMounted(() => {
                   :errorMessage="form.errors.max_stock"
                   hide-bottom-space
                   class="col"
-                />
+                /> -->
               </div>
               <div class="text-subtitle1 q-pt-lg">Harga & Modal</div>
               <LocaleNumberInput

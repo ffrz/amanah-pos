@@ -164,14 +164,14 @@ const confirmDelete = () => {
             {{ product.uom }}
           </td>
         </tr>
-        <tr>
+        <!-- <tr>
           <td>Stok Maksimum</td>
           <td>:</td>
           <td>
             {{ formatNumber(product.max_stock) }}
             {{ product.uom }}
           </td>
-        </tr>
+        </tr> -->
         <tr>
           <td>Barcode</td>
           <td>:</td>

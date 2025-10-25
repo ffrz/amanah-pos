@@ -385,10 +385,10 @@ watch(
                   :status="props.row.refund_status"
                   :statuses="$CONSTANTS.PURCHASE_ORDER_RETURN_REFUND_STATUSES"
                   :colors="{
-                    pending: 'grey',
+                    pending: 'red',
                     partially_refunded: 'orange',
                     fully_refunded: 'green',
-                    no_refund: 'red',
+                    no_refund: 'black',
                   }"
                 />
               </div>

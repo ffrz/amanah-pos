@@ -85,13 +85,13 @@ class PurchaseOrder extends BaseModel
     public const PaymentStatus_Unpaid        = 'unpaid';
     public const PaymentStatus_PartiallyPaid = 'partially_paid';
     public const PaymentStatus_FullyPaid     = 'fully_paid';
-    public const PaymentStatus_Refunded      = 'refunded';
+    // public const PaymentStatus_Refunded      = 'refunded';
 
     public const PaymentStatuses = [
         self::PaymentStatus_Unpaid         => 'Belum Lunas',
         self::PaymentStatus_PartiallyPaid  => 'Dibayar Sebagian',
         self::PaymentStatus_FullyPaid      => 'Lunas',
-        self::PaymentStatus_Refunded       => 'Dikembalikan',
+        // self::PaymentStatus_Refunded       => 'Dikembalikan',
     ];
 
     // === Status Pengiriman ===
