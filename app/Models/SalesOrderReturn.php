@@ -149,7 +149,7 @@ class SalesOrderReturn extends BaseModel
 
     public function refunds(): HasMany
     {
-        return $this->hasMany(SalesOrderRefund::class);
+        return $this->hasMany(SalesOrderPayment::class);
     }
 
     public function updateTotals(): void

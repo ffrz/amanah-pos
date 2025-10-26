@@ -1,5 +1,10 @@
 <script setup>
-import { formatDate, formatDateTime, formatNumber } from "@/helpers/formatter";
+import {
+  formatDate,
+  formatDateTime,
+  formatNumber,
+  formatNumberWithSymbol,
+} from "@/helpers/formatter";
 
 const props = defineProps({
   data: Object,
@@ -11,7 +16,7 @@ const props = defineProps({
     <q-card-section class="q-pa-none">
       <div class="bg-grey-2 q-pa-xs">
         <div class="text-subtitle1 text-bold text-grey-10">
-          INVOICE #{{ props.data.code }}
+          Pembelian #{{ props.data.code }}
         </div>
       </div>
     </q-card-section>
@@ -20,7 +25,7 @@ const props = defineProps({
 
     <q-card-section class="row q-col-gutter-sm q-pa-sm" align="left">
       <div class="col-12 col-sm-6">
-        <div class="text-subtitle2 text-bold text-grey-8">Info Pemasok</div>
+        <div class="text-subtitle2 text-bold text-grey-8">Info Supplier</div>
         <table class="full-width">
           <tbody>
             <tr>
@@ -191,6 +196,14 @@ const props = defineProps({
         </div>
         <div class="row justify-end q-gutter-y-xs">
           <div class="col-12 row justify-between">
+            <div class="text-subtitle2 text-grey-7">Total Retur (Rp)</div>
+            <div class="text-subtitle2 text-bold">
+              {{ formatNumber(props.data.total_return) }}
+            </div>
+          </div>
+        </div>
+        <div class="row justify-end q-gutter-y-xs">
+          <div class="col-12 row justify-between">
             <div class="text-subtitle2 text-grey-7">Total Dibayar (Rp)</div>
             <div class="text-subtitle2 text-bold">
               {{ formatNumber(props.data.total_paid) }}
@@ -199,23 +212,9 @@ const props = defineProps({
         </div>
         <div class="row justify-end q-gutter-y-xs">
           <div class="col-12 row justify-between">
-            <div class="text-subtitle2 text-grey-7">Total Refund (Rp)</div>
+            <div class="text-subtitle2 text-grey-7">Saldo (Rp)</div>
             <div class="text-subtitle2 text-bold">
-              {{
-                formatNumber(
-                  props.data.grand_total -
-                    props.data.total_paid -
-                    props.data.remaining_debt
-                )
-              }}
-            </div>
-          </div>
-        </div>
-        <div class="row justify-end q-gutter-y-xs">
-          <div class="col-12 row justify-between">
-            <div class="text-subtitle2 text-grey-7">Sisa Tagihan (Rp)</div>
-            <div class="text-subtitle2 text-bold">
-              {{ formatNumber(props.data.remaining_debt) }}
+              {{ formatNumberWithSymbol(props.data.balance) }}
             </div>
           </div>
         </div>

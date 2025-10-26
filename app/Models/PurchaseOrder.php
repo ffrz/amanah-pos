@@ -52,8 +52,8 @@ class PurchaseOrder extends BaseModel
         'total_discount',
         'total_tax',
         'grand_total',
-
-        'remaining_debt',
+        'total_return',
+        'balance',
         'notes',
     ];
 
@@ -61,7 +61,6 @@ class PurchaseOrder extends BaseModel
         'status_label',
         'payment_status_label',
         'delivery_status_label',
-
     ];
 
     public const Type_Pickup   = 'pickup';
@@ -136,7 +135,8 @@ class PurchaseOrder extends BaseModel
             'total_tax'       => 'decimal:2',
 
             'grand_total'     => 'decimal:2',
-            'remaining_debt'  => 'decimal:2',
+            'total_return'    => 'decimal:2',
+            'balance'         => 'decimal:2',
 
             'notes'           => 'string',
             'created_by' => 'integer',
@@ -146,15 +146,10 @@ class PurchaseOrder extends BaseModel
         ];
     }
 
-    protected function getTotalAttribute(string $value): float
+    protected function getRemainingDebtAttribute(): float
     {
-        return (float) $value;
+        return $this->grand_total - $this->total_return - $this->total_paid;
     }
-
-    // protected function getTotalPaidAttribute(string $value): float
-    // {
-    //     return (float) $value;
-    // }
 
     public function getTypeLabelAttribute()
     {
@@ -178,12 +173,19 @@ class PurchaseOrder extends BaseModel
 
     public function details()
     {
-        return $this->hasMany(PurchaseOrderDetail::class, 'parent_id');
+        return $this->hasMany(PurchaseOrderDetail::class, 'order_id')
+            ->whereNull('return_id');
     }
 
     public function payments()
     {
-        return $this->hasMany(PurchaseOrderPayment::class, 'order_id');
+        return $this->hasMany(PurchaseOrderPayment::class, 'order_id')
+            ->whereNull('return_id');
+    }
+
+    public function returns()
+    {
+        return $this->hasMany(PurchaseOrderReturn::class, 'purchase_order_id');
     }
 
     public function supplier()
@@ -191,25 +193,24 @@ class PurchaseOrder extends BaseModel
         return $this->belongsTo(Supplier::class);
     }
 
-    public function updateTotals(): void
+    public function updateGrandTotal()
     {
         $this->total = $this->details()->sum('subtotal_cost');
-        $this->grand_total = $this->total; // + pajak, - diskon, dll.
+        $this->grand_total = $this->total + $this->total_tax - $this->total_discount;
     }
 
-    public function applyPaymentUpdate(float $amountDelta): void
+    public function updateTotals()
     {
-        $this->total_paid += $amountDelta;
-
-        $totalReturnAmount = PurchaseOrderReturn::where('purchase_order_id', $this->id)
+        $this->total_return = PurchaseOrderReturn::where('purchase_order_id', $this->id)
             ->where('status', PurchaseOrderReturn::Status_Closed)
             ->sum('grand_total');
+        $this->total_paid = PurchaseOrderPayment::where('order_id', $this->id)
+            ->sum('amount');
+        $this->balance = - ($this->grand_total - $this->total_paid - $this->total_return);
 
-        $this->remaining_debt = max(0, $this->grand_total - $totalReturnAmount - $this->total_paid);
-
-        if ($this->remaining_debt <= 0.001) {
+        if ($this->balance >= 0) {
             $this->payment_status = self::PaymentStatus_FullyPaid;
-        } elseif ($this->total_paid > 0 /* || $totalReturnAmount > 0*/) {
+        } elseif ($this->total_paid > 0) {
             $this->payment_status = self::PaymentStatus_PartiallyPaid;
         } else {
             $this->payment_status = self::PaymentStatus_Unpaid;

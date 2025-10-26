@@ -21,6 +21,7 @@ use App\Exceptions\BusinessRuleViolationException;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderDetail;
+use App\Models\PurchaseOrderReturn;
 use App\Models\StockMovement;
 use App\Models\Supplier;
 use App\Models\UserActivityLog;
@@ -45,11 +46,14 @@ class PurchaseOrderService
     {
         return PurchaseOrder::with([
             'supplier',
-            'details',
+            'details' => function ($query) {
+                $query->whereNull('return_id');
+            },
             'payments',
             'details.product',
             'payments.account'
-        ])->findOrFail($id);
+        ])
+            ->findOrFail($id);
     }
 
     public function findOrderDetailOrFail(int $id): PurchaseOrderDetail
@@ -160,9 +164,9 @@ class PurchaseOrderService
         });
     }
 
-    private function updateTotalAndValidateClientTotal(PurchaseOrder $order, $client_total)
+    private function validateTotal(PurchaseOrder $order, $client_total)
     {
-        $order->updateTotals();
+        $order->updateGrandTotal();
         $clientTotal = intval($client_total);
         $serverTotal = intval($order->grand_total);
         if ($serverTotal !== $clientTotal) {
@@ -210,78 +214,25 @@ class PurchaseOrderService
         }
     }
 
-    public function closeOrderV2(PurchaseOrder $order, array $data)
-    {
-        DB::transaction(function () use ($order, $data) {
-            // hitung ulang total, siapa tahu diperbarui dari perangkat lain
-            $order->total = $order->details()->sum('subtotal_cost');
-
-            // bisa hitung pajak dan diskon dulu di sini
-            $order->grand_total = $order->total;
-            $order->remaining_debt = $order->grand_total;
-            $order->due_date = $data['due_date'] ?? null;
-            $order->delivery_status = PurchaseOrder::DeliveryStatus_PickedUp;
-            $order->status = PurchaseOrder::Status_Closed;
-
-            $clientTotal = intval($data['total'] ?? 0);
-            $serverTotal = intval($order->grand_total);
-
-            if ($serverTotal !== $clientTotal) {
-                throw new BusinessRuleViolationException('Gagal menyimpan transaksi, total tidak sinkron. Coba refresh halaman!');
-            }
-
-            // catat pembayaran
-            $totalPaidAmount = $this->paymentService->addPaymentsWithoutUpdatingCustomerBalance($order, $data['payments'] ?? []);
-
-            // simpan order
-            $order->applyPaymentUpdate($totalPaidAmount);
-            $order->save();
-
-            // catat utang pelanggan
-            if ($order->supplier_id && $order->remaining_debt != 0.001) {
-                $this->supplierService->addToBalance($order->supplier, -abs($order->grand_total));
-            }
-
-            // catat stok
-            $this->processPurchaseOrderStockIn($order);
-
-            // bikin versioning
-            $this->documentVersionService->createVersion($order);
-
-            // log aktifitas
-            $this->userActivityLogService->log(
-                UserActivityLog::Category_PurchaseOrder,
-                UserActivityLog::Name_PurchaseOrder_Close,
-                "Order pembelian $order->code telah ditutup.",
-                [
-                    'data' => $order->toArray(),
-                    'formatter' => 'puchase-order',
-                ]
-            );
-        });
-    }
-
     public function closeOrder(PurchaseOrder $order, array $data)
     {
+        $this->ensureOrderIsEditable($order);
+
         DB::transaction(function () use ($order, $data) {
-            $this->updateTotalAndValidateClientTotal($order, $data['total'] ?? 0);
+            $this->validateTotal($order, $data['total'] ?? 0);
 
-            // setitap transaksi yang ditutup harus dicatat dulu sebagai utang
-            $order->remaining_debt = $order->grand_total;
-
-            // catat pembayaran
-            $totalPaidAmount = $this->paymentService->addPaymentsWithoutUpdatingCustomerBalance($order, $data['payments'] ?? []);
+            $this->paymentService->addPayments($order, $data['payments'] ?? [], false);
 
             // simpan order
             $order->due_date = $data['due_date'] ?? null;
             $order->delivery_status = PurchaseOrder::DeliveryStatus_PickedUp;
             $order->status = PurchaseOrder::Status_Closed;
-            $order->applyPaymentUpdate($totalPaidAmount);
+            $order->updateTotals();
             $order->save();
 
-            // catat utang pelanggan
-            if ($order->supplier_id && $order->remaining_debt != 0.001) {
-                $this->supplierService->addToBalance($order->supplier, -abs($order->grand_total));
+            $supplier = $order->supplier;
+            if ($supplier && $order->balance != 0) {
+                $this->supplierService->addToBalance($supplier, $order->balance);
             }
 
             // catat stok
@@ -305,22 +256,26 @@ class PurchaseOrderService
 
     public function deleteOrder(PurchaseOrder $order): PurchaseOrder
     {
+        if (PurchaseOrderReturn::where('purchase_order_id', $order->id)->exists()) {
+            throw new BusinessRuleViolationException('Tidak dapat dihapus karena ada transaksi retur!');
+        }
+
         return DB::transaction(function () use ($order) {
             if ($order->status == PurchaseOrder::Status_Closed) {
                 $this->processPurchaseOrderStockOut($order);
 
-                if ($order->supplier_id) {
-                    $this->supplierService->addToBalance($order->supplier, abs($order->grand_total));
-                }
-
                 foreach ($order->payments as $payment) {
-                    // ketika payment dihapus, kalau supplier_id diset otomatis jadi utang
-                    $this->paymentService->deletePayment($payment);
+                    $this->paymentService->deletePayment($payment, false);
                 }
             }
             $code = $order->code;
 
             $order->delete();
+
+            $supplier = $order->supplier;
+            if ($supplier && $order->balance != 0) {
+                $this->supplierService->addToBalance($supplier, -$order->balance);
+            }
 
             $this->documentVersionService->createDeletedVersion($order);
 

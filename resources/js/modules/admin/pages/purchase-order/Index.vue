@@ -3,7 +3,11 @@ import { computed, onMounted, reactive, ref, watch } from "vue";
 import { router } from "@inertiajs/vue3";
 import { handleDelete, handleFetchItems } from "@/helpers/client-req-handler";
 import { getQueryParams } from "@/helpers/utils";
-import { formatDateTime, formatNumber } from "@/helpers/formatter";
+import {
+  formatDateTime,
+  formatNumber,
+  formatNumberWithSymbol,
+} from "@/helpers/formatter";
 import { Dialog, useQuasar } from "quasar";
 import { getCurrentMonth, getCurrentYear } from "@/helpers/datetime";
 import {
@@ -94,9 +98,9 @@ const columns = [
     align: "right",
   },
   {
-    name: "remaining_debt",
-    label: "Sisa Utang (Rp.)",
-    field: "remaining_debt",
+    name: "balance",
+    label: "Saldo (Rp.)",
+    field: "balance",
     align: "right",
   },
   {
@@ -383,8 +387,9 @@ watch(
                   </my-link>
                 </div>
                 <div>Total: Rp. {{ formatNumber(props.row.grand_total) }}</div>
-                <div v-if="props.row.remaining_debt > 0">
-                  Sisa Utang: Rp. {{ formatNumber(props.row.remaining_debt) }}
+                <div v-if="props.row.balance != 0">
+                  Saldo: Rp.
+                  {{ formatNumberWithSymbol(props.row.balance) }}
                 </div>
                 <div v-if="props.row.notes">
                   <q-icon name="notes" /> {{ props.row.notes }}
@@ -421,8 +426,8 @@ watch(
             <q-td key="grand_total" :props="props">
               {{ formatNumber(props.row.grand_total) }}
             </q-td>
-            <q-td key="remaining_debt" :props="props">
-              {{ formatNumber(props.row.remaining_debt) }}
+            <q-td key="balance" :props="props">
+              {{ formatNumberWithSymbol(props.row.balance) }}
             </q-td>
             <q-td key="notes" :props="props">
               <LongTextView :text="props.row.notes" icon="notes" />

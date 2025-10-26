@@ -35,48 +35,45 @@ class PurchaseOrderPaymentService
         return PurchaseOrderPayment::with(['order', 'order.supplier'])->findOrFail($id);
     }
 
-    public function addPaymentsWithoutUpdatingCustomerBalance(PurchaseOrder $order, array $payments): float
+    public function addPayments(PurchaseOrder $order, array $payments, bool $updateSupplierBalance = true): void
     {
         if ($order->remaining_debt <= 0) {
             throw new BusinessRuleViolationException('Pesanan ini sudah lunas.');
         }
 
-        $totalPaidAmount = 0;
-
-        foreach ($payments as $inputPayment) {
-            $amount = intval($inputPayment['amount']);
-
-            if ($order->remaining_debt - $totalPaidAmount < $amount) {
-                throw new BusinessRuleViolationException('Jumlah pembayaran melebihi sisa tagihan.');
+        DB::transaction(function () use ($order, $payments, $updateSupplierBalance) {
+            if ($order->remaining_debt <= 0) {
+                throw new BusinessRuleViolationException('Pesanan ini sudah lunas.');
             }
 
-            $totalPaidAmount += $amount;
+            $totalPaidAmount = 0;
 
-            $payment = $this->createPaymentRecord($order, $inputPayment['id'] ?? null, $amount);
+            foreach ($payments as $inputPayment) {
+                $amount = intval($inputPayment['amount']);
 
-            $this->processFinancialRecords($payment);
-        }
+                if ($order->remaining_debt - $totalPaidAmount < $amount) {
+                    throw new BusinessRuleViolationException('Jumlah pembayaran melebihi sisa tagihan.');
+                }
 
-        return $totalPaidAmount;
-    }
+                $totalPaidAmount += $amount;
 
-    public function addPayments(PurchaseOrder $order, array $payments): void
-    {
-        if ($order->remaining_debt <= 0) {
-            throw new BusinessRuleViolationException('Pesanan ini sudah lunas.');
-        }
+                $payment = $this->createPaymentRecord($order, $inputPayment['id'] ?? null, $amount);
 
-        DB::transaction(function () use ($order, $payments) {
-            $totalPaidAmount = $this->addPaymentsWithoutUpdatingCustomerBalance($order, $payments);
-            $this->supplierService->addToBalance($order->supplier, abs($totalPaidAmount));
-            $order->applyPaymentUpdate($totalPaidAmount);
+                $this->processFinancialRecords($payment);
+            }
+
+            if ($updateSupplierBalance) {
+                $this->supplierService->addToBalance($order->supplier, abs($totalPaidAmount));
+            }
+
+            $order->updateTotals();
             $order->save();
         });
     }
 
-    public function deletePayment(PurchaseOrderPayment $payment): void
+    public function deletePayment(PurchaseOrderPayment $payment, $updateSupplierBalance = true): void
     {
-        DB::transaction(function () use ($payment) {
+        DB::transaction(function () use ($payment, $updateSupplierBalance) {
             /**
              * @var PurchaseOrder
              */
@@ -88,11 +85,17 @@ class PurchaseOrderPaymentService
 
             $this->reverseFinancialRecords($payment);
 
-            $this->reverseSupplierDebtOnPaymentDeletion($payment);
+            if ($updateSupplierBalance) {
+                if (!$payment->order->supplier_id) {
+                    return;
+                }
+
+                $this->supplierService->addToBalance($payment->order->supplier, -abs($payment->amount));
+            }
 
             $payment->delete();
 
-            $order->applyPaymentUpdate(-$payment->amount);
+            $order->updateTotals();
             $order->save();
         });
     }
@@ -153,14 +156,5 @@ class PurchaseOrderPaymentService
         if ($payment->finance_account_id) {
             FinanceAccount::incrementBalance($payment->finance_account_id, abs($payment->amount));
         }
-    }
-
-    /**
-     * Membalikkan utang supplier saat pembayaran dihapus.
-     */
-    private function reverseSupplierDebtOnPaymentDeletion(PurchaseOrderPayment $payment): void
-    {
-        if (!$payment->order->supplier_id) return;
-        $this->supplierService->addToBalance($payment->order->supplier, -abs($payment->amount));
     }
 }

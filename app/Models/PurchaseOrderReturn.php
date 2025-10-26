@@ -140,26 +140,20 @@ class PurchaseOrderReturn extends BaseModel
 
     public function details(): HasMany
     {
-        return $this->hasMany(PurchaseOrderReturnDetail::class);
+        return $this->hasMany(PurchaseOrderDetail::class, 'return_id');
     }
 
-    public function refunds(): HasMany
+    public function payments(): HasMany
     {
         // Meskipun ini adalah 'refund', secara konseptual ini adalah
         // penerimaan uang kembali (credit) dari supplier.
-        return $this->hasMany(PurchaseOrderRefund::class);
+        return $this->hasMany(PurchaseOrderPayment::class, 'return_id');
     }
 
-    public function updateTotals(): void
+    public function updateTotalRefunded()
     {
-        $this->total_cost = $this->details()->sum('subtotal_cost');
-        // TODO: hitung pajak dan dan diskon disini
-        $this->grand_total = $this->total_cost;
-    }
-
-    public function updateTotalRefunded($requestedAmount)
-    {
-        $this->total_refunded += $requestedAmount;
+        $this->total_refunded = abs(PurchaseOrderPayment::where('return_id', $this->id)
+            ->sum('amount'));
         $this->remaining_refund = $this->grand_total - $this->total_refunded;
         if ($this->total_refunded >= $this->grand_total) {
             $this->refund_status = PurchaseOrderReturn::RefundStatus_FullyRefunded;
@@ -168,5 +162,28 @@ class PurchaseOrderReturn extends BaseModel
         } else {
             $this->refund_status = PurchaseOrderReturn::RefundStatus_Pending;
         }
+    }
+
+    public function updateTotalsCache()
+    {
+        $this->total_cost = $this->details()->sum('subtotal_cost');
+        $this->grand_total = $this->total_cost + $this->total_tax - $this->total_discount;
+        $this->total_refunded = abs(PurchaseOrderPayment::where('return_id', $this->id)
+            ->sum('amount'));
+        $this->remaining_refund = $this->grand_total - $this->total_refunded;
+        if ($this->total_refunded >= $this->grand_total) {
+            $this->refund_status = PurchaseOrderReturn::RefundStatus_FullyRefunded;
+        } else if ($this->total_refunded > 0) {
+            $this->refund_status = PurchaseOrderReturn::RefundStatus_PartiallyRefunded;
+        } else {
+            $this->refund_status = PurchaseOrderReturn::RefundStatus_Pending;
+        }
+    }
+
+    protected static function booted()
+    {
+        static::saving(function ($order) {
+            $order->updateTotalsCache();
+        });
     }
 }

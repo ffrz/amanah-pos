@@ -1,5 +1,9 @@
 <script setup>
-import { formatDateTime, formatNumber } from "@/helpers/formatter";
+import {
+  formatDateTime,
+  formatNumber,
+  formatNumberWithSymbol,
+} from "@/helpers/formatter";
 import { ref } from "vue";
 import PaymentDialog from "./PaymentDialog.vue";
 import { useQuasar } from "quasar";
@@ -118,10 +122,7 @@ const deletePayment = (payment) => {
     <q-card-section class="q-pa-sm">
       <div class="row">
         <q-btn
-          v-if="
-            $can('admin.purchase-order.add-payment') &&
-            props.data.remaining_debt > 0
-          "
+          v-if="$can('admin.purchase-order.add-payment')"
           label="Tambah"
           color="primary"
           icon="add"
@@ -227,9 +228,9 @@ const deletePayment = (payment) => {
             <th></th>
           </tr>
           <tr>
-            <th class="text-right q-pa-sm" colspan="1">Sisa Tagihan</th>
+            <th class="text-right q-pa-sm" colspan="1">Saldo</th>
             <th class="text-right q-pa-sm">
-              {{ formatNumber(props.data.remaining_debt) }}
+              {{ formatNumberWithSymbol(props.data.balance) }}
             </th>
             <td></td>
           </tr>

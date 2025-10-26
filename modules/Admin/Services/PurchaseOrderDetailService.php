@@ -29,7 +29,7 @@ class PurchaseOrderDetailService
 
     public function findItemOrFail($id): PurchaseOrderDetail
     {
-        return PurchaseOrderDetail::with(['parent'])->findOrFail($id);
+        return PurchaseOrderDetail::with(['order'])->findOrFail($id);
     }
 
     private function ensureOrderIsEditable(PurchaseOrder $order)
@@ -50,7 +50,7 @@ class PurchaseOrderDetailService
 
         // untuk opsi gabungkan item
         if ($merge) {
-            $item = PurchaseOrderDetail::where('parent_id', '=', $order->id)
+            $item = PurchaseOrderDetail::where('order_id', '=', $order->id)
                 ->where('product_id', '=', $product->id)
                 ->get()
                 ->first();
@@ -61,7 +61,7 @@ class PurchaseOrderDetailService
             $item->addQuantity($quantity);
         } else {
             $item = new PurchaseOrderDetail([
-                'parent_id' => $order->id,
+                'order_id' => $order->id,
                 'product_id' => $product->id,
                 'product_name' => $product->name,
                 'product_barcode' => $product->barcode,
@@ -75,10 +75,7 @@ class PurchaseOrderDetailService
 
         return DB::transaction(function () use ($item, $order) {
             $item->save();
-
-            $order->updateTotals();
             $order->save();
-
             return $item;
         });
     }
@@ -88,7 +85,7 @@ class PurchaseOrderDetailService
         /**
          * @var PurchaseOrder $order
          */
-        $order = $item->parent;
+        $order = $item->order;
 
         $this->ensureOrderIsEditable($order);
 
@@ -100,7 +97,6 @@ class PurchaseOrderDetailService
             $item->updateTotals();
             $item->save();
 
-            $order->updateTotals();
             $order->save();
         });
     }
@@ -110,15 +106,13 @@ class PurchaseOrderDetailService
         /**
          * @var PurchaseOrder $order
          */
-        $order = $item->parent;
+        $order = $item->order;
 
         $this->ensureOrderIsEditable($order);
 
         DB::transaction(function () use ($item, $order) {
-
             $item->delete();
 
-            $order->updateTotals();
             $order->save();
         });
     }

@@ -27,6 +27,7 @@ class PurchaseOrderPayment extends BaseModel
 
     protected $fillable = [
         'order_id',
+        'return_id',
         'finance_account_id',
         'supplier_id',
         'code',
@@ -51,6 +52,7 @@ class PurchaseOrderPayment extends BaseModel
     {
         return [
             'order_id'    => 'integer',
+            'return_id'   => 'integer',
             'finance_account_id' => 'integer',
             'supplier_id' => 'integer',
             'type'        => 'string',
@@ -68,6 +70,11 @@ class PurchaseOrderPayment extends BaseModel
     public function order()
     {
         return $this->belongsTo(PurchaseOrder::class, 'order_id');
+    }
+
+    public function return()
+    {
+        return $this->belongsTo(PurchaseOrderReturn::class, 'return_id');
     }
 
     public function account()

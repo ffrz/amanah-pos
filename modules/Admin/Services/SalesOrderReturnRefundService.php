@@ -23,7 +23,6 @@ use App\Models\FinanceAccount;
 use App\Models\FinanceTransaction;
 use App\Models\SalesOrder;
 use App\Models\SalesOrderPayment;
-use App\Models\SalesOrderRefund;
 use App\Models\SalesOrderReturn;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
@@ -35,9 +34,9 @@ class SalesOrderReturnRefundService
         protected CashierSessionService $cashierSessionService,
     ) {}
 
-    public function findOrFail(int $id): SalesOrderRefund
+    public function findOrFail(int $id): SalesOrderPayment
     {
-        return SalesOrderRefund::with(['salesOrderReturn', 'salesOrderReturn.customer'])->findOrFail($id);
+        return SalesOrderPayment::with(['salesOrderReturn', 'salesOrderReturn.customer'])->findOrFail($id);
     }
 
     public function addRefund(SalesOrderReturn $order, array $data): void
@@ -71,16 +70,16 @@ class SalesOrderReturnRefundService
         $accountId = null;
         $type = null;
         if ($type_or_id === 'cash') {
-            $type = SalesOrderRefund::Type_Cash;
+            $type = SalesOrderPayment::Type_Cash;
             $session = $this->cashierSessionService->getActiveSession();
             if (!$session) {
                 throw new BusinessRuleViolationException("Anda belum memulai sesi kasir.");
             }
             $accountId = $session->cashierTerminal->financeAccount->id;
         } else if ($type_or_id === 'wallet') {
-            $type = SalesOrderRefund::Type_Wallet;
+            $type = SalesOrderPayment::Type_Wallet;
         } else if (intval($type_or_id)) {
-            $type = SalesOrderRefund::Type_Transfer;
+            $type = SalesOrderPayment::Type_Transfer;
             $accountId = (int)$type_or_id;
         }
 
@@ -103,7 +102,7 @@ class SalesOrderReturnRefundService
         });
     }
 
-    public function deleteRefund(SalesOrderRefund $refund): void
+    public function deleteRefund(SalesOrderPayment $refund): void
     {
         /**
          * @var SalesOrderReturn
@@ -151,9 +150,9 @@ class SalesOrderReturnRefundService
     /**
      * Membuat record pembayaran.
      */
-    private function createRefundRecord(SalesOrderReturn $order, array $data): SalesOrderRefund
+    private function createRefundRecord(SalesOrderReturn $order, array $data): SalesOrderPayment
     {
-        $refund = new SalesOrderRefund([
+        $refund = new SalesOrderPayment([
             'sales_order_return_id' => $order->id,
             'finance_account_id' => $data['finance_account_id'],
             'customer_id' => $order->customer?->id,
@@ -168,9 +167,9 @@ class SalesOrderReturnRefundService
     /**
      * Mencatat transaksi keuangan dan memperbarui saldo keuangan, wallet dan utang piutang.
      */
-    private function processFinancialRecords(SalesOrderRefund $refund): void
+    private function processFinancialRecords(SalesOrderPayment $refund): void
     {
-        if ($refund->type === SalesOrderRefund::Type_Transfer || $refund->type === SalesOrderRefund::Type_Cash) {
+        if ($refund->type === SalesOrderPayment::Type_Transfer || $refund->type === SalesOrderPayment::Type_Cash) {
             if ($refund->finance_account_id) {
                 // membuat rekaman transaksi keuangan
                 FinanceTransaction::create([
@@ -187,12 +186,12 @@ class SalesOrderReturnRefundService
                 FinanceAccount::where('id', $refund->finance_account_id)
                     ->decrement('balance', $refund->amount);
             }
-        } else if ($refund->type === SalesOrderRefund::Type_Wallet) {
+        } else if ($refund->type === SalesOrderPayment::Type_Wallet) {
             // Membuat rekaman transaksi wallet
             CustomerWalletTransaction::create([
                 'customer_id' => $refund->salesOrderReturn->customer_id,
                 'datetime' => now(),
-                'type' => CustomerWalletTransaction::Type_SalesOrderRefund,
+                'type' => CustomerWalletTransaction::Type_SalesOrderPayment,
                 'amount' => $refund->amount,
                 'ref_type' => CustomerWalletTransaction::RefType_SalesOrderReturnRefund,
                 'ref_id' => $refund->id,
@@ -208,9 +207,9 @@ class SalesOrderReturnRefundService
     /**
      * Membalikkan transaksi keuangan dan mengembalikan saldo.
      */
-    private function reverseFinancialRecords(SalesOrderRefund $payment): void
+    private function reverseFinancialRecords(SalesOrderPayment $payment): void
     {
-        if ($payment->type === SalesOrderRefund::Type_Transfer || $payment->type === SalesOrderRefund::Type_Cash) {
+        if ($payment->type === SalesOrderPayment::Type_Transfer || $payment->type === SalesOrderPayment::Type_Cash) {
             if ($payment->finance_account_id) {
                 // Hapus Transaksi Keuangan
                 FinanceTransaction::where('ref_id', $payment->id)

@@ -119,7 +119,7 @@ class PurchaseOrderController extends Controller
     public function updateItem(Request $request)
     {
         $item = $this->service->findOrderDetailOrFail($request->id);
-        $this->authorize('update', $item->parent);
+        $this->authorize('update', $item->order);
         $this->detailService->updateItem($item, $request->all());
         return JsonResponseHelper::success($item, 'Item telah diperbarui.');
     }
@@ -127,7 +127,7 @@ class PurchaseOrderController extends Controller
     public function removeItem(Request $request)
     {
         $item = $this->service->findOrderDetailOrFail($request->id);
-        $this->authorize('update', $item->parent);
+        $this->authorize('update', $item->order);
         $this->detailService->removeItem($item);
         return JsonResponseHelper::success($item, 'Item telah dihapus.');
     }

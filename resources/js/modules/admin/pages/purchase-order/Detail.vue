@@ -72,7 +72,7 @@ const print = () => {
             align="justify"
             narrow-indicator
           >
-            <q-tab name="invoice" label="Invoice" />
+            <q-tab name="invoice" label="Rincian" />
             <q-tab name="payment" label="Pembayaran" v-if="!isPreview" />
           </q-tabs>
 

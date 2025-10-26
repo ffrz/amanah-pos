@@ -121,10 +121,7 @@ const deletePayment = (payment) => {
     <q-card-section class="q-pa-sm">
       <div class="row">
         <q-btn
-          v-if="
-            $can('admin.purchase-order-return.add-refund') &&
-            props.data.remaining_refund > 0
-          "
+          v-if="$can('admin.purchase-order-return.add-refund')"
           label="Tambah"
           color="primary"
           icon="add"
@@ -210,7 +207,7 @@ const deletePayment = (payment) => {
               />
             </td>
           </tr>
-          <tr v-if="props.data.refunds.length == 0">
+          <tr v-if="props.data.payments.length == 0">
             <td colspan="100%" class="text-center text-grey">Belum ada item</td>
           </tr>
         </tbody>
@@ -221,13 +218,6 @@ const deletePayment = (payment) => {
               {{ formatNumber(props.data.total_refunded) }}
             </th>
             <th></th>
-          </tr>
-          <tr>
-            <th class="text-right q-pa-sm" colspan="1">Sisa Refund</th>
-            <th class="text-right q-pa-sm">
-              {{ formatNumber(props.data.remaining_refund) }}
-            </th>
-            <td></td>
           </tr>
         </tfoot>
       </table>

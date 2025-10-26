@@ -19,7 +19,7 @@ namespace Modules\Admin\Services;
 use App\Exceptions\BusinessRuleViolationException;
 use App\Models\FinanceAccount;
 use App\Models\FinanceTransaction;
-use App\Models\PurchaseOrderRefund;
+use App\Models\PurchaseOrderPayment;
 use App\Models\PurchaseOrderReturn;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
@@ -31,9 +31,9 @@ class PurchaseOrderReturnRefundService
         protected CashierSessionService $cashierSessionService,
     ) {}
 
-    public function findOrFail(int $id): PurchaseOrderRefund
+    public function findOrFail(int $id): PurchaseOrderPayment
     {
-        return PurchaseOrderRefund::with(['purchaseOrderReturn', 'purchaseOrderReturn.supplier'])->findOrFail($id);
+        return PurchaseOrderPayment::with(['return', 'return.supplier'])->findOrFail($id);
     }
 
     public function addRefund(PurchaseOrderReturn $order, array $data): void
@@ -67,14 +67,14 @@ class PurchaseOrderReturnRefundService
         $accountId = null;
         $type = null;
         if ($type_or_id === 'cash') {
-            $type = PurchaseOrderRefund::Type_Cash;
+            $type = PurchaseOrderPayment::Type_Cash;
             $session = $this->cashierSessionService->getActiveSession();
             if (!$session) {
                 throw new BusinessRuleViolationException("Anda belum memulai sesi kasir.");
             }
             $accountId = $session->cashierTerminal->financeAccount->id;
         } else if (intval($type_or_id)) {
-            $type = PurchaseOrderRefund::Type_Transfer;
+            $type = PurchaseOrderPayment::Type_Transfer;
             $accountId = (int)$type_or_id;
         }
 
@@ -90,19 +90,19 @@ class PurchaseOrderReturnRefundService
         $this->ensureOrderIsProcessable($orderReturn);
 
         DB::transaction(function () use ($orderReturn) {
-            $orderReturn->loadMissing('refunds');
-            $total_amount = $this->deleteRefundsImpl($orderReturn->refunds);
+            $orderReturn->loadMissing('payments');
+            $total_amount = $this->deleteRefundsImpl($orderReturn->payments);
             $orderReturn->updateTotalRefunded($total_amount);
             $orderReturn->save();
         });
     }
 
-    public function deleteRefund(PurchaseOrderRefund $refund): void
+    public function deleteRefund(PurchaseOrderPayment $refund): void
     {
         /**
          * @var PurchaseOrderReturn
          */
-        $returnOrder = $refund->purchaseOrderReturn;
+        $returnOrder = $refund->return;
         $this->ensureOrderIsProcessable($returnOrder);
 
         DB::transaction(function () use ($returnOrder, $refund) {
@@ -143,10 +143,10 @@ class PurchaseOrderReturnRefundService
     }
 
     // OK
-    private function createRefundRecord(PurchaseOrderReturn $order, array $data): PurchaseOrderRefund
+    private function createRefundRecord(PurchaseOrderReturn $order, array $data): PurchaseOrderPayment
     {
-        $refund = new PurchaseOrderRefund([
-            'purchase_order_return_id' => $order->id,
+        $refund = new PurchaseOrderPayment([
+            'return_id' => $order->id,
             'finance_account_id' => $data['finance_account_id'],
             'supplier_id' => $order->supplier?->id,
             'type' => $data['payment_type'],
@@ -158,9 +158,9 @@ class PurchaseOrderReturnRefundService
     }
 
     // OK
-    private function processFinancialRecords(PurchaseOrderRefund $refund): void
+    private function processFinancialRecords(PurchaseOrderPayment $refund): void
     {
-        if ($refund->type === PurchaseOrderRefund::Type_Transfer || $refund->type === PurchaseOrderRefund::Type_Cash) {
+        if ($refund->type === PurchaseOrderPayment::Type_Transfer || $refund->type === PurchaseOrderPayment::Type_Cash) {
             if ($refund->finance_account_id) {
                 // membuat rekaman transaksi keuangan
                 FinanceTransaction::create([
@@ -170,7 +170,7 @@ class PurchaseOrderReturnRefundService
                     'amount' => $refund->amount,
                     'ref_id' => $refund->id,
                     'ref_type' => FinanceTransaction::RefType_PurchaseOrderReturnRefund,
-                    'notes' => "Terima refund pembelian #{$refund->purchaseOrderReturn->code}",
+                    'notes' => "Terima refund pembelian #{$refund->return->code}",
                 ]);
 
                 // menambah saldo akun keuangan
@@ -181,9 +181,9 @@ class PurchaseOrderReturnRefundService
     }
 
     // OK
-    private function reverseFinancialRecords(PurchaseOrderRefund $payment): void
+    private function reverseFinancialRecords(PurchaseOrderPayment $payment): void
     {
-        if ($payment->type === PurchaseOrderRefund::Type_Transfer || $payment->type === PurchaseOrderRefund::Type_Cash) {
+        if ($payment->type === PurchaseOrderPayment::Type_Transfer || $payment->type === PurchaseOrderPayment::Type_Cash) {
             if ($payment->finance_account_id) {
                 // Hapus Transaksi Keuangan
                 FinanceTransaction::where('ref_id', $payment->id)

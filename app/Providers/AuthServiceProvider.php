@@ -31,11 +31,9 @@ use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderPayment;
-use App\Models\PurchaseOrderRefund;
 use App\Models\PurchaseOrderReturn;
 use App\Models\SalesOrder;
 use App\Models\SalesOrderPayment;
-use App\Models\SalesOrderRefund;
 use App\Models\SalesOrderReturn;
 use App\Models\StockAdjustment;
 use App\Models\StockMovement;
@@ -79,11 +77,9 @@ class AuthServiceProvider extends ServiceProvider
         SalesOrder::class => SalesOrderPolicy::class,
         SalesOrderPayment::class => DefaultPolicy::class,
         SalesOrderReturn::class => SalesOrderReturnPolicy::class,
-        SalesOrderRefund::class => DefaultPolicy::class,
         PurchaseOrder::class => PurchaseOrderPolicy::class,
         PurchaseOrderPayment::class => DefaultPolicy::class,
         PurchaseOrderReturn::class => PurchaseOrderReturnPolicy::class,
-        PurchaseOrderRefund::class => DefaultPolicy::class,
         CustomerWalletTransactionConfirmation::class => DefaultPolicy::class,
         CustomerWalletTransaction::class => DefaultPolicy::class,
         TaxScheme::class => DefaultPolicy::class,

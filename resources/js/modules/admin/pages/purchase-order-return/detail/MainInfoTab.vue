@@ -70,6 +70,25 @@ const props = defineProps({
         <table class="full-width">
           <tbody>
             <tr>
+              <td class="text-grey-7" style="width: 130px">Order</td>
+              <td style="width: 1px">:</td>
+              <td>
+                <my-link
+                  :href="
+                    route('admin.purchase-order.detail', {
+                      id: props.data.purchase_order_id,
+                    })
+                  "
+                >
+                  {{
+                    props.data.purchase_order_id
+                      ? props.data.purchase_order.code
+                      : ""
+                  }}
+                </my-link>
+              </td>
+            </tr>
+            <tr>
               <td class="text-grey-7" style="width: 130px">Waktu</td>
               <td style="width: 1px">:</td>
               <td>

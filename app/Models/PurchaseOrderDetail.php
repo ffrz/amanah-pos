@@ -23,7 +23,8 @@ class PurchaseOrderDetail extends BaseModel
     use SoftDeletes;
 
     protected $fillable = [
-        'parent_id',
+        'order_id',
+        'return_id',
         'product_id',
         'product_name',
         'product_uom',
@@ -36,7 +37,8 @@ class PurchaseOrderDetail extends BaseModel
     protected function casts(): array
     {
         return [
-            'parent_id'     => 'integer',
+            'order_id'      => 'integer',
+            'return_id'     => 'integer',
             'product_id'    => 'integer',
             'product_name'  => 'string',
             'quantity'      => 'decimal:3',
@@ -62,9 +64,14 @@ class PurchaseOrderDetail extends BaseModel
         return (float) $value;
     }
 
-    public function parent()
+    public function order()
     {
-        return $this->belongsTo(PurchaseOrder::class, 'parent_id');
+        return $this->belongsTo(PurchaseOrder::class, 'order_id');
+    }
+
+    public function return()
+    {
+        return $this->belongsTo(PurchaseOrderReturn::class, 'return_id');
     }
 
     public function product()
