@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('purchase_order_returns', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('purchase_order_id')->constrained('purchase_orders')->onDelete('restrict');
+            $table->foreignId('purchase_order_id')->nullable()->constrained('purchase_orders')->onDelete('restrict');
             $table->foreignId('cashier_id')->nullable()->constrained('users')->onDelete('restrict');
             $table->foreignId('supplier_id')->nullable()->constrained('suppliers')->onDelete('restrict');
             $table->string('code', 255)->unique();

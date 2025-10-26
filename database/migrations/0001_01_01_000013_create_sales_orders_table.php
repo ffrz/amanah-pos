@@ -48,13 +48,17 @@ return new class extends Migration
 
             $table->decimal('total_cost', 18, 2)->default(0.);
             $table->decimal('total_price', 18, 2)->default(0.);
-            $table->decimal('total_paid', 18, 2)->default(0.);
+
 
             $table->decimal('total_discount', 18, 2)->default(0.);
             $table->decimal('total_tax', 18, 2)->default(0.);
-            $table->decimal('grand_total', 18, 2)->default(0.);
-            $table->decimal('remaining_debt', 18, 2)->default(0.)->index();
-            $table->decimal('change', 18, 2)->default(0.);
+            $table->decimal('grand_total', 18, 2)->default(0.); // total transaksi
+            $table->decimal('total_return', 18, 2)->default(0.); // total yang di retur
+
+            $table->decimal('total_paid', 18, 2)->default(0.); // total dibayar
+            $table->decimal('balance', 18, 2)->default(0.); // saldo utang piutang, (total transaksi - total retur) - payment_balance
+
+            $table->decimal('change', 18, 2)->default(0.); // kembalian
 
             $table->text('notes')->nullable();
 

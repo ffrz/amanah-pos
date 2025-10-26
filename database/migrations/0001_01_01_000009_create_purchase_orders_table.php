@@ -44,11 +44,14 @@ return new class extends Migration
             $table->date('due_date')->nullable()->index();
 
             $table->decimal('total', 18, 2)->default(0.);
-            $table->decimal('total_paid', 18, 2)->default(0.);
             $table->decimal('total_discount', 18, 2)->default(0.);
             $table->decimal('total_tax', 18, 2)->default(0.);
+
             $table->decimal('grand_total', 18, 2)->default(0.);
-            $table->decimal('remaining_debt', 18, 2)->default(0.)->index();
+            $table->decimal('total_return', 18, 2)->default(0.);
+            $table->decimal('total_paid', 18, 2)->default(0.);
+            $table->decimal('total_refund', 18, 2)->default(0.);
+            $table->decimal('balance', 18, 2)->default(0.);
 
             $table->text('notes')->nullable();
 

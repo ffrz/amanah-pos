@@ -28,6 +28,7 @@ return new class extends Migration
         Schema::create('sales_order_payments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('order_id')->nullable()->constrained('sales_orders')->onDelete('cascade');
+            $table->foreignId('return_id')->nullable()->constrained('sales_order_returns')->onDelete('cascade');
             $table->foreignId('customer_id')->nullable()->constrained('customers')->onDelete('restrict');
             $table->foreignId('finance_account_id')->nullable()->constrained('finance_accounts')->onDelete('restrict');
 

@@ -28,6 +28,7 @@ return new class extends Migration
         Schema::create('purchase_order_payments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('order_id')->nullable()->constrained('purchase_orders')->onDelete('cascade');
+            $table->foreignId('return_id')->nullable()->constrained('purchase_order_returns')->onDelete('cascade');
             $table->foreignId('supplier_id')->nullable()->constrained('suppliers')->onDelete('restrict');
             $table->foreignId('finance_account_id')->nullable()->constrained('finance_accounts')->onDelete('restrict');
             $table->string('code', 255)->unique();
