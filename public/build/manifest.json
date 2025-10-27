@@ -1,12 +1,12 @@
 {
-  "_virtual_pwa-register-C_YI1qvq.js": {
-    "file": "assets/virtual_pwa-register-C_YI1qvq.js",
+  "_virtual_pwa-register-BU30dyUG.js": {
+    "file": "assets/virtual_pwa-register-BU30dyUG.js",
     "name": "virtual_pwa-register",
     "dynamicImports": [
       "node_modules/workbox-window/build/workbox-window.prod.es5.mjs"
     ],
     "css": [
-      "assets/virtual_pwa-register-xygGxm5u.css"
+      "assets/virtual_pwa-register-CqlWXwbU.css"
     ],
     "assets": [
       "assets/flUhRq6tzZclQEJ-Vdg-IuiaDsNcIhQ8tQ-D-x-0Q06.woff2",
@@ -25,9 +25,9 @@
       "assets/fa-v4compatibility-ch80hpM0.ttf"
     ]
   },
-  "_virtual_pwa-register-xygGxm5u.css": {
-    "file": "assets/virtual_pwa-register-xygGxm5u.css",
-    "src": "_virtual_pwa-register-xygGxm5u.css"
+  "_virtual_pwa-register-CqlWXwbU.css": {
+    "file": "assets/virtual_pwa-register-CqlWXwbU.css",
+    "src": "_virtual_pwa-register-CqlWXwbU.css"
   },
   "node_modules/@quasar/extras/fontawesome-v6/fa-brands-400.ttf": {
     "file": "assets/fa-brands-400-CArp7j8S.ttf",
@@ -92,29 +92,29 @@
     "isDynamicEntry": true
   },
   "resources/css/app.css": {
-    "file": "assets/app-D3VQsBH0.css",
+    "file": "assets/app-eEmsPyh7.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/js/modules/admin/app.js": {
-    "file": "assets/app-DNlbYigd.js",
+    "file": "assets/app-W3sZrutx.js",
     "name": "app",
     "src": "resources/js/modules/admin/app.js",
     "isEntry": true,
     "imports": [
-      "_virtual_pwa-register-C_YI1qvq.js"
+      "_virtual_pwa-register-BU30dyUG.js"
     ],
     "css": [
-      "assets/app-Cs_7wD0d.css"
+      "assets/app-B59QhfYl.css"
     ]
   },
   "resources/js/modules/customer/app.js": {
-    "file": "assets/app-xjJsIcQO.js",
+    "file": "assets/app-D1Ji9xHK.js",
     "name": "app",
     "src": "resources/js/modules/customer/app.js",
     "isEntry": true,
     "imports": [
-      "_virtual_pwa-register-C_YI1qvq.js"
+      "_virtual_pwa-register-BU30dyUG.js"
     ],
     "css": [
       "assets/app-Bi-c-X5Z.css"

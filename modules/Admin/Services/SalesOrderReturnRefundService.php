@@ -65,20 +65,23 @@ class SalesOrderReturnRefundService
             $order->save();
 
             if ($order->sales_order_id) {
+                /**
+                 * @var SalesOrder
+                 */
                 $salesOrder = $order->salesOrder;
                 if ($salesOrder) {
                     $salesOrder->updateTotals();
                     $salesOrder->save();
                 }
 
-                // dd($order->grand_total, $salesOrder->balance);
-
                 $customer = $salesOrder->customer;
-                if ($customer && $amount != 0) {
-                    $this->customerService->addToBalance($customer, -$amount);
+                if ($customer) {
+                    $this->customerService->addToBalance($customer, -abs($refund->amount));
                 }
             }
-            // dd($order->remaining_refund);
+
+            $order->updateBalanceAndStatus();
+            $order->save();
         });
     }
 
@@ -137,7 +140,7 @@ class SalesOrderReturnRefundService
 
                 $customer = $salesOrder->customer;
                 if ($customer && $amount != 0) {
-                    $this->customerService->addToBalance($customer, -$amount);
+                    $this->customerService->addToBalance($customer, abs($amount));
                 }
             }
 
@@ -219,18 +222,18 @@ class SalesOrderReturnRefundService
         } else if ($refund->type === SalesOrderPayment::Type_Wallet) {
             // Membuat rekaman transaksi wallet
             CustomerWalletTransaction::create([
-                'customer_id' => $refund->salesOrderReturn->customer_id,
+                'customer_id' => $refund->return->customer_id,
                 'datetime' => now(),
                 'type' => CustomerWalletTransaction::Type_SalesOrderPayment,
                 'amount' => $refund->amount,
                 'ref_type' => CustomerWalletTransaction::RefType_SalesOrderReturnRefund,
                 'ref_id' => $refund->id,
-                'notes' => "Pengembalian dana retur #{$refund->salesOrderReturn->code}",
+                'notes' => "Pengembalian dana retur #{$refund->return->code}",
             ]);
 
             // tambah saldo wallet pelanggan
-            Customer::where('id', $refund->salesOrderReturn->customer_id)
-                ->increment('wallet_balance', $refund->amount);
+            Customer::where('id', $refund->return->customer_id)
+                ->increment('wallet_balance', abs($refund->amount));
         }
     }
 
@@ -256,9 +259,9 @@ class SalesOrderReturnRefundService
                 ->where('ref_type', CustomerWalletTransaction::RefType_SalesOrderReturnRefund)
                 ->delete();
 
-            // Tambah kembali saldo wallet pelanggan (membalikkan decrement saat bayar)
-            Customer::where('id', $payment->salesOrderReturn->customer_id)
-                ->decrement('wallet_balance', $payment->amount);
+            // Kurangi saldo wallet
+            Customer::where('id', $payment->return->customer_id)
+                ->decrement('wallet_balance', abs($payment->amount));
         }
     }
 }

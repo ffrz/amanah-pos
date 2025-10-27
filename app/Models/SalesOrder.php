@@ -190,6 +190,11 @@ class SalesOrder extends BaseModel
         return $this->hasMany(SalesOrderPayment::class, 'order_id');
     }
 
+    public function returns()
+    {
+        return $this->hasMany(SalesOrderReturn::class, 'sales_order_id');
+    }
+
     public function customer()
     {
         return $this->belongsTo(Customer::class);
@@ -214,7 +219,15 @@ class SalesOrder extends BaseModel
         $this->total_paid = SalesOrderPayment::where('order_id', $this->id)
             ->sum('amount');
 
-        $this->balance = - ($this->grand_total - $this->total_paid - $this->total_return);
+        // dd($this->grand_total, $this->total_paid, $this->total_return);
+        // $this->balance = - ($this->grand_total - $this->total_paid - $this->total_return);
+        // if ($this->grand_total == $this->total_return) {
+        //     dd('this is wrong!!');
+        //     $this->balance = - ($this->grand_total + $this->total_paid);
+        // } else {
+
+        // }
+        $this->balance = - ($this->grand_total - $this->total_return - $this->total_paid);
 
         if ($this->balance >= 0) {
             $this->payment_status = self::PaymentStatus_FullyPaid;

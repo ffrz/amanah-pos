@@ -168,13 +168,9 @@ class SalesOrderReturn extends BaseModel
     public function updateBalanceAndStatus()
     {
         if ($this->salesOrder) {
-            // pengambilan ini memungkinkan kita untuk menyinkronkan refund dari beberapa transaksi retur
             $this->total_refunded = abs(SalesOrderPayment::where('return_id', $this->id)
                 ->sum('amount'));
-
-            // FIXME: ini hanya memungkinkan sisa refund dari order utama
             $this->remaining_refund = $this->salesOrder->balance;
-            // dd($this->grand_total, $this->total_refunded, $this->remaining_refund);
         } else {
             $this->total_refunded = abs(SalesOrderPayment::where('return_id', $this->id)
                 ->sum('amount'));

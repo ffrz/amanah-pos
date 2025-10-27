@@ -17,7 +17,7 @@ const openPaymentDialog = () => {
   showPaymentDialog.value = true;
 };
 const remainingRefund = computed(() => {
-  return props.data.grand_total;
+  return props.data.remaining_refund;
 });
 
 const handleAcceptedPayment = async (payload) => {
@@ -208,22 +208,15 @@ const deletePayment = (payment) => {
             <td colspan="100%" class="text-center text-grey">Belum ada item</td>
           </tr>
         </tbody>
-        <!-- <tfoot>
+        <tfoot>
           <tr>
-            <th class="text-right q-pa-sm" colspan="1">Total Direfund</th>
+            <th class="text-right q-pa-sm" colspan="1">Total Refund</th>
             <th class="text-right q-pa-sm">
-              {{ formatNumber(props.data.total_refunded) }}
+              {{ formatNumber(parseFloat(-props.data.total_refunded)) }}
             </th>
             <th></th>
           </tr>
-          <tr>
-            <th class="text-right q-pa-sm" colspan="1">Sisa Refund</th>
-            <th class="text-right q-pa-sm">
-              {{ formatNumber(props.data.remaining_refund) }}
-            </th>
-            <td></td>
-          </tr>
-        </tfoot> -->
+        </tfoot>
       </table>
     </q-card-section>
   </div>

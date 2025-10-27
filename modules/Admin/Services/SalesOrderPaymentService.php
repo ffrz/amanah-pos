@@ -67,6 +67,10 @@ class SalesOrderPaymentService
             if ($order->customer_id && $updateCustomerBalance) {
                 $this->customerService->addToBalance($order->customer, abs($totalPaidAmount));
             }
+
+            foreach ($order->returns as $return) {
+                $return->updateBalanceAndStatus();
+            }
         });
     }
 
@@ -136,6 +140,10 @@ class SalesOrderPaymentService
 
             if ($updateCustomerBalance && $order->customer_id) {
                 $this->customerService->addToBalance($order->customer, -abs($payment->amount));
+            }
+
+            foreach ($order->returns as $return) {
+                $return->updateBalanceAndStatus();
             }
         });
     }
