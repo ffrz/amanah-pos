@@ -27,7 +27,8 @@ return new class extends Migration
     {
         Schema::create('sales_order_details', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('parent_id')->nullable()->constrained('sales_orders')->onDelete('cascade');
+            $table->foreignId('order_id')->nullable()->constrained('sales_orders')->onDelete('cascade');
+            $table->foreignId('return_id')->nullable()->constrained('sales_order_returns')->onDelete('cascade');
             $table->foreignId('product_id')->nullable()->constrained('products')->onDelete('restrict');
 
             $table->string('product_name', 100)->default('');
