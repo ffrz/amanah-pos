@@ -32,9 +32,9 @@ a:hover {
   min-height: 46px !important;
 }
 
-#main-nav .q-item:not(.subnav) {
+/* #main-nav .q-item:not(.subnav) {
   border-bottom: 1px solid #ddd;
-}
+} */
 
 #main-nav .subnav:not(.q-item--active) .q-item__section--avatar {
   visibility: hidden;
