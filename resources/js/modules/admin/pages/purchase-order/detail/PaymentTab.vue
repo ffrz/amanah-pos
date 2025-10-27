@@ -188,13 +188,18 @@ const deletePayment = (payment) => {
                   color="secondary"
                   class="q-py-xs"
                 />
+                <q-badge
+                  :label="item.amount < 0 ? 'Pembayaran' : 'Refund'"
+                  :color="item.amount < 0 ? 'green' : 'red'"
+                  class="q-py-xs q-ml-sm"
+                />
               </div>
             </td>
             <td
               class="text-right q-pa-sm"
               style="border-bottom: 1px solid #eee"
             >
-              {{ formatNumber(item.amount) }}
+              {{ formatNumberWithSymbol(item.amount) }}
             </td>
             <td
               class="text-right q-pa-sm"
@@ -220,13 +225,6 @@ const deletePayment = (payment) => {
           </tr>
         </tbody>
         <tfoot>
-          <tr>
-            <th class="text-right q-pa-sm" colspan="1">Total Dibayar</th>
-            <th class="text-right q-pa-sm">
-              {{ formatNumber(props.data.total_paid) }}
-            </th>
-            <th></th>
-          </tr>
           <tr>
             <th class="text-right q-pa-sm" colspan="1">Saldo</th>
             <th class="text-right q-pa-sm">

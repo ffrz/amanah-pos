@@ -1,5 +1,9 @@
 <script setup>
-import { formatDateTime, formatNumber } from "@/helpers/formatter";
+import {
+  formatDateTime,
+  formatNumber,
+  formatNumberWithSymbol,
+} from "@/helpers/formatter";
 import { computed, ref } from "vue";
 import PaymentDialog from "./PaymentDialog.vue";
 import { useQuasar } from "quasar";
@@ -17,7 +21,7 @@ const openPaymentDialog = () => {
   showPaymentDialog.value = true;
 };
 const remainingRefund = computed(() => {
-  return props.data.grand_total - props.data.total_refunded;
+  return props.data.remaining_refund;
 });
 
 const handleAcceptedPayment = async (payload) => {
@@ -150,7 +154,7 @@ const deletePayment = (payment) => {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="item in props.data.refunds" :key="item.id">
+          <tr v-for="item in props.data.payments" :key="item.id">
             <td class="q-pa-sm" style="border-bottom: 1px solid #eee">
               <div class="row items-center q-gutter-x-sm">
                 <q-icon name="tag" size="xs" color="grey-7" />
@@ -189,7 +193,7 @@ const deletePayment = (payment) => {
               class="text-right q-pa-sm"
               style="border-bottom: 1px solid #eee"
             >
-              {{ formatNumber(item.amount) }}
+              {{ formatNumberWithSymbol(item.amount) }}
             </td>
             <td
               class="text-right q-pa-sm"
@@ -213,9 +217,9 @@ const deletePayment = (payment) => {
         </tbody>
         <tfoot>
           <tr>
-            <th class="text-right q-pa-sm" colspan="1">Total Direfund</th>
+            <th class="text-right q-pa-sm" colspan="1">Saldo</th>
             <th class="text-right q-pa-sm">
-              {{ formatNumber(props.data.total_refunded) }}
+              {{ formatNumberWithSymbol(props.data.remaining_refund) }}
             </th>
             <th></th>
           </tr>

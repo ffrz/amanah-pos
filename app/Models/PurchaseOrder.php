@@ -179,8 +179,7 @@ class PurchaseOrder extends BaseModel
 
     public function payments()
     {
-        return $this->hasMany(PurchaseOrderPayment::class, 'order_id')
-            ->whereNull('return_id');
+        return $this->hasMany(PurchaseOrderPayment::class, 'order_id');
     }
 
     public function returns()
@@ -204,8 +203,10 @@ class PurchaseOrder extends BaseModel
         $this->total_return = PurchaseOrderReturn::where('purchase_order_id', $this->id)
             ->where('status', PurchaseOrderReturn::Status_Closed)
             ->sum('grand_total');
-        $this->total_paid = PurchaseOrderPayment::where('order_id', $this->id)
-            ->sum('amount');
+
+        $this->total_paid = -PurchaseOrderPayment::where('order_id', $this->id)
+            ->sum('amount'); // payment sudah negatif, jadi harus dibalik agar nilai total paid positif
+
         $this->balance = - ($this->grand_total - $this->total_paid - $this->total_return);
 
         if ($this->balance >= 0) {

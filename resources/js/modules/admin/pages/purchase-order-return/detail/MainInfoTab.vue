@@ -1,5 +1,10 @@
 <script setup>
-import { formatDate, formatDateTime, formatNumber } from "@/helpers/formatter";
+import {
+  formatDate,
+  formatDateTime,
+  formatNumber,
+  formatNumberWithSymbol,
+} from "@/helpers/formatter";
 
 const props = defineProps({
   data: Object,
@@ -191,6 +196,15 @@ const props = defineProps({
             <div class="text-subtitle2 text-grey-7">Grand Total (Rp)</div>
             <div class="text-subtitle2 text-bold">
               {{ formatNumber(props.data.grand_total) }}
+            </div>
+          </div>
+        </div>
+
+        <div class="row justify-end q-gutter-y-xs">
+          <div class="col-12 row justify-between">
+            <div class="text-subtitle2 text-grey-7">Saldo (Rp)</div>
+            <div class="text-subtitle2 text-bold">
+              {{ formatNumberWithSymbol(props.data.remaining_refund) }}
             </div>
           </div>
         </div>

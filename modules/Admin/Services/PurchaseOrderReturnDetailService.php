@@ -129,6 +129,7 @@ class PurchaseOrderReturnDetailService
         return DB::transaction(function () use ($orderReturn, $item) {
             $item->save();
 
+            $orderReturn->updateGrandTotal();
             $orderReturn->save();
 
             return $item;
@@ -166,6 +167,7 @@ class PurchaseOrderReturnDetailService
 
         DB::transaction(function () use ($order, $item) {
             $item->save();
+            $order->updateGrandTotal();
             $order->save();
         });
     }
@@ -182,6 +184,7 @@ class PurchaseOrderReturnDetailService
 
         DB::transaction(function () use ($order, $item) {
             $item->delete();
+            $order->updateGrandTotal();
             $order->save();
         });
     }

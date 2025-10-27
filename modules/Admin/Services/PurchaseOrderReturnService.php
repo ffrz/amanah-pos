@@ -35,6 +35,7 @@ class PurchaseOrderReturnService
         protected ProductService $productService,
         protected SupplierService $supplierService,
         protected CashierSessionService $cashierSessionService,
+        protected PurchaseOrderService $purchaseOrderService,
     ) {}
 
     // OK
@@ -124,11 +125,11 @@ class PurchaseOrderReturnService
     }
 
     // OK
-    public function editOrder(PurchaseOrderReturn $order): PurchaseOrderReturn
+    public function editOrder(PurchaseOrderReturn $return): PurchaseOrderReturn
     {
-        $this->ensureOrderIsEditable($order);
+        $this->ensureOrderIsEditable($return);
 
-        return $order;
+        return $return;
     }
 
     // OK
@@ -183,35 +184,73 @@ class PurchaseOrderReturnService
             ->findOrFail($id);
     }
 
-    public function closeOrderReturn(PurchaseOrderReturn $order, array $data)
+    public function closeOrderReturn(PurchaseOrderReturn $return, array $data)
     {
-        $this->ensureOrderIsEditable($order);
+        $this->ensureOrderIsEditable($return);
 
-        DB::transaction(function () use ($order, $data) {
-            $order->status = PurchaseOrderReturn::Status_Closed;
-            $order->save();
+        DB::transaction(function () use ($return, $data) {
+            $return->status = PurchaseOrderReturn::Status_Closed;
+            $return->updateGrandTotal();
+            $return->updateBalanceAndStatus();
+            $return->save();
 
-            if ($order->purchaseOrder) {
-                $order->purchaseOrder->save();
+            /**
+             * @var PurchaseOrder
+             */
+            $order = $return->purchaseOrder;
+            $balanceDelta = 0;
+            if ($order) {
+                $oldBalance = $order->balance;
+                $order->updateTotals();
+                $order->save();
+                $balanceDelta = $order->balance - $oldBalance;
             }
 
-            $this->processPurchaseOrderReturnStockOut($order);
+            $supplier = $return->supplier;
+            if ($supplier && $balanceDelta != 0) {
+                $this->supplierService->addToBalance($supplier, $balanceDelta);
+            }
+
+            // kita harus update lagi karena sebelumnya order belum diupdate
+            $return->updateBalanceAndStatus();
+            $return->save();
+
+            // dd($return->remaining_refund);
+
+            $this->processPurchaseOrderReturnStockOut($return);
         });
     }
 
-    // IN PROGRESS
-    public function deleteOrderReturn(PurchaseOrderReturn $order)
+    // OK
+    public function deleteOrderReturn(PurchaseOrderReturn $return)
     {
-        DB::transaction(function () use ($order) {
-            if ($order->status == PurchaseOrderReturn::Status_Closed) {
-                $this->reverseStock($order);
-                $this->refundService->deleteRefunds($order);
+        DB::transaction(function () use ($return) {
+            if ($return->status == PurchaseOrderReturn::Status_Closed) {
+                $this->reverseStock($return);
+                $this->refundService->deleteRefunds($return);
             }
 
-            $order->delete();
+            $code = $return->code;
 
-            if ($order->purchaseOrder) {
-                $order->purchaseOrder->save();
+            $return->delete();
+
+            if ($return->status == PurchaseOrderReturn::Status_Closed) {
+                /**
+                 * @var PurchaseOrder
+                 */
+                $order = $return->purchaseOrder;
+                $balanceDelta = 0;
+                if ($order) {
+                    $oldBalance = $order->balance;
+                    $order->updateTotals();
+                    $order->save();
+                    $balanceDelta = $order->balance - $oldBalance;
+                }
+
+                $supplier = $return->supplier;
+                if ($supplier && $balanceDelta != 0) {
+                    $this->supplierService->addToBalance($supplier, $balanceDelta);
+                }
             }
         });
     }
@@ -225,9 +264,9 @@ class PurchaseOrderReturnService
     }
 
     // OK
-    private function processPurchaseOrderReturnStockOut(PurchaseOrderReturn $order)
+    private function processPurchaseOrderReturnStockOut(PurchaseOrderReturn $return)
     {
-        foreach ($order->details as $detail) {
+        foreach ($return->details as $detail) {
             $productType = $detail->product->type;
             if (
                 $productType == Product::Type_NonStocked
@@ -247,7 +286,7 @@ class PurchaseOrderReturnService
                 'quantity'        => -$quantity,
                 'quantity_before' => $detail->product->stock,
                 'quantity_after'  => $detail->product->stock - $quantity,
-                'notes'           => "Retur pembelian #$order->code",
+                'notes'           => "Retur pembelian #$return->code",
             ]);
 
             Product::where('id', $detail->product_id)->decrement('stock', $quantity);
@@ -255,9 +294,9 @@ class PurchaseOrderReturnService
     }
 
     // OK
-    private function reverseStock(PurchaseOrderReturn $order)
+    private function reverseStock(PurchaseOrderReturn $return)
     {
-        foreach ($order->details as $detail) {
+        foreach ($return->details as $detail) {
             Product::where('id', $detail->product_id)->increment('stock', $detail->quantity);
 
             StockMovement::where('ref_type', StockMovement::RefType_PurchaseOrderReturnDetail)

@@ -36,33 +36,46 @@ class PurchaseOrderReturnRefundService
         return PurchaseOrderPayment::with(['return', 'return.supplier'])->findOrFail($id);
     }
 
-    public function addRefund(PurchaseOrderReturn $order, array $data): void
+    public function addRefund(PurchaseOrderReturn $return, array $data): void
     {
-        $this->ensureOrderIsProcessable($order);
+        $this->ensureOrderIsProcessable($return);
 
         if ($data['amount'] <= 0) {
             throw new BusinessRuleViolationException('Jumlah refund harus lebih dari nol.');
         }
 
-        if ($data['amount'] > ($order->purchaseOrder->total_paid - $order->total_refunded)) {
+        if ($data['amount'] > ($return->purchaseOrder->total_paid - $return->total_refunded)) {
             throw new BusinessRuleViolationException('Jumlah refund melebihi batas yang diperbolehkan.');
         }
 
-        if ($order->remaining_refund <= 0) {
+        if ($return->remaining_refund <= 0) {
             throw new BusinessRuleViolationException('Pesanan ini sudah lunas.');
         }
 
-        DB::transaction(function () use ($order, $data) {
+        DB::transaction(function () use ($return, $data) {
             $amount = intval($data['amount']);
-            $result = $this->processAndValidatePaymentMethod($order, $data['id'], $amount);
-            $refund = $this->createRefundRecord($order, $result);
+            $result = $this->processAndValidatePaymentMethod($return, $data['id'], $amount);
+            $refund = $this->createRefundRecord($return, $result);
             $this->processFinancialRecords($refund);
-            $order->updateTotalRefunded($amount);
-            $order->save();
+            $return->updateBalanceAndStatus();
+            $return->save();
+
+            if ($return->purchaseOrder) {
+                $purchaseOrder = $return->purchaseOrder;
+                if ($purchaseOrder) {
+                    $purchaseOrder->updateTotals();
+                    $purchaseOrder->save();
+                }
+
+                $supplier = $purchaseOrder->supplier;
+                if ($supplier && $amount != 0) {
+                    $this->supplierService->addToBalance($supplier, -$amount);
+                }
+            }
         });
     }
 
-    private function processAndValidatePaymentMethod($order, $type_or_id, $amount): array
+    private function processAndValidatePaymentMethod($return, $type_or_id, $amount): array
     {
         $accountId = null;
         $type = null;
@@ -85,18 +98,26 @@ class PurchaseOrderReturnRefundService
         ];
     }
 
+    // ini dipanggil kusus untuk delete retur
     public function deleteRefunds(PurchaseOrderReturn $orderReturn): void
     {
         $this->ensureOrderIsProcessable($orderReturn);
 
         DB::transaction(function () use ($orderReturn) {
             $orderReturn->loadMissing('payments');
-            $total_amount = $this->deleteRefundsImpl($orderReturn->payments);
-            $orderReturn->updateTotalRefunded($total_amount);
-            $orderReturn->save();
+            $this->deleteRefundsImpl($orderReturn->payments);
+            // $orderReturn->updateTotals();
+            // $orderReturn->save();
+
+            // if ($orderReturn->purchaseOrder) {
+            //     $return = $orderReturn->purchaseOrder;
+            //     $return->updateTotals();
+            //     $return->save();
+            // }
         });
     }
 
+    // ini dipanggil kusus untuk delete refund satuan
     public function deleteRefund(PurchaseOrderPayment $refund): void
     {
         /**
@@ -106,8 +127,22 @@ class PurchaseOrderReturnRefundService
         $this->ensureOrderIsProcessable($returnOrder);
 
         DB::transaction(function () use ($returnOrder, $refund) {
-            $total_amount = $this->deleteRefundsImpl([$refund]);
-            $returnOrder->updateTotalRefunded(-$total_amount);
+            $amount = $this->deleteRefundsImpl([$refund]);
+
+            if ($returnOrder->purchaseOrder) {
+                $purchaseOrder = $returnOrder->purchaseOrder;
+                if ($purchaseOrder) {
+                    $purchaseOrder->updateTotals();
+                    $purchaseOrder->save();
+                }
+
+                $supplier = $purchaseOrder->supplier;
+                if ($supplier && $amount != 0) {
+                    $this->supplierService->addToBalance($supplier, $amount);
+                }
+            }
+
+            $returnOrder->updateBalanceAndStatus();
             $returnOrder->save();
         });
     }
@@ -120,9 +155,9 @@ class PurchaseOrderReturnRefundService
      * Memastikan order dapat diproses. Penghapusan pembayaran hanya boleh dilakukan
      * pada order yang sudah ditutup/selesai (Status_Closed).
      */
-    private function ensureOrderIsProcessable(PurchaseOrderReturn $order)
+    private function ensureOrderIsProcessable(PurchaseOrderReturn $return)
     {
-        if ($order->status !== PurchaseOrderReturn::Status_Closed) {
+        if ($return->status !== PurchaseOrderReturn::Status_Closed) {
             throw new BusinessRuleViolationException('Tidak dapat memproses refund pembayaran.');
         }
     }
@@ -143,15 +178,16 @@ class PurchaseOrderReturnRefundService
     }
 
     // OK
-    private function createRefundRecord(PurchaseOrderReturn $order, array $data): PurchaseOrderPayment
+    private function  createRefundRecord(PurchaseOrderReturn $return, array $data): PurchaseOrderPayment
     {
         $refund = new PurchaseOrderPayment([
-            'return_id' => $order->id,
+            'order_id' => $return->purchase_order_id ?? null,
+            'return_id' => $return->id,
             'finance_account_id' => $data['finance_account_id'],
-            'supplier_id' => $order->supplier?->id,
-            'type' => $data['payment_type'],
+            'supplier_id' => $return->supplier?->id,
+            'type'   => $data['payment_type'],
             'amount' => $data['amount'],
-            'notes' => $data['notes'] ?? '',
+            'notes'  => $data['notes'] ?? '',
         ]);
         $refund->save();
         return $refund;

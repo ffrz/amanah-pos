@@ -38,7 +38,7 @@ const paymentOptions = computed(() => [
 ]);
 
 const remainingTotal = computed(() => {
-  return props.total - (paymentForm.value.amount || 0);
+  return props.remaining_refund;
 });
 
 // Menghitung pesan error berdasarkan validasi

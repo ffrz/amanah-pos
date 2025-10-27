@@ -57,7 +57,7 @@ class PurchaseOrderPaymentService
 
                 $totalPaidAmount += $amount;
 
-                $payment = $this->createPaymentRecord($order, $inputPayment['id'] ?? null, $amount);
+                $payment = $this->createPaymentRecord($order, $inputPayment['id'] ?? null, -$amount);
 
                 $this->processFinancialRecords($payment);
             }
@@ -85,6 +85,8 @@ class PurchaseOrderPaymentService
 
             $this->reverseFinancialRecords($payment);
 
+            $payment->delete();
+
             if ($updateSupplierBalance) {
                 if (!$payment->order->supplier_id) {
                     return;
@@ -92,8 +94,6 @@ class PurchaseOrderPaymentService
 
                 $this->supplierService->addToBalance($payment->order->supplier, -abs($payment->amount));
             }
-
-            $payment->delete();
 
             $order->updateTotals();
             $order->save();
@@ -129,20 +129,22 @@ class PurchaseOrderPaymentService
     {
         $order = $payment->order;
 
+        $amount = abs($payment->amount);
+
         if ($payment->type === PurchaseOrderPayment::Type_Transfer) {
             FinanceTransaction::create([
                 'account_id' => $payment->finance_account_id,
                 'datetime' => now(),
                 'type' => FinanceTransaction::Type_Expense,
                 // Pembayaran adalah pengeluaran (negatif)
-                'amount' => -$payment->amount,
+                'amount' => -$amount,
                 'ref_id' => $payment->id,
                 'ref_type' => FinanceTransaction::RefType_PurchaseOrderPayment,
                 'notes' => "Pembayaran transaksi #$order->code",
             ]);
 
             FinanceAccount::where('id', $payment->finance_account_id)
-                ->decrement('balance', abs($payment->amount));
+                ->decrement('balance', $amount);
         }
     }
 

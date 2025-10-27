@@ -44,16 +44,15 @@ class PurchaseOrderService
 
     public function findOrderOrFail(int $id): PurchaseOrder
     {
-        return PurchaseOrder::with([
+        $order = PurchaseOrder::with([
             'supplier',
-            'details' => function ($query) {
-                $query->whereNull('return_id');
-            },
+            'details',
             'payments',
             'details.product',
             'payments.account'
         ])
             ->findOrFail($id);
+        return $order;
     }
 
     public function findOrderDetailOrFail(int $id): PurchaseOrderDetail
@@ -353,8 +352,6 @@ class PurchaseOrderService
 
         return $q->paginate($options['per_page']);
     }
-
-
 
     private function ensureOrderIsEditable(PurchaseOrder $order)
     {

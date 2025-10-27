@@ -123,35 +123,39 @@ class PurchaseOrderReturnController extends Controller
 
     public function cancel($id)
     {
-        $orderReturn = $this->service->findOrderOrFail($id, []);
-        $this->authorize('cancel', $orderReturn);
-        $this->service->cancelOrder($orderReturn);
+        $return = $this->service->findOrderOrFail($id, []);
+        $this->authorize('cancel', $return);
+        $this->service->cancelOrder($return);
         return JsonResponseHelper::success(
-            ['id' => $orderReturn->id],
-            "Transaksi Retur #$orderReturn->code telah dibatalkan."
+            ['id' => $return->id],
+            "Transaksi Retur #$return->code telah dibatalkan."
         );
     }
 
     public function close(Request $request)
     {
-        $orderReturn = $this->service->findOrderOrFail($request->id);
-        $this->authorize('update', $orderReturn);
-        $this->service->closeOrderReturn($orderReturn, $request->all());
-        return JsonResponseHelper::success($orderReturn, "Order telah selesai.");
+        $return = $this->service->findOrderOrFail($request->id);
+        $this->authorize('update', $return);
+        $this->service->closeOrderReturn($return, $request->all());
+        return JsonResponseHelper::success($return, "Order telah selesai.");
     }
 
 
     public function delete($id)
     {
-        $orderReturn = $this->service->findOrderOrFail($id);
-        $this->authorize('delete', $orderReturn);
-        $this->service->deleteOrderReturn($orderReturn);
-        return JsonResponseHelper::success($orderReturn, "Transaksi #$orderReturn->code telah dihapus.");
+        $return = $this->service->findOrderOrFail($id);
+        $this->authorize('delete', $return);
+        $code = $return->code;
+        $this->service->deleteOrderReturn($return);
+        return JsonResponseHelper::success($return, "Transaksi #$code telah dihapus.");
     }
 
     public function detail($id)
     {
         $order = $this->service->getOrderWithDetails($id);
+        // if ($order->purchase_order_id) {
+        //     return redirect(route('admin.purchase-order.detail', $order->purchase_order_id) . '?tab=return');
+        // }
         $this->authorize('view', $order);
         return inertia('purchase-order-return/Detail', [
             'data' => $order,
@@ -229,7 +233,7 @@ class PurchaseOrderReturnController extends Controller
     public function deleteRefund(Request $request)
     {
         $refund = $this->refundService->findOrFail($request->id);
-        $this->authorize('update', $refund->PurchaseOrderReturn);
+        $this->authorize('update', $refund);
         $PurchaseOrderReturn = $this->refundService->deleteRefund($refund);
         return JsonResponseHelper::success($PurchaseOrderReturn, "Pengembalian dana berhasil dihapus.");
     }

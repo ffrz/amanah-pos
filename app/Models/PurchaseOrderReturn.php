@@ -150,40 +150,36 @@ class PurchaseOrderReturn extends BaseModel
         return $this->hasMany(PurchaseOrderPayment::class, 'return_id');
     }
 
-    public function updateTotalRefunded()
-    {
-        $this->total_refunded = abs(PurchaseOrderPayment::where('return_id', $this->id)
-            ->sum('amount'));
-        $this->remaining_refund = $this->grand_total - $this->total_refunded;
-        if ($this->total_refunded >= $this->grand_total) {
-            $this->refund_status = PurchaseOrderReturn::RefundStatus_FullyRefunded;
-        } else if ($this->total_refunded > 0) {
-            $this->refund_status = PurchaseOrderReturn::RefundStatus_PartiallyRefunded;
-        } else {
-            $this->refund_status = PurchaseOrderReturn::RefundStatus_Pending;
-        }
-    }
-
-    public function updateTotalsCache()
+    public function updateGrandTotal()
     {
         $this->total_cost = $this->details()->sum('subtotal_cost');
         $this->grand_total = $this->total_cost + $this->total_tax - $this->total_discount;
-        $this->total_refunded = abs(PurchaseOrderPayment::where('return_id', $this->id)
-            ->sum('amount'));
-        $this->remaining_refund = $this->grand_total - $this->total_refunded;
+    }
+
+    public function updateBalanceAndStatus()
+    {
+        if ($this->purchaseOrder) {
+            // pengambilan ini memungkinkan kita untuk menyinkronkan refund dari beberapa transaksi retur
+            $this->total_refunded = abs(PurchaseOrderPayment::where('order_id', $this->purchase_order_id)
+                ->where('amount', '>', 0)
+                ->sum('amount'));
+
+            $balance = $this->purchaseOrder->balance; // positif berarti lebih (piutang), negatif kurang (utang)
+            $this->remaining_refund = $this->grand_total - $this->total_refunded - $balance;
+            // dd($this->grand_total, $this->total_refunded, $balance, $this->remaining_refund);
+        } else {
+            $this->total_refunded = abs(PurchaseOrderPayment::where('return_id', $this->id)
+                ->sum('amount'));
+        }
+
+        $this->refund_status = PurchaseOrderReturn::RefundStatus_Pending;
+
         if ($this->total_refunded >= $this->grand_total) {
             $this->refund_status = PurchaseOrderReturn::RefundStatus_FullyRefunded;
         } else if ($this->total_refunded > 0) {
             $this->refund_status = PurchaseOrderReturn::RefundStatus_PartiallyRefunded;
-        } else {
-            $this->refund_status = PurchaseOrderReturn::RefundStatus_Pending;
+        } else if ($this->remaining_refund <= 0) {
+            $this->refund_status = PurchaseOrderReturn::RefundStatus_NoRefund;
         }
-    }
-
-    protected static function booted()
-    {
-        static::saving(function ($order) {
-            $order->updateTotalsCache();
-        });
     }
 }
