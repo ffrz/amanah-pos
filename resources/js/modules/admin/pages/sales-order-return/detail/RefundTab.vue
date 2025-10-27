@@ -10,8 +10,6 @@ const props = defineProps({
   data: Object,
 });
 
-console.log(props.data);
-
 const $q = useQuasar();
 const showPaymentDialog = ref(false);
 
@@ -19,7 +17,7 @@ const openPaymentDialog = () => {
   showPaymentDialog.value = true;
 };
 const remainingRefund = computed(() => {
-  return props.data.grand_total - props.data.total_refunded;
+  return props.data.grand_total;
 });
 
 const handleAcceptedPayment = async (payload) => {
@@ -123,10 +121,7 @@ const deletePayment = (payment) => {
     <q-card-section class="q-pa-sm">
       <div class="row">
         <q-btn
-          v-if="
-            $can('admin.sales-order-return.add-refund') &&
-            props.data.remaining_refund > 0
-          "
+          v-if="$can('admin.sales-order-return.add-refund')"
           label="Tambah"
           color="primary"
           icon="add"
@@ -213,7 +208,7 @@ const deletePayment = (payment) => {
             <td colspan="100%" class="text-center text-grey">Belum ada item</td>
           </tr>
         </tbody>
-        <tfoot>
+        <!-- <tfoot>
           <tr>
             <th class="text-right q-pa-sm" colspan="1">Total Direfund</th>
             <th class="text-right q-pa-sm">
@@ -228,7 +223,7 @@ const deletePayment = (payment) => {
             </th>
             <td></td>
           </tr>
-        </tfoot>
+        </tfoot> -->
       </table>
     </q-card-section>
   </div>

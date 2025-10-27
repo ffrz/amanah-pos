@@ -231,7 +231,10 @@ const props = defineProps({
             </div>
           </div>
         </div>
-        <div class="row justify-end q-gutter-y-xs">
+        <div
+          v-if="props.data.total_return != 0"
+          class="row justify-end q-gutter-y-xs"
+        >
           <div class="col-12 row justify-between">
             <div class="text-subtitle2 text-grey-7">Total Retur (Rp)</div>
             <div class="text-subtitle2 text-bold">
@@ -239,15 +242,18 @@ const props = defineProps({
             </div>
           </div>
         </div>
-        <div class="row justify-end q-gutter-y-xs">
+        <!-- <div class="row justify-end q-gutter-y-xs">
           <div class="col-12 row justify-between">
             <div class="text-subtitle2 text-grey-7">Total Dibayar (Rp)</div>
             <div class="text-subtitle2 text-bold">
-              {{ formatNumber(props.data.total_paid) }}
+              {{ formatNumber(Math.abs(props.data.total_paid)) }}
             </div>
           </div>
-        </div>
-        <div class="row justify-end q-gutter-y-xs">
+        </div> -->
+        <div
+          v-if="props.data.balance != 0"
+          class="row justify-end q-gutter-y-xs"
+        >
           <div class="col-12 row justify-between">
             <div class="text-subtitle2 text-grey-7">Saldo (Rp)</div>
             <div class="text-subtitle2 text-bold">

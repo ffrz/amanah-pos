@@ -4,6 +4,7 @@ import {
   formatDateTime,
   formatDateTimeFromNow,
   formatNumber,
+  formatNumberWithSymbol,
 } from "@/helpers/formatter";
 import { handleDelete } from "@/helpers/client-req-handler";
 
@@ -65,12 +66,14 @@ const confirmDelete = () => {
       <tr>
         <td>Saldo Wallet</td>
         <td>:</td>
-        <td>Rp. {{ formatNumber(page.props.data.wallet_balance) }}</td>
+        <td>
+          Rp. {{ formatNumberWithSymbol(page.props.data.wallet_balance) }}
+        </td>
       </tr>
       <tr>
-        <td>Utang Penjualan</td>
+        <td>Saldo Utang / Piutang</td>
         <td>:</td>
-        <td>Rp. {{ formatNumber(page.props.data.balance) }}</td>
+        <td>Rp. {{ formatNumberWithSymbol(page.props.data.balance) }}</td>
       </tr>
       <tr>
         <td>Status</td>

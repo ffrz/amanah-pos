@@ -72,6 +72,9 @@ class PurchaseOrderReturnRefundService
                     $this->supplierService->addToBalance($supplier, -$amount);
                 }
             }
+
+            $return->updateBalanceAndStatus();
+            $return->save();
         });
     }
 
@@ -106,14 +109,6 @@ class PurchaseOrderReturnRefundService
         DB::transaction(function () use ($orderReturn) {
             $orderReturn->loadMissing('payments');
             $this->deleteRefundsImpl($orderReturn->payments);
-            // $orderReturn->updateTotals();
-            // $orderReturn->save();
-
-            // if ($orderReturn->purchaseOrder) {
-            //     $return = $orderReturn->purchaseOrder;
-            //     $return->updateTotals();
-            //     $return->save();
-            // }
         });
     }
 

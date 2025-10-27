@@ -29,6 +29,7 @@ class SalesOrderPayment extends BaseModel
     protected $fillable = [
         'code',
         'order_id',
+        'return_id',
         'finance_account_id',
         'customer_id',
         'type',
@@ -76,6 +77,11 @@ class SalesOrderPayment extends BaseModel
     public function order()
     {
         return $this->belongsTo(SalesOrder::class, 'order_id');
+    }
+
+    public function return()
+    {
+        return $this->belongsTo(SalesOrderReturn::class, 'return_id');
     }
 
     public function account()

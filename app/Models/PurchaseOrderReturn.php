@@ -159,17 +159,13 @@ class PurchaseOrderReturn extends BaseModel
     public function updateBalanceAndStatus()
     {
         if ($this->purchaseOrder) {
-            // pengambilan ini memungkinkan kita untuk menyinkronkan refund dari beberapa transaksi retur
-            $this->total_refunded = abs(PurchaseOrderPayment::where('order_id', $this->purchase_order_id)
-                ->where('amount', '>', 0)
+            $this->total_refunded = abs(PurchaseOrderPayment::where('return_id', $this->id)
                 ->sum('amount'));
-
-            $balance = $this->purchaseOrder->balance; // positif berarti lebih (piutang), negatif kurang (utang)
-            $this->remaining_refund = $this->grand_total - $this->total_refunded - $balance;
-            // dd($this->grand_total, $this->total_refunded, $balance, $this->remaining_refund);
+            $this->remaining_refund = $this->purchaseOrder->balance;
         } else {
             $this->total_refunded = abs(PurchaseOrderPayment::where('return_id', $this->id)
                 ->sum('amount'));
+            $this->remaining_refund = $this->grand_total - $this->total_refunded;
         }
 
         $this->refund_status = PurchaseOrderReturn::RefundStatus_Pending;

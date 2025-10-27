@@ -68,6 +68,11 @@ class PurchaseOrderPaymentService
 
             $order->updateTotals();
             $order->save();
+
+            foreach ($order->returns as $return) {
+                $return->updateBalanceAndStatus();
+                $return->save();
+            }
         });
     }
 
@@ -97,6 +102,11 @@ class PurchaseOrderPaymentService
 
             $order->updateTotals();
             $order->save();
+
+            foreach ($order->returns as $return) {
+                $return->updateBalanceAndStatus();
+                $return->save();
+            }
         });
     }
 

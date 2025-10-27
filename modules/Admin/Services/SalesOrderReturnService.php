@@ -104,6 +104,7 @@ class SalesOrderReturnService
         $item = new SalesOrderReturn([
             'sales_order_id' => $order->id,
             'customer_id' => $order->customer_id,
+            'customer_code' => $order->customer_code,
             'customer_name' => $order->customer_name,
             'customer_phone' => $order->customer_phone,
             'customer_address' => $order->customer_address,
@@ -173,6 +174,7 @@ class SalesOrderReturnService
     public function getOrderWithDetails($id): SalesOrderReturn
     {
         return SalesOrderReturn::with([
+            'salesOrder',
             'customer',
             'details',
             'refunds',
@@ -187,35 +189,65 @@ class SalesOrderReturnService
 
         DB::transaction(function () use ($salesOrderReturn, $data) {
             $salesOrderReturn->status = SalesOrderReturn::Status_Closed;
-            $salesOrderReturn->updateTotals();
+            $salesOrderReturn->updateGrandTotal();
+            $salesOrderReturn->updateBalanceAndStatus();
+            $salesOrderReturn->save();
 
-            $salesOrder = $salesOrderReturn->salesOrder;
-            if ($salesOrder->remaining_debt > 0) {
-                $salesOrder->updateTotalPaid();
-                $salesOrder->save();
-
-                // FIXME: masih perlu update logic ini!
-                $customer = $salesOrder->customer;
-                $customer->balance += $salesOrderReturn->grand_total;
-                $customer->save();
-            } else {
-                $salesOrderReturn->remaining_refund = $salesOrderReturn->grand_total;
+            /**
+             * @var SalesOrder
+             */
+            $order = $salesOrderReturn->salesOrder;
+            $balanceDelta = 0;
+            if ($order) {
+                $oldBalance = $order->balance;
+                $order->updateTotals();
+                $order->save();
+                $balanceDelta = $order->balance - $oldBalance;
             }
 
+            $customer = $salesOrderReturn->customer;
+            if ($customer && $balanceDelta != 0) {
+                $customer = $this->customerService->addToBalance($customer, $balanceDelta);
+            }
+
+            // kita harus update lagi karena sebelumnya order belum diupdate
+            $salesOrderReturn->updateBalanceAndStatus();
             $salesOrderReturn->save();
+
+            // dd($return->remaining_refund);
             $this->processSalesOrderReturnStockIn($salesOrderReturn);
         });
     }
 
     // IN PROGRESS
-    public function deleteOrderReturn(SalesOrderReturn $order)
+    public function deleteOrderReturn(SalesOrderReturn $return)
     {
-        DB::transaction(function () use ($order) {
-            if ($order->status == SalesOrderReturn::Status_Closed) {
-                $this->reverseStock($order);
-                $this->refundService->deleteRefunds($order);
+        DB::transaction(function () use ($return) {
+            if ($return->status == SalesOrderReturn::Status_Closed) {
+                $this->reverseStock($return);
+                $this->refundService->deleteRefunds($return);
             }
-            $order->delete();
+
+            $return->delete();
+
+            if ($return->status == SalesOrderReturn::Status_Closed) {
+                /**
+                 * @var SalesOrder
+                 */
+                $order = $return->salesOrder;
+                $balanceDelta = 0;
+                if ($order) {
+                    $oldBalance = $order->balance;
+                    $order->updateTotals();
+                    $order->save();
+                    $balanceDelta = $order->balance - $oldBalance;
+                }
+
+                $customer = $return->customer;
+                if ($customer && $balanceDelta != 0) {
+                    $this->customerService->addToBalance($customer, $balanceDelta);
+                }
+            }
         });
     }
 

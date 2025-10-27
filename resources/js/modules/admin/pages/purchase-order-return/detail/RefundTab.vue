@@ -193,7 +193,7 @@ const deletePayment = (payment) => {
               class="text-right q-pa-sm"
               style="border-bottom: 1px solid #eee"
             >
-              {{ formatNumberWithSymbol(item.amount) }}
+              {{ formatNumber(item.amount) }}
             </td>
             <td
               class="text-right q-pa-sm"
@@ -217,9 +217,9 @@ const deletePayment = (payment) => {
         </tbody>
         <tfoot>
           <tr>
-            <th class="text-right q-pa-sm" colspan="1">Saldo</th>
+            <th class="text-right q-pa-sm" colspan="1">Total Refund (Rp.)</th>
             <th class="text-right q-pa-sm">
-              {{ formatNumberWithSymbol(props.data.remaining_refund) }}
+              {{ formatNumber(props.data.total_refunded) }}
             </th>
             <th></th>
           </tr>

@@ -23,6 +23,7 @@ const props = defineProps({
 const openLink = () => {
   if (props.target == "_self") {
     router[props.method](props.href);
+    return;
   }
   window.open(props.href, props.target);
 };

@@ -29,7 +29,7 @@ class SalesOrderDetailService
 
     public function findItemOrFail($id): SalesOrderDetail
     {
-        return SalesOrderDetail::with(['parent'])->findOrFail($id);
+        return SalesOrderDetail::with(['order'])->findOrFail($id);
     }
 
     private function ensureOrderIsEditable(SalesOrder $order)
@@ -65,7 +65,7 @@ class SalesOrderDetailService
         $item = null;
         if ($merge) {
             // kalo gabung cari rekaman yang sudah ada
-            $item = SalesOrderDetail::where('parent_id', '=', $order->id)
+            $item = SalesOrderDetail::where('order_id', '=', $order->id)
                 ->where('product_id', '=', $product->id)
                 ->get()
                 ->first();
@@ -84,7 +84,7 @@ class SalesOrderDetailService
             $item->subtotal_price = $item->price * $item->quantity;
         } else {
             $item = new SalesOrderDetail([
-                'parent_id' => $order->id,
+                'order_id' => $order->id,
                 'product_id' => $product->id,
                 'product_name' => $product->name,
                 'product_barcode' => $product->barcode,
@@ -113,7 +113,7 @@ class SalesOrderDetailService
         /**
          * @var SalesOrder
          */
-        $order = $item->parent;
+        $order = $item->order;
 
         $this->ensureOrderIsEditable($order);
 
@@ -145,7 +145,7 @@ class SalesOrderDetailService
         /**
          * @var SalesOrder
          */
-        $order = $item->parent;
+        $order = $item->order;
 
         $this->ensureOrderIsEditable($order);
 

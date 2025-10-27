@@ -36,9 +36,10 @@ class SalesOrderReturnRefundService
 
     public function findOrFail(int $id): SalesOrderPayment
     {
-        return SalesOrderPayment::with(['salesOrderReturn', 'salesOrderReturn.customer'])->findOrFail($id);
+        return SalesOrderPayment::with(['return', 'return.customer'])->findOrFail($id);
     }
 
+    // OK
     public function addRefund(SalesOrderReturn $order, array $data): void
     {
         $this->ensureOrderIsProcessable($order);
@@ -47,21 +48,37 @@ class SalesOrderReturnRefundService
             throw new BusinessRuleViolationException('Jumlah refund harus lebih dari nol.');
         }
 
-        if ($data['amount'] > ($order->salesOrder->total_paid - $order->total_refunded)) {
-            throw new BusinessRuleViolationException('Jumlah refund melebihi batas yang diperbolehkan.');
-        }
+        // if ($data['amount'] > ($order->salesOrder->total_paid - $order->total_refunded)) {
+        //     throw new BusinessRuleViolationException('Jumlah refund melebihi batas yang diperbolehkan.');
+        // }
 
-        if ($order->remaining_refund <= 0) {
-            throw new BusinessRuleViolationException('Pesanan ini sudah lunas.');
-        }
+        // if ($order->remaining_refund <= 0) {
+        //     throw new BusinessRuleViolationException('Pesanan ini sudah lunas.');
+        // }
 
         DB::transaction(function () use ($order, $data) {
             $amount = intval($data['amount']);
             $result = $this->processAndValidatePaymentMethod($order, $data['id'], $amount);
             $refund = $this->createRefundRecord($order, $result);
             $this->processFinancialRecords($refund);
-            $order->updateTotalRefunded($amount);
+            $order->updateBalanceAndStatus();
             $order->save();
+
+            if ($order->sales_order_id) {
+                $salesOrder = $order->salesOrder;
+                if ($salesOrder) {
+                    $salesOrder->updateTotals();
+                    $salesOrder->save();
+                }
+
+                // dd($order->grand_total, $salesOrder->balance);
+
+                $customer = $salesOrder->customer;
+                if ($customer && $amount != 0) {
+                    $this->customerService->addToBalance($customer, -$amount);
+                }
+            }
+            // dd($order->remaining_refund);
         });
     }
 
@@ -95,10 +112,8 @@ class SalesOrderReturnRefundService
         $this->ensureOrderIsProcessable($orderReturn);
 
         DB::transaction(function () use ($orderReturn) {
-            $orderReturn->loadMissing('refunds');
-            $total_amount = $this->deleteRefundsImpl($orderReturn->refunds);
-            $orderReturn->updateTotalRefunded($total_amount);
-            $orderReturn->save();
+            $orderReturn->loadMissing('payments');
+            $this->deleteRefundsImpl($orderReturn->refunds);
         });
     }
 
@@ -107,12 +122,26 @@ class SalesOrderReturnRefundService
         /**
          * @var SalesOrderReturn
          */
-        $returnOrder = $refund->salesOrderReturn;
+        $returnOrder = $refund->return;
         $this->ensureOrderIsProcessable($returnOrder);
 
         DB::transaction(function () use ($returnOrder, $refund) {
-            $total_amount = $this->deleteRefundsImpl([$refund]);
-            $returnOrder->updateTotalRefunded(-$total_amount);
+            $amount = $this->deleteRefundsImpl([$refund]);
+
+            if ($returnOrder->salesOrder) {
+                $salesOrder = $returnOrder->salesOrder;
+                if ($salesOrder) {
+                    $salesOrder->updateTotals();
+                    $salesOrder->save();
+                }
+
+                $customer = $salesOrder->customer;
+                if ($customer && $amount != 0) {
+                    $this->customerService->addToBalance($customer, -$amount);
+                }
+            }
+
+            $returnOrder->updateBalanceAndStatus();
             $returnOrder->save();
         });
     }
@@ -150,14 +179,15 @@ class SalesOrderReturnRefundService
     /**
      * Membuat record pembayaran.
      */
-    private function createRefundRecord(SalesOrderReturn $order, array $data): SalesOrderPayment
+    private function createRefundRecord(SalesOrderReturn $return, array $data): SalesOrderPayment
     {
         $refund = new SalesOrderPayment([
-            'sales_order_return_id' => $order->id,
+            'order_id' => $return->sales_order_id ?? null,
+            'return_id' => $return->id,
             'finance_account_id' => $data['finance_account_id'],
-            'customer_id' => $order->customer?->id,
+            'customer_id' => $return->customer?->id,
             'type' => $data['payment_type'],
-            'amount' => $data['amount'],
+            'amount' => -$data['amount'], // REKAMAN REFUND SELALU NEGATIF!!!
             'notes' => $data['notes'] ?? '',
         ]);
         $refund->save();
@@ -179,7 +209,7 @@ class SalesOrderReturnRefundService
                     'amount' => -$refund->amount,
                     'ref_id' => $refund->id,
                     'ref_type' => FinanceTransaction::RefType_SalesOrderReturnRefund,
-                    'notes' => "Pembayaran transaksi #{$refund->salesOrderReturn->code}",
+                    'notes' => "Pembayaran transaksi #{$refund->return->code}",
                 ]);
 
                 // mengurangi saldo akun keuangan

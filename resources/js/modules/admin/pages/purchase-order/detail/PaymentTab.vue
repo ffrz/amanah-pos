@@ -208,7 +208,8 @@ const deletePayment = (payment) => {
               <q-btn
                 v-if="
                   $can('admin.purchase-order.delete-payment') &&
-                  props.data.supplier_id
+                  props.data.supplier_id &&
+                  item.amount < 0
                 "
                 icon="delete"
                 color="negative"

@@ -38,7 +38,7 @@ class SalesOrderPaymentService
         return SalesOrderPayment::with(['order', 'order.customer'])->findOrFail($id);
     }
 
-    public function addPayments(SalesOrder $order, array $payments): void
+    public function addPayments(SalesOrder $order, array $payments, $updateCustomerBalance = true): void
     {
         $this->ensureOrderIsProcessable($order);
 
@@ -46,7 +46,7 @@ class SalesOrderPaymentService
             throw new BusinessRuleViolationException('Pesanan ini sudah lunas.');
         }
 
-        DB::transaction(function () use ($order, $payments) {
+        DB::transaction(function () use ($order, $payments, $updateCustomerBalance) {
             $totalPaidAmount = 0;
 
             foreach ($payments as $inputPayment) {
@@ -63,6 +63,10 @@ class SalesOrderPaymentService
 
             $order->updateTotals();
             $order->save();
+
+            if ($order->customer_id && $updateCustomerBalance) {
+                $this->customerService->addToBalance($order->customer, abs($totalPaidAmount));
+            }
         });
     }
 
@@ -101,14 +105,18 @@ class SalesOrderPaymentService
         DB::transaction(function () use ($order) {
             // Memastikan relasi payments terload sebelum diteruskan ke impl
             $order->loadMissing('payments');
-            $this->deletePaymentsImpl($order->payments);
+            $delta = $this->deletePaymentsImpl($order->payments);
 
             $order->updateTotals();
             $order->save();
+
+            if ($order->customer_id) {
+                $this->customerService->addToBalance($order->customer, -abs($delta));
+            }
         });
     }
 
-    public function deletePayment(SalesOrderPayment $payment): void
+    public function deletePayment(SalesOrderPayment $payment, $updateCustomerBalance = true): void
     {
         /**
          * @var SalesOrder
@@ -120,10 +128,15 @@ class SalesOrderPaymentService
             throw new BusinessRuleViolationException("Tidak dapat mencatat utang tanpa ada pelanggan.");
         }
 
-        DB::transaction(function () use ($order, $payment) {
+        DB::transaction(function () use ($order, $payment, $updateCustomerBalance) {
             $this->deletePaymentsImpl([$payment]);
-            $order->updateTotalPaid();
+
+            $order->updateTotals();
             $order->save();
+
+            if ($updateCustomerBalance && $order->customer_id) {
+                $this->customerService->addToBalance($order->customer, -abs($payment->amount));
+            }
         });
     }
 
@@ -211,12 +224,6 @@ class SalesOrderPaymentService
             Customer::where('id', $payment->order->customer_id)
                 ->decrement('wallet_balance', $payment->amount);
         }
-
-        if ($payment->order?->customer) {
-            // Pembayaran mengurangi utang/piutang (balance) pelanggan
-            Customer::where('id', $payment->order->customer->id)
-                ->increment('balance', $payment->amount);
-        }
     }
 
     /**
@@ -244,12 +251,6 @@ class SalesOrderPaymentService
             // Tambah kembali saldo wallet pelanggan (membalikkan decrement saat bayar)
             Customer::where('id', $payment->order->customer_id)
                 ->increment('wallet_balance', $payment->amount);
-        }
-
-        if ($payment->order->customer_id) {
-            // Tambah kembali utang/piutang pelanggan (membalikkan decrement saat bayar)
-            Customer::where('id', $payment->order->customer_id)
-                ->decrement('balance', $payment->amount);
         }
     }
 }

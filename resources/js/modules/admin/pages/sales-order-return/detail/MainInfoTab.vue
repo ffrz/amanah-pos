@@ -72,11 +72,26 @@ const props = defineProps({
       </div>
 
       <div class="col-12 col-sm-6" align="left">
-        <div class="text-subtitle2 text-bold text-grey-8">
-          Info Retur Penjualan
-        </div>
+        <div class="text-subtitle2 text-bold text-grey-8">Info Retur</div>
         <table class="full-width">
           <tbody>
+            <tr>
+              <td class="text-grey-7" style="width: 130px">Order</td>
+              <td style="width: 1px">:</td>
+              <td>
+                <my-link
+                  :href="
+                    route('admin.sales-order.detail', {
+                      id: props.data.sales_order_id,
+                    })
+                  "
+                >
+                  {{
+                    props.data.sales_order_id ? props.data.sales_order.code : ""
+                  }}
+                </my-link>
+              </td>
+            </tr>
             <tr>
               <td class="text-grey-7" style="width: 130px">Waktu</td>
               <td style="width: 1px">:</td>
@@ -180,6 +195,24 @@ const props = defineProps({
             <div class="text-subtitle2 text-grey-7">Grand Total (Rp)</div>
             <div class="text-subtitle2 text-bold">
               {{ formatNumber(props.data.grand_total) }}
+            </div>
+          </div>
+        </div>
+        <div class="row justify-end q-gutter-y-xs">
+          <div class="col-12 row justify-between">
+            <div class="text-subtitle2 text-grey-7">Total Direfund (Rp)</div>
+            <div class="text-subtitle2 text-bold">
+              {{ formatNumber(props.data.total_refunded) }}
+            </div>
+          </div>
+        </div>
+        <div class="row justify-end q-gutter-y-xs">
+          <div class="col-12 row justify-between">
+            <div class="text-subtitle2 text-grey-7">Saldo (Rp)</div>
+            <div class="text-subtitle2 text-bold">
+              {{
+                formatNumber(props.data.grand_total - props.data.total_refunded)
+              }}
             </div>
           </div>
         </div>

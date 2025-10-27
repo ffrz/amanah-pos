@@ -166,7 +166,7 @@ class SalesOrderController extends Controller
     public function updateItem(Request $request)
     {
         $detail = $this->detailService->findItemOrFail($request->post('id'));
-        $this->authorize('update', $detail->parent);
+        $this->authorize('update', $detail->order);
         $this->detailService->updateItem($detail, $request->all());
         $detail->loadMissing('product');
         return JsonResponseHelper::success($detail, 'Item telah diperbarui.');
@@ -175,7 +175,7 @@ class SalesOrderController extends Controller
     public function removeItem(Request $request)
     {
         $item = $this->detailService->findItemOrFail($request->id);
-        $this->authorize('update', $item->parent);
+        $this->authorize('update', $item->order);
         $this->detailService->deleteItem($item);
         return JsonResponseHelper::success($item, 'Item telah dihapus.');
     }

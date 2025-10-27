@@ -18,7 +18,6 @@ namespace App\Models;
 
 use App\Models\Traits\HasDocumentVersions;
 use App\Models\Traits\HasTransactionCode;
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SalesOrder extends BaseModel
@@ -182,7 +181,8 @@ class SalesOrder extends BaseModel
 
     public function details()
     {
-        return $this->hasMany(SalesOrderDetail::class, 'parent_id');
+        return $this->hasMany(SalesOrderDetail::class, 'order_id')
+            ->whereNull('return_id');
     }
 
     public function payments()
@@ -211,7 +211,7 @@ class SalesOrder extends BaseModel
             ->where('status', SalesOrderReturn::Status_Closed)
             ->sum('grand_total');
 
-        $this->total_paid = -SalesOrderPayment::where('order_id', $this->id)
+        $this->total_paid = SalesOrderPayment::where('order_id', $this->id)
             ->sum('amount');
 
         $this->balance = - ($this->grand_total - $this->total_paid - $this->total_return);

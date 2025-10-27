@@ -18,7 +18,6 @@ namespace App\Models;
 
 use App\Models\Traits\HasDocumentVersions;
 use App\Models\Traits\HasTransactionCode;
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -83,11 +82,13 @@ class SalesOrderReturn extends BaseModel
     public const RefundStatus_Pending   = 'pending';
     public const RefundStatus_PartiallyRefunded = 'partially_refunded';
     public const RefundStatus_FullyRefunded   = 'fully_refunded';
+    public const RefundStatus_NoRefund   = 'no_refund';
 
     public const RefundStatuses = [
         self::RefundStatus_Pending   => 'Menunggu Refund',
         self::RefundStatus_PartiallyRefunded => 'Refund Sebagian',
         self::RefundStatus_FullyRefunded   => 'Refund Lunas',
+        self::RefundStatus_NoRefund   => 'Tidak ada Refund',
     ];
 
 
@@ -144,32 +145,50 @@ class SalesOrderReturn extends BaseModel
 
     public function details(): HasMany
     {
-        return $this->hasMany(SalesOrderReturnDetail::class);
+        return $this->hasMany(SalesOrderDetail::class, 'return_id');
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(SalesOrderPayment::class, 'return_id');
     }
 
     public function refunds(): HasMany
     {
-        return $this->hasMany(SalesOrderPayment::class);
+        return $this->hasMany(SalesOrderPayment::class, 'return_id');
     }
 
-    public function updateTotals(): void
+    public function updateGrandTotal(): void
     {
         $this->total_cost = $this->details()->sum('subtotal_cost');
         $this->total_price = $this->details()->sum('subtotal_price');
-        // TODO: hitung pajak dan dan diskon disini
-        $this->grand_total = $this->total_price;
+        $this->grand_total = $this->total_price + $this->total_tax - $this->total_discount;
     }
 
-    public function updateTotalRefunded($requestedAmount)
+    public function updateBalanceAndStatus()
     {
-        $this->total_refunded += $requestedAmount;
-        $this->remaining_refund = $this->grand_total - $this->total_refunded;
+        if ($this->salesOrder) {
+            // pengambilan ini memungkinkan kita untuk menyinkronkan refund dari beberapa transaksi retur
+            $this->total_refunded = abs(SalesOrderPayment::where('return_id', $this->id)
+                ->sum('amount'));
+
+            // FIXME: ini hanya memungkinkan sisa refund dari order utama
+            $this->remaining_refund = $this->salesOrder->balance;
+            // dd($this->grand_total, $this->total_refunded, $this->remaining_refund);
+        } else {
+            $this->total_refunded = abs(SalesOrderPayment::where('return_id', $this->id)
+                ->sum('amount'));
+            $this->remaining_refund = $this->grand_total - $this->total_refunded;
+        }
+
+        $this->refund_status = SalesOrderReturn::RefundStatus_Pending;
+
         if ($this->total_refunded >= $this->grand_total) {
             $this->refund_status = SalesOrderReturn::RefundStatus_FullyRefunded;
         } else if ($this->total_refunded > 0) {
             $this->refund_status = SalesOrderReturn::RefundStatus_PartiallyRefunded;
-        } else {
-            $this->refund_status = SalesOrderReturn::RefundStatus_Pending;
+        } else if ($this->remaining_refund <= 0) {
+            $this->refund_status = SalesOrderReturn::RefundStatus_NoRefund;
         }
     }
 }

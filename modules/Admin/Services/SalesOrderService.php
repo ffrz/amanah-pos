@@ -20,6 +20,7 @@ use App\Exceptions\BusinessRuleViolationException;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\SalesOrder;
+use App\Models\SalesOrderReturn;
 use App\Models\Setting;
 use App\Models\StockMovement;
 use App\Models\UserActivityLog;
@@ -225,13 +226,6 @@ class SalesOrderService
             $order->cashier_id = Auth::user()->id;
             $order->cashier_session_id = $cashierSession ? $cashierSession->id : null;
 
-            if ($order->customer_id) {
-                // di awal kita catat sebagai utang dulu
-                // Utang customer adalah nilai negatif
-                Customer::where('id', $order->customer_id)
-                    ->decrement('balance', $order->grand_total);
-            }
-
             // Logika handle kembalian
             if (isset($data['change']) && $data['change'] > 0) {
                 // hitung ulang di server agar lebih aman
@@ -240,11 +234,16 @@ class SalesOrderService
             }
 
             // Simpan dan proses pembayaran
-            $this->paymentService->addPayments($order, $data['payments'] ?? []);
+            $this->paymentService->addPayments($order, $data['payments'] ?? [], false);
 
-            // Update kembalian
+            // save order
             $order->updateTotals();
             $order->save();
+
+            // catat utang piutang
+            if ($order->customer_id && $order->balance != 0) {
+                $this->customerService->addToBalance($order->customer, $order->balance);
+            }
 
             // Perbarui stok produk secara massal
             $this->processSalesOrderStockOut($order);
@@ -308,6 +307,10 @@ class SalesOrderService
         $cashierSession = $order->cashierSession;
         if ($cashierSession && $cashierSession->is_closed) {
             throw new BusinessRuleViolationException("Transaksi tidak dapat dihapus! Sesi kasir untuk Order #$order->code sudah ditutup!");
+        }
+
+        if (SalesOrderReturn::where('sales_order_id', $order->id)->exists()) {
+            throw new BusinessRuleViolationException('Tidak dapat dihapus karena ada transaksi retur!');
         }
 
         DB::transaction(function () use ($order) {

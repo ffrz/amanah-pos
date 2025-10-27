@@ -23,7 +23,8 @@ class SalesOrderDetail extends BaseModel
     use SoftDeletes;
 
     protected $fillable = [
-        'parent_id',
+        'order_id',
+        'return_id',
         'product_id',
         'product_name',
         'product_barcode',
@@ -39,7 +40,8 @@ class SalesOrderDetail extends BaseModel
     protected function casts(): array
     {
         return [
-            'parent_id'       => 'integer',
+            'order_id'        => 'integer',
+            'return_id'       => 'integer',
             'product_id'      => 'integer',
             'product_name'    => 'string',
             'product_uom'     => 'string',
@@ -78,9 +80,14 @@ class SalesOrderDetail extends BaseModel
         return (float) $value;
     }
 
-    public function parent()
+    public function order()
     {
-        return $this->belongsTo(SalesOrder::class, 'parent_id');
+        return $this->belongsTo(SalesOrder::class, 'order_id');
+    }
+
+    public function return()
+    {
+        return $this->belongsTo(SalesOrderReturn::class, 'return_id');
     }
 
     public function product()

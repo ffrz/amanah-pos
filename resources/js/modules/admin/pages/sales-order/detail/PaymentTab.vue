@@ -10,10 +10,6 @@ const props = defineProps({
   data: Object,
 });
 
-const remainingPayment = computed(() => {
-  return parseFloat(props.data.remaining_debt);
-});
-
 const $q = useQuasar();
 const showPaymentDialog = ref(false);
 
@@ -121,7 +117,7 @@ const deletePayment = (payment) => {
     <q-card-section class="q-pa-sm">
       <div class="row">
         <q-btn
-          v-if="$can('admin.sales-order.add-payment') && remainingPayment > 0"
+          v-if="$can('admin.sales-order.add-payment')"
           label="Tambah"
           color="primary"
           icon="add"
@@ -185,6 +181,11 @@ const deletePayment = (payment) => {
                   color="secondary"
                   class="q-py-xs"
                 />
+                <q-badge
+                  :label="item.amount > 0 ? 'Pembayaran' : 'Refund'"
+                  :color="item.amount > 0 ? 'green' : 'red'"
+                  class="q-py-xs q-ml-sm"
+                />
               </div>
             </td>
             <td
@@ -200,7 +201,8 @@ const deletePayment = (payment) => {
               <q-btn
                 v-if="
                   $can('admin.sales-order.delete-payment') &&
-                  props.data.customer_id
+                  props.data.customer_id &&
+                  item.amount > 0
                 "
                 icon="delete"
                 color="negative"
@@ -218,16 +220,9 @@ const deletePayment = (payment) => {
         </tbody>
         <tfoot>
           <tr>
-            <th class="text-right q-pa-sm" colspan="1">Total Dibayar</th>
+            <th class="text-right q-pa-sm" colspan="1">Saldo</th>
             <th class="text-right q-pa-sm">
-              {{ formatNumber(props.data.total_paid) }}
-            </th>
-            <th></th>
-          </tr>
-          <tr>
-            <th class="text-right q-pa-sm" colspan="1">Sisa Tagihan</th>
-            <th class="text-right q-pa-sm">
-              {{ formatNumber(remainingPayment) }}
+              {{ formatNumber(props.data.balance) }}
             </th>
             <td></td>
           </tr>
@@ -238,7 +233,7 @@ const deletePayment = (payment) => {
 
   <PaymentDialog
     v-model="showPaymentDialog"
-    :total="remainingPayment"
+    :total="Math.abs(props.data.balance)"
     :customer="props.data.customer"
     @accepted="handleAcceptedPayment"
   />

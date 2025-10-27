@@ -19,7 +19,6 @@ namespace Modules\Admin\Services;
 use App\Exceptions\BusinessRuleViolationException;
 use App\Models\SalesOrderDetail;
 use App\Models\SalesOrderReturn;
-use App\Models\SalesOrderReturnDetail;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 
@@ -30,9 +29,9 @@ class SalesOrderReturnDetailService
     ) {}
 
     // OK
-    public function findItemOrFail($id): SalesOrderReturnDetail
+    public function findItemOrFail($id): SalesOrderDetail
     {
-        return SalesOrderReturnDetail::with(['parent'])->findOrFail($id);
+        return SalesOrderDetail::with(['order'])->findOrFail($id);
     }
 
     // OK
@@ -46,28 +45,29 @@ class SalesOrderReturnDetailService
     // TODO: CHECK THIS!!!
     private function getMaxQuantity($sales_order_id, $product_id)
     {
-        $total_sales_quantity = SalesOrderDetail::where('parent_id', $sales_order_id)
+        $total_sales_quantity = SalesOrderDetail::where('order_id', $sales_order_id)
+            ->whereNull('return_id')
             ->where('product_id', $product_id)
             ->sum('quantity');
 
-        $total_returned_quantity = SalesOrderReturnDetail::where('product_id', $product_id)
-            ->join('sales_order_returns as sor', 'sor.id', '=', 'sales_order_return_details.sales_order_return_id')
+        $total_returned_quantity = SalesOrderDetail::where('product_id', $product_id)
+            ->join('sales_order_returns as sor', 'sor.id', '=', 'sales_order_details.return_id')
             ->where('sor.sales_order_id', $sales_order_id)
             ->whereNull('sor.deleted_at')
             ->where('sor.status', 'closed')
-            ->sum('sales_order_return_details.quantity');
+            ->sum('sales_order_details.quantity');
 
         return $total_sales_quantity - $total_returned_quantity;
     }
 
     // OK
-    public function addItem(SalesOrderReturn $orderReturn, array $data): SalesOrderReturnDetail
+    public function addItem(SalesOrderReturn $orderReturn, array $data): SalesOrderDetail
     {
         $this->ensureOrderIsEditable($orderReturn);
 
         $merge = $data['merge'] ?? false;
         $product = $this->productService->findProductByCodeOrId($data);
-        $orderDetail = SalesOrderDetail::where('parent_id', $orderReturn->sales_order_id)
+        $orderDetail = SalesOrderDetail::where('order_id', $orderReturn->sales_order_id)
             ->where('product_id', $product->id)
             ->first();
         $maxQuantity = $this->getMaxQuantity($orderReturn->sales_order_id, $product->id);
@@ -91,7 +91,7 @@ class SalesOrderReturnDetailService
         $item = null;
         if ($merge) {
             // kalo gabung cari rekaman yang sudah ada
-            $item = SalesOrderReturnDetail::where('sales_order_return_id', '=', $orderReturn->id)
+            $item = SalesOrderDetail::where('return_id', '=', $orderReturn->id)
                 ->where('product_id', '=', $product->id)
                 ->get()
                 ->first();
@@ -109,8 +109,9 @@ class SalesOrderReturnDetailService
             $item->subtotal_cost  = $item->cost  * $item->quantity;
             $item->subtotal_price = $item->price * $item->quantity;
         } else {
-            $returnDetail = new SalesOrderReturnDetail([
-                'sales_order_return_id' => $orderReturn->id,
+            $returnDetail = new SalesOrderDetail([
+                'order_id' => $orderReturn->sales_order_id,
+                'return_id' => $orderReturn->id,
                 'product_id' => $orderDetail->product_id,
                 'product_name' => $orderDetail->product_name,
                 'product_barcode' => $orderDetail->product_barcode,
@@ -131,7 +132,7 @@ class SalesOrderReturnDetailService
         return DB::transaction(function () use ($orderReturn, $returnDetail) {
             $returnDetail->save();
 
-            $orderReturn->updateTotals();
+            $orderReturn->updateGrandTotal();
             $orderReturn->save();
 
             return $returnDetail;
@@ -139,12 +140,12 @@ class SalesOrderReturnDetailService
     }
 
     // OK
-    public function updateItem(SalesOrderReturnDetail $item, array $data): void
+    public function updateItem(SalesOrderDetail $item, array $data): void
     {
         /**
          * @var SalesOrderReturn
          */
-        $order = $item->parent;
+        $order = $item->return;
         $maxQuantity = $this->getMaxQuantity($order->sales_order_id, $item->product_id);
 
         $this->ensureOrderIsEditable($order);
@@ -170,24 +171,24 @@ class SalesOrderReturnDetailService
 
         DB::transaction(function () use ($order, $item) {
             $item->save();
-            $order->updateTotals();
+            $order->updateGrandTotal();
             $order->save();
         });
     }
 
     // OK
-    public function deleteItem(SalesOrderReturnDetail $item): void
+    public function deleteItem(SalesOrderDetail $item): void
     {
         /**
          * @var SalesOrderReturn
          */
-        $order = $item->parent;
+        $order = $item->return;
 
         $this->ensureOrderIsEditable($order);
 
         DB::transaction(function () use ($order, $item) {
             $item->delete();
-            $order->updateTotals();
+            $order->updateGrandTotal();
             $order->save();
         });
     }
