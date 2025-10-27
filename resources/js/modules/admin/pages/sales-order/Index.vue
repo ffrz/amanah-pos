@@ -100,9 +100,9 @@ const columns = [
     align: "right",
   },
   {
-    name: "remaining_debt",
-    label: "Sisa Utang (Rp)",
-    field: "remaining_debt",
+    name: "balance",
+    label: "Saldo (Rp)",
+    field: "balance",
     align: "right",
   },
   {
@@ -398,9 +398,17 @@ watch(
                     {{ props.row.customer.name }}
                   </my-link>
                 </div>
-                <div>Total: Rp. {{ formatNumber(props.row.grand_total) }}</div>
-                <div v-if="props.row.remaining_debt > 0">
-                  Sisa Utang: Rp. {{ formatNumber(props.row.remaining_debt) }}
+                <div>
+                  <q-icon name="wallet" class="inline-icon" /> Total: Rp.
+                  {{ formatNumber(props.row.grand_total) }}
+                </div>
+                <div
+                  v-if="props.row.balance != 0"
+                  :class="props.row.balance > 0 ? 'text-green' : 'text-red'"
+                >
+                  <q-icon name="balance" class="inline-icon" />
+                  {{ props.row.balance > 0 ? "Piutang" : "Utang" }}: Rp.
+                  {{ formatNumber(props.row.balance) }}
                 </div>
                 <div v-if="props.row.notes">
                   <q-icon name="notes" /> {{ props.row.notes }}
@@ -408,13 +416,15 @@ watch(
               </template>
               <div>
                 <SalesOrderStatusChip :status="props.row.status" />
-                <SalesOrderPaymentStatusChip
-                  :status="props.row.payment_status"
-                />
-                <SalesOrderDeliveryStatusChip
-                  v-if="false"
-                  :status="props.row.delivery_status"
-                />
+                <template v-if="props.row.status == 'closed'">
+                  <SalesOrderPaymentStatusChip
+                    :status="props.row.payment_status"
+                  />
+                  <SalesOrderDeliveryStatusChip
+                    v-if="false"
+                    :status="props.row.delivery_status"
+                  />
+                </template>
               </div>
             </q-td>
             <q-td key="cashier_id" :props="props">
@@ -447,8 +457,12 @@ watch(
             <q-td key="grand_total" :props="props">
               {{ formatNumber(props.row.grand_total) }}
             </q-td>
-            <q-td key="remaining_debt" :props="props">
-              {{ formatNumber(props.row.remaining_debt) }}
+            <q-td
+              key="balance"
+              :props="props"
+              :class="props.row.balance > 0 ? 'text-green' : 'text-red'"
+            >
+              {{ formatNumber(props.row.balance) }}
             </q-td>
             <q-td key="notes" :props="props">
               <LongTextView :text="props.row.notes" icon="notes" />

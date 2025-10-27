@@ -220,7 +220,6 @@ class SalesOrderService
             $this->updateTotalAndValidateClientTotal($order, $data['total'] ?? 0);
 
             $order->status = SalesOrder::Status_Closed;
-            $order->remaining_debt = $order->grand_total;
             $order->delivery_status = SalesOrder::DeliveryStatus_PickedUp;
             $order->due_date = $data['due_date'] ?? null;
             $order->cashier_id = Auth::user()->id;
@@ -244,6 +243,7 @@ class SalesOrderService
             $this->paymentService->addPayments($order, $data['payments'] ?? []);
 
             // Update kembalian
+            $order->updateTotals();
             $order->save();
 
             // Perbarui stok produk secara massal
@@ -313,32 +313,22 @@ class SalesOrderService
         DB::transaction(function () use ($order) {
             if ($order->status == SalesOrder::Status_Closed) {
                 $this->reverseStock($order);
-
-                if ($order->customer_id) {
-                    $this->customerService->addToBalance($order->customer, abs($order->grand_total));
-                }
-
                 $this->paymentService->deletePayments($order);
             }
+
             $order->delete();
+
+            if ($order->status == SalesOrder::Status_Closed) {
+                if ($order->customer_id && $order->balance != 0) {
+                    $this->customerService->addToBalance($order->customer, abs($order->grand_total));
+                }
+            }
         });
     }
 
-    private function updateTotalAndValidateClientTotal($order, $client_total)
+    private function updateTotalAndValidateClientTotal(SalesOrder $order, $client_total)
     {
-        // Hitung total biaya dan harga di server
-        $total_cost = $order->details->sum(function ($detail) {
-            return round($detail->cost * $detail->quantity);
-        });
-
-        // Lakukan hal yang sama untuk total_price
-        $total_price = $order->details->sum(function ($detail) {
-            return round($detail->price * $detail->quantity);
-        });
-
-        $order->total_cost = $total_cost;
-        $order->total_price = $total_price;
-        $order->grand_total = $order->total_price;
+        $order->updateGrandTotal();
 
         // Validasi grand total dengan input dari klien
         $clientTotal = intval($client_total);

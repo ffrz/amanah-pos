@@ -271,9 +271,10 @@ class PurchaseOrderService
 
             $order->delete();
 
-            $supplier = $order->supplier;
-            if ($supplier && $order->balance != 0) {
-                $this->supplierService->addToBalance($supplier, -$order->balance);
+            if ($order->status == PurchaseOrder::Status_Closed) {
+                if ($order->supplier_id && $order->balance != 0) {
+                    $this->supplierService->addToBalance($order->supplier, -$order->balance);
+                }
             }
 
             $this->documentVersionService->createDeletedVersion($order);

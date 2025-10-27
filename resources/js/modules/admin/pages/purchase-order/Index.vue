@@ -397,13 +397,15 @@ watch(
               </template>
               <div>
                 <PurchaseOrderStatusChip :status="props.row.status" />
-                <PurchaseOrderPaymentStatusChip
-                  :status="props.row.payment_status"
-                />
-                <PurchaseOrderDeliveryStatusChip
-                  v-if="false"
-                  :status="props.row.delivery_status"
-                />
+                <template v-if="props.row.status == 'closed'">
+                  <PurchaseOrderPaymentStatusChip
+                    :status="props.row.payment_status"
+                  />
+                  <PurchaseOrderDeliveryStatusChip
+                    v-if="false"
+                    :status="props.row.delivery_status"
+                  />
+                </template>
               </div>
             </q-td>
 

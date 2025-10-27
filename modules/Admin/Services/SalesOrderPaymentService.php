@@ -61,7 +61,7 @@ class SalesOrderPaymentService
                 throw new BusinessRuleViolationException('Jumlah pembayaran melebihi sisa tagihan.');
             }
 
-            $order->updateTotalPaid($order->total_paid + $totalPaidAmount);
+            $order->updateTotals();
             $order->save();
         });
     }
@@ -101,9 +101,9 @@ class SalesOrderPaymentService
         DB::transaction(function () use ($order) {
             // Memastikan relasi payments terload sebelum diteruskan ke impl
             $order->loadMissing('payments');
-            $total_amount = $this->deletePaymentsImpl($order->payments);
+            $this->deletePaymentsImpl($order->payments);
 
-            $order->updateTotalPaid($order->total_paid - $total_amount);
+            $order->updateTotals();
             $order->save();
         });
     }

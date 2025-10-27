@@ -48,11 +48,14 @@ class SalesOrder extends BaseModel
         'delivery_status',
         'total_cost',
         'total_price',
-        'total_paid',
         'total_discount',
         'total_tax',
+
         'grand_total',
-        'remaining_debt',
+        'total_paid',
+        'total_return',
+        'balance',
+
         'change',
         'notes',
     ];
@@ -133,14 +136,16 @@ class SalesOrder extends BaseModel
             'delivery_status' => 'string',
             'total_cost'      => 'decimal:2',
             'total_price'     => 'decimal:2',
-            'total_paid'      => 'decimal:2',
 
             'total_discount'  => 'decimal:2',
             'total_tax'       => 'decimal:2',
 
-            'grand_total'     => 'decimal:2',
-            'remaining_debt'  => 'decimal:2',
             'change'          => 'decimal:2',
+
+            'grand_total'     => 'decimal:2',
+            'total_paid'      => 'decimal:2',
+            'total_return'    => 'decimal:2',
+            'balance'         => 'decimal:2',
 
             'notes'           => 'string',
             'created_by' => 'integer',
@@ -150,27 +155,9 @@ class SalesOrder extends BaseModel
         ];
     }
 
-    protected function getTotalPriceAttribute(string $value): float
+    protected function getRemainingDebtAttribute(): float
     {
-        return (float) $value;
-    }
-
-    protected function getTotalCostAttribute(string $value): float
-    {
-        return (float) $value;
-    }
-
-    protected function getTotalPaidAttribute(string $value): float
-    {
-        return (float) $value;
-    }
-
-    public function getFormattedIdAttribute()
-    {
-        return Setting::value('sales_order_code_prefix', 'SO-')
-            . Carbon::parse($this->created_at)->format('Ymd')
-            . '-'
-            . $this->id;
+        return $this->grand_total - $this->total_return - $this->total_paid;
     }
 
     public function getTypeLabelAttribute()
@@ -218,34 +205,30 @@ class SalesOrder extends BaseModel
         return $this->belongsTo(CashierSession::class, 'cashier_session_id');
     }
 
-    public function updateTotalPaid()
+    public function updateTotals()
     {
-        // ignore total paid karena kita ganti mekanisme
-        $this->total_paid = $this->payments()->sum('amount');
-
-        // harusnya disini ambil data semua returan, kurangi grand tota dengan total retur yang telah di close
-        $totalRefund = SalesOrderReturn::where('sales_order_id', $this->id)
+        $this->total_return = SalesOrderReturn::where('sales_order_id', $this->id)
             ->where('status', SalesOrderReturn::Status_Closed)
-            ->whereNull('deleted_at')
             ->sum('grand_total');
 
-        // kenapa total refund masih gede?
-        $this->remaining_debt = max(0, $this->grand_total - $totalRefund - $this->total_paid);
+        $this->total_paid = -SalesOrderPayment::where('order_id', $this->id)
+            ->sum('amount');
 
-        if ($this->remaining_debt == 0) {
-            $this->payment_status = SalesOrder::PaymentStatus_FullyPaid;
-        } else if ($this->total_paid > 0) {
-            $this->payment_status = SalesOrder::PaymentStatus_PartiallyPaid;
+        $this->balance = - ($this->grand_total - $this->total_paid - $this->total_return);
+
+        if ($this->balance >= 0) {
+            $this->payment_status = self::PaymentStatus_FullyPaid;
+        } elseif ($this->total_paid > 0) {
+            $this->payment_status = self::PaymentStatus_PartiallyPaid;
         } else {
-            $this->payment_status = SalesOrder::PaymentStatus_Unpaid;
+            $this->payment_status = self::PaymentStatus_Unpaid;
         }
     }
 
-    public function updateTotals(): void
+    public function updateGrandTotal(): void
     {
-        $this->total_cost = $this->details()->sum('subtotal_cost');
+        $this->total_cost  = $this->details()->sum('subtotal_cost');
         $this->total_price = $this->details()->sum('subtotal_price');
-        // TODO: hitung pajak dan dan diskon disini
-        $this->grand_total = $this->total_price; // + pajak, - diskon, dll.
+        $this->grand_total = $this->total_price + $this->total_tax - $this->total_discount;
     }
 }
