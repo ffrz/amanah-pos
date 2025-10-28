@@ -9,6 +9,7 @@ import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
 import CheckBox from "@/components/CheckBox.vue";
 import PercentInput from "@/components/PercentInput.vue";
 import { onMounted, ref, watch } from "vue"; // <-- Import ref dan watch
+import BarcodeInput from "@/components/BarcodeInput.vue";
 
 const page = usePage();
 const title = (!!page.props.data.id ? "Edit" : "Tambah") + " Produk";
@@ -325,17 +326,22 @@ onMounted(() => {
               />
               <div class="text-subtitle1 q-pt-lg">Info Inventori</div>
               <div class="row q-gutter-md">
-                <q-input
-                  v-model.trim="form.uom"
-                  label="Satuan"
-                  lazy-rules
-                  :error="!!form.errors.uom"
-                  :disable="form.processing"
-                  :error-message="form.errors.uom"
-                  hide-bottom-space
-                  class="col"
-                />
-                <q-input
+                <div class="col">
+                  <q-input
+                    v-model.trim="form.uom"
+                    label="Satuan"
+                    lazy-rules
+                    :error="!!form.errors.uom"
+                    :disable="form.processing"
+                    :error-message="form.errors.uom"
+                    hide-bottom-space
+                  />
+                </div>
+                <div class="col">
+                  <BarcodeInput v-model.trim="barcode" />
+                </div>
+
+                <!-- <q-input
                   v-model.trim="form.barcode"
                   label="Barcode"
                   lazy-rules
@@ -344,7 +350,7 @@ onMounted(() => {
                   :error-message="form.errors.barcode"
                   hide-bottom-space
                   class="col"
-                />
+                /> -->
               </div>
 
               <div class="row q-gutter-md">
