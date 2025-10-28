@@ -7,7 +7,7 @@
       @update:model-value="updateValue"
       :disable="isScanning || $attrs.disable"
       :loading="isScanning || $attrs.loading"
-      clearable
+      :clearable="localValue && !localValue.endsWith('*')"
     >
       <template #prepend>
         <q-icon name="search" @click="emitSearch" class="cursor-pointer" />
@@ -15,7 +15,7 @@
 
       <template #append>
         <q-icon
-          v-if="isSupported && !isScanning && !localValue"
+          v-if="showScanButton"
           name="o_qr_code_scanner"
           class="cursor-pointer q-mr-sm"
           color="primary"
@@ -25,7 +25,7 @@
         </q-icon>
 
         <q-icon
-          v-if="localValue"
+          v-if="!showScanButton"
           name="send"
           @click="emitSend"
           class="cursor-pointer q-ml-md"
@@ -77,7 +77,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onBeforeUnmount } from "vue";
+import { ref, watch, onMounted, onBeforeUnmount, computed } from "vue";
 import { useQuasar } from "quasar";
 const qInputInternalRef = ref(null);
 
@@ -231,6 +231,12 @@ async function scanLoop() {
 
   rafId = requestAnimationFrame(scanLoop);
 }
+
+const showScanButton = computed(() => {
+  if (isSupported.value && !isScanning.value && !localValue.value) return true;
+  if (localValue.value.endsWith("*")) return true;
+  return false;
+});
 </script>
 
 <style scoped>

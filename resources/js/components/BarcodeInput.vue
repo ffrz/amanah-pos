@@ -6,7 +6,6 @@
       @update:model-value="updateValue"
       :disable="isScanning || $attrs.disable"
       :loading="isScanning || $attrs.loading"
-      clearable
     >
       <template v-for="(_, name) in $slots" #[name]="slotData">
         <slot v-if="name !== 'append'" :name="name" v-bind="slotData" />
