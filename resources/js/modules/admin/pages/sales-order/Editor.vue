@@ -109,6 +109,11 @@ const handleProductSelection = (product) => {
 };
 
 const addItem = async () => {
+  if (isProcessing.value) {
+    // prevent duplicate event
+    return;
+  }
+
   const input = userInput.value?.trim();
   if (input.length === 0) {
     showProductBrowserDialog.value = true;
