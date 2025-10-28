@@ -338,7 +338,7 @@ onMounted(() => {
                   />
                 </div>
                 <div class="col">
-                  <BarcodeInput v-model.trim="barcode" />
+                  <BarcodeInput v-model.trim="barcode" label="Barcode" />
                 </div>
 
                 <!-- <q-input

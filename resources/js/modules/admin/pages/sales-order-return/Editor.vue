@@ -524,33 +524,20 @@ const isValidWalletBalance = computed(() => {
             </div>
           </div>
           <div class="col-sm-6 col-12">
-            <q-input
+            <BarcodeInputEditor
               ref="userInputRef"
               v-model="userInput"
               @keyup.enter.prevent="addItem()"
+              @scan-success="addItem()"
+              @send="addItem()"
+              @search="showProductBrowserDialog = true"
               :loading="isProcessing"
               :disable="isProcessing"
               placeholder="Qty * Kode / Barcode * Harga"
-              class="col col-12 q-pa-sm bg-white"
+              class="col col-12 q-pa-xs bg-white"
               outlined
               clearable
-            >
-              <template #prepend>
-                <q-icon
-                  name="search"
-                  @click="showProductBrowserDialog = true"
-                  class="cursor-pointer"
-                />
-              </template>
-              <template #append>
-                <q-icon
-                  v-if="userInput?.length > 0"
-                  name="send"
-                  @click="addItem()"
-                  class="cursor-pointer q-ml-md"
-                />
-              </template>
-            </q-input>
+            />
 
             <div class="row q-ml-sm items-end">
               <CheckBox

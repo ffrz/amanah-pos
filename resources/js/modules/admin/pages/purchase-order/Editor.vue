@@ -22,7 +22,7 @@ import { showError, showWarning, showInfo } from "@/composables/useNotify";
 import OrderInfoDialog from "./editor/OrderInfoDialog.vue";
 import LongTextView from "@/components/LongTextView.vue";
 import SuccessDialog from "./editor/SuccessDialog.vue";
-import BarcodeInput from "@/components/BarcodeInput.vue";
+import BarcodeInputEditor from "@/components/BarcodeInputEditor.vue";
 
 const $q = useQuasar();
 const page = usePage();
@@ -276,7 +276,7 @@ onMounted(() => {
       supplierAutocompleteRef.value.focus();
     } else if (e.key === "F3") {
       e.preventDefault();
-      userInputRef.value.focus();
+      userInputRef.value?.focus();
     } else if (e.key === "F4") {
       e.preventDefault();
       mergeItem.value = !mergeItem.value;
@@ -311,7 +311,7 @@ const handleSupplierSelected = async (data) => {
   await updateOrder();
 
   if (data?.id) {
-    userInputRef.value.focus();
+    userInputRef.value?.focus();
   } else {
     supplierAutocompleteRef.value.focus();
   }
@@ -481,35 +481,20 @@ const invoicePreview = () => {
             </div>
           </div>
           <div class="col-sm-6 col-12">
-            <BarcodeInput
+            <BarcodeInputEditor
               ref="userInputRef"
               v-model="userInput"
               @keyup.enter.prevent="addItem()"
               @scan-success="addItem()"
+              @send="addItem()"
+              @search="showProductBrowserDialog = true"
               :loading="isProcessing"
               :disable="isProcessing"
               placeholder="Qty * Kode / Barcode * Harga"
               class="col col-12 q-pa-xs bg-white"
               outlined
               clearable
-            >
-              <template #prepend>
-                <q-icon
-                  name="search"
-                  @click="showProductBrowserDialog = true"
-                  class="cursor-pointer"
-                />
-              </template>
-
-              <template #append>
-                <q-icon
-                  v-if="userInput?.length > 0"
-                  name="send"
-                  @click="addItem()"
-                  class="cursor-pointer q-ml-md"
-                />
-              </template>
-            </BarcodeInput>
+            />
 
             <div class="row q-ml-sm items-end">
               <CheckBox

@@ -1,6 +1,7 @@
 <template>
   <div>
     <q-input
+      ref="qInputInternalRef"
       v-bind="$attrs"
       :model-value="localValue"
       @update:model-value="updateValue"
@@ -8,8 +9,8 @@
       :loading="isScanning || $attrs.loading"
       clearable
     >
-      <template v-for="(_, name) in $slots" #[name]="slotData">
-        <slot v-if="name !== 'append'" :name="name" v-bind="slotData" />
+      <template #prepend>
+        <q-icon name="search" @click="emitSearch" class="cursor-pointer" />
       </template>
 
       <template #append>
@@ -22,6 +23,13 @@
         >
           <q-tooltip>Scan Barcode</q-tooltip>
         </q-icon>
+
+        <q-icon
+          v-if="localValue"
+          name="send"
+          @click="emitSend"
+          class="cursor-pointer q-ml-md"
+        />
 
         <q-spinner
           v-else-if="isScanning"
@@ -71,13 +79,30 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onBeforeUnmount } from "vue";
 import { useQuasar } from "quasar";
+const qInputInternalRef = ref(null);
+
+const focus = () => {
+  if (qInputInternalRef.value) {
+    qInputInternalRef.value.focus();
+  }
+};
+
+defineExpose({
+  focus,
+  qInput: qInputInternalRef,
+});
 
 // --- Props & Emits ---
 interface Props {
   modelValue: string | number | null | undefined;
 }
 const props = defineProps<Props>();
-const emit = defineEmits(["update:modelValue", "scan-success"]);
+const emit = defineEmits([
+  "update:modelValue",
+  "scan-success",
+  "send",
+  "search",
+]);
 
 const $q = useQuasar();
 
@@ -166,6 +191,14 @@ function stopScan() {
     stream.getTracks().forEach((t) => t.stop());
     stream = null;
   }
+}
+
+async function emitSearch() {
+  emit("search");
+}
+
+async function emitSend() {
+  emit("send");
 }
 
 async function scanLoop() {
