@@ -2,7 +2,7 @@
   <div>
     <q-input
       v-bind="$attrs"
-      :model-value="modelValue"
+      :model-value="localValue"
       @update:model-value="updateValue"
       :disable="isScanning || $attrs.disable"
       :loading="isScanning || $attrs.loading"
@@ -75,18 +75,30 @@ import { ref, watch, onMounted, onBeforeUnmount } from "vue";
 import { useQuasar } from "quasar";
 
 // --- Props & Emits ---
-// $attrs digunakan untuk menerima semua props Q-Input lainnya
 interface Props {
   modelValue: string | number | null | undefined;
 }
 const props = defineProps<Props>();
-// Tambahkan event 'scan-success' agar komponen induk tahu kapan scan selesai
 const emit = defineEmits(["update:modelValue", "scan-success"]);
 
 const $q = useQuasar();
 
-// Sinkronisasi modelValue dan emit update
+// VARIABEL LOKAL UNTUK SINKRONISASI
+const localValue = ref(props.modelValue);
+
+// 1. Update nilai lokal ketika props.modelValue berubah dari luar
+watch(
+  () => props.modelValue,
+  (val) => {
+    if (val !== localValue.value) {
+      localValue.value = val;
+    }
+  }
+);
+
+// 2. Emit perubahan ketika nilai lokal (diinput manual) berubah
 const updateValue = (val: string | number | null | undefined) => {
+  localValue.value = val;
   emit("update:modelValue", val);
 };
 
@@ -99,7 +111,6 @@ let detector: BarcodeDetector | null = null;
 let rafId: number | null = null;
 
 onMounted(async () => {
-  // Cek Dukungan Barcode Detector API
   if ("BarcodeDetector" in window) {
     isSupported.value = true;
     try {
@@ -167,8 +178,11 @@ async function scanLoop() {
 
     if (barcodes.length > 0) {
       const val = barcodes[0].rawValue;
-      updateValue(val); // Masukkan hasil ke q-input (v-model)
-      emit("scan-success", val); // Kirim event success
+
+      // Update nilai lokal dan emit ke komponen induk
+      localValue.value = val;
+      emit("update:modelValue", val);
+      emit("scan-success", val);
 
       navigator.vibrate?.(100);
       $q.notify({
