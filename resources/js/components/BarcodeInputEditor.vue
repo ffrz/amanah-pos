@@ -211,14 +211,14 @@ async function scanLoop() {
       const val = barcodes[0].rawValue;
 
       // Update nilai lokal dan emit ke komponen induk
-      localValue.value = val;
-      emit("update:modelValue", val);
-      emit("scan-success", val);
+      localValue.value += val;
+      emit("update:modelValue", localValue.value);
+      emit("scan-success", localValue.value);
 
       navigator.vibrate?.(100);
       $q.notify({
         type: "positive",
-        message: `Barcode terdeteksi: ${val}`,
+        message: `Barcode terdeteksi: ${localValue.value}`,
         timeout: 1000,
       });
 
