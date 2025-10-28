@@ -456,6 +456,7 @@ const isValidWalletBalance = computed(() => {
 });
 
 import { getCurrentInstance } from "vue";
+import BarcodeInputEditor from "@/components/BarcodeInputEditor.vue";
 
 const isValidOrder = computed(() => {
   return (

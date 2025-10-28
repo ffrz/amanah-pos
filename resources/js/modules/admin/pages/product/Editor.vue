@@ -338,19 +338,8 @@ onMounted(() => {
                   />
                 </div>
                 <div class="col">
-                  <BarcodeInput v-model.trim="barcode" label="Barcode" />
+                  <BarcodeInput v-model.trim="form.barcode" label="Barcode" />
                 </div>
-
-                <!-- <q-input
-                  v-model.trim="form.barcode"
-                  label="Barcode"
-                  lazy-rules
-                  :error="!!form.errors.barcode"
-                  :disable="form.processing"
-                  :error-message="form.errors.barcode"
-                  hide-bottom-space
-                  class="col"
-                /> -->
               </div>
 
               <div class="row q-gutter-md">
