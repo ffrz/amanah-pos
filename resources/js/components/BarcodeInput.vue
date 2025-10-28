@@ -7,17 +7,16 @@
       :disable="isScanning || $attrs.disable"
       :loading="isScanning || $attrs.loading"
       clearable
-      outlined
     >
       <template v-for="(_, name) in $slots" #[name]="slotData">
-        <slot :name="name" v-bind="slotData" />
+        <slot v-if="name !== 'append'" :name="name" v-bind="slotData" />
       </template>
 
       <template #append>
         <q-icon
           v-if="isSupported && !isScanning"
           name="o_qr_code_scanner"
-          class="cursor-pointer q-mr-xs"
+          class="cursor-pointer q-mr-sm"
           color="primary"
           @click="toggleScan"
         >
@@ -31,7 +30,7 @@
           class="q-mr-sm"
         />
 
-        <slot name="append-custom" />
+        <slot name="append" />
       </template>
     </q-input>
 
@@ -76,14 +75,17 @@ import { ref, watch, onMounted, onBeforeUnmount } from "vue";
 import { useQuasar } from "quasar";
 
 // --- Props & Emits ---
+// $attrs digunakan untuk menerima semua props Q-Input lainnya
 interface Props {
   modelValue: string | number | null | undefined;
 }
 const props = defineProps<Props>();
+// Tambahkan event 'scan-success' agar komponen induk tahu kapan scan selesai
 const emit = defineEmits(["update:modelValue", "scan-success"]);
 
 const $q = useQuasar();
 
+// Sinkronisasi modelValue dan emit update
 const updateValue = (val: string | number | null | undefined) => {
   emit("update:modelValue", val);
 };
@@ -92,12 +94,12 @@ const updateValue = (val: string | number | null | undefined) => {
 const videoRef = ref<HTMLVideoElement | null>(null);
 const isSupported = ref(false);
 const isScanning = ref(false);
-
 let stream: MediaStream | null = null;
 let detector: BarcodeDetector | null = null;
 let rafId: number | null = null;
 
 onMounted(async () => {
+  // Cek Dukungan Barcode Detector API
   if ("BarcodeDetector" in window) {
     isSupported.value = true;
     try {
@@ -106,6 +108,7 @@ onMounted(async () => {
       ).BarcodeDetector.getSupportedFormats();
       detector = new BarcodeDetector({ formats });
     } catch (err) {
+      console.warn("BarcodeDetector init error:", err);
       isSupported.value = false;
     }
   }
@@ -114,6 +117,13 @@ onMounted(async () => {
 onBeforeUnmount(() => stopScan());
 
 function toggleScan() {
+  if (!isSupported.value) {
+    $q.notify({
+      type: "warning",
+      message: "Barcode Detector API tidak didukung browser ini.",
+    });
+    return;
+  }
   if (isScanning.value) stopScan();
   else startScan();
 }
@@ -135,6 +145,7 @@ async function startScan() {
       message: `Gagal akses kamera: ${
         err.name === "NotAllowedError" ? "Izin ditolak" : "Error lainnya"
       }.`,
+      actions: [{ icon: "close", color: "white" }],
     });
   }
 }
@@ -156,14 +167,16 @@ async function scanLoop() {
 
     if (barcodes.length > 0) {
       const val = barcodes[0].rawValue;
-      updateValue(val); // Update v-model
-      emit("scan-success", val); // Emit event kustom
+      updateValue(val); // Masukkan hasil ke q-input (v-model)
+      emit("scan-success", val); // Kirim event success
+
       navigator.vibrate?.(100);
       $q.notify({
         type: "positive",
         message: `Barcode terdeteksi: ${val}`,
         timeout: 1000,
       });
+
       stopScan();
       return;
     }
