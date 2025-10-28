@@ -14,7 +14,7 @@
 
       <template #append>
         <q-icon
-          v-if="isSupported && !isScanning"
+          v-if="isSupported && !isScanning && !localValue"
           name="o_qr_code_scanner"
           class="cursor-pointer q-mr-sm"
           color="primary"
