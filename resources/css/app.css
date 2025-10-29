@@ -36,8 +36,12 @@ a:hover {
   border-bottom: 1px solid #ddd;
 } */
 
-#main-nav .subnav:not(.q-item--active) .q-item__section--avatar {
+#main-nav .subnav:not(.q-item--active):not(.show-icon) .q-item__section--avatar {
   visibility: hidden;
+}
+
+#main-nav .show-icon .q-item__section--avatar {
+  margin-left: 30px;
 }
 
 #main-nav .subnav {
