@@ -129,18 +129,30 @@ class CustomerController extends Controller
 
             // Buka file untuk dibaca
             if (($handle = fopen($file->getRealPath(), 'r')) !== false) {
+                $separator = ';';
 
                 // Dapatkan header dari baris pertama untuk pemetaan kolom
                 $header = fgetcsv($handle, 1000, ';');
+                $first_line = fgets($handle, 5000);
+                if (!$first_line) {
+                    fclose($handle);
+                    throw new Exception('Header tidak terdeteksi');
+                }
+
+                $comma_count = substr_count($first_line, ',');
+                $semicolon_count = substr_count($first_line, ';');
+                if ($semicolon_count > $comma_count) {
+                    $separator = ';';
+                }
+
+                rewind($handle);
+                $header = fgetcsv($handle, 5000, $separator);
 
                 // Mulai transaksi database
                 DB::beginTransaction();
 
                 try {
-                    // Loop melalui setiap baris data
-                    // FIXME: kita butuh konsistensi separator
-                    // bisa autodetect atau diset saat import
-                    while (($data = fgetcsv($handle, 1000, ';')) !== false) {
+                    while (($data = fgetcsv($handle, 1000, $separator)) !== false) {
 
                         // Pastikan baris data tidak kosong
                         if (empty(array_filter($data, 'strlen'))) {
@@ -150,33 +162,27 @@ class CustomerController extends Controller
                         // Gabungkan header dan data untuk membuat array yang mudah diakses
 
                         $row = array_combine($header, $data);
-                        // Ambil data yang dibutuhkan dan bersihkan (trim)
-                        $accountNumber  = trim($row['No. Rekening']);
-                        $name           = trim($row['Nama']);
-                        $address        = trim($row['Alamat']);
-                        $phone          = trim($row['No. HP']);
 
                         // --- Perubahan di sini: bersihkan Saldo ---
-                        $cleanedBalance = str_replace('.', '', $row['Saldo']);
+                        $cleanedBalance = str_replace('.', '', $row['wallet_balance'] ?? 0);
                         $cleanedBalance = str_replace([',00', ','], '', $cleanedBalance);
                         $initialBalance = (float) $cleanedBalance;
 
-                        // Buat code otomatis: 5 karakter awal nama + 5 karakter akhir no. rekening
-                        $name_sanitized = str_replace([' ', '.'], '', $name);
-                        $first_five_name = substr($name_sanitized, 0, 5);
-                        $last_five_account = substr($accountNumber, -5);
+                        $code = $row['code'] ?? $this->customerService->generateCustomerCode();
 
-                        $code = strtolower($first_five_name . $last_five_account);
-
-                        // Cari atau buat customer berdasarkan nomor rekening
                         $customer = Customer::updateOrCreate(
-                            ['code' => $code,],
+                            [
+                                'id'   => $row['id'] ?? null,
+                                'code' => $row['code'] ?? $this->customerService->generateCustomerCode(),
+                            ],
                             [
                                 'type'     => Customer::Type_General,
-                                'name'     => $name,
-                                'address'  => $address,
-                                'phone'    => $phone,
+                                'name'     => trim($row['name'] ?? ''),
+                                'address'  => trim($row['address'] ?? ''),
+                                'phone'    => trim($row['phone'] ?? ''),
                                 'password' => $default_password,
+                                'balance'  => $row['balance'] ?? 0,
+                                // wallet balance sudah otomatis dihandle CustomerWalletTransactionService::handleTransaction
                             ]
                         );
 

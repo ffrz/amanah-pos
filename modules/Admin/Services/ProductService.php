@@ -262,45 +262,69 @@ class ProductService
 
     public function import($file)
     {
+        $separator = ',';
         if (($handle = fopen($file->getRealPath(), 'r')) === false) {
             return false;
         }
 
-        $header = fgetcsv($handle, 5000, ',');
+        $first_line = fgets($handle, 5000);
+        if (!$first_line) {
+            fclose($handle);
+            throw new Exception('Header tidak terdeteksi');
+        }
 
-        return DB::transaction(function () use ($handle, $header) {
+        $comma_count = substr_count($first_line, ',');
+        $semicolon_count = substr_count($first_line, ';');
+        if ($semicolon_count > $comma_count) {
+            $separator = ';';
+        }
 
-            while (($data = fgetcsv($handle, 5000, ',')) !== false) {
+        rewind($handle);
+        $header = fgetcsv($handle, 5000, $separator);
+
+        return DB::transaction(function () use ($handle, $header, $separator) {
+
+            while (($data = fgetcsv($handle, 5000, $separator)) !== false) {
                 if (empty(array_filter($data, 'strlen'))) {
                     continue;
                 }
 
                 // Gabungkan header dan data untuk membuat array yang mudah diakses
+                // if (count($header) != count($data)) {
+                //     dd($header, $data);
+                // }
                 $row = array_combine($header, $data);
 
                 // Proses relasi: Kategori dan Supplier
-                $category = ProductCategory::firstOrCreate([
-                    'name' => trim($row['category']),
-                ]);
+                $category = null;
+                if (!empty($row['category'])) {
+                    $category = ProductCategory::firstOrCreate([
+                        'name' => trim($row['category']),
+                    ]);
+                }
 
-                $supplier = Supplier::firstOrCreate([
-                    'name' => trim($row['supplier']),
-                ], [
-                    'code' => app(SupplierService::class)->generateSupplierCode()
-                ]);
+                $supplier = null;
+                if (!empty($row['supplier'])) {
+                    $supplier = Supplier::firstOrCreate([
+                        'name' => trim($row['supplier']),
+                    ], [
+                        'code' => app(SupplierService::class)->generateSupplierCode()
+                    ]);
+                }
 
                 // Simpan data produk
                 $product = Product::create([
                     'name'        => trim($row['name']),
-                    'barcode'     => $row['barcode'],
-                    'description' => trim($row['description']),
-                    'cost'        => $row['cost'],
-                    'price_1'     => $row['price'],
-                    'uom'         => $row['uom'],
-                    'stock'       => $row['stock'],
-                    'category_id' => $category->id,
-                    'supplier_id' => $supplier->id,
+                    'barcode'     => $row['barcode'] ?? '',
+                    'description' => trim($row['description'] ?? ''),
+                    'cost'        => $row['cost'] ?? 0,
+                    'price_1'     => $row['price'] ?? 0,
+                    'uom'         => $row['uom'] ?? '',
+                    'stock'       => $row['stock'] ?? 0,
+                    'category_id' => $category ? $category->id : null,
+                    'supplier_id' => $supplier ? $supplier->id : null,
                     'type'        => $row['type'] ?? Product::Type_Stocked,
+                    'active'      => $row['active'] ?? 0,
                 ]);
 
                 if ($row['stock'] > 0) {

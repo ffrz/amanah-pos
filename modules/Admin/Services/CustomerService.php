@@ -56,7 +56,7 @@ class CustomerService
         ]);
     }
 
-    private function generateCustomerCode(): string
+    public function generateCustomerCode(): string
     {
         $lastId = Customer::max('id') ?? 0;
         $nextId = $lastId + 1;
