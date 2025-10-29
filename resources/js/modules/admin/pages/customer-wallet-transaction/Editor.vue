@@ -151,9 +151,7 @@ const submit = () => {
                 :disable="form.processing"
                 :error="!!form.errors.notes"
                 :error-message="form.errors.notes"
-                :rules="[
-                  (val) => (val && val.length > 0) || 'Catatan harus diisi.',
-                ]"
+                :rules="[]"
                 hide-bottom-space
               />
               <ImageUpload

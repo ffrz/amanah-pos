@@ -1,5 +1,5 @@
 <script setup>
-import { defineProps, computed } from "vue";
+import { computed } from "vue";
 import { formatNumber } from "@/helpers/formatter";
 import VChart from "vue-echarts";
 import { use } from "echarts/core";
@@ -11,6 +11,7 @@ import {
   LegendComponent,
   GridComponent,
 } from "echarts/components";
+import { usePage } from "@inertiajs/vue3";
 
 use([
   CanvasRenderer,
@@ -22,18 +23,12 @@ use([
   GridComponent,
 ]);
 
-const props = defineProps({
-  dashboardData: {
-    type: Object,
-    required: true,
-  },
-});
+const page = usePage();
 
 const colors = ["#82B1FF", "#4DB6AC", "#FFB74D", "#9575CD"];
 
 const barChartOptions = computed(() => ({
   title: {
-    text: "Penjualan Bulanan",
     left: "center",
   },
   tooltip: {
@@ -54,7 +49,7 @@ const barChartOptions = computed(() => ({
   },
   xAxis: {
     type: "category",
-    data: props.dashboardData.monthly_sales.labels,
+    data: page.props.data.chart_data_1.labels,
     axisLabel: {
       color: "#616161",
     },
@@ -70,7 +65,7 @@ const barChartOptions = computed(() => ({
     {
       name: "Penjualan",
       type: "bar",
-      data: props.dashboardData.monthly_sales.data,
+      data: page.props.data.chart_data_1.data,
       itemStyle: {
         borderRadius: [5, 5, 0, 0],
         color: colors[0],
@@ -81,37 +76,39 @@ const barChartOptions = computed(() => ({
 
 const pieChartOptions = computed(() => ({
   title: {
-    text: "Distribusi Jenis Transaksi",
     left: "center",
   },
   tooltip: {
-    trigger: "item",
-    formatter: function (params) {
-      return (
-        params.name +
-        "<br/>" +
-        params.seriesName +
-        ": " +
-        formatNumber(params.value) +
-        " (" +
-        params.percent +
-        "%)"
-      );
-    },
+    show: false,
   },
   legend: {
-    orient: "vertical",
-    left: "left",
-    textStyle: {
-      color: "#616161",
-    },
+    show: false,
   },
+
   series: [
     {
       name: "Jumlah Transaksi",
       type: "pie",
       radius: ["40%", "70%"],
-      data: props.dashboardData.transaction_type_distribution,
+      data: page.props.data.revenue_by_category,
+      label: {
+        show: true,
+        position: "outside",
+        formatter: (params) => {
+          const formattedValue = formatNumber(params.value);
+          return `${params.percent}% - ${params.name}\nRp. ${formattedValue}\n`;
+        },
+        fontSize: 12,
+        fontWeight: "bold",
+        color: "#616161",
+      },
+
+      labelLine: {
+        show: true,
+        length: 10,
+        length2: 10,
+      },
+
       itemStyle: {
         borderRadius: 5,
         borderColor: "#fff",
@@ -136,13 +133,13 @@ const pieChartOptions = computed(() => ({
   <div class="row q-col-gutter-sm q-pb-sm">
     <div class="col-md-6 col-12">
       <q-card square bordered flat class="full-width q-pa-md">
-        <div class="text-h6 q-pb-sm">Penjualan Bulanan</div>
+        <div class="text-subtitle1 q-pb-sm">Penjualan</div>
         <VChart class="chart" :option="barChartOptions" autoresize />
       </q-card>
     </div>
     <div class="col-md-6 col-12">
       <q-card square bordered flat class="full-width q-pa-md">
-        <div class="text-h6 q-pb-sm">Distribusi Transaksi</div>
+        <div class="text-subtitle1 q-pb-sm">Distribusi Omzet</div>
         <VChart class="chart" :option="pieChartOptions" autoresize />
       </q-card>
     </div>

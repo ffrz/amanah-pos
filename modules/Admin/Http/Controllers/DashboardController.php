@@ -21,6 +21,7 @@ use App\Models\Customer;
 use App\Models\FinanceAccount;
 use App\Models\SalesOrder;
 use App\Models\Supplier;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -31,18 +32,11 @@ class DashboardController extends Controller
         $dates = getDateRangeByPeriod($period);
         $start_date = $dates['start_date']->toDateTimeString();
         $end_date = $dates['end_date']->toDateTimeString();
-        // $days = [];
-        // for ($i = 1; $i <= substr($end_date, 8, 2); $i++) {
-        //     $days[(int)$i] = 0;
-        // }
-
-        // $sales_orders =
-        //     SalesOrder::sumClosedOrderByPeriod($start_date, $end_date);
-        // $monthly_closed_orders = $days;
-        // foreach ($sales_orders as $order) {
-        //     $monthly_closed_orders[(int)substr($order->order_date, 8, 2)] = $order->total_order;
-        // }
-
+        $aggregationType = $period == 'today' || $period == 'yesterday' ?
+            false : ((str_contains($period, 'year')) ? 'monthly' : 'daily');
+        $revenueByCategory = SalesOrder::aggregateRevenueByCategory($start_date, $end_date);
+        $topCustomerRevenue = SalesOrder::getTopCustomersByRevenue($start_date, $end_date, 5);
+        $topCustomerWallet = Customer::getTopCustomersByWalletBalance(5);
         return inertia('dashboard/Index', [
             'data' => [
                 'total_active_customer' => Customer::activeCustomerCount(),
@@ -55,8 +49,88 @@ class DashboardController extends Controller
                 'total_sales' => SalesOrder::sumClosedTotalByPeriod($start_date, $end_date),
                 'total_sales_count' => SalesOrder::countClosedByPeriod($start_date, $end_date),
                 'total_sales_profit' => SalesOrder::sumTotalProfitByPeriod($start_date, $end_date),
+                'chart_data_1' => $aggregationType ? $this->formatSalesChartData(
+                    SalesOrder::getSalesDataAggregatedByPeriod($start_date, $end_date, $aggregationType),
+                    $dates['start_date'],
+                    $dates['end_date'],
+                    $aggregationType
+                ) : [],
+                'revenue_by_category' => $this->formatPieChartData(
+                    $revenueByCategory,
+                    'total_revenue',
+                    'category_name'
+                ),
+                'top_customers_revenue' => $topCustomerRevenue,
+                'top_customers_wallet' => $topCustomerWallet
             ]
         ]);
+    }
+
+    /**
+     * Memformat Collection agregasi kategori menjadi format ECharts/Pie Chart.
+     * @param string $valueKey Kunci kolom nilai (e.g., 'total_revenue', 'total_qty_sold').
+     * @param string $nameKey Kunci kolom nama (e.g., 'category_name').
+     * @return array Berisi array of objects untuk ECharts.
+     */
+    protected function formatPieChartData(\Illuminate\Support\Collection $data, string $valueKey, string $nameKey): array
+    {
+        $formattedData = [];
+        foreach ($data as $item) {
+            $formattedData[] = [
+                'name' => $item->{$nameKey},
+                'value' => (float)$item->{$valueKey},
+            ];
+        }
+        return $formattedData;
+    }
+
+    public function formatSalesChartData(\Illuminate\Support\Collection $data, Carbon $startDate, Carbon $endDate, string $aggregation): array
+    {
+        $chartData = [
+            'labels' => [],
+            'data' => [],
+        ];
+
+        // Konversi Collection ke Map (period_label => total_sales) untuk pencarian cepat
+        $salesMap = $data->pluck('total_sales', 'period_label')->toArray();
+
+        // Clone tanggal awal
+        $currentDate = $startDate->copy();
+
+        while ($currentDate->lte($endDate)) {
+            $periodLabel = '';
+            $labelFormat = '';
+
+            if ($aggregation === 'monthly') {
+                // Label periode untuk perbandingan (YYYY-MM) dan Label chart (Nama Bulan)
+                $periodLabel = $currentDate->format('Y-m');
+                $labelFormat = $currentDate->shortEnglishMonth; // Misal: Jan, Feb, Mar
+            } else { // daily
+                // Label periode untuk perbandingan (YYYY-MM-DD) dan Label chart (Nama Hari/Tanggal)
+                $periodLabel = $currentDate->toDateString();
+                $labelFormat = $currentDate->format('D, d'); // Misal: Mon, 01
+            }
+
+            // Ambil data penjualan, default 0 jika tidak ada di map
+            $salesValue = $salesMap[$periodLabel] ?? 0;
+
+            $chartData['labels'][] = $labelFormat;
+            $chartData['data'][] = (float)$salesValue;
+
+            // Pindah ke periode berikutnya
+            if ($aggregation === 'monthly') {
+                $currentDate->addMonth();
+            } else {
+                $currentDate->addDay();
+            }
+
+            // Safety break: jika aggregasi bulanan, jangan sampai melebihi end_date
+            if ($aggregation === 'monthly' && $currentDate->gt($endDate)) {
+                break;
+            }
+        }
+
+        return $chartData;
     }
 
     /**

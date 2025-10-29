@@ -23,16 +23,6 @@ const dashboardData = ref({
     { name: "Syafiq", value: 800000 },
     { name: "Umar", value: 650000 },
   ],
-  monthly_sales: {
-    labels: ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun"],
-    data: [14123000, 21344000, 15155000, 17128000, 12557000, 12723000],
-  },
-  transaction_type_distribution: [
-    { value: 500, name: "Deposit" },
-    { value: 350, name: "Purchase" },
-    { value: 200, name: "Withdrawal" },
-    { value: 200, name: "Refund" },
-  ],
 });
 
 const title = "Dashboard";
@@ -54,6 +44,15 @@ const period_options = ref([
 const onFilterChange = () => {
   router.visit(route("admin.dashboard", { period: selected_period.value }));
 };
+
+const isDailiyPeriod = computed(() => {
+  if (selected_period.value == 'today' ||
+    selected_period.value == 'yesterday'
+  ) {
+    return false;
+  }
+  return true;
+});
 </script>
 
 <template>
@@ -94,8 +93,10 @@ const onFilterChange = () => {
       <div class="q-pa-none">
         <ActualSummaryCard :dashboardData="dashboardData" />
       </div>
+      <template v-if="isDailiyPeriod" >
       <ChartCard :dashboardData="dashboardData" />
       <TopCard :dashboardData="dashboardData" />
+      </template v-if>
     </div>
   </authenticated-layout>
 </template>

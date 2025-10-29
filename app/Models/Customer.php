@@ -198,4 +198,25 @@ class Customer extends BaseModel implements
             ->where('wallet_balance', '>', 0)
             ->sum('wallet_balance');
     }
+
+    /**
+     * Mendapatkan Top N pelanggan aktif berdasarkan saldo wallet/deposit tertinggi.
+     *
+     * @param int $limit Batas jumlah pelanggan teratas yang ditampilkan (default 5).
+     * @return \Illuminate\Support\Collection
+     */
+    public static function getTopCustomersByWalletBalance(int $limit = 5): \Illuminate\Support\Collection
+    {
+        return static::query()
+            ->where('active', true)
+            // Filter: Hanya yang memiliki saldo wallet positif atau di atas 0
+            ->where('wallet_balance', '>', 0)
+            // Pilih nama dan saldo
+            ->select('id', 'name', 'wallet_balance')
+            // Urutkan berdasarkan saldo wallet (tertinggi ke terendah)
+            ->orderBy('wallet_balance', 'desc')
+            // Batasi hasilnya
+            ->limit($limit)
+            ->get();
+    }
 }

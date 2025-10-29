@@ -7,56 +7,44 @@ const summaryItems1 = computed(() => [
   {
     label: "Pelanggan Aktif",
     value: page.props.data.total_active_customer,
-    // Ganti Icon
     icon: "person_add",
-    // Ganti Warna: Biru Muda
     color: "blue-7",
-    bgColor: "#e3f2fd", // Tetap sama (Light Blue 50)
+    bgColor: "#e3f2fd",
   },
   {
-    label: "Saldo Wallet",
+    label: "Saldo Wallet / Deposit",
     value: formatNumber(page.props.data.total_customer_wallet_balance),
-    // Ganti Icon
     icon: "savings",
-    // Ganti Warna: Hijau (Simbol Saldo Positif)
     color: "green-7",
-    bgColor: "#e8f5e9", // Green 50
+    bgColor: "#e8f5e9",
   },
   {
     label: "Saldo Utang / Piutang",
     value: formatNumber(page.props.data.total_customer_balance),
-    // Ganti Icon
-    icon: "account_balance", // Lebih umum untuk saldo total
-    // Ganti Warna: Merah (Simbol Kewajiban/Utang)
+    icon: "account_balance",
     color: "red-8",
-    bgColor: "#ffebee", // Red 50
+    bgColor: "#ffebee",
   },
   {
     label: "Supplier Aktif",
     value: page.props.data.total_active_supplier,
-    // Ganti Icon
-    icon: "local_shipping", // Ikon yang lebih spesifik untuk supplier
-    // Ganti Warna: Indigo
+    icon: "local_shipping",
     color: "indigo-7",
-    bgColor: "#e8eaf6", // Indigo 50
+    bgColor: "#e8eaf6",
   },
   {
-    label: "Saldo Wallet",
+    label: "Saldo Wallet / Deposit",
     value: formatNumber(page.props.data.total_supplier_wallet_balance),
-    // Ganti Icon
-    icon: "account_balance_wallet", // Tetap sama untuk wallet
-    // Ganti Warna: Cyan
+    icon: "account_balance_wallet",
     color: "cyan-7",
-    bgColor: "#e0f7fa", // Cyan 50
+    bgColor: "#e0f7fa",
   },
   {
     label: "Saldo Utang / Piutang",
     value: formatNumber(page.props.data.total_supplier_balance),
-    // Ganti Icon
-    icon: "credit_card", // Simbol transaksi keuangan
-    // Ganti Warna: Merah (Simbol Kewajiban/Utang)
+    icon: "credit_card",
     color: "red-8",
-    bgColor: "#ffebee", // Red 50
+    bgColor: "#ffebee",
   },
 ]);
 
@@ -64,36 +52,29 @@ const summaryItems2 = computed(() => [
   {
     label: "Total Transaksi",
     value: formatNumber(page.props.data.total_sales_count),
-    // Ganti Icon
     icon: "shopping_basket",
-    // Ganti Warna: Ungu
     color: "purple-8",
-    bgColor: "#f3e5f5", // Tetap sama (Purple 50)
+    bgColor: "#f3e5f5",
   },
   {
     label: "Total Penjualan",
     value: formatNumber(page.props.data.total_sales),
-    // Ganti Icon
-    icon: "trending_up", // Simbol pertumbuhan penjualan
-    // Ganti Warna: Hijau
+    icon: "trending_up",
     color: "green-7",
-    bgColor: "#e8f5e9", // Tetap sama (Green 50)
+    bgColor: "#e8f5e9",
   },
   {
     label: "Total Laba",
     value: formatNumber(page.props.data.total_sales_profit),
-    // Ganti Icon
-    icon: "attach_money", // Ikon yang lebih fokus ke laba
-    // Ganti Warna: Teal/Cyan
+    icon: "attach_money",
     color: "teal-6",
-    bgColor: "#e0f2f1", // Teal 50
+    bgColor: "#e0f2f1",
   },
 ]);
 </script>
 
 <template>
   <div class="q-pb-sm">
-    <div class="text-h6 text-bold text-grey-8 q-mb-sm">Ringkasan</div>
     <div>
       <div class="row q-col-gutter-sm">
         <div

@@ -297,4 +297,145 @@ class SalesOrder extends BaseModel
             ])
             ->sum(DB::raw('total_price - total_cost'));
     }
+
+    /**
+     * Mendapatkan total penjualan (grand_total) dan jumlah transaksi dari pesanan 
+     * yang berstatus 'closed', diagregasi berdasarkan hari atau bulan.
+     *
+     * @param string $startDate Tanggal mulai (YYYY-MM-DD).
+     * @param string $endDate Tanggal akhir (YYYY-MM-DD).
+     * @param string $aggregation 'daily' atau 'monthly'.
+     * @return \Illuminate\Support\Collection
+     */
+    public static function getSalesDataAggregatedByPeriod(string $startDate, string $endDate, string $aggregation = 'daily')
+    {
+        // Tentukan format untuk pengelompokan (grouping)
+        if ($aggregation === 'monthly') {
+            // MySQL: YEAR(datetime) dan MONTH(datetime)
+            $selectRawPeriod = 'DATE_FORMAT(datetime, \'%Y-%m\') as period_label';
+            $groupByPeriod = 'period_label';
+            $orderByPeriod = 'period_label';
+        } else { // default 'daily'
+            // MySQL: DATE(datetime)
+            $selectRawPeriod = 'DATE(datetime) as period_label';
+            $groupByPeriod = 'period_label';
+            $orderByPeriod = 'period_label';
+        }
+
+        // Buat query
+        return static::query()
+            ->selectRaw(
+                "{$selectRawPeriod}, 
+                 SUM(grand_total) as total_sales,
+                 COUNT(id) as total_transactions"
+            )
+            // Hanya menghitung pesanan yang sudah Selesai (Closed)
+            ->where('status', self::Status_Closed)
+
+            // Memfilter berdasarkan rentang tanggal
+            ->whereBetween('datetime', [
+                $startDate . ' 00:00:00',
+                $endDate . ' 23:59:59'
+            ])
+
+            // Mengelompokkan hasil berdasarkan periode (hari atau bulan)
+            ->groupBy(DB::raw($groupByPeriod))
+
+            // Mengurutkan hasil berdasarkan periode
+            ->orderBy(DB::raw($orderByPeriod), 'asc')
+
+            ->get();
+    }
+
+    /**
+     * Mengagregasi total omzet (revenue) dari pesanan 'closed' berdasarkan Kategori Produk, 
+     * dibatasi hingga 5 teratas.
+     *
+     * @param string $startDate Tanggal mulai (YYYY-MM-DD).
+     * @param string $endDate Tanggal akhir (YYYY-MM-DD).
+     * @return \Illuminate\Support\Collection
+     */
+    public static function aggregateRevenueByCategory(string $startDate, string $endDate)
+    {
+        return DB::table('sales_orders as so')
+            ->join('sales_order_details as sod', 'so.id', '=', 'sod.order_id')
+            ->join('products as p', 'sod.product_id', '=', 'p.id')
+            ->join('product_categories as pc', 'p.category_id', '=', 'pc.id')
+
+            ->where('so.status', self::Status_Closed)
+            ->whereBetween('so.datetime', [
+                $startDate . ' 00:00:00',
+                $endDate . ' 23:59:59'
+            ])
+            ->whereNull('sod.return_id')
+
+            ->select(
+                'pc.name as category_name',
+                DB::raw('SUM(sod.subtotal_price) as total_revenue')
+            )
+            ->groupBy('pc.name')
+            ->orderBy('total_revenue', 'desc')
+            ->limit(5)
+            ->get();
+    }
+
+    /**
+     * Mengagregasi total kuantitas produk terjual dari pesanan 'closed' berdasarkan Kategori Produk,
+     * dibatasi hingga 5 teratas.
+     *
+     * @param string $startDate Tanggal mulai (YYYY-MM-DD).
+     * @param string $endDate Tanggal akhir (YYYY-MM-DD).
+     * @return \Illuminate\Support\Collection
+     */
+    public static function aggregateQtySoldByCategory(string $startDate, string $endDate)
+    {
+        return DB::table('sales_orders as so')
+            ->join('sales_order_details as sod', 'so.id', '=', 'sod.order_id')
+            ->join('products as p', 'sod.product_id', '=', 'p.id')
+            ->join('product_categories as pc', 'p.category_id', '=', 'pc.id')
+
+            ->where('so.status', self::Status_Closed)
+            ->whereBetween('so.datetime', [
+                $startDate . ' 00:00:00',
+                $endDate . ' 23:59:59'
+            ])
+            ->whereNull('sod.return_id')
+
+            ->select(
+                'pc.name as category_name',
+                DB::raw('SUM(sod.quantity) as total_qty_sold')
+            )
+            ->groupBy('pc.name')
+            ->orderBy('total_qty_sold', 'desc')
+            ->limit(5)
+            ->get();
+    }
+
+    /**
+     * Mendapatkan Top N Pelanggan berdasarkan total revenue dari pesanan 'closed'.
+     *
+     * @param string $startDate Tanggal mulai (YYYY-MM-DD).
+     * @param string $endDate Tanggal akhir (YYYY-MM-DD).
+     * @param int $limit Batas jumlah pelanggan teratas yang ditampilkan.
+     * @return \Illuminate\Support\Collection
+     */
+    public static function getTopCustomersByRevenue(string $startDate, string $endDate, int $limit = 5)
+    {
+        return static::query()
+            ->join('customers as c', 'sales_orders.customer_id', '=', 'c.id')
+            ->where('sales_orders.status', self::Status_Closed)
+            ->whereBetween('sales_orders.datetime', [
+                $startDate . ' 00:00:00',
+                $endDate . ' 23:59:59'
+            ])
+            ->select(
+                'c.id as customer_id',
+                'c.name as customer_name',
+                DB::raw('SUM(sales_orders.grand_total) as total_revenue')
+            )
+            ->groupBy('c.id')
+            ->orderBy('total_revenue', 'desc')
+            ->limit($limit)
+            ->get();
+    }
 }
