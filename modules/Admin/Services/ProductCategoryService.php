@@ -19,7 +19,6 @@ use App\Models\UserActivityLog;
 use App\Repositories\Contracts\ProductCategoryRepositoryInterface;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
@@ -31,9 +30,9 @@ use Throwable;
  */
 class ProductCategoryService
 {
-    // Konstanta untuk Kunci Cache (agar tidak bentrok dengan Service lain)
-    public const CACHE_KEY_PRODUCT_CATEGORIES = 'common_data:product_categories';
-    public const CACHE_TTL_MINUTES = 60; // Cache selama 60 menit (1 jam)
+    // // Konstanta untuk Kunci Cache (agar tidak bentrok dengan Service lain)
+    // public const CACHE_KEY_PRODUCT_CATEGORIES = 'common_data:product_categories';
+    // public const CACHE_TTL_MINUTES = 60; // Cache selama 60 menit (1 jam)
 
     /**
      * @param UserActivityLogService $userActivityLogService Service untuk mencatat aktivitas pengguna.
@@ -112,7 +111,7 @@ class ProductCategoryService
 
         return DB::transaction(function () use ($item, $oldData, $isNew) {
             $item = $this->categoryRepository->save($item);
-            Cache::forget(self::CACHE_KEY_PRODUCT_CATEGORIES);
+            // Cache::forget(self::CACHE_KEY_PRODUCT_CATEGORIES);
 
             if ($isNew) {
                 $this->userActivityLogService->log(
@@ -152,7 +151,7 @@ class ProductCategoryService
     {
         return DB::transaction(function () use ($item) {
             $this->categoryRepository->delete($item);
-            Cache::forget(self::CACHE_KEY_PRODUCT_CATEGORIES);
+            // Cache::forget(self::CACHE_KEY_PRODUCT_CATEGORIES);
 
             $this->userActivityLogService->log(
                 UserActivityLog::Category_ProductCategory,
@@ -170,13 +169,9 @@ class ProductCategoryService
 
     public function getAllProductCategories()
     {
-        $cacheTtl = now()->addMinutes(self::CACHE_TTL_MINUTES);
-        $cacheKey = self::CACHE_KEY_PRODUCT_CATEGORIES;
-        return Cache::remember($cacheKey, $cacheTtl, function () {
-            return $this->categoryRepository->getAll(
-                ['id', 'name'],
-                ['order_by' => 'name', 'order_type' => 'asc'],
-            );
-        });
+        return $this->categoryRepository->getAll(
+            ['id', 'name'],
+            ['order_by' => 'name', 'order_type' => 'asc'],
+        );
     }
 }
