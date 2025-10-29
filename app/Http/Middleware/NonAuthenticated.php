@@ -38,7 +38,7 @@ class NonAuthenticated
 
         // Redirect jika sudah login sebagai admin
         if ($isAdminRoute && Auth::check()) {
-            return redirect()->route('admin.dashboard');
+            return redirect()->route('admin.home');
         }
 
         // Redirect jika sudah login sebagai customer

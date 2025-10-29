@@ -3,10 +3,10 @@ import { router, usePage } from "@inertiajs/vue3";
 import {
   formatDateTime,
   formatDateTimeFromNow,
-  formatNumber,
   formatNumberWithSymbol,
 } from "@/helpers/formatter";
 import { handleDelete } from "@/helpers/client-req-handler";
+import WaLink from "@/components/WaLink.vue";
 
 const page = usePage();
 
@@ -56,7 +56,9 @@ const confirmDelete = () => {
       <tr>
         <td>No. Telepon</td>
         <td>:</td>
-        <td>{{ page.props.data.phone ? page.props.data.phone : "-" }}</td>
+        <td>
+          <WaLink :phone="page.props.data.phone" />
+        </td>
       </tr>
       <tr>
         <td>Alamat</td>

@@ -305,7 +305,7 @@ class SalesOrderService
     public function deleteOrder(SalesOrder $order)
     {
         $cashierSession = $order->cashierSession;
-        if ($cashierSession && $cashierSession->is_closed) {
+        if ($order->status == SalesOrder::Status_Closed && $cashierSession && $cashierSession->is_closed) {
             throw new BusinessRuleViolationException("Transaksi tidak dapat dihapus! Sesi kasir untuk Order #$order->code sudah ditutup!");
         }
 

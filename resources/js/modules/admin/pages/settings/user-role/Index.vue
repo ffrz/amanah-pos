@@ -7,7 +7,7 @@ import { useQuasar } from "quasar";
 import useTableHeight from "@/composables/useTableHeight";
 import { useTableClickProtection } from "@/composables/useTableClickProtection";
 
-const title = "Role Pengguna";
+const title = "Peran Pengguna";
 const $q = useQuasar();
 const showFilter = ref(false);
 const rows = ref([]);
@@ -32,7 +32,7 @@ const pagination = ref({
 const columns = [
   {
     name: "name",
-    label: "Nama Role",
+    label: "Nama Peran",
     field: "name",
     align: "left",
     sortable: true,

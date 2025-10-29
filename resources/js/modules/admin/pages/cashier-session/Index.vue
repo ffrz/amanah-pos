@@ -199,7 +199,7 @@ const computedColumns = computed(() => {
             <q-td key="id" :props="props" class="wrap-column">
               <div>
                 <q-icon class="inline-icon" name="tag" />
-                SessionID: {{ props.row.id }}
+                ID: {{ props.row.id }}
               </div>
               <div>
                 <q-icon class="inline-icon" name="point_of_sale" />
@@ -209,6 +209,57 @@ const computedColumns = computed(() => {
                 <q-icon class="inline-icon" name="person" />
                 {{ props.row.user.username }} - {{ props.row.user.name }}
               </div>
+              <template v-if="$q.screen.lt.md">
+                <q-separator />
+                <div class="row items-center q-gutter-x-sm">
+                  <div class="avatar">
+                    <q-icon name="login" size="25px" color="grey-8" />
+                  </div>
+
+                  <div class="col">
+                    <div class="row items-center no-wrap">
+                      <q-icon name="calendar_clock" size="xs" class="q-mr-xs" />
+                      <span>
+                        {{
+                          props.row.opened_at
+                            ? formatDateTime(props.row.opened_at)
+                            : "-"
+                        }}
+                      </span>
+                    </div>
+
+                    <div class="row items-center no-wrap">
+                      <q-icon name="money" size="xs" class="q-mr-xs" />
+                      <span>
+                        {{ formatMoney(props.row.opening_balance) }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <template v-if="props.row.is_closed">
+                  <q-separator />
+                  <div class="row items-center q-gutter-x-sm">
+                    <div class="avatar">
+                      <q-icon name="logout" size="25px" color="grey-8" />
+                    </div>
+
+                    <div class="col">
+                      <div class="row items-center no-wrap">
+                        <q-icon class="inline-icon" name="calendar_clock" />
+                        {{
+                          props.row.closed_at
+                            ? formatDateTime(props.row.closed_at)
+                            : "-"
+                        }}
+                      </div>
+                      <div>
+                        <q-icon class="inline-icon" name="money" />
+                        {{ formatMoney(props.row.closing_balance) }}
+                      </div>
+                    </div>
+                  </div>
+                </template>
+              </template>
             </q-td>
             <q-td key="opening_info" :props="props">
               <div>

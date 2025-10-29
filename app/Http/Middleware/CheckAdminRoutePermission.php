@@ -78,6 +78,7 @@ class CheckAdminRoutePermission
         // Mendefinisikan rute yang akan di-bypass dari pemeriksaan izin
         $bypassRoutes = [
             'admin.dashboard',
+            'admin.home',
 
             'admin.profile.edit',
             'admin.profile.update',

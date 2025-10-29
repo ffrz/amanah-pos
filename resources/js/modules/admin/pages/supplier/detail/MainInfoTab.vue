@@ -1,4 +1,5 @@
 <script setup>
+import WaLink from "@/components/WaLink.vue";
 import { handleDelete } from "@/helpers/client-req-handler";
 import {
   formatMoneyWithSymbol,
@@ -49,17 +50,17 @@ const confirmDelete = () => {
       <tr v-if="page.props.data.phone_1">
         <td>No Telepon</td>
         <td>:</td>
-        <td>{{ page.props.data.phone_1 }}</td>
+        <td><WaLink :phone="page.props.data.phone_1" /></td>
       </tr>
       <tr v-if="page.props.data.phone_2">
         <td>No Telepon 2</td>
         <td>:</td>
-        <td>{{ page.props.data.phone_2 }}</td>
+        <td><WaLink :phone="page.props.data.phone_2" /></td>
       </tr>
       <tr v-if="page.props.data.phone_3">
         <td>No Telepon 3</td>
         <td>:</td>
-        <td>{{ page.props.data.phone_3 }}</td>
+        <td><WaLink :phone="page.props.data.phone_3" /></td>
       </tr>
       <tr v-if="page.props.data.address">
         <td>Alamat</td>

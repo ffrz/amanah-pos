@@ -19,8 +19,6 @@ namespace Modules\Admin\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use Modules\Admin\Services\PosSettingsService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Validator;
 use Modules\Admin\Http\Requests\Settings\PosSettings\SaveRequest;
 
 class PosSettingsController extends Controller

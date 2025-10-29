@@ -50,7 +50,7 @@ const pagination = ref({
 const columns = [
   {
     name: "username",
-    label: "ID Pengguna",
+    label: $q.screen.gt.sm ? "ID Pengguna" : "Pengguna",
     field: "username",
     align: "left",
     sortable: true,
@@ -235,25 +235,18 @@ const tableHeight = useTableHeight(filterToolbarRef);
           >
             <q-td key="username" :props="props">
               <div>
-                <template v-if="!$q.screen.gt.sm">
-                  <q-icon name="person" class="inline-icon" />
-                  Username:
-                </template>
+                <template v-if="!$q.screen.gt.sm"> </template>
                 {{ props.row.username }}
               </div>
               <template v-if="!$q.screen.gt.sm">
                 <div>
-                  <q-icon name="person" class="inline-icon" />
-                  Nama: {{ props.row.name }}
+                  {{ props.row.name }}
                 </div>
-                <div class="elipsis" style="max-width: 200px">
-                  <q-icon name="group" class="inline-icon" />
-                  Jenis Akun:
-                  <span>{{ $CONSTANTS.USER_TYPES[props.row.type] }}</span>
-                </div>
-                <div>
-                  <q-icon name="group" class="inline-icon" />
-                  Peran:
+                <q-badge
+                  :color="props.row.type == 'super_user' ? 'red' : 'primary'"
+                  >{{ $CONSTANTS.USER_TYPES[props.row.type] }}</q-badge
+                >
+                <div v-if="props.row.roles.length > 0">
                   {{ props.row.roles.map((role) => role.name).join(",") }}
                 </div>
               </template>
