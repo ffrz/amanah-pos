@@ -324,7 +324,7 @@ class ProductService
                     'category_id' => $category ? $category->id : null,
                     'supplier_id' => $supplier ? $supplier->id : null,
                     'type'        => $row['type'] ?? Product::Type_Stocked,
-                    'active'      => $row['active'] ?? 0,
+                    'active'      => $row['active'] ?? 1,
                 ]);
 
                 if ($row['stock'] > 0) {
