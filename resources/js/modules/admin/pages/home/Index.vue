@@ -47,7 +47,6 @@ const menuItems = {
   ],
 };
 </script>
-
 <template>
   <i-head :title="title" />
   <authenticated-layout>
@@ -64,10 +63,10 @@ const menuItems = {
       <div class="row q-col-gutter-md q-mb-md">
         <div class="col-xs-12 col-md-4">
           <q-card class="full-height full-width" flat>
-            <q-toolbar class="bg-gradient-red text-white">
+            <q-toolbar class="bg-deep-purple-2 text-grey-10">
               <q-toolbar-title
                 ><q-icon
-                  name="add_shopping_cart"
+                  name="local_shipping"
                   class="q-mr-md"
                 />Pembelian</q-toolbar-title
               >
@@ -83,16 +82,6 @@ const menuItems = {
                   ><q-icon name="chevron_right"
                 /></q-item-section>
               </q-item>
-              <!-- <q-item
-                clickable
-                v-ripple
-                @click="router.get(route('admin.purchase-order-quote.index'))"
-              >
-                <q-item-section>Pesanan Pembelian</q-item-section>
-                <q-item-section side
-                  ><q-icon name="chevron_right"
-                /></q-item-section>
-              </q-item> -->
               <q-separator />
               <q-item
                 clickable
@@ -110,10 +99,10 @@ const menuItems = {
 
         <div class="col-xs-12 col-md-4">
           <q-card class="full-height full-width" flat>
-            <q-toolbar class="bg-gradient-blue text-white">
+            <q-toolbar class="bg-light-blue-2 text-grey-10">
               <q-toolbar-title
                 ><q-icon
-                  name="add_shopping_cart"
+                  name="inventory_2"
                   class="q-mr-md"
                 />Inventori</q-toolbar-title
               >
@@ -156,7 +145,7 @@ const menuItems = {
 
         <div class="col-xs-12 col-md-4">
           <q-card class="full-height full-width" flat>
-            <q-toolbar class="bg-gradient-green text-white">
+            <q-toolbar class="bg-green-3 text-grey-10">
               <q-toolbar-title>
                 <q-icon
                   name="storefront"
@@ -175,16 +164,6 @@ const menuItems = {
                   ><q-icon name="chevron_right"
                 /></q-item-section>
               </q-item>
-              <!-- <q-item
-                clickable
-                v-ripple
-                @click="router.get(route('admin.sales-order-quote.index'))"
-              >
-                <q-item-section>Pesanan Penjualan</q-item-section>
-                <q-item-section side
-                  ><q-icon name="chevron_right"
-                /></q-item-section>
-              </q-item> -->
               <q-separator />
               <q-item
                 clickable
@@ -230,7 +209,7 @@ const menuItems = {
         </div>
       </div>
 
-      <q-card class="bg-gradient-orange text-white full-width" flat>
+      <q-card class="bg-orange-3 text-grey-10 full-width" flat>
         <q-toolbar>
           <q-toolbar-title>
             <q-icon name="analytics" class="q-mr-sm" />
@@ -245,10 +224,10 @@ const menuItems = {
             :key="group.group"
             class="col-xs-6 col-sm-4 q-mb-md"
           >
-            <div class="text-caption text-bold text-grey-9 q-mb-xs">
+            <div class="text-subtitle1 text-bold text-grey-9 q-mb-xs q-ml-md">
               {{ group.group }}
             </div>
-            <q-list dense>
+            <q-list>
               <q-item
                 v-for="item in group.items"
                 :key="item"
@@ -256,7 +235,10 @@ const menuItems = {
                 v-ripple
                 @click="router.get(route(item.route))"
               >
-                <q-item-section>{{ item.label }}</q-item-section>
+                <q-item-section>{{ item.label }} </q-item-section>
+                <q-item-section side
+                  ><q-icon name="chevron_right"
+                /></q-item-section>
               </q-item>
             </q-list>
           </div>
@@ -300,29 +282,5 @@ const menuItems = {
   animation-duration: 5s;
   animation-iteration-count: infinite;
   animation-timing-function: ease-in-out;
-}
-
-.bg-gradient-red {
-  background: linear-gradient(to right, rgb(200, 0, 0), rgba(200, 0, 0, 0.8));
-}
-
-.bg-gradient-blue {
-  background: linear-gradient(to right, rgb(0, 89, 255), rgba(0, 89, 255, 0.8));
-}
-
-.bg-gradient-green {
-  background: linear-gradient(
-    to right,
-    rgb(10, 136, 42),
-    rgba(10, 136, 42, 0.7)
-  );
-}
-
-.bg-gradient-orange {
-  background: linear-gradient(
-    to right,
-    rgb(255, 136, 0),
-    rgba(255, 136, 0, 0.7)
-  );
 }
 </style>
