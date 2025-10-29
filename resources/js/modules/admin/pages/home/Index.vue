@@ -54,7 +54,7 @@ const menuItems = {
 
     <template #right-button> </template>
 
-    <div class="q-pa-sm">
+    <div class="q-pa-sm animated-background-container">
       <div class="text-h6 q-mb-lg">
         Selamat datang, {{ page.props.auth.user.name }}.
         <q-icon name="waving_hand" class="waving-hand" />
@@ -222,7 +222,7 @@ const menuItems = {
           <div
             v-for="group in menuItems.reports"
             :key="group.group"
-            class="col-xs-6 col-sm-4 q-mb-md"
+            class="col-xs-12 col-sm-4 q-mb-md"
           >
             <div class="text-subtitle1 text-bold text-grey-9 q-mb-xs q-ml-md">
               {{ group.group }}
@@ -283,4 +283,52 @@ const menuItems = {
   animation-iteration-count: infinite;
   animation-timing-function: ease-in-out;
 }
+
+/* --- CSS BARU UNTUK BACKGROUND ANIMASI --- */
+
+/* Keyframes untuk menggerakkan posisi gradien */
+@keyframes gradient-animation {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animated-background-container {
+  /* Tinggi background yang lebih besar dari kontainer agar ada yang bergerak */
+  background-size: 400% 400%;
+
+  /* Gunakan warna pastel yang sudah kita tentukan */
+  background-image: linear-gradient(
+    270deg,
+    rgba(255, 0, 200, 0.05),
+    rgba(76, 0, 255, 0.05),
+    rgba(0, 241, 241, 0.05)
+  );
+
+  /* Terapkan animasi secara perlahan dan berulang */
+  animation: gradient-animation 5s ease infinite;
+
+  /* Pastikan konten di atasnya tetap terlihat */
+  /* Jika Quasar tidak mendefinisikan variabel CSS, gunakan warna hex/rgb */
+  /* Contoh warna hex/rgb yang bisa Anda gunakan: */
+  /* background-image: linear-gradient(
+        270deg, 
+        #B39DDB,  // deep-purple-2
+        #81D4FA,  // light-blue-2
+        #81C784,  // green-3
+        #FFB74D   // orange-3
+    );
+    */
+}
+
+/* Perlu diperhatikan: Jika Anda ingin latar belakang hanya di area konten */
+/* dan bukan seluruh viewport, pastikan parent div memiliki tinggi yang cukup */
+
+/* Catatan: q-card harus memiliki background white agar tetap menonjol */
 </style>
