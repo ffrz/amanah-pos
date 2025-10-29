@@ -182,7 +182,6 @@ class Customer extends BaseModel implements
      */
     public static function totalActiveDebt(): float
     {
-        // Debt (Titipan yang dihabiskan atau Overdraft) sesuai logika Anda (< 0)
         return Customer::where('active', 1)
             ->where('wallet_balance', '<', 0)
             ->sum('wallet_balance');
@@ -193,7 +192,6 @@ class Customer extends BaseModel implements
      */
     public static function totalActiveCredit(): float
     {
-        // Credit (Piutang) sesuai logika Anda (> 0)
         return Customer::where('active', 1)
             ->where('wallet_balance', '>', 0)
             ->sum('wallet_balance');
@@ -209,13 +207,9 @@ class Customer extends BaseModel implements
     {
         return static::query()
             ->where('active', true)
-            // Filter: Hanya yang memiliki saldo wallet positif atau di atas 0
             ->where('wallet_balance', '>', 0)
-            // Pilih nama dan saldo
             ->select('id', 'name', 'wallet_balance')
-            // Urutkan berdasarkan saldo wallet (tertinggi ke terendah)
             ->orderBy('wallet_balance', 'desc')
-            // Batasi hasilnya
             ->limit($limit)
             ->get();
     }

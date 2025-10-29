@@ -433,7 +433,7 @@ class SalesOrder extends BaseModel
                 'c.name as customer_name',
                 DB::raw('SUM(sales_orders.grand_total) as total_revenue')
             )
-            ->groupBy('c.id')
+            ->groupBy('c.id', 'c.name')
             ->orderBy('total_revenue', 'desc')
             ->limit($limit)
             ->get();
