@@ -1,6 +1,5 @@
 <script setup>
 import { router, usePage } from "@inertiajs/vue3";
-import { ref } from "vue";
 const page = usePage();
 const title = "Beranda";
 
@@ -56,7 +55,7 @@ const menuItems = {
 
     <template #right-button> </template>
 
-    <div class="q-pa-md">
+    <div class="q-pa-sm">
       <div class="text-h6 q-mb-lg">
         Selamat datang, {{ page.props.auth.user.name }}.
         <q-icon name="waving_hand" class="waving-hand" />
@@ -65,7 +64,7 @@ const menuItems = {
       <div class="row q-col-gutter-md q-mb-md">
         <div class="col-xs-12 col-md-4">
           <q-card class="full-height full-width" flat>
-            <q-toolbar class="bg-red text-white">
+            <q-toolbar class="bg-gradient-red text-white">
               <q-toolbar-title
                 ><q-icon
                   name="add_shopping_cart"
@@ -111,7 +110,7 @@ const menuItems = {
 
         <div class="col-xs-12 col-md-4">
           <q-card class="full-height full-width" flat>
-            <q-toolbar class="bg-primary text-white">
+            <q-toolbar class="bg-gradient-blue text-white">
               <q-toolbar-title
                 ><q-icon
                   name="add_shopping_cart"
@@ -157,7 +156,7 @@ const menuItems = {
 
         <div class="col-xs-12 col-md-4">
           <q-card class="full-height full-width" flat>
-            <q-toolbar class="bg-green text-white">
+            <q-toolbar class="bg-gradient-green text-white">
               <q-toolbar-title>
                 <q-icon
                   name="storefront"
@@ -231,7 +230,7 @@ const menuItems = {
         </div>
       </div>
 
-      <q-card class="bg-orange text-white full-width" flat>
+      <q-card class="bg-gradient-orange text-white full-width" flat>
         <q-toolbar>
           <q-toolbar-title>
             <q-icon name="analytics" class="q-mr-sm" />
@@ -301,5 +300,29 @@ const menuItems = {
   animation-duration: 5s;
   animation-iteration-count: infinite;
   animation-timing-function: ease-in-out;
+}
+
+.bg-gradient-red {
+  background: linear-gradient(to right, rgb(200, 0, 0), rgba(200, 0, 0, 0.8));
+}
+
+.bg-gradient-blue {
+  background: linear-gradient(to right, rgb(0, 89, 255), rgba(0, 89, 255, 0.8));
+}
+
+.bg-gradient-green {
+  background: linear-gradient(
+    to right,
+    rgb(10, 136, 42),
+    rgba(10, 136, 42, 0.7)
+  );
+}
+
+.bg-gradient-orange {
+  background: linear-gradient(
+    to right,
+    rgb(255, 136, 0),
+    rgba(255, 136, 0, 0.7)
+  );
 }
 </style>

@@ -19,6 +19,7 @@ namespace App\Models;
 use App\Models\Traits\HasDocumentVersions;
 use App\Models\Traits\HasTransactionCode;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
 class SalesOrder extends BaseModel
 {
@@ -243,5 +244,57 @@ class SalesOrder extends BaseModel
         $this->total_cost  = $this->details()->sum('subtotal_cost');
         $this->total_price = $this->details()->sum('subtotal_price');
         $this->grand_total = $this->total_price + $this->total_tax - $this->total_discount;
+    }
+
+
+    /**
+     * Menghitung total grand_total dari semua SalesOrder yang berstatus 'closed'
+     * dalam rentang tanggal tertentu.
+     *
+     * @param string $startDate Tanggal mulai (misal: 'YYYY-MM-DD')
+     * @param string $endDate Tanggal akhir (misal: 'YYYY-MM-DD')
+     * @return float Total penjualan.
+     */
+    public static function sumClosedTotalByPeriod($startDate, $endDate): float
+    {
+        return static::query()
+            // Hanya menghitung pesanan yang sudah Selesai (Closed)
+            ->where('status', self::Status_Closed)
+
+            // Memfilter berdasarkan rentang tanggal
+            ->whereBetween('datetime', [
+                $startDate . ' 00:00:00',
+                $endDate . ' 23:59:59'
+            ])
+
+            // Menjumlahkan kolom grand_total
+            ->sum('grand_total');
+    }
+
+    public static function countClosedByPeriod($startDate, $endDate): float
+    {
+        return static::query()
+            // Hanya menghitung pesanan yang sudah Selesai (Closed)
+            ->where('status', self::Status_Closed)
+
+            // Memfilter berdasarkan rentang tanggal
+            ->whereBetween('datetime', [
+                $startDate . ' 00:00:00',
+                $endDate . ' 23:59:59'
+            ])
+
+            // Menjumlahkan kolom grand_total
+            ->count();
+    }
+
+    public static function sumTotalProfitByPeriod($startDate, $endDate)
+    {
+        return static::query()
+            ->where('status', self::Status_Closed)
+            ->whereBetween('datetime', [
+                $startDate . ' 00:00:00',
+                $endDate . ' 23:59:59'
+            ])
+            ->sum(DB::raw('total_price - total_cost'));
     }
 }

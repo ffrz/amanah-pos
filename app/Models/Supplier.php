@@ -104,4 +104,13 @@ class Supplier extends BaseModel
         $prefix = Setting::value('supplier.code-prefix', 'SUP-');
         return $prefix . $code;
     }
+
+    /**
+     * Menghitung total saldo utang piutang dari supplier aktif.
+     */
+    public static function totalActiveBalance(): float
+    {
+        // Menggunakan sum() untuk menghitung total saldo
+        return static::where('active', 1)->sum('balance');
+    }
 }

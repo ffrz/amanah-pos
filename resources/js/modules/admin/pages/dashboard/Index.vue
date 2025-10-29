@@ -9,15 +9,6 @@ import TopCard from "./cards/TopCard.vue";
 const page = usePage();
 
 const dashboardData = ref({
-  summary: {
-    total_active_customer: page.props.data.active_customer_count,
-    total_sales: 15500000,
-    total_transactions: 1250,
-    total_wallet_balance: page.props.data.total_customer_wallet_balance,
-    total_topup: 75000000,
-    total_purchase: 85000000,
-    total_withdrawal: 65000000,
-  },
   top_customers_sales: [
     { name: "Wildan Medina", value: 1822000 },
     { name: "Syafiq", value: 1754500 },
@@ -45,17 +36,23 @@ const dashboardData = ref({
 });
 
 const title = "Dashboard";
-const showFilter = ref(false);
-const selected_month = ref(getQueryParams()["month"] ?? "this_month");
-const month_options = ref([
+const showFilter = ref(true);
+const selected_period = ref(getQueryParams()["period"] ?? "this_month");
+const period_options = ref([
+  { value: "today", label: "Hari Ini" },
+  { value: "yesterday", label: "Kemarin" },
+  { value: "this_week", label: "Minggu Ini" },
+  { value: "last_week", label: "Minggu Lalu" },
   { value: "this_month", label: "Bulan Ini" },
-  { value: "prev_month", label: "1 Bulan Sebelumnya" },
+  { value: "prev_month", label: "Bulan Lalu" },
   { value: "prev_2month", label: "2 Bulan Sebelumnya" },
   { value: "prev_3month", label: "3 Bulan Sebelumnya" },
+  { value: "this_year", label: "Tahun Ini" },
+  { value: "prev_year", label: "Tahun Lalu" },
 ]);
 
 const onFilterChange = () => {
-  router.visit(route("admin.dashboard", { month: selected_month.value }));
+  router.visit(route("admin.dashboard", { period: selected_period.value }));
 };
 </script>
 
@@ -80,9 +77,9 @@ const onFilterChange = () => {
           <q-select
             class="custom-select col-12"
             style="min-width: 150px"
-            v-model="selected_month"
-            :options="month_options"
-            label="Bulan"
+            v-model="selected_period"
+            :options="period_options"
+            label="Periode"
             dense
             map-options
             emit-value

@@ -256,3 +256,85 @@ function month_names($month)
             return "Desember";
     }
 }
+
+/**
+ * Menghitung tanggal mulai dan tanggal akhir berdasarkan nama periode.
+ *
+ * @param string $period Nama periode (e.g., 'today', 'this_week', 'prev_month').
+ * @return array Berisi 'start_date' dan 'end_date' dalam objek Carbon.
+ */
+function getDateRangeByPeriod(string $period): array
+{
+    $now = Carbon::now();
+    $start_date = null;
+    $end_date = null;
+
+    switch ($period) {
+        // --- Harian ---
+        case 'today':
+            $start_date = $now->copy()->startOfDay();
+            $end_date = $now->copy()->endOfDay();
+            break;
+
+        case 'yesterday':
+            $start_date = $now->copy()->subDay()->startOfDay();
+            $end_date = $now->copy()->subDay()->endOfDay();
+            break;
+
+        // --- Mingguan ---
+        case 'this_week':
+            // Minggu dimulai pada Senin (default Carbon)
+            $start_date = $now->copy()->startOfWeek();
+            $end_date = $now->copy()->endOfWeek();
+            break;
+
+        case 'prev_week':
+            $start_date = $now->copy()->subWeek()->startOfWeek();
+            $end_date = $now->copy()->subWeek()->endOfWeek();
+            break;
+
+        // --- Bulanan ---
+        case 'this_month':
+            $start_date = $now->copy()->startOfMonth();
+            $end_date = $now->copy()->endOfMonth();
+            break;
+
+        case 'prev_month':
+            $start_date = $now->copy()->subMonth()->startOfMonth();
+            $end_date = $start_date->copy()->endOfMonth();
+            break;
+
+        case 'prev_2month':
+            $start_date = $now->copy()->subMonth(2)->startOfMonth();
+            $end_date = $start_date->copy()->endOfMonth();
+            break;
+
+        case 'prev_3month':
+            $start_date = $now->copy()->subMonth(3)->startOfMonth();
+            $end_date = $start_date->copy()->endOfMonth();
+            break;
+
+        // --- Tahunan ---
+        case 'this_year':
+            $start_date = $now->copy()->startOfYear();
+            $end_date = $now->copy()->endOfYear();
+            break;
+
+        case 'prev_year':
+            $start_date = $now->copy()->subYear()->startOfYear();
+            $end_date = $now->copy()->subYear()->endOfYear();
+            break;
+
+        // --- Default ---
+        default:
+            // Default ke 'this_month' jika periode tidak valid
+            $start_date = $now->copy()->startOfMonth();
+            $end_date = $now->copy()->endOfMonth();
+            break;
+    }
+
+    return [
+        'start_date' => $start_date,
+        'end_date' => $end_date,
+    ];
+}

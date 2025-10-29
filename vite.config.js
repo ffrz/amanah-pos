@@ -35,7 +35,7 @@ export default defineConfig({
         name: "Shiftech Customer",
         short_name: "Shiftech Customer",
         description: "Shiftech POS untuk pelanggan.",
-        theme_color: "#4f46e5",
+        theme_color: "#ffffff",
         background_color: "#ffffff",
         icons: [
           { src: "pwa-192x192.png", sizes: "192x192", type: "image/png" },
@@ -66,7 +66,7 @@ export default defineConfig({
         name: "Shiftech Admin",
         short_name: "Shiftech Admin",
         description: "Shiftech POS untuk staff.",
-        theme_color: "#4f46e5",
+        theme_color: "#ffffff",
         background_color: "#ffffff",
         icons: [
           { src: "pwa-192x192.png", sizes: "192x192", type: "image/png" },

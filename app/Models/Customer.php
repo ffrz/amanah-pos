@@ -161,7 +161,16 @@ class Customer extends BaseModel implements
     public static function totalActiveWalletBalance(): float
     {
         // Menggunakan sum() untuk menghitung total saldo
-        return Customer::where('active', 1)->sum('wallet_balance');
+        return static::where('active', 1)->sum('wallet_balance');
+    }
+
+    /**
+     * Menghitung total saldo utang piutang dari pelanggan aktif.
+     */
+    public static function totalActiveBalance(): float
+    {
+        // Menggunakan sum() untuk menghitung total saldo
+        return static::where('active', 1)->sum('balance');
     }
 
     /**
