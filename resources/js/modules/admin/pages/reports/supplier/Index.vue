@@ -1,221 +1,112 @@
 <script setup>
 import { router, usePage } from "@inertiajs/vue3";
-import { ref, computed } from "vue";
-import { useQuasar } from "quasar"; // Import useQuasar untuk deteksi breakpoint
+import { ref } from "vue";
+import ReportGeneratorLayout from "../ReportGeneratorLayout.vue";
+import BackButton from "@/components/BackButton.vue";
+import { useQuasar } from "quasar";
 
 const $q = useQuasar();
-const title = "Laporan";
-const activeTab = ref("sales");
-const isSmallScreen = computed(() => $q.screen.lt.md);
+const title = "Laporan Supplier";
 
-const reportCategories = {
-  sales: {
-    label: "Penjualan",
-    //count: 1,
-    icon: "o_payments",
-    reports: [
-      {
-        title: "Keuntungan Penjualan",
-        subtitle: "Daftar penjualan berikut laba kotor",
-        icon: "analytics",
-        route: "admin.report.sales-order.gross-profit",
-      },
-      {
-        title: "Pelanggan",
-        subtitle: "Daftar pelanggan",
-        icon: "o_groups",
-        route: "admin.report.customer.index",
-      },
-    ],
-  },
-  purchasing: {
-    label: "Pembelian",
-    //count: 2,
-    icon: "o_shopping_cart",
-    reports: [
-      {
-        title: "Rincian Pembelian",
-        subtitle: "Daftar rincian pembelian",
-        icon: "o_receipt_long",
-        route: "admin.report.purchase-order.detail",
-      },
-      {
-        title: "Supplier",
-        subtitle: "Daftar supplier",
-        icon: "o_groups",
-        route: "admin.report.supplier.index",
-      },
-    ],
-  },
+// Definisikan data yang unik untuk laporan ini
+const primaryColumns = [
+  { value: "code", label: "Kode" },
+  { value: "name", label: "Nama" },
+];
+
+const optionalColumns = [
+  { value: "phone_1", label: "No Telepon" },
+  { value: "balance", label: "Saldo" },
+];
+
+const statusOptions = [
+  { value: "all", label: "Semua" },
+  { value: "active", label: "Aktif" },
+  { value: "inactive", label: "Tidak Aktif" },
+];
+
+// Nilai awal filter dan sort yang unik
+const initialFilter = {
+  status: "all",
 };
 
-const sortedReportCategories = [
-  { id: "sales", ...reportCategories.sales }, // Tambahkan ID secara eksplisit
-  { id: "purchasing", ...reportCategories.purchasing },
+const initialSortOptions = [
+  {
+    column: "code", // Kode kolom default untuk sortir
+    asc: true,
+  },
 ];
+
+// Gunakan ref untuk mengakses komponen template
+const reportGeneratorRef = ref(null);
+
+// Fungsi submit yang dipanggil dari template
+const handleReportSubmit = ({ format, form }) => {
+  // Di sini Anda dapat mengirim form.columns, form.filter, form.sortOptions, dll.
+  // ke backend Anda menggunakan router.post/get atau axios.
+  console.log("Form Data:", form);
+  alert(`Mencetak laporan dalam format: ${format}`);
+};
 </script>
 
 <template>
   <i-head :title="title" />
   <authenticated-layout>
     <template #title>{{ title }}</template>
-    <template #right-button> </template>
+    <template #left-button>
+      <div class="q-gutter-sm">
+        <BackButton :route="route('admin.report.index')" />
+      </div>
+    </template>
+    <template #right-button></template>
 
-    <div class="q-pa-xs">
-      <q-card flat bordered class="report-container full-width">
-        <q-tabs
-          v-model="activeTab"
-          dense
-          class="text-grey-7"
-          align="left"
-          :vertical="!isSmallScreen"
-          :switch-indicator="isSmallScreen"
-          :inline-label="isSmallScreen"
-          :mobile-arrows="isSmallScreen"
-          :breakpoint="0"
-        >
-          <q-tab
-            v-for="category in sortedReportCategories"
-            :key="category.id"
-            :name="category.id"
-            :class="{
-              'bg-blue-2': activeTab === category.id && !isSmallScreen,
-              'q-py-md': !isSmallScreen,
-              'q-py-sm': isSmallScreen,
-            }"
-            content-class="full-width"
-            style="min-height: 50px"
+    <ReportGeneratorLayout
+      ref="reportGeneratorRef"
+      :primaryColumns="primaryColumns"
+      :optionalColumns="optionalColumns"
+      :initialFilter="initialFilter"
+      :initialSortOptions="initialSortOptions"
+      @submit="handleReportSubmit"
+    >
+      <template #filter="{ form }">
+        <q-select
+          label="Status"
+          v-model="form.filter.status"
+          :options="statusOptions"
+          map-options
+        />
+      </template>
+
+      <template #sort="{ form, columnOptions }">
+        <div class="row q-col-gutter-sm items-center">
+          <q-select
+            v-model="form.sortOptions[0].column"
+            class="col-grow"
+            style="min-width: 150px"
+            :options="columnOptions"
+            map-options
+            dense
+          />
+          <q-btn
+            :icon="form.sortOptions[0].asc ? 'arrow_upward' : 'arrow_downward'"
+            color="grey-8"
+            flat
+            round
+            dense
+            @click="form.sortOptions[0].asc = !form.sortOptions[0].asc"
+            class="q-ml-sm"
           >
-            <div class="row items-center full-width">
-              <q-icon
-                v-if="!isSmallScreen"
-                :name="category.icon"
-                class="q-mr-md"
-              />
-              <div class="col text-left text-bold text-grey-9">
-                {{ category.label }}
-              </div>
-              <q-badge
-                v-if="category.count && !isSmallScreen"
-                color="grey-5"
-                text-color="dark"
-                rounded
-                :label="category.count"
-                class="q-ml-sm"
-              />
-            </div>
-          </q-tab>
-        </q-tabs>
-
-        <q-separator :vertical="!isSmallScreen" />
-
-        <div></div>
-
-        <q-tab-panels v-model="activeTab" animated class="q-pa-none">
-          <q-tab-panel name="purchasing" class="q-pa-none">
-            <q-list separator>
-              <q-item
-                v-for="(report, index) in reportCategories.purchasing.reports"
-                :key="index"
-                clickable
-                v-ripple
-                class="q-py-md"
-                @click.stop="router.get(route(report.route))"
-              >
-                <q-item-section avatar>
-                  <q-icon :name="report.icon" size="28px" color="grey" />
-                </q-item-section>
-
-                <q-item-section>
-                  <q-item-label class="text-weight-bold text-dark">{{
-                    report.title
-                  }}</q-item-label>
-                  <q-item-label caption>{{ report.subtitle }}</q-item-label>
-                </q-item-section>
-
-                <q-item-section side>
-                  <q-icon name="chevron_right" color="grey" />
-                </q-item-section>
-              </q-item>
-            </q-list>
-          </q-tab-panel>
-
-          <q-tab-panel name="sales" class="q-pa-none">
-            <q-list separator>
-              <q-item
-                v-for="(report, index) in reportCategories.sales.reports"
-                :key="index"
-                clickable
-                v-ripple
-                class="q-py-md"
-                @click.stop="router.get(route(report.route))"
-              >
-                <q-item-section avatar>
-                  <q-icon :name="report.icon" size="28px" color="grey" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label class="text-weight-bold text-dark">{{
-                    report.title
-                  }}</q-item-label>
-                  <q-item-label caption>{{ report.subtitle }}</q-item-label>
-                </q-item-section>
-                <q-item-section side>
-                  <q-icon name="chevron_right" color="grey" />
-                </q-item-section>
-              </q-item>
-            </q-list>
-          </q-tab-panel>
-
-          <q-tab-panel
-            v-for="category in sortedReportCategories"
-            :key="category.id"
-            :name="category.id"
-            :class="{ hidden: ['purchasing', 'sales'].includes(category.id) }"
-          >
-            <div class="q-pa-md">
-              <div class="text-h6 text-primary q-mb-md">
-                Laporan {{ category.label }}
-              </div>
-              <p>
-                Saat ini tidak ada daftar laporan spesifik yang ditampilkan.
-                Klik tombol di bawah untuk melihat semua daftar laporan di
-                kategori **{{ category.label }}**.
-              </p>
-              <q-btn
-                label="Lihat Semua Laporan"
-                color="primary"
-                icon-right="arrow_forward"
-              />
-            </div>
-          </q-tab-panel>
-        </q-tab-panels>
-      </q-card>
-    </div>
+            <q-tooltip>
+              Urutkan:
+              {{
+                form.sortOptions[0].asc
+                  ? "Terkecil ke Terbesar"
+                  : "Terbesar ke Terkecil"
+              }}
+            </q-tooltip>
+          </q-btn>
+        </div>
+      </template>
+    </ReportGeneratorLayout>
   </authenticated-layout>
 </template>
-
-<style scoped>
-/* Kontainer utama yang menampung tabs dan panels */
-.report-container {
-  display: flex;
-  /* Tumpuk secara vertikal di layar kecil */
-  flex-direction: column;
-  min-height: 80vh;
-}
-
-/* Override default Quasar: Di layar besar, buat tabs dan panels berdampingan */
-@media (min-width: 1024px) {
-  /* breakpoint md atau lebih */
-  .report-container {
-    flex-direction: row; /* Berdampingan */
-  }
-  .report-container > .q-tabs {
-    width: 300px; /* Lebar kolom kiri */
-    border-right: 1px solid #e0e0e0;
-  }
-  .report-container > .q-tab-panels {
-    flex-grow: 1; /* Ambil sisa lebar */
-    width: auto;
-  }
-}
-</style>
