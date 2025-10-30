@@ -45,7 +45,7 @@ const getInitialValue = () => ({
   columns: primaryColumnValues.value.slice(),
   filter: JSON.parse(JSON.stringify(props.initialFilter)),
   sortOptions: JSON.parse(JSON.stringify(props.initialSortOptions)),
-  ortientation: "auto",
+  orientation: "auto",
 });
 
 const form = ref(getInitialValue());
@@ -112,6 +112,7 @@ defineExpose({
                   v-model="form.columns"
                   :options="columnOptions"
                   map-options
+                  emit-value
                   multiple
                   clearable
                   use-chips
@@ -177,9 +178,10 @@ defineExpose({
               <div>
                 <q-select
                   label="Orientasi"
-                  v-model="form.ortientation"
+                  v-model="form.orientation"
                   :options="orientationOptions"
                   map-options
+                  emit-value
                 />
               </div>
             </q-card-section>

@@ -1,5 +1,4 @@
 <script setup>
-import { router, usePage } from "@inertiajs/vue3";
 import { ref } from "vue";
 import ReportGeneratorLayout from "../ReportGeneratorLayout.vue";
 import BackButton from "@/components/BackButton.vue";
@@ -19,6 +18,8 @@ const optionalColumns = [
   { value: "balance", label: "Saldo Utang / Piutang" },
   { value: "wallet_balance", label: "Saldo Deposit" },
   { value: "active", label: "Aktif / Nonaktif" },
+  { value: "type", label: "Jenis Akun" },
+  { value: "default_price_type", label: "Level Harga" },
 ];
 
 const statusOptions = [
@@ -27,22 +28,63 @@ const statusOptions = [
   { value: "inactive", label: "Tidak Aktif" },
 ];
 
+const typeOptions = [
+  { value: "all", label: "Semua" },
+  { value: "general", label: "Umum" },
+  { value: "staff", label: "Staff" },
+  { value: "category_1", label: "Kategori 1" },
+  { value: "category_2", label: "Kategori 2" },
+  { value: "category_3", label: "Kategori 3" },
+];
+
+const priceOptions = [
+  { value: "all", label: "Semua" },
+  { value: "price_1", label: "Harga Eceran" },
+  { value: "price_2", label: "Harga Partai" },
+  { value: "price_3", label: "Harga Grosir" },
+];
+
 const initialFilter = {
   status: "all",
+  type: "all",
+  default_price_type: "all",
 };
 
 const initialSortOptions = [
   {
     column: "code",
-    asc: true,
+    order: "asc",
   },
 ];
 
 const reportGeneratorRef = ref(null);
 
 const handleReportSubmit = ({ format, form }) => {
-  console.log("Form Data:", form);
-  alert(`Mencetak laporan dalam format: ${format}`);
+  const params = {
+    ...form,
+    format: format,
+  };
+
+  try {
+    const url = route("admin.report.customer.list", params);
+
+    window.open(url, "_blank");
+
+    if (format !== "html") {
+      $q.notify({
+        type: "positive",
+        message: `Laporan ${format.toUpperCase()} sedang diunduh.`,
+        timeout: 2000,
+      });
+    }
+  } catch (error) {
+    $q.notify({
+      type: "negative",
+      message: "Gagal menghasilkan URL laporan. [ROUTE ERROR]",
+      timeout: 5000,
+    });
+    console.error("Route error:", error);
+  }
 };
 </script>
 
@@ -71,6 +113,21 @@ const handleReportSubmit = ({ format, form }) => {
           v-model="form.filter.status"
           :options="statusOptions"
           map-options
+          emit-value
+        />
+        <q-select
+          label="Level Harga"
+          v-model="form.filter.default_price_type"
+          :options="priceOptions"
+          map-options
+          emit-value
+        />
+        <q-select
+          label="Jenis Akun"
+          v-model="form.filter.type"
+          :options="typeOptions"
+          map-options
+          emit-value
         />
       </template>
 
@@ -82,21 +139,29 @@ const handleReportSubmit = ({ format, form }) => {
             style="min-width: 150px"
             :options="columnOptions"
             map-options
+            emit-value
             dense
           />
           <q-btn
-            :icon="form.sortOptions[0].asc ? 'arrow_upward' : 'arrow_downward'"
+            :icon="
+              form.sortOptions[0].order == 'desc'
+                ? 'arrow_upward'
+                : 'arrow_downward'
+            "
             color="grey-8"
             flat
             round
             dense
-            @click="form.sortOptions[0].asc = !form.sortOptions[0].asc"
+            @click="
+              form.sortOptions[0].order =
+                form.sortOptions[0].order == 'asc' ? 'desc' : 'asc'
+            "
             class="q-ml-sm"
           >
             <q-tooltip>
               Urutkan:
               {{
-                form.sortOptions[0].asc
+                form.sortOptions[0].order == "asc"
                   ? "Terkecil ke Terbesar"
                   : "Terbesar ke Terkecil"
               }}

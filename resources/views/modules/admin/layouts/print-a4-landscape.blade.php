@@ -1,6 +1,6 @@
 @php use App\Models\Setting; @endphp
 <!DOCTYPE html>
-<html class="page-a4 page-a4-portrait" lang="en">
+<html class="page-a4 page-a4-landscape" lang="en">
 
 <head>
     <meta charset="utf-8">
@@ -16,11 +16,11 @@
             @media screen {
                 body {
                     background: #fafafa;
-                    max-width: 21cm;
+                    max-width: 30cm;
                 }
 
                 .page-container {
-                    width: 21cm;
+                    width: 30cm;
                 }
 
                 .page {
@@ -40,7 +40,7 @@
         @yield('content')
     </div>
     <script>
-        // window.addEventListener("load", window.print());
+        window.addEventListener("load", window.print());
     </script>
 </body>
 
