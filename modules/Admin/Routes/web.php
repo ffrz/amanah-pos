@@ -36,6 +36,8 @@ use Modules\Admin\Http\Controllers\ProductController;
 use Modules\Admin\Http\Controllers\PurchaseOrderController;
 use Modules\Admin\Http\Controllers\PurchaseOrderReturnController;
 use Modules\Admin\Http\Controllers\ReportController;
+use Modules\Admin\Http\Controllers\Reports\CustomerReportController;
+use Modules\Admin\Http\Controllers\Reports\SupplierReportController;
 use Modules\Admin\Http\Controllers\SalesOrderController;
 use Modules\Admin\Http\Controllers\SalesOrderReturnController;
 use Modules\Admin\Http\Controllers\StockAdjustmentController;
@@ -72,6 +74,8 @@ Route::middleware([Auth::class])
 
         Route::prefix('reports')->group(function () {
             Route::get('', [ReportController::class, 'index'])->name('admin.report.index');
+            Route::get('supplier', [SupplierReportController::class, 'index'])->name('admin.report.supplier.index');
+            Route::get('customer', [CustomerReportController::class, 'index'])->name('admin.report.customer.index');
         });
 
         Route::prefix('settings')->group(function () {
