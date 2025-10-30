@@ -116,13 +116,14 @@ class PurchaseOrderService
         $item->supplier_id      = $supplier?->id;
         $item->supplier_code    = $supplier?->code;
         $item->supplier_name    = $supplier?->name;
-        $item->supplier_phone   = $supplier?->phone;
+        $item->supplier_phone   = $supplier?->phone_1;
         $item->supplier_address = $supplier?->address;
 
         $item->notes = $data['notes'];
         $item->datetime = $data['datetime'];
 
         return DB::transaction(function () use ($item) {
+            $item->updateGrandTotal();
             $item->save();
             // kita tidak mencatat log dan lacak version di penyimpanan ini
             // untuk menghemat ruang dan meminimalisir interaksi database

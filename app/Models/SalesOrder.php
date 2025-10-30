@@ -299,7 +299,7 @@ class SalesOrder extends BaseModel
     }
 
     /**
-     * Mendapatkan total penjualan (grand_total) dan jumlah transaksi dari pesanan 
+     * Mendapatkan total penjualan (grand_total) dan jumlah transaksi dari pesanan
      * yang berstatus 'closed', diagregasi berdasarkan hari atau bulan.
      *
      * @param string $startDate Tanggal mulai (YYYY-MM-DD).
@@ -325,7 +325,7 @@ class SalesOrder extends BaseModel
         // Buat query
         return static::query()
             ->selectRaw(
-                "{$selectRawPeriod}, 
+                "{$selectRawPeriod},
                  SUM(grand_total) as total_sales,
                  COUNT(id) as total_transactions"
             )
@@ -348,7 +348,7 @@ class SalesOrder extends BaseModel
     }
 
     /**
-     * Mengagregasi total omzet (revenue) dari pesanan 'closed' berdasarkan Kategori Produk, 
+     * Mengagregasi total omzet (revenue) dari pesanan 'closed' berdasarkan Kategori Produk,
      * dibatasi hingga 5 teratas.
      *
      * @param string $startDate Tanggal mulai (YYYY-MM-DD).

@@ -157,9 +157,9 @@ class SalesOrderService
         $item->datetime = $data['datetime'];
 
         return DB::transaction(function () use ($item) {
+            $item->updateGrandTotal();
+            $item->updateTotals();
             $item->save();
-            // kita tidak mencatat log dan lacak version di penyimpanan ini
-            // untuk menghemat ruang dan meminimalisir interaksi database
             return $item;
         });
     }

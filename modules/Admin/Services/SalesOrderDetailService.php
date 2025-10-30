@@ -101,7 +101,7 @@ class SalesOrderDetailService
         return DB::transaction(function () use ($order, $item) {
             $item->save();
 
-            $order->updateTotals();
+            $order->updateGrandTotal();
             $order->save();
 
             return $item;
@@ -128,14 +128,13 @@ class SalesOrderDetailService
         }
 
         // perbarui subtotal
-        $item->subtotal_cost  = $item->cost  * $item->quantity;
-        $item->subtotal_price = $item->price * $item->quantity;
         $item->notes = $data['notes'] ?? '';
 
         DB::transaction(function () use ($order, $item) {
+            $item->updateTotals();
             $item->save();
 
-            $order->updateTotals();
+            $order->updateGrandTotal();
             $order->save();
         });
     }
@@ -152,7 +151,7 @@ class SalesOrderDetailService
         DB::transaction(function () use ($order, $item) {
             $item->delete();
 
-            $order->updateTotals();
+            $order->updateGrandTotal();
             $order->save();
         });
     }

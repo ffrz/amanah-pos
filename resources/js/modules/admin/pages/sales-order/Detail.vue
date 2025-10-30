@@ -49,7 +49,11 @@ const print = (size) => {
           color="grey-7"
           flat
           rounded
-          @click="$goBack()"
+          @click="
+            isPreview
+              ? router.get(route('admin.sales-order.edit', page.props.data.id))
+              : $goBack()
+          "
         />
       </div>
     </template>
@@ -88,6 +92,13 @@ const print = (size) => {
           flat
           bordered
           class="full-width"
+          :class="
+            isPreview
+              ? 'draft-label'
+              : page.props.data.payment_status == 'fully_paid'
+              ? 'paid-label'
+              : 'unpaid-label'
+          "
           style="max-width: 1024px"
         >
           <q-tabs

@@ -1,4 +1,5 @@
 <script setup>
+import WaLink from "@/components/WaLink.vue";
 import {
   formatDate,
   formatDateTime,
@@ -31,16 +32,18 @@ const props = defineProps({
             <tr>
               <td>
                 <template v-if="props.data.supplier">
-                  <i-link
-                    :href="
-                      route('admin.supplier.detail', {
-                        id: props.data.supplier_id,
-                      })
-                    "
-                  >
+                  <div>
                     <q-icon class="inline-icon" name="person" />
-                    {{ props.data.supplier_name }}
-                  </i-link>
+                    <i-link
+                      :href="
+                        route('admin.supplier.detail', {
+                          id: props.data.supplier_id,
+                        })
+                      "
+                    >
+                      {{ props.data.supplier_name }}
+                    </i-link>
+                  </div>
                 </template>
                 <template v-else>
                   <div>
@@ -52,13 +55,15 @@ const props = defineProps({
             <tr v-if="props.data.supplier_phone">
               <td>
                 <q-icon class="inline-icon" name="phone" />
-                {{ props.data.supplier_phone }}
+                <WaLink :phone="props.data.supplier_phone" />
               </td>
             </tr>
             <tr v-if="props.data.supplier_address">
               <td>
                 <q-icon class="inline-icon" name="home_pin" />
-                {{ props.data.supplier_address }}
+                <template v-if="1">
+                  {{ props.data.supplier_address }}
+                </template>
               </td>
             </tr>
           </tbody>
@@ -83,7 +88,7 @@ const props = defineProps({
                 {{ $CONSTANTS.PURCHASE_ORDER_STATUSES[props.data.status] }}
               </td>
             </tr>
-            <tr>
+            <tr v-if="props.data.status == 'closed'">
               <td class="text-grey-7">Status Pembayaran</td>
               <td>:</td>
               <td>
@@ -194,7 +199,10 @@ const props = defineProps({
             </div>
           </div>
         </div>
-        <div class="row justify-end q-gutter-y-xs">
+        <div
+          v-if="props.data.status == 'closed' && props.data.total_return"
+          class="row justify-end q-gutter-y-xs"
+        >
           <div class="col-12 row justify-between">
             <div class="text-subtitle2 text-grey-7">Total Retur (Rp)</div>
             <div class="text-subtitle2 text-bold">
@@ -202,7 +210,10 @@ const props = defineProps({
             </div>
           </div>
         </div>
-        <div class="row justify-end q-gutter-y-xs">
+        <div
+          v-if="props.data.status == 'closed' && props.data.total_paid"
+          class="row justify-end q-gutter-y-xs"
+        >
           <div class="col-12 row justify-between">
             <div class="text-subtitle2 text-grey-7">Total Dibayar (Rp)</div>
             <div class="text-subtitle2 text-bold">
@@ -210,7 +221,10 @@ const props = defineProps({
             </div>
           </div>
         </div>
-        <div class="row justify-end q-gutter-y-xs">
+        <div
+          v-if="props.data.status == 'closed' && props.data.balance != 0"
+          class="row justify-end q-gutter-y-xs"
+        >
           <div class="col-12 row justify-between">
             <div class="text-subtitle2 text-grey-7">Saldo (Rp)</div>
             <div class="text-subtitle2 text-bold">

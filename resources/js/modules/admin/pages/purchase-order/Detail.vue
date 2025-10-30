@@ -37,7 +37,13 @@ const print = () => {
           color="grey-7"
           flat
           rounded
-          @click="$goBack()"
+          @click="
+            isPreview
+              ? router.get(
+                  route('admin.purchase-order.edit', page.props.data.id)
+                )
+              : $goBack()
+          "
         />
       </div>
     </template>
@@ -61,6 +67,13 @@ const print = () => {
           flat
           bordered
           class="full-width"
+          :class="
+            isPreview
+              ? 'draft-label'
+              : page.props.data.payment_status == 'fully_paid'
+              ? 'paid-label'
+              : 'unpaid-label'
+          "
           style="max-width: 1024px"
         >
           <q-tabs
@@ -92,15 +105,3 @@ const print = () => {
     </q-page>
   </authenticated-layout>
 </template>
-
-<style scoped>
-@media print {
-  .q-btn,
-  .q-header,
-  .q-footer,
-  .q-drawer-container,
-  .no-print {
-    display: none !important;
-  }
-}
-</style>

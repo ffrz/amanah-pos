@@ -92,12 +92,12 @@
     "isDynamicEntry": true
   },
   "resources/css/app.css": {
-    "file": "assets/app-Cz97knCy.css",
+    "file": "assets/app-CQhi9eOG.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/js/modules/admin/app.js": {
-    "file": "assets/app-BnxWkJHX.js",
+    "file": "assets/app-Bp3RdPjT.js",
     "name": "app",
     "src": "resources/js/modules/admin/app.js",
     "isEntry": true,
@@ -105,7 +105,7 @@
       "_virtual_pwa-register-CQtXpdnF.js"
     ],
     "css": [
-      "assets/app-C212E4_m.css"
+      "assets/app-DQ0XyLqB.css"
     ]
   },
   "resources/js/modules/customer/app.js": {

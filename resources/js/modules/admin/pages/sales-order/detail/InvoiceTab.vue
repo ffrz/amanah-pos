@@ -1,4 +1,5 @@
 <script setup>
+import WaLink from "@/components/WaLink.vue";
 import {
   formatDate,
   formatDateTime,
@@ -40,6 +41,7 @@ const props = defineProps({
             <tr>
               <td>
                 <template v-if="props.data.customer">
+                  <q-icon class="inline-icon" name="person" />
                   <i-link
                     :href="
                       route('admin.customer.detail', {
@@ -47,7 +49,6 @@ const props = defineProps({
                       })
                     "
                   >
-                    <q-icon class="inline-icon" name="person" />
                     {{ props.data.customer_name }} ({{
                       props.data.customer_code
                     }})
@@ -63,13 +64,15 @@ const props = defineProps({
             <tr v-if="props.data.customer_phone">
               <td>
                 <q-icon class="inline-icon" name="phone" />
-                {{ props.data.customer_phone }}
+                <WaLink :phone="props.data.customer_phone" />
               </td>
             </tr>
             <tr v-if="props.data.customer_address">
               <td>
                 <q-icon class="inline-icon" name="home_pin" />
-                {{ props.data.customer_address }}
+                <template v-if="1">
+                  {{ props.data.customer_address }}
+                </template>
               </td>
             </tr>
           </tbody>
@@ -94,7 +97,7 @@ const props = defineProps({
                 {{ $CONSTANTS.SALES_ORDER_STATUSES[props.data.status] }}
               </td>
             </tr>
-            <tr>
+            <tr v-if="props.data.status == 'closed'">
               <td class="text-grey-7">Status Pembayaran</td>
               <td>:</td>
               <td>
@@ -200,7 +203,7 @@ const props = defineProps({
         </div>
       </div>
       <div class="col-12 col-sm-6">
-        <template v-if="props.data.change > 0">
+        <template v-if="props.data.status == 'closed' && props.data.change > 0">
           <div class="row justify-end q-gutter-y-xs">
             <div class="col-12 row justify-between">
               <div class="text-subtitle2 text-grey-7">Jumlah Bayar</div>
@@ -214,7 +217,10 @@ const props = defineProps({
               </div>
             </div>
           </div>
-          <div class="row justify-end q-gutter-y-xs">
+          <div
+            v-if="props.data.status == 'closed'"
+            class="row justify-end q-gutter-y-xs"
+          >
             <div class="col-12 row justify-between">
               <div class="text-subtitle2 text-grey-7">Kembalian</div>
               <div class="text-subtitle2 text-bold">
@@ -232,7 +238,7 @@ const props = defineProps({
           </div>
         </div>
         <div
-          v-if="props.data.total_return != 0"
+          v-if="props.data.status == 'closed' && props.data.total_return != 0"
           class="row justify-end q-gutter-y-xs"
         >
           <div class="col-12 row justify-between">
@@ -251,7 +257,7 @@ const props = defineProps({
           </div>
         </div> -->
         <div
-          v-if="props.data.balance != 0"
+          v-if="props.data.status == 'closed' && props.data.balance != 0"
           class="row justify-end q-gutter-y-xs"
         >
           <div class="col-12 row justify-between">

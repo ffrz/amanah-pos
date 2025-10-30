@@ -296,8 +296,10 @@ table.detail tr:nth-child(even) td {
  * Memberikan outline yang solid dan kontras
  */
 .q-btn:focus {
-  outline: 1px solid #ff00bf; /* Warna biru yang kontras */
-  outline-offset: 1px; /* Jarak antara outline dan tombol */
+  outline: 1px solid #ff00bf;
+  /* Warna biru yang kontras */
+  outline-offset: 1px;
+  /* Jarak antara outline dan tombol */
 }
 
 /*
@@ -314,12 +316,14 @@ table.detail tr:nth-child(even) td {
 }
 
 .q-menu .q-item__section--avatar {
-    min-width: inherit !important;
+  min-width: inherit !important;
 }
-.q-menu .q-item__section--side > .q-icon {
-    font-size: 18px !important;
-    color: #333;
+
+.q-menu .q-item__section--side>.q-icon {
+  font-size: 18px !important;
+  color: #333;
 }
+
 .q-menu .q-item {
   min-height: 40px !important;
 }
@@ -349,4 +353,83 @@ table.detail tr:nth-child(even) td {
 .q-tab--active {
   border-left: 1px solid #ddd;
   border-right: 1px solid #ddd;
+}
+
+.draft-label {
+  position: relative;
+  overflow: hidden;
+}
+
+.draft-label::before {
+  content: "DRAFT";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 99;
+  font-size: 50px;
+  font-weight: 750;
+  color: rgba(255, 0, 0, 0.1);
+  padding: 10px;
+  border: 5px solid rgba(255, 0, 0, 0.1);
+  border-radius: 15px;
+  user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  pointer-events: none;
+  opacity: 0.7;
+  z-index: 1;
+}
+
+
+.paid-label {
+  position: relative;
+  overflow: hidden;
+}
+
+.paid-label::before {
+  content: "LUNAS";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 99;
+  font-size: 50px;
+  font-weight: 750;
+  color: rgba(0, 127, 0, 0.1);
+  padding: 10px;
+  border: 5px solid rgb(0, 127, 0, 0.1);
+  border-radius: 15px;
+  user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  pointer-events: none;
+  opacity: 0.7;
+  z-index: 1;
+}
+
+.unpaid-label {
+  position: relative;
+  overflow: hidden;
+}
+
+.unpaid-label::before {
+  content: "BELUM LUNAS";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 99;
+  font-size: 50px;
+  font-weight: 750;
+  color: rgba(255, 0, 0, 0.1);
+  padding: 10px;
+  border: 5px solid rgb(255, 0, 0, 0.1);
+  border-radius: 15px;
+  user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  pointer-events: none;
+  opacity: 0.7;
+  z-index: 1;
 }
