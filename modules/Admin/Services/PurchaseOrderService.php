@@ -112,20 +112,12 @@ class PurchaseOrderService
     {
         $this->ensureOrderIsEditable($item);
 
-        if (isset($data['supplier_id'])) {
-            $supplier = $data['supplier_id'] ? Supplier::findOrFail($data['supplier_id']) : null;
-
-            // WARNING: logika ini perlu diperbarui jika mendukung customization di frontend
-            // saat ini info supplier selalu diperbarui dari data supplier
-            // karena frontend tidak mendukung customization
-            if ($supplier) {
-                $item->supplier_id      = $supplier->id;
-                $item->supplier_code    = $supplier->code;
-                $item->supplier_name    = $supplier->name;
-                $item->supplier_phone   = $supplier->phone;
-                $item->supplier_address = $supplier->address;
-            }
-        }
+        $supplier = !empty($data['supplier_id']) ? Supplier::findOrFail($data['supplier_id']) : null;
+        $item->supplier_id      = $supplier?->id;
+        $item->supplier_code    = $supplier?->code;
+        $item->supplier_name    = $supplier?->name;
+        $item->supplier_phone   = $supplier?->phone;
+        $item->supplier_address = $supplier?->address;
 
         $item->notes = $data['notes'];
         $item->datetime = $data['datetime'];

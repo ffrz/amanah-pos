@@ -144,20 +144,12 @@ class SalesOrderService
     {
         $this->ensureOrderIsEditable($item);
 
-        if (isset($data['customer_id'])) {
-            $customer = $data['customer_id'] ? Customer::findOrFail($data['customer_id']) : null;
-
-            // WARNING: logika ini perlu diperbarui jika mendukung customization di frontend
-            // saat ini info customer selalu diperbarui dari data customer
-            // karena frontend tidak mendukung customization
-            if ($customer) {
-                $item->customer_id      = $customer->id;
-                $item->customer_code    = $customer->code;
-                $item->customer_name    = $customer->name;
-                $item->customer_phone   = $customer->phone;
-                $item->customer_address = $customer->address;
-            }
-        }
+        $customer = !empty($data['customer_id']) ? Customer::findOrFail($data['customer_id']) : null;
+        $item->customer_id      = $customer?->id;
+        $item->customer_code    = $customer?->code;
+        $item->customer_name    = $customer?->name;
+        $item->customer_phone   = $customer?->phone;
+        $item->customer_address = $customer?->address;
 
         $activeSession = $this->cashierSessionService->getActiveSession();
         $item->cashier_session_id = $activeSession ? $activeSession->id : null;
