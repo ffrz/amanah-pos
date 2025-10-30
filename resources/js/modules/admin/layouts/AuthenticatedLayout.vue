@@ -163,6 +163,7 @@ defineExpose({
             </q-item-section>
           </q-item>
           <q-item
+            v-if="$can('admin.dashboard')"
             clickable
             v-ripple
             :active="$page.url.startsWith('/admin/dashboard')"
