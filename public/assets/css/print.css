@@ -196,3 +196,15 @@ table.info table td {
     margin-top: 3px;
     margin-bottom: 3px;
 }
+
+.text-right {
+    text-align: right !important;
+}
+
+.text-left {
+    text-align: left !important;
+}
+
+.text-center {
+    text-align: center !important;
+}

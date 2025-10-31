@@ -5,16 +5,25 @@ import BackButton from "@/components/BackButton.vue";
 import { useQuasar } from "quasar";
 import { createOptions } from "@/helpers/options";
 import { usePage } from "@inertiajs/vue3";
+import { useProductCategoryFilter } from "@/composables/useProductCategoryFilter";
+import { useSupplierFilter } from "@/composables/useSupplierFilter";
 
 const $q = useQuasar();
 const page = usePage();
-const title = "Laporan Pelanggan";
+const title = "Laporan Produk";
+
+console.log(page.props.errors);
 
 const primaryColumns = createOptions(page.props.primary_columns);
 const optionalColumns = createOptions(page.props.optional_columns);
 const initialColumns = page.props.initial_columns;
 
-console.log(page.props);
+const { filteredCategories, filterCategories } = useProductCategoryFilter(
+  page.props.categories
+);
+const { filteredSuppliers, filterSupplierFn } = useSupplierFilter(
+  page.props.suppliers
+);
 
 const statusOptions = [
   { value: "all", label: "Semua" },
@@ -22,31 +31,18 @@ const statusOptions = [
   { value: "inactive", label: "Tidak Aktif" },
 ];
 
-const typeOptions = [
-  { value: "all", label: "Semua" },
-  { value: "general", label: "Umum" },
-  { value: "staff", label: "Staff" },
-  { value: "category_1", label: "Kategori 1" },
-  { value: "category_2", label: "Kategori 2" },
-  { value: "category_3", label: "Kategori 3" },
-];
-
-const priceOptions = [
-  { value: "all", label: "Semua" },
-  { value: "price_1", label: "Harga Eceran" },
-  { value: "price_2", label: "Harga Partai" },
-  { value: "price_3", label: "Harga Grosir" },
-];
+const typeOptions = createOptions(window.CONSTANTS.PRODUCT_TYPES);
 
 const initialFilter = {
   status: "active",
-  type: "all",
-  default_price_type: "all",
+  types: [],
+  categories: [],
+  suppliers: [],
 };
 
 const initialSortOptions = [
   {
-    column: "code",
+    column: "name",
     order: "asc",
   },
 ];
@@ -60,7 +56,7 @@ const handleReportSubmit = ({ format, form }) => {
   };
 
   try {
-    const url = route("admin.report.customer.generate", params);
+    const url = route("admin.report.product.generate", params);
 
     window.open(url, "_blank");
 
@@ -111,18 +107,38 @@ const handleReportSubmit = ({ format, form }) => {
           emit-value
         />
         <q-select
-          label="Level Harga"
-          v-model="form.filter.default_price_type"
-          :options="priceOptions"
-          map-options
-          emit-value
-        />
-        <q-select
-          label="Jenis Akun"
-          v-model="form.filter.type"
+          label="Jenis"
+          v-model="form.filter.types"
           :options="typeOptions"
           map-options
           emit-value
+          multiple
+          use-chips
+          clearable
+        />
+        <q-select
+          label="Kategori"
+          v-model="form.filter.categories"
+          :options="filteredCategories"
+          @filter="filterCategories"
+          map-options
+          emit-value
+          use-input
+          clearable
+          multiple
+          use-chips
+        />
+        <q-select
+          label="Supplier"
+          v-model="form.filter.suppliers"
+          :options="filteredSuppliers"
+          @filter="filterSupplierFn"
+          map-options
+          emit-value
+          use-input
+          clearable
+          multiple
+          use-chips
         />
       </template>
     </ReportGeneratorLayout>

@@ -47,20 +47,30 @@ const reportCategories = {
       },
     ],
   },
+  inventory: {
+    label: "Inventori",
+    icon: "inventory",
+    reports: [
+      {
+        title: "Produk",
+        subtitle: "Daftar produk",
+        icon: "inventory",
+        route: "admin.report.product.index",
+      },
+    ],
+  },
 };
 
 const sortedReportCategories = [
-  { id: "sales", ...reportCategories.sales }, // Tambahkan ID secara eksplisit
+  { id: "sales", ...reportCategories.sales },
   { id: "purchasing", ...reportCategories.purchasing },
+  { id: "inventory", ...reportCategories.inventory },
 ];
 </script>
 
 <template>
   <i-head :title="title" />
   <authenticated-layout>
-    <template #title>{{ title }}</template>
-    <template #right-button> </template>
-
     <div class="q-pa-xs">
       <q-card flat bordered class="report-container full-width">
         <q-tabs
@@ -109,84 +119,50 @@ const sortedReportCategories = [
 
         <q-separator :vertical="!isSmallScreen" />
 
-        <div></div>
-
         <q-tab-panels v-model="activeTab" animated class="q-pa-none">
-          <q-tab-panel name="purchasing" class="q-pa-none">
-            <q-list separator>
-              <q-item
-                v-for="(report, index) in reportCategories.purchasing.reports"
-                :key="index"
-                clickable
-                v-ripple
-                class="q-py-md"
-                @click.stop="router.get(route(report.route))"
-              >
-                <q-item-section avatar>
-                  <q-icon :name="report.icon" size="28px" color="grey" />
-                </q-item-section>
-
-                <q-item-section>
-                  <q-item-label class="text-weight-bold text-dark">{{
-                    report.title
-                  }}</q-item-label>
-                  <q-item-label caption>{{ report.subtitle }}</q-item-label>
-                </q-item-section>
-
-                <q-item-section side>
-                  <q-icon name="chevron_right" color="grey" />
-                </q-item-section>
-              </q-item>
-            </q-list>
-          </q-tab-panel>
-
-          <q-tab-panel name="sales" class="q-pa-none">
-            <q-list separator>
-              <q-item
-                v-for="(report, index) in reportCategories.sales.reports"
-                :key="index"
-                clickable
-                v-ripple
-                class="q-py-md"
-                @click.stop="router.get(route(report.route))"
-              >
-                <q-item-section avatar>
-                  <q-icon :name="report.icon" size="28px" color="grey" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label class="text-weight-bold text-dark">{{
-                    report.title
-                  }}</q-item-label>
-                  <q-item-label caption>{{ report.subtitle }}</q-item-label>
-                </q-item-section>
-                <q-item-section side>
-                  <q-icon name="chevron_right" color="grey" />
-                </q-item-section>
-              </q-item>
-            </q-list>
-          </q-tab-panel>
-
           <q-tab-panel
             v-for="category in sortedReportCategories"
             :key="category.id"
             :name="category.id"
-            :class="{ hidden: ['purchasing', 'sales'].includes(category.id) }"
+            class="q-pa-none"
           >
-            <div class="q-pa-md">
-              <div class="text-h6 text-primary q-mb-md">
-                Laporan {{ category.label }}
+            <q-list separator>
+              <template v-if="category.reports && category.reports.length > 0">
+                <q-item
+                  v-for="(report, index) in category.reports"
+                  :key="index"
+                  clickable
+                  v-ripple
+                  class="q-py-md"
+                  @click.stop="router.get(route(report.route))"
+                >
+                  <q-item-section avatar>
+                    <q-icon :name="report.icon" size="28px" color="grey" />
+                  </q-item-section>
+
+                  <q-item-section>
+                    <q-item-label class="text-weight-bold text-dark">{{
+                      report.title
+                    }}</q-item-label>
+                    <q-item-label caption>{{ report.subtitle }}</q-item-label>
+                  </q-item-section>
+
+                  <q-item-section side>
+                    <q-icon name="chevron_right" color="grey" />
+                  </q-item-section>
+                </q-item>
+              </template>
+
+              <div v-else class="q-pa-md">
+                <div class="text-h6 text-primary q-mb-md">
+                  Laporan {{ category.label }}
+                </div>
+                <p>
+                  Saat ini tidak ada daftar laporan spesifik yang ditampilkan di
+                  kategori ini.
+                </p>
               </div>
-              <p>
-                Saat ini tidak ada daftar laporan spesifik yang ditampilkan.
-                Klik tombol di bawah untuk melihat semua daftar laporan di
-                kategori **{{ category.label }}**.
-              </p>
-              <q-btn
-                label="Lihat Semua Laporan"
-                color="primary"
-                icon-right="arrow_forward"
-              />
-            </div>
+            </q-list>
           </q-tab-panel>
         </q-tab-panels>
       </q-card>

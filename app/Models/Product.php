@@ -100,12 +100,12 @@ class Product extends BaseModel
      * @var array
      */
     const Types = [
-        self::Type_Stocked => 'Stok',
-        self::Type_NonStocked => 'Non Stok',
-        self::Type_Service => 'Servis',
-        self::Type_RawMaterial => 'Bahan Baku',
-        self::Type_Composite => 'Komposit',
-        self::Type_Consignment => 'Konsinyasi',
+        self::Type_Stocked => 'Barang (Stok)',
+        self::Type_NonStocked => 'Barang (Non Stok)',
+        self::Type_Service => 'Jasa / Servis',
+        // self::Type_RawMaterial => 'Bahan Baku',
+        // self::Type_Composite => 'Komposit',
+        // self::Type_Consignment => 'Konsinyasi',
     ];
 
     const PriceType_Price1 = 'price_1';

@@ -12,8 +12,8 @@
             </td>
         @endif
 
-        <td style="vertical-align: middle;">
-            <h5 class="m-0">{{ Setting::value('company.name') }}</h5>
+        <td style="vertical-align: top;">
+            <h5 class="m-0" style="padding-top:10px">{{ Setting::value('company.name') }}</h5>
         </td>
 
         <td style="width:40%; padding-left:10px; vertical-align: top;">

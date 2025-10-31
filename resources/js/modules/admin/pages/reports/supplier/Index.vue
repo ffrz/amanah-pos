@@ -21,7 +21,7 @@ const statusOptions = [
 ];
 
 const initialFilter = {
-  status: "all",
+  status: "active",
 };
 
 const initialSortOptions = [
@@ -40,7 +40,7 @@ const handleReportSubmit = ({ format, form }) => {
   };
 
   try {
-    const url = route("admin.report.supplier.list", params);
+    const url = route("admin.report.supplier.generate", params);
 
     window.open(url, "_blank");
 

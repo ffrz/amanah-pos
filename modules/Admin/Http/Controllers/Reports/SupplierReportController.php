@@ -52,7 +52,7 @@ class SupplierReportController extends BaseController
         ]);
     }
 
-    public function list(Request $request)
+    public function generate(Request $request)
     {
         $data = $request->validate([
             'filter' => 'nullable|array',
