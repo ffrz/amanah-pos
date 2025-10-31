@@ -32,7 +32,7 @@ const submit = () =>
           color="grey-7"
           flat
           rounded
-          @click="$goBack()"
+          @click="router.get(route('admin.operational-cost-category.index'))"
         />
       </div>
     </template>

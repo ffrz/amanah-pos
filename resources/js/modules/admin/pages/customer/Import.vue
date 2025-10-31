@@ -1,5 +1,5 @@
 <script setup>
-import { useForm } from "@inertiajs/vue3";
+import { router, useForm } from "@inertiajs/vue3";
 import { scrollToFirstErrorField } from "@/helpers/utils";
 
 const title = "Import Pelanggan";
@@ -44,7 +44,7 @@ const submit = () => {
           color="grey-7"
           flat
           rounded
-          @click="$goBack()"
+          @click="router.get(route('admin.customer.index'))"
         />
       </div>
     </template>
@@ -86,7 +86,7 @@ const submit = () => {
                 icon="cancel"
                 label="Batal"
                 :disable="form.processing"
-                @click="$goBack()"
+                @click="router.get(route('admin.customer.index'))"
               />
             </q-card-section>
             <q-banner

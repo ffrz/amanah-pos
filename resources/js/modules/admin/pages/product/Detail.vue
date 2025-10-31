@@ -22,7 +22,7 @@ const tab = ref("main");
           color="grey-7"
           flat
           rounded
-          @click="$goBack()"
+          @click="router.get(route('admin.product.index'))"
         />
       </div>
     </template>

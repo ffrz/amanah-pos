@@ -52,7 +52,7 @@ const print = (size) => {
           color="grey-7"
           flat
           rounded
-          @click="$goBack()"
+          @click="router.get(route('admin.purchase-order-return.index'))"
         />
       </div>
     </template>

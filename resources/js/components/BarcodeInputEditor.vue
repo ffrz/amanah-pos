@@ -234,7 +234,7 @@ async function scanLoop() {
 
 const showScanButton = computed(() => {
   if (isSupported.value && !isScanning.value && !localValue.value) return true;
-  if (localValue.value.endsWith("*")) return true;
+  if (localValue.value?.endsWith("*")) return isSupported.value;
   return false;
 });
 </script>

@@ -380,7 +380,7 @@ watch(
               :class="{
                 inactive:
                   ['stocked', 'raw_materials'].includes(props.row.type) &&
-                  props.row.stock == 0,
+                  props.row.stock <= 0,
                 'selected-row': selectedIndex === props.rowIndex,
               }"
               class="cursor-pointer"

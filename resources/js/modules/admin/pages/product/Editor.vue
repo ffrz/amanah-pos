@@ -1,5 +1,5 @@
 <script setup>
-import { useForm, usePage } from "@inertiajs/vue3";
+import { router, useForm, usePage } from "@inertiajs/vue3";
 import { handleSubmit } from "@/helpers/client-req-handler";
 import { scrollToFirstErrorField } from "@/helpers/utils";
 import { useProductCategoryFilter } from "@/composables/useProductCategoryFilter";
@@ -199,7 +199,7 @@ onMounted(() => {
           color="grey-7"
           flat
           rounded
-          @click="$goBack()"
+          @click="router.get(route('admin.product.index'))"
         />
       </div>
     </template>

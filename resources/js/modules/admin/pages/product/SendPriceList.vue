@@ -1,6 +1,6 @@
 <script setup>
 import { scrollToFirstErrorField } from "@/helpers/utils";
-import { useForm, usePage } from "@inertiajs/vue3";
+import { router, useForm, usePage } from "@inertiajs/vue3";
 import { computed, ref, watch } from "vue";
 
 const title = "Kirim Daftar Harga";
@@ -236,7 +236,7 @@ const submit = () => {
           color="grey-7"
           flat
           rounded
-          @click="$goBack()"
+          @click="router.get(route('admin.product.index'))"
         />
       </div>
     </template>
@@ -351,7 +351,7 @@ const submit = () => {
                   icon="cancel"
                   label="Batal"
                   :disable="form.processing"
-                  @click="$goBack()"
+                  @click="router.get(route('admin.product.index'))"
                 /> -->
               </q-card-section>
             </q-card>

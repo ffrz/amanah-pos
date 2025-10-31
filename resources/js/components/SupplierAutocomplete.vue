@@ -4,7 +4,7 @@
     ref="qSelectRef"
     v-model="selectedSupplier"
     use-input
-    input-debounce="0"
+    input-debounce="500"
     :label="label"
     :options="options"
     @filter="filterFn"
@@ -22,14 +22,27 @@
     <template #option="scope">
       <q-item v-bind="scope.itemProps">
         <q-item-section>
-          <q-item-label>{{ scope.opt.name }}</q-item-label>
+          <q-item-label
+            >{{ scope.opt.name }} ({{ scope.opt.code }})</q-item-label
+          >
+          <q-item-label
+            v-if="scope.opt.phone_1"
+            class="text-grey-8 q-ml-sm q-mt-xs"
+          >
+            <q-icon name="phone" class="inline-icon" />{{ scope.opt.phone_1 }}
+          </q-item-label>
+          <q-item-label v-if="scope.opt.address" class="text-grey-8 q-ml-sm">
+            <q-icon name="home_pin" class="inline-icon" />{{
+              scope.opt.address
+            }}
+          </q-item-label>
         </q-item-section>
       </q-item>
     </template>
 
     <template #selected-item="scope">
       <div v-if="scope.opt" class="q-select__selected-item">
-        {{ scope.opt.name }}
+        {{ scope.opt.name }} ({{ scope.opt.code }})
       </div>
     </template>
   </q-select>

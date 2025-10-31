@@ -21,7 +21,7 @@ const title = "Rincian Transaksi";
           color="grey-7"
           flat
           rounded
-          @click="$goBack()"
+          @click="router.get(route('admin.customer-wallet-transaction.index'))"
         />
       </div>
     </template>

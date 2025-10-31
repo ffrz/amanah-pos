@@ -32,6 +32,7 @@ class CustomerController extends Controller
                 ->orWhere('code', 'like', '%' . $query . '%')
                 ->orWhere('phone', 'like', '%' . $query . '%');
         }
+        $q->orderBy('name', 'asc');
         $customers = $q->get();
         return JsonResponseHelper::success($customers);
     }

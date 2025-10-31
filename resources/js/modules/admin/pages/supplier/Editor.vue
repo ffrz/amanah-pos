@@ -1,5 +1,5 @@
 <script setup>
-import { useForm, usePage } from "@inertiajs/vue3";
+import { router, useForm, usePage } from "@inertiajs/vue3";
 import { handleSubmit } from "@/helpers/client-req-handler";
 import { scrollToFirstErrorField } from "@/helpers/utils";
 import { ref } from "vue";
@@ -44,7 +44,7 @@ const submit = () => handleSubmit({ form, url: route("admin.supplier.save") });
           color="grey-7"
           flat
           rounded
-          @click="$goBack()"
+          @click="router.get(route('admin.supplier.index'))"
         />
       </div>
     </template>

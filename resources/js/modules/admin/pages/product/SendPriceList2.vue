@@ -255,7 +255,7 @@ const submit = () => {
           color="grey-7"
           flat
           rounded
-          @click="$goBack()"
+          @click="router.get(route('admin.product.index'))"
         />
       </div>
     </template>
@@ -369,7 +369,7 @@ const submit = () => {
                 icon="cancel"
                 label="Batal"
                 :disable="form.processing"
-                @click="$goBack()"
+                @click="router.get(route('admin.product.index'))"
               />
             </q-card-section>
 

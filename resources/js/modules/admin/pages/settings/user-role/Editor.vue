@@ -1,5 +1,5 @@
 <script setup>
-import { useForm, usePage } from "@inertiajs/vue3";
+import { router, useForm, usePage } from "@inertiajs/vue3";
 import { handleSubmit } from "@/helpers/client-req-handler";
 import { scrollToFirstErrorField } from "@/helpers/utils";
 import { computed } from "vue";
@@ -36,7 +36,7 @@ const groupedPermissions = computed(() => {
 
 <template>
   <i-head :title="title" />
-  <authenticated-layout :show-drawer-button="true">
+  <authenticated-layout>
     <template #title>{{ title }}</template>
 
     <template #left-button>
@@ -47,7 +47,7 @@ const groupedPermissions = computed(() => {
           color="grey-7"
           flat
           rounded
-          @click="$goBack()"
+          @click="router.get(route('admin.user-role.index'))"
         />
       </div>
     </template>

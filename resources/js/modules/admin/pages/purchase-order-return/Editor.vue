@@ -26,6 +26,7 @@ import OrderInfoDialog from "./editor/OrderInfoDialog.vue";
 import LongTextView from "@/components/LongTextView.vue";
 import ProductBrowserDialog from "@/components/ProductBrowserDialog.vue";
 import BarcodeInputEditor from "@/components/BarcodeInputEditor.vue";
+import PartyInfo from "@/components/PartyInfo.vue";
 
 const $q = useQuasar();
 const page = usePage();
@@ -478,14 +479,14 @@ const isValidWalletBalance = computed(() => {
         />
       </div>
     </template>
-    <q-page class="bg-grey-2 q-pa-none column fit">
-      <q-card square flat class="full-width col column q-pb-none">
+    <q-page class="bg-grey-2 column fit">
+      <q-card square flat class="full-width col column">
         <div class="row q-col-gutter-none full-width">
           <div class="col-sm-6 col-12 col">
-            <div class="row full-width">
+            <div class="row full-width q-pa-sm">
               <SupplierAutocomplete
                 ref="supplierAutocompleteRef"
-                class="custom-select full-width col col-12 bg-white q-pa-sm"
+                class="custom-select full-width col col-12 bg-white"
                 v-model="supplier"
                 label="Pemasok"
                 disable
@@ -493,31 +494,11 @@ const isValidWalletBalance = computed(() => {
                 outlined
                 autofocus
               />
-              <div class="row" v-if="supplier">
-                <div
-                  class="q-mt-xs q-ml-sm text-bold"
-                  :class="isValidWalletBalance ? 'text-green' : 'text-red'"
-                >
-                  Wallet:
-                  {{
-                    supplier
-                      ? "Rp. " +
-                        formatNumber(supplier ? supplier.wallet_balance : 0)
-                      : "Tidak tersedia"
-                  }}
-                </div>
-                <div
-                  class="q-mt-xs q-ml-sm text-bold"
-                  :class="supplier.balance >= 0 ? 'text-green' : 'text-red'"
-                >
-                  Utang / Piutang:
-                  {{
-                    supplier
-                      ? "Rp. " + formatNumber(supplier ? supplier.balance : 0)
-                      : "Tidak tersedia"
-                  }}
-                </div>
-              </div>
+              <PartyInfo
+                v-if="supplier"
+                :party="supplier"
+                :is-valid-wallet-balance="true"
+              />
             </div>
           </div>
           <div class="col-sm-6 col-12">
@@ -547,7 +528,7 @@ const isValidWalletBalance = computed(() => {
           </div>
         </div>
         <div class="row col grow">
-          <div class="col-12 q-pa-sm column">
+          <div class="col-12 q-px-sm column">
             <ItemListTable
               :items="form.items"
               @update-quantity="({ id, value }) => updateQuantity(id, value)"
@@ -575,10 +556,17 @@ const isValidWalletBalance = computed(() => {
           </div>
 
           <div class="col" v-if="$q.screen.gt.sm">
-            <div class="q-pa-sm q-pb-none text-grey-8">
-              <div>Return #: {{ form.code }}</div>
-              <div>Order #: {{ page.props.data.purchase_order.code }}</div>
-              <div>{{ formatDateTime(form.datetime) }}</div>
+            <div class="text-grey-8">
+              <div>
+                <q-icon class="inline-icon" name="tag" />{{
+                  page.props.data.purchase_order.code
+                }}
+              </div>
+              <div>
+                <q-icon class="inline-icon" name="calendar_today" />{{
+                  formatDateTime(form.datetime)
+                }}
+              </div>
             </div>
           </div>
 
@@ -595,10 +583,10 @@ const isValidWalletBalance = computed(() => {
             </div>
           </div>
         </div>
-        <div class="row q-px-sm q-pb-none q-py-sm q-col-gutter-sm">
-          <div class="col q-py-sm">
+        <div class="row q-px-sm q-col-gutter-sm q-py-xs">
+          <div class="col">
             <q-btn
-              class="full-width q-py-none"
+              class="full-width"
               label="Selesai"
               color="primary"
               icon="payment"
@@ -612,9 +600,8 @@ const isValidWalletBalance = computed(() => {
               :loading="isProcessing"
             />
           </div>
-          <div class="q-py-sm">
+          <div>
             <q-btn
-              class="q-py-none"
               icon="more_vert"
               color="grey"
               @click.stop

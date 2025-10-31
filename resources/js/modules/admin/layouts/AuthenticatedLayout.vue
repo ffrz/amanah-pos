@@ -59,7 +59,11 @@ defineExpose({
         >
           <q-icon class="material-symbols-outlined">dock_to_right</q-icon>
         </q-btn>
-        <slot name="left-button"></slot>
+        <template v-if="$q.screen.gt.sm">
+          <div class="q-ml-sm">
+            <slot name="left-button"></slot>
+          </div>
+        </template>
         <q-toolbar-title style="font-size: 16px">
           <slot name="title">{{ $config.APP_NAME }}</slot>
         </q-toolbar-title>

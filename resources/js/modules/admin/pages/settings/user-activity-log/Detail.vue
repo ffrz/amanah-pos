@@ -29,7 +29,7 @@ const deleteItem = () =>
           color="grey-7"
           flat
           rounded
-          @click="$goBack()"
+          @click="router.get(route('admin.user-activity-log.index'))"
         />
       </div>
     </template>

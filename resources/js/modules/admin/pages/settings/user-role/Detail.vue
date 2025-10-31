@@ -1,9 +1,9 @@
 <script setup>
-import { usePage } from "@inertiajs/vue3";
+import { router, usePage } from "@inertiajs/vue3";
 import { computed } from "vue";
 
 const page = usePage();
-const title = "Rincian Role Pengguna";
+const title = "Rincian Peran Pengguna";
 
 const groupedPermissions = computed(() => {
   const groups = {};
@@ -24,9 +24,20 @@ const groupedPermissions = computed(() => {
 
 <template>
   <i-head :title="title" />
-  <authenticated-layout :show-drawer-button="true">
+  <authenticated-layout>
     <template #title>{{ title }}</template>
-    <template #left-button> </template>
+    <template #left-button>
+      <div class="q-gutter-sm">
+        <q-btn
+          icon="arrow_back"
+          dense
+          color="grey-7"
+          flat
+          rounded
+          @click="router.get(route('admin.user-role.index'))"
+        />
+      </div>
+    </template>
     <template #right-button> </template>
     <q-page class="row justify-center q-pa-xs">
       <div class="col col-md-8">

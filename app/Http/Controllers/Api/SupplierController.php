@@ -30,6 +30,8 @@ class SupplierController extends Controller
         if ($query = $request->query('q', '')) {
             $q->where('name', 'like', '%' . $query . '%');
         }
+        $q->orderBy('name', 'asc');
+        $q->select('id', 'code', 'name', 'balance', 'address', 'phone_1');
         $suppliers = $q->get();
         return JsonResponseHelper::success($suppliers);
     }

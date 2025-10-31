@@ -42,7 +42,7 @@ const print = () => {
               ? router.get(
                   route('admin.purchase-order.edit', page.props.data.id)
                 )
-              : $goBack()
+              : router.get(route('admin.purchase-order.index'))
           "
         />
       </div>
@@ -70,6 +70,8 @@ const print = () => {
           :class="
             isPreview
               ? 'draft-label'
+              : currentTab != 'invoice'
+              ? ''
               : page.props.data.payment_status == 'fully_paid'
               ? 'paid-label'
               : 'unpaid-label'

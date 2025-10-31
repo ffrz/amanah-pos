@@ -46,7 +46,7 @@ const submit = () =>
           color="grey-7"
           flat
           rounded
-          @click="$goBack()"
+          @click="router.get(route('admin.customer.index'))"
         />
       </div>
     </template>

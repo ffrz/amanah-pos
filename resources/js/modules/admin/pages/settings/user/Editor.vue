@@ -3,7 +3,7 @@ import StandardCheckBox from "@/components/StandardCheckBox.vue";
 import { handleSubmit } from "@/helpers/client-req-handler";
 import { createOptions } from "@/helpers/options";
 import { validateUsername } from "@/helpers/validations";
-import { useForm, usePage } from "@inertiajs/vue3";
+import { router, useForm, usePage } from "@inertiajs/vue3";
 import { ref } from "vue";
 
 const types = createOptions(window.CONSTANTS.USER_TYPES);
@@ -43,7 +43,7 @@ const submit = () => handleSubmit({ form, url: route("admin.user.save") });
           color="grey-7"
           flat
           rounded
-          @click="$goBack()"
+          @click="router.get(route('admin.user.index'))"
         />
       </div>
     </template>
@@ -149,7 +149,7 @@ const submit = () => handleSubmit({ form, url: route("admin.user.save") });
                 label="Batal"
                 class="text-black"
                 :disable="form.processing"
-                @click="$goBack()"
+                @click="router.get(route('admin.user.index'))"
               />
             </q-card-section>
           </q-card>

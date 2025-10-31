@@ -22,6 +22,9 @@ import { showError, showWarning, showInfo } from "@/composables/useNotify";
 import OrderInfoDialog from "./editor/OrderInfoDialog.vue";
 import LongTextView from "@/components/LongTextView.vue";
 import SuccessDialog from "./editor/SuccessDialog.vue";
+import { getCurrentInstance } from "vue";
+import BarcodeInputEditor from "@/components/BarcodeInputEditor.vue";
+import PartyInfo from "@/components/PartyInfo.vue";
 
 const $q = useQuasar();
 const page = usePage();
@@ -66,9 +69,9 @@ const total = computed(() => {
 
 const handleFullScreenClicked = () => {
   toggleFullscreen();
-  if (!isFullscreen.value) {
-    authLayoutRef?.value?.hideDrawer();
-  }
+  // if (!isFullscreen.value) {
+  //   authLayoutRef?.value?.hideDrawer();
+  // }
 };
 
 // validations
@@ -321,9 +324,9 @@ onMounted(() => {
     document.removeEventListener("keydown", handler);
   });
 
-  nextTick(() => {
-    authLayoutRef?.value?.hideDrawer();
-  });
+  // nextTick(() => {
+  //   authLayoutRef?.value?.hideDrawer();
+  // });
 });
 
 const handleCustomerSelected = async (data) => {
@@ -460,9 +463,6 @@ const isValidWalletBalance = computed(() => {
   return true;
 });
 
-import { getCurrentInstance } from "vue";
-import BarcodeInputEditor from "@/components/BarcodeInputEditor.vue";
-
 const isValidOrder = computed(() => {
   return (
     getCurrentInstance().appContext.config.globalProperties.$can(
@@ -519,47 +519,27 @@ const isValidOrder = computed(() => {
         />
       </div>
     </template>
-    <q-page class="bg-grey-2 q-pa-none column fit">
-      <q-card square flat class="full-width col column q-pb-none">
+    <q-page class="bg-grey-2 column fit">
+      <q-card square flat class="full-width col column">
         <div class="row q-col-gutter-none full-width">
-          <div class="col-sm-6 col-12 col">
+          <div class="col-sm-6 col-12 col q-pa-sm">
             <div class="row full-width">
               <CustomerAutocomplete
                 ref="customerAutocompleteRef"
-                class="custom-select full-width col col-12 bg-white q-pa-sm"
+                class="custom-select full-width col col-12 bg-white"
                 v-model="customer"
-                label="Pelanggan"
+                label="Pemasok"
                 :disable="isProcessing"
                 @customer-selected="handleCustomerSelected"
                 :min-length="1"
                 outlined
                 autofocus
               />
-              <div class="row" v-if="customer">
-                <div
-                  class="q-mt-xs q-ml-sm text-bold"
-                  :class="isValidWalletBalance ? 'text-green' : 'text-red'"
-                >
-                  Wallet:
-                  {{
-                    customer
-                      ? "Rp. " +
-                        formatNumber(customer ? customer.wallet_balance : 0)
-                      : "Tidak tersedia"
-                  }}
-                </div>
-                <div
-                  class="q-mt-xs q-ml-sm text-bold"
-                  :class="customer.balance >= 0 ? 'text-green' : 'text-red'"
-                >
-                  Utang / Piutang:
-                  {{
-                    customer
-                      ? "Rp. " + formatNumber(customer ? customer.balance : 0)
-                      : "Tidak tersedia"
-                  }}
-                </div>
-              </div>
+              <PartyInfo
+                v-if="customer"
+                :party="customer"
+                :is-valid-wallet-balance="true"
+              />
             </div>
           </div>
           <div class="col-sm-6 col-12">
@@ -589,7 +569,7 @@ const isValidOrder = computed(() => {
           </div>
         </div>
         <div class="row col grow">
-          <div class="col-12 q-pa-sm column">
+          <div class="col-12 q-px-sm column">
             <ItemListTable
               :items="form.items"
               @update-quantity="({ id, value }) => updateQuantity(id, value)"
@@ -600,12 +580,9 @@ const isValidOrder = computed(() => {
           </div>
         </div>
 
-        <div
-          class="row items-start q-col-gutter-none q-px-sm"
-          style="max-height: 80px"
-        >
+        <div class="row items-start q-col-gutter-none q-px-sm">
           <div class="col" v-if="$q.screen.gt.sm">
-            <div class="text-caption text-grey-6 q-mt-xs">
+            <div class="text-caption text-grey-6">
               {{ form.items.length }} item(s)
             </div>
             <div class="text-caption text-grey-8 q-mt-xs" v-if="form.notes">
@@ -617,9 +594,15 @@ const isValidOrder = computed(() => {
           </div>
 
           <div class="col" v-if="$q.screen.gt.sm">
-            <div class="q-pa-sm q-pb-none text-grey-8">
-              <div>#: {{ form.code }}</div>
-              <div>{{ formatDateTime(form.datetime) }}</div>
+            <div class="text-grey-8">
+              <div>
+                <q-icon class="inline-icon" name="tag" />{{ form.code }}
+              </div>
+              <div>
+                <q-icon class="inline-icon" name="calendar_today" />{{
+                  formatDateTime(form.datetime)
+                }}
+              </div>
             </div>
           </div>
 
@@ -636,8 +619,8 @@ const isValidOrder = computed(() => {
             </div>
           </div>
         </div>
-        <div class="row q-px-sm q-pb-none q-py-sm q-col-gutter-sm">
-          <div class="col q-py-sm">
+        <div class="row q-col-gutter-sm q-py-xs q-px-sm">
+          <div class="col">
             <q-btn
               class="full-width q-py-none"
               label="Bayar"
@@ -648,7 +631,7 @@ const isValidOrder = computed(() => {
               :loading="isProcessing"
             />
           </div>
-          <div class="q-py-sm">
+          <div>
             <q-btn
               class="q-py-none"
               icon="more_vert"

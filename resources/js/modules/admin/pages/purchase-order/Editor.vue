@@ -23,6 +23,7 @@ import OrderInfoDialog from "./editor/OrderInfoDialog.vue";
 import LongTextView from "@/components/LongTextView.vue";
 import SuccessDialog from "./editor/SuccessDialog.vue";
 import BarcodeInputEditor from "@/components/BarcodeInputEditor.vue";
+import PartyInfo from "@/components/PartyInfo.vue";
 
 const $q = useQuasar();
 const page = usePage();
@@ -459,14 +460,14 @@ const invoicePreview = () => {
         />
       </div>
     </template>
-    <q-page class="bg-grey-2 q-pa-none column fit">
-      <q-card square flat class="full-width col column q-pb-none">
+    <q-page class="bg-grey-2 column fit">
+      <q-card square flat class="full-width col column">
         <div class="row q-col-gutter-none full-width">
-          <div class="col-sm-6 col-12 col">
+          <div class="col-sm-6 col-12 col q-pa-sm">
             <div class="row full-width">
               <SupplierAutocomplete
                 ref="supplierAutocompleteRef"
-                class="custom-select full-width col col-12 bg-white q-pa-sm"
+                class="custom-select full-width col col-12 bg-white"
                 v-model="supplier"
                 label="Pemasok"
                 :disable="isProcessing"
@@ -475,17 +476,14 @@ const invoicePreview = () => {
                 outlined
                 autofocus
               />
-              <div class="text-grey q-mt-xs q-ml-sm">
-                Saldo:
-                {{
-                  supplier
-                    ? "Rp. " + formatNumber(supplier ? supplier.balance : 0)
-                    : "Tidak tersedia"
-                }}
-              </div>
+              <PartyInfo
+                v-if="supplier"
+                :party="supplier"
+                :is-valid-wallet-balance="true"
+              />
             </div>
           </div>
-          <div class="col-sm-6 col-12">
+          <div class="col-sm-6 col-12 q-pa-sm">
             <BarcodeInputEditor
               ref="userInputRef"
               v-model="userInput"
@@ -496,7 +494,7 @@ const invoicePreview = () => {
               :loading="isProcessing"
               :disable="isProcessing"
               placeholder="Qty * Kode / Barcode * Harga"
-              class="col col-12 q-pa-xs bg-white"
+              class="col col-12 bg-white"
               outlined
               clearable
             />
@@ -512,7 +510,7 @@ const invoicePreview = () => {
           </div>
         </div>
         <div class="row col grow">
-          <div class="col-12 q-pa-sm column">
+          <div class="col-12 q-px-sm column">
             <ItemListTable
               :items="form.items"
               @update-quantity="({ id, value }) => updateQuantity(id, value)"
@@ -523,10 +521,7 @@ const invoicePreview = () => {
           </div>
         </div>
 
-        <div
-          class="row items-start q-col-gutter-none q-px-sm"
-          style="max-height: 80px"
-        >
+        <div class="row items-start q-col-gutter-none q-px-sm">
           <div class="col" v-if="$q.screen.gt.sm">
             <div class="text-caption text-grey-6 q-mt-xs">
               {{ form.items.length }} item(s)
@@ -540,9 +535,15 @@ const invoicePreview = () => {
           </div>
 
           <div class="col" v-if="$q.screen.gt.sm">
-            <div class="q-pa-sm q-pb-none text-grey-8">
-              <div>#: {{ form.code }}</div>
-              <div>{{ formatDateTime(form.datetime) }}</div>
+            <div class="text-grey-8">
+              <div>
+                <q-icon class="inline-icon" name="tag" />{{ form.code }}
+              </div>
+              <div>
+                <q-icon class="inline-icon" name="calendar_today" />{{
+                  formatDateTime(form.datetime)
+                }}
+              </div>
             </div>
           </div>
 
@@ -559,10 +560,10 @@ const invoicePreview = () => {
             </div>
           </div>
         </div>
-        <div class="row q-px-sm q-pb-none q-py-sm q-col-gutter-sm">
-          <div class="col q-py-sm">
+        <div class="row q-px-sm q-col-gutter-sm q-py-xs">
+          <div class="col">
             <q-btn
-              class="full-width q-py-none"
+              class="full-width"
               label="Bayar"
               color="primary"
               icon="payment"
@@ -576,9 +577,8 @@ const invoicePreview = () => {
               :loading="isProcessing"
             />
           </div>
-          <div class="q-py-sm">
+          <div>
             <q-btn
-              class="q-py-none"
               icon="more_vert"
               color="grey"
               @click.stop
