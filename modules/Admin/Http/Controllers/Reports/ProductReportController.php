@@ -108,7 +108,22 @@ class ProductReportController extends BaseController
             }
         }
 
-        // ... (Logika Filter, sudah benar) ...
+        $filter = $data['filter'];
+        if (!empty($filter['status']) && $filter['status'] != 'all') {
+            $q->where('active', $filter['status'] == 'active');
+        }
+
+        if (!empty($filter['types'])) {
+            $q->whereIn('type', $filter['types']);
+        }
+
+        if (!empty($filter['categories'])) {
+            $q->whereIn('category_id', $filter['categories']);
+        }
+
+        if (!empty($filter['suppliers'])) {
+            $q->whereIn('supplier_id', $filter['suppliers']);
+        }
 
         // 💡 3. HANDLE STOCK + UOM (Sudah benar)
         if (in_array('stock', $data['columns']) && !in_array('uom', $queryColumns)) {
