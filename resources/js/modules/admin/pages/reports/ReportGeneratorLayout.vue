@@ -5,7 +5,6 @@ import { useQuasar } from "quasar";
 const $q = useQuasar();
 
 const props = defineProps({
-  // Data Kolom
   primaryColumns: {
     type: Array,
     required: true,
@@ -14,12 +13,14 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
-  // Data Form Awal (Filter unik)
+  initialColumns: {
+    type: Array,
+    required: true,
+  },
   initialFilter: {
     type: Object,
     default: () => ({}),
   },
-  // Data Form Awal (Sort unik)
   initialSortOptions: {
     type: Array,
     default: () => [],
@@ -42,7 +43,7 @@ const orientationOptions = [
 ];
 
 const getInitialValue = () => ({
-  columns: primaryColumnValues.value.slice(),
+  columns: props.initialColumns,
   filter: JSON.parse(JSON.stringify(props.initialFilter)),
   sortOptions: JSON.parse(JSON.stringify(props.initialSortOptions)),
   orientation: "auto",
@@ -53,8 +54,7 @@ const form = ref(getInitialValue());
 const reset = () => {
   form.value = getInitialValue();
   $q.notify({
-    type: "info",
-    message: "Filter laporan direset ke nilai awal.",
+    message: "Opsi laporan direset ke nilai awal.",
     timeout: 1500,
   });
 };
@@ -69,6 +69,22 @@ const onRemoveColumn = ({ index, value }) => {
     });
     return false;
   }
+
+  const originalSortCount = form.value.sortOptions.length;
+
+  form.value.sortOptions = form.value.sortOptions.filter(
+    (option) => option.column !== value
+  );
+
+  const newSortCount = form.value.sortOptions.length;
+  const deletedSortCount = originalSortCount - newSortCount;
+
+  if (deletedSortCount > 0) {
+    if (form.value.sortOptions.length === 0) {
+      addSortOption();
+    }
+  }
+
   return true;
 };
 
@@ -86,6 +102,69 @@ const submit = (format) => {
 
 const emit = defineEmits(["submit"]);
 
+const addSortOption = () => {
+  const maxSort = 3;
+  const currentSortCount = form.value.sortOptions.length;
+  const selectedColumnCount = form.value.columns.length; // 💡 Kolom yang dipilih
+
+  // 🚨 Cek batasan ganda
+  if (currentSortCount >= maxSort) {
+    $q.notify({
+      type: "warning",
+      message: `Maksimal hanya ${maxSort} opsi pengurutan yang diperbolehkan.`,
+      timeout: 2000,
+    });
+    return;
+  }
+
+  if (currentSortCount >= selectedColumnCount) {
+    $q.notify({
+      type: "warning",
+      message: `Jumlah opsi pengurutan tidak boleh melebihi jumlah kolom yang dipilih (${selectedColumnCount}).`,
+      timeout: 2500,
+    });
+    return;
+  }
+
+  const usedColumns = form.value.sortOptions.map((o) => o.column);
+
+  const availableColumn = columnOptions.value.find(
+    (c) => !usedColumns.includes(c.value)
+  );
+
+  if (availableColumn) {
+    form.value.sortOptions.push({
+      column: availableColumn.value,
+      order: "asc",
+    });
+  } else {
+    $q.notify({
+      type: "warning",
+      message: "Tidak ada kolom unik yang tersedia untuk pengurutan.",
+      timeout: 2500,
+    });
+  }
+};
+
+const removeSortOption = (index) => {
+  form.value.sortOptions.splice(index, 1);
+};
+
+const getAvailableSortOptions = computed(() => (currentIndex) => {
+  const usedColumns = form.value.sortOptions
+    .slice(0, currentIndex)
+    .map((o) => o.column);
+
+  usedColumns.push(
+    ...form.value.sortOptions.slice(currentIndex + 1).map((o) => o.column)
+  );
+
+  return columnOptions.value.filter((c) => {
+    const currentColumnValue = form.value.sortOptions[currentIndex]?.column;
+    return c.value === currentColumnValue || !usedColumns.includes(c.value);
+  });
+});
+
 defineExpose({
   form,
   submit,
@@ -93,6 +172,7 @@ defineExpose({
   columnOptions,
 });
 </script>
+
 <template>
   <q-page class="row justify-center q-pa-xs">
     <div class="col col-md-8">
@@ -163,7 +243,76 @@ defineExpose({
               </div>
             </q-card-section>
             <q-card-section class="q-py-sm">
-              <slot name="sort" :form="form" :columnOptions="columnOptions" />
+              <div
+                v-for="(sort, index) in form.sortOptions"
+                :key="index"
+                class="row q-col-gutter-sm q-mb-sm items-center"
+              >
+                <q-select
+                  v-model="sort.column"
+                  class="col-grow"
+                  style="min-width: 150px"
+                  :options="getAvailableSortOptions(index)"
+                  map-options
+                  dense
+                  emit-value
+                  :label="index + 1 + ` - Urut berdasarkan`"
+                />
+
+                <q-btn
+                  :icon="
+                    sort.order === 'asc' ? 'arrow_upward' : 'arrow_downward'
+                  "
+                  color="grey-8"
+                  flat
+                  round
+                  dense
+                  @click="sort.order = sort.order === 'asc' ? 'desc' : 'asc'"
+                  class="q-ml-sm"
+                  size="sm"
+                >
+                  <q-tooltip>
+                    Urutkan:
+                    {{
+                      sort.order === "asc"
+                        ? "Terkecil ke Terbesar"
+                        : "Terbesar ke Terkecil"
+                    }}
+                  </q-tooltip>
+                </q-btn>
+
+                <q-btn
+                  v-if="form.sortOptions.length > 1"
+                  icon="delete"
+                  color="red"
+                  flat
+                  round
+                  dense
+                  @click="removeSortOption(index)"
+                  class="q-ml-xs"
+                  size="sm"
+                >
+                  <q-tooltip>Hapus Opsi Urutan</q-tooltip>
+                </q-btn>
+              </div>
+
+              <div
+                class="row q-mt-md"
+                v-if="
+                  form.sortOptions.length < 3 &&
+                  form.sortOptions.length < form.columns.length
+                "
+              >
+                <q-btn
+                  label="Tambah Opsi Pengurutan"
+                  icon="add"
+                  color="blue-grey"
+                  flat
+                  dense
+                  size="sm"
+                  @click="addSortOption"
+                />
+              </div>
             </q-card-section>
           </q-card>
 
@@ -171,7 +320,7 @@ defineExpose({
             <q-card-section class="bg-grey-2 q-py-sm">
               <div class="text-subtitle2 text-bold text-grey-8">
                 <q-icon name="rotate_right" size="xs" class="q-mr-sm" />
-                Orientasi
+                Halaman
               </div>
             </q-card-section>
             <q-card-section class="q-py-sm">
@@ -207,15 +356,6 @@ defineExpose({
                   color="red"
                   icon="picture_as_pdf"
                   @click="submit('pdf')"
-                />
-              </div>
-              <div class="q-my-sm">
-                <q-btn
-                  label="Unduh CSV"
-                  class="full-width"
-                  color="green"
-                  icon="csv"
-                  @click="submit('csv')"
                 />
               </div>
               <div class="q-my-sm">

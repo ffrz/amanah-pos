@@ -4,20 +4,15 @@ import { ref } from "vue";
 import ReportGeneratorLayout from "../ReportGeneratorLayout.vue";
 import BackButton from "@/components/BackButton.vue";
 import { useQuasar } from "quasar";
+import { createOptions } from "@/helpers/options";
 
 const $q = useQuasar();
+const page = usePage();
 const title = "Laporan Supplier";
 
-// Definisikan data yang unik untuk laporan ini
-const primaryColumns = [
-  { value: "code", label: "Kode" },
-  { value: "name", label: "Nama" },
-];
-
-const optionalColumns = [
-  { value: "phone_1", label: "No Telepon" },
-  { value: "balance", label: "Saldo" },
-];
+const primaryColumns = createOptions(page.props.primary_columns);
+const optionalColumns = createOptions(page.props.optional_columns);
+const initialColumns = page.props.initial_columns;
 
 const statusOptions = [
   { value: "all", label: "Semua" },
@@ -25,27 +20,45 @@ const statusOptions = [
   { value: "inactive", label: "Tidak Aktif" },
 ];
 
-// Nilai awal filter dan sort yang unik
 const initialFilter = {
   status: "all",
 };
 
 const initialSortOptions = [
   {
-    column: "code", // Kode kolom default untuk sortir
-    asc: true,
+    column: "code",
+    order: "asc",
   },
 ];
 
-// Gunakan ref untuk mengakses komponen template
 const reportGeneratorRef = ref(null);
 
-// Fungsi submit yang dipanggil dari template
 const handleReportSubmit = ({ format, form }) => {
-  // Di sini Anda dapat mengirim form.columns, form.filter, form.sortOptions, dll.
-  // ke backend Anda menggunakan router.post/get atau axios.
-  console.log("Form Data:", form);
-  alert(`Mencetak laporan dalam format: ${format}`);
+  const params = {
+    ...form,
+    format: format,
+  };
+
+  try {
+    const url = route("admin.report.supplier.list", params);
+
+    window.open(url, "_blank");
+
+    if (format !== "html") {
+      $q.notify({
+        type: "positive",
+        message: `Laporan ${format.toUpperCase()} sedang diunduh.`,
+        timeout: 2000,
+      });
+    }
+  } catch (error) {
+    $q.notify({
+      type: "negative",
+      message: "Gagal menghasilkan URL laporan. [ROUTE ERROR]",
+      timeout: 5000,
+    });
+    console.error("Route error:", error);
+  }
 };
 </script>
 
@@ -64,6 +77,7 @@ const handleReportSubmit = ({ format, form }) => {
       ref="reportGeneratorRef"
       :primaryColumns="primaryColumns"
       :optionalColumns="optionalColumns"
+      :initialColumns="initialColumns"
       :initialFilter="initialFilter"
       :initialSortOptions="initialSortOptions"
       @submit="handleReportSubmit"
@@ -75,37 +89,6 @@ const handleReportSubmit = ({ format, form }) => {
           :options="statusOptions"
           map-options
         />
-      </template>
-
-      <template #sort="{ form, columnOptions }">
-        <div class="row q-col-gutter-sm items-center">
-          <q-select
-            v-model="form.sortOptions[0].column"
-            class="col-grow"
-            style="min-width: 150px"
-            :options="columnOptions"
-            map-options
-            dense
-          />
-          <q-btn
-            :icon="form.sortOptions[0].asc ? 'arrow_upward' : 'arrow_downward'"
-            color="grey-8"
-            flat
-            round
-            dense
-            @click="form.sortOptions[0].asc = !form.sortOptions[0].asc"
-            class="q-ml-sm"
-          >
-            <q-tooltip>
-              Urutkan:
-              {{
-                form.sortOptions[0].asc
-                  ? "Terkecil ke Terbesar"
-                  : "Terbesar ke Terkecil"
-              }}
-            </q-tooltip>
-          </q-btn>
-        </div>
       </template>
     </ReportGeneratorLayout>
   </authenticated-layout>

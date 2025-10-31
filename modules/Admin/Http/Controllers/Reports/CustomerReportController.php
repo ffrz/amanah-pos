@@ -21,16 +21,50 @@ use Illuminate\Http\Request;
 
 class CustomerReportController extends BaseController
 {
-    public function index(Request $request)
+    protected $primary_columns = [
+        'code' => 'Kode',
+        'name' => 'Nama',
+    ];
+
+    protected $optional_columns = [
+        'phone'              => 'No Telepon',
+        'address'            => 'Alamat',
+        'balance'            => 'Saldo Utang / Piutang',
+        'wallet_balance'     => 'Saldo Deposit',
+        'active'             => 'Aktif / Nonaktif',
+        'type'               => 'Jenis Akun',
+        'default_price_type' => 'Level Harga',
+    ];
+
+    protected $initial_columns = [
+        'code',
+        'name',
+        'phone',
+        'address'
+    ];
+
+    public function index()
     {
-        return inertia('reports/customer/Index', []);
+        return inertia('reports/customer/Index', [
+            'primary_columns' => $this->primary_columns,
+            'optional_columns' => $this->optional_columns,
+            'initial_columns' => $this->initial_columns,
+        ]);
     }
 
     public function list(Request $request)
     {
+        $data = $request->validate([
+            'filter' => 'nullable|array',
+            'filter.status' => 'nullable|string|in:all,active,inactive',
+            'filter.type' => 'nullable|string',
+            'filter.default_price_type' => 'nullable|string',
+            ...$this->getDefaultValidationRules()
+        ]);
+
         $q = Customer::query();
 
-        $filter = (array)$request->get('filter', []);
+        $filter = (array)$data['filter'];
         if (!empty($filter['status']) && $filter['status'] != 'all') {
             $q->where('active', $filter['status'] == 'active');
         }
@@ -43,25 +77,14 @@ class CustomerReportController extends BaseController
             $q->where('type', $filter['type']);
         }
 
-        $sortOptions = $request->get('sortOptions');
-
-        $q->orderBy($sortOptions[0]['column'], $sortOptions[0]['order']);
-
-        $items = $q->select($request->get('columns'))->get();
-
-        $orientation = $this->getPageOrientation($request);
-
-        $title = 'Laporan Daftar Pelanggan';
-
         return $this->generatePdfReport(
             'modules.admin.pages.reports.customer.list',
-            $orientation,
-            compact(
-                'items',
-                'title',
-                'orientation'
-            ),
-            $request->get('format')
+            [
+                'title' => 'Laporan Daftar Pelanggan',
+                'items' => $this->processQuery($q, $data['columns']),
+                'filter' => $data['filter'],
+                'columns' => $data['columns'],
+            ]
         );
     }
 }

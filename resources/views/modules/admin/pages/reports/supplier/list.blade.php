@@ -1,13 +1,6 @@
 @php
     use App\Models\Setting;
 
-    $price_types = [
-        'all' => 'Semua',
-        'price_1' => 'Harga Eceran',
-        'price_2' => 'Harga Partai',
-        'price_3' => 'Harga Grosir',
-    ];
-
     $is_pdf_export = isset($pdf) && $pdf;
 
     $logo_path = Setting::value('company.logo_path');
@@ -15,21 +8,10 @@
         $logo_path = $is_pdf_export ? public_path($logo_path) : url($logo_path);
     }
 
-    $column_map = [
-        'code' => 'Kode',
-        'name' => 'Nama',
-        'phone' => 'No Telepon',
-        'address' => 'Alamat',
-        'balance' => 'Utang / Piutang (Rp)',
-        'wallet_balance' => 'Saldo Deposit (Rp)',
-        'active' => 'Aktif / Nonaktif',
-        'type' => 'Jenis Akun',
-        'default_price_type' => 'Level Harga',
-    ];
     $headers = [];
     foreach ($columns as $col_key) {
-        if (isset($column_map[$col_key])) {
-            $headers[$col_key] = $column_map[$col_key];
+        if (isset($all_columns[$col_key])) {
+            $headers[$col_key] = $all_columns[$col_key];
         }
     }
 
@@ -41,33 +23,14 @@
 @section('content')
     <div class="page">
 
-        {{-- HEADER LAPORAN --}}
         <x-admin.report.header :logo-path="$logo_path">
             <h4 style="margin: 0 0 5px 0; text-align: Left;">{{ $title }}</h4>
-            {{-- Bagian Filter Laporan --}}
             <table>
-                {{-- Contoh Filter Status (Diambil dari request) --}}
                 <tr>
                     <td style="width: 2cm;">Status</td>
                     <td>:</td>
                     <td>
                         {{ $filter['status'] ? ($filter['status'] == 'all' ? 'Semua' : ($filter['status'] == 'active' ? 'Aktif' : 'Tidak Aktif')) : 'Semua' }}
-                    </td>
-                </tr>
-
-                <tr>
-                    <td style="width: 2cm;">Jenis</td>
-                    <td>:</td>
-                    <td>
-                        {{ $filter['type'] == 'all' ? 'Semua' : \App\Models\Customer::Types[$filter['type']] }}
-                    </td>
-                </tr>
-
-                <tr>
-                    <td style="width: 2cm;">Level Harga</td>
-                    <td>:</td>
-                    <td>
-                        {{ $price_types[$filter['default_price_type']] }}
                     </td>
                 </tr>
             </table>
@@ -103,10 +66,6 @@
                                     {{ format_number($item->$col_key) }}
                                 @elseif ($col_key == 'active')
                                     {{ $item->$col_key ? 'Aktif' : 'Tidak Aktif' }}
-                                @elseif ($col_key == 'type')
-                                    {{ \App\Models\Customer::Types[$item->$col_key] ?? '' }}
-                                @elseif ($col_key == 'default_price_type')
-                                    {{ $price_types[$item->$col_key] ?? '' }}
                                 @else
                                     {{ $item->$col_key }}
                                 @endif
@@ -119,13 +78,6 @@
                     </tr>
                 @endforelse
             </tbody>
-            {{-- Opsional: Tambahkan Total/Summary di Tfoot jika diperlukan --}}
-            {{-- <tfoot>
-                <tr>
-                    <th class="text-right" colspan="{{ count($headers) }}">Total Item</th>
-                    <th class="text-right">{{ $items->count() }}</th>
-                </tr>
-            </tfoot> --}}
         </table>
     </div>
 

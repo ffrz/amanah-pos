@@ -8,7 +8,11 @@
     <title>{{ $title }}</title>
     @if (isset($pdf) && $pdf === true)
         <style type="text/css">
-            <?php echo file_get_contents(public_path('assets/css/print.css')); ?>
+            @php echo file_get_contents(public_path('assets/css/print.css'))
+            @endphp
+            html {
+                margin: 0.7cm;
+            }
         </style>
     @else
         <link href="/assets/css/print.css" rel="stylesheet">

@@ -3,24 +3,18 @@ import { ref } from "vue";
 import ReportGeneratorLayout from "../ReportGeneratorLayout.vue";
 import BackButton from "@/components/BackButton.vue";
 import { useQuasar } from "quasar";
+import { createOptions } from "@/helpers/options";
+import { usePage } from "@inertiajs/vue3";
 
 const $q = useQuasar();
+const page = usePage();
 const title = "Laporan Pelanggan";
 
-const primaryColumns = [
-  { value: "code", label: "Kode" },
-  { value: "name", label: "Nama" },
-];
+const primaryColumns = createOptions(page.props.primary_columns);
+const optionalColumns = createOptions(page.props.optional_columns);
+const initialColumns = page.props.initial_columns;
 
-const optionalColumns = [
-  { value: "phone", label: "No Telepon" },
-  { value: "address", label: "Alamat" },
-  { value: "balance", label: "Saldo Utang / Piutang" },
-  { value: "wallet_balance", label: "Saldo Deposit" },
-  { value: "active", label: "Aktif / Nonaktif" },
-  { value: "type", label: "Jenis Akun" },
-  { value: "default_price_type", label: "Level Harga" },
-];
+console.log(page.props);
 
 const statusOptions = [
   { value: "all", label: "Semua" },
@@ -103,6 +97,7 @@ const handleReportSubmit = ({ format, form }) => {
       ref="reportGeneratorRef"
       :primaryColumns="primaryColumns"
       :optionalColumns="optionalColumns"
+      :initialColumns="initialColumns"
       :initialFilter="initialFilter"
       :initialSortOptions="initialSortOptions"
       @submit="handleReportSubmit"
@@ -129,45 +124,6 @@ const handleReportSubmit = ({ format, form }) => {
           map-options
           emit-value
         />
-      </template>
-
-      <template #sort="{ form, columnOptions }">
-        <div class="row q-col-gutter-sm items-center">
-          <q-select
-            v-model="form.sortOptions[0].column"
-            class="col-grow"
-            style="min-width: 150px"
-            :options="columnOptions"
-            map-options
-            emit-value
-            dense
-          />
-          <q-btn
-            :icon="
-              form.sortOptions[0].order == 'desc'
-                ? 'arrow_upward'
-                : 'arrow_downward'
-            "
-            color="grey-8"
-            flat
-            round
-            dense
-            @click="
-              form.sortOptions[0].order =
-                form.sortOptions[0].order == 'asc' ? 'desc' : 'asc'
-            "
-            class="q-ml-sm"
-          >
-            <q-tooltip>
-              Urutkan:
-              {{
-                form.sortOptions[0].order == "asc"
-                  ? "Terkecil ke Terbesar"
-                  : "Terbesar ke Terkecil"
-              }}
-            </q-tooltip>
-          </q-btn>
-        </div>
       </template>
     </ReportGeneratorLayout>
   </authenticated-layout>
