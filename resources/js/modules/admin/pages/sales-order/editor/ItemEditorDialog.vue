@@ -92,21 +92,21 @@ defineExpose({
         />
         <LocaleNumberInput
           v-model="item.quantity"
-          label="Kwantitas"
+          :label="`Kwantitas (${item.product_uom})`"
           hide-bottom-space
           autofocus
           :disable="isProcessing"
         />
         <LocaleNumberInput
           v-model="item.price"
-          label="Harga"
-          :readonly="!item.product.price_editable"
+          label="Harga (Rp)"
+          :readonly="!item.product?.price_editable"
           hide-bottom-space
           :disable="isProcessing"
         />
         <LocaleNumberInput
           v-model="subtotal"
-          label="Subtotal"
+          label="Subtotal (Rp)"
           hide-bottom-space
           readonly
         />

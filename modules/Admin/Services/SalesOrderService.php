@@ -130,7 +130,7 @@ class SalesOrderService
 
     public function findOrderOrFail(int $id): SalesOrder
     {
-        return SalesOrder::with(['details', 'customer', 'cashierSession', 'cashierSession.cashierTerminal'])->findOrFail($id);
+        return SalesOrder::with(['details', 'details.product', 'customer', 'cashierSession', 'cashierSession.cashierTerminal'])->findOrFail($id);
     }
 
     public function editOrder(SalesOrder $order): SalesOrder

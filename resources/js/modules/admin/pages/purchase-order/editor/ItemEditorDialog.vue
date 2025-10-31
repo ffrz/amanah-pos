@@ -96,7 +96,7 @@ const onBeforeShow = () => {
         />
         <LocaleNumberInput
           v-model="item.quantity"
-          label="Kwantitas"
+          :label="`Kwantitas (${item.product_uom})`"
           hide-bottom-space
           autofocus
           :disable="isProcessing"

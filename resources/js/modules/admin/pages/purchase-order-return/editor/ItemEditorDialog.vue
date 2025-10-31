@@ -96,14 +96,14 @@ const onBeforeShow = () => {
         />
         <LocaleNumberInput
           v-model="item.quantity"
-          label="Kwantitas"
+          :label="`Kwantitas (${item.product_uom})`"
           hide-bottom-space
           autofocus
           :disable="isProcessing"
         />
         <LocaleNumberInput
           v-model="item.cost"
-          label="Modal / Harga Beli"
+          label="Modal / Harga Beli (Rp)"
           hide-bottom-space
           :disable="isProcessing"
         />
