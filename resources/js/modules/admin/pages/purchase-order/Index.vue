@@ -22,6 +22,8 @@ import PurchaseOrderDeliveryStatusChip from "@/components/PurchaseOrderDeliveryS
 import MyLink from "@/components/MyLink.vue";
 import axios from "axios";
 import LongTextView from "@/components/LongTextView.vue";
+import dayjs from "dayjs";
+import DateTimePicker from "@/components/DateTimePicker.vue";
 
 const title = "Pembelian";
 const $q = useQuasar();
@@ -60,13 +62,16 @@ const deliveryStatusOptions = [
   ...createOptions(window.CONSTANTS.PURCHASE_ORDER_DELIVERY_STATUSES),
 ];
 
+const startDate = dayjs().startOf("month").toDate();
+const endDate = dayjs().endOf("month").toDate();
+
 const filter = reactive({
   search: "",
-  year: currentYear,
-  month: currentMonth,
   status: "all",
   payment_status: "all",
   delivery_status: "all",
+  start_date: startDate,
+  end_date: endDate,
   ...getQueryParams(),
 });
 
@@ -196,9 +201,15 @@ const deleteItem = (row) =>
   });
 
 const fetchItems = (props = null) => {
+  const apiFilter = {
+    ...filter,
+    start_date: dayjs(filter.start_date).format("YYYY-MM-DD"),
+    end_date: dayjs(filter.end_date).format("YYYY-MM-DD"),
+  };
+
   handleFetchItems({
     pagination,
-    filter,
+    filter: apiFilter,
     props,
     rows,
     url: route("admin.purchase-order.data"),
@@ -215,15 +226,6 @@ const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return columns;
   return columns.filter((col) => col.name === "id" || col.name === "action");
 });
-
-watch(
-  () => filter.year,
-  (newVal) => {
-    if (newVal === null) {
-      filter.month = null;
-    }
-  }
-);
 </script>
 
 <template>
@@ -252,29 +254,25 @@ watch(
     <template #header v-if="showFilter">
       <q-toolbar class="filter-bar" ref="filterToolbarRef">
         <div class="row q-col-gutter-xs items-center q-pa-sm full-width">
-          <q-select
-            v-model="filter.year"
-            :options="years"
-            label="Tahun"
+          <DateTimePicker
+            v-model="filter.start_date"
+            label="Mulai Tanggal"
             dense
             outlined
             class="col-xs-6 col-sm-2"
-            emit-value
-            map-options
             @update:model-value="onFilterChange"
+            hide-bottom-space
+            date-only
           />
-          <q-select
-            v-if="filter.year != 'all'"
-            v-model="filter.month"
-            :options="months"
-            label="Bulan"
+          <DateTimePicker
+            v-model="filter.end_date"
+            label="Sampai Tanggal"
             dense
             outlined
             class="col-xs-6 col-sm-2"
-            emit-value
-            map-options
-            :disable="filter.year === null"
             @update:model-value="onFilterChange"
+            hide-bottom-space
+            date-only
           />
           <q-select
             v-model="filter.status"

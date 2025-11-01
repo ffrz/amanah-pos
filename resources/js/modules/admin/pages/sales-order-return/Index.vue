@@ -5,17 +5,14 @@ import { handleDelete, handleFetchItems } from "@/helpers/client-req-handler";
 import { getQueryParams } from "@/helpers/utils";
 import { formatDateTime, formatNumber } from "@/helpers/formatter";
 import { Dialog, useQuasar } from "quasar";
-import { getCurrentMonth, getCurrentYear } from "@/helpers/datetime";
-import {
-  createMonthOptions,
-  createOptions,
-  createYearOptions,
-} from "@/helpers/options";
+import { createOptions } from "@/helpers/options";
 import useTableHeight from "@/composables/useTableHeight";
 import MyLink from "@/components/MyLink.vue";
 import axios from "axios";
 import LongTextView from "@/components/LongTextView.vue";
 import StatusChip from "@/components/StatusChip.vue";
+import DateTimePicker from "@/components/DateTimePicker.vue";
+import dayjs from "dayjs";
 
 const title = "Retur Penjualan";
 const $q = useQuasar();
@@ -25,19 +22,8 @@ const loading = ref(true);
 const tableRef = ref(null);
 const filterToolbarRef = ref(null);
 const tableHeight = useTableHeight(filterToolbarRef);
-const currentYear = getCurrentYear();
-const currentMonth = getCurrentMonth();
-
-const years = [
-  { label: "Semua Tahun", value: "all" },
-  { label: `${currentYear}`, value: currentYear },
-  ...createYearOptions(currentYear - 2, currentYear - 1).reverse(),
-];
-
-const months = [
-  { value: "all", label: "Semua Bulan" },
-  ...createMonthOptions(),
-];
+const startDate = dayjs().startOf("month").toDate();
+const endDate = dayjs().endOf("month").toDate();
 
 const statusOptions = [
   { value: "all", label: "Semua Status" },
@@ -51,10 +37,10 @@ const refundStatusOptions = [
 
 const filter = reactive({
   search: "",
-  year: currentYear,
-  month: currentMonth,
   status: "all",
   refund_status: "all",
+  start_date: startDate,
+  end_date: endDate,
   ...getQueryParams(),
 });
 
@@ -184,9 +170,14 @@ const deleteItem = (row) =>
   });
 
 const fetchItems = (props = null) => {
+  const apiFilter = {
+    ...filter,
+    start_date: dayjs(filter.start_date).format("YYYY-MM-DD"),
+    end_date: dayjs(filter.end_date).format("YYYY-MM-DD"),
+  };
   handleFetchItems({
     pagination,
-    filter,
+    filter: apiFilter,
     props,
     rows,
     url: route("admin.sales-order-return.data"),
@@ -203,15 +194,6 @@ const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return columns;
   return columns.filter((col) => col.name === "code" || col.name === "action");
 });
-
-watch(
-  () => filter.year,
-  (newVal) => {
-    if (newVal === null) {
-      filter.month = null;
-    }
-  }
-);
 </script>
 
 <template>
@@ -240,29 +222,25 @@ watch(
     <template #header v-if="showFilter">
       <q-toolbar class="filter-bar" ref="filterToolbarRef">
         <div class="row q-col-gutter-xs items-center q-pa-sm full-width">
-          <q-select
-            v-model="filter.year"
-            :options="years"
-            label="Tahun"
+          <DateTimePicker
+            v-model="filter.start_date"
+            label="Mulai Tanggal"
             dense
             outlined
             class="col-xs-6 col-sm-2"
-            emit-value
-            map-options
             @update:model-value="onFilterChange"
+            hide-bottom-space
+            date-only
           />
-          <q-select
-            v-if="filter.year != 'all'"
-            v-model="filter.month"
-            :options="months"
-            label="Bulan"
+          <DateTimePicker
+            v-model="filter.end_date"
+            label="Sampai Tanggal"
             dense
             outlined
             class="col-xs-6 col-sm-2"
-            emit-value
-            map-options
-            :disable="filter.year === null"
             @update:model-value="onFilterChange"
+            hide-bottom-space
+            date-only
           />
           <q-select
             v-model="filter.status"
