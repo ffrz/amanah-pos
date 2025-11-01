@@ -208,3 +208,12 @@ table.info table td {
 .text-center {
     text-align: center !important;
 }
+
+.report-header-info {
+    border-left: 3px solid #ddd;
+    border-collapse:collapse;
+    padding-left:10px
+}
+.report-header-info td:first-child {
+    padding-left: 10px;
+}

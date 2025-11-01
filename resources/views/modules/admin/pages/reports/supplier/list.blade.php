@@ -23,9 +23,8 @@
 @section('content')
     <div class="page">
 
-        <x-admin.report.header :logo-path="$logo_path">
-            <h4 style="margin: 0 0 5px 0; text-align: Left;">{{ $title }}</h4>
-            <table>
+        <x-admin.report.header :logo-path="$logo_path" :title="$title">
+            <table class="report-header-info">
                 <tr>
                     <td style="width: 2cm;">Status</td>
                     <td>:</td>
@@ -35,12 +34,6 @@
                 </tr>
             </table>
         </x-admin.report.header>
-        <br>
-        <div class="text-center">
-            Dibuat oleh <b>{{ Auth::user()->username }}</b> pada {{ format_datetime(now()) }} |
-            {{ env('APP_NAME') . ' v' . env('APP_VERSION_STR') }}
-        </div>
-        <br>
         <table class="table table-bordered table-striped table-condensed center-th table-sm" style="width:100%">
             <thead>
                 <tr>

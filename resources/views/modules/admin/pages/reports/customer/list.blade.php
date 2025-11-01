@@ -40,13 +40,8 @@
 
 @section('content')
     <div class="page">
-
-        {{-- HEADER LAPORAN --}}
-        <x-admin.report.header :logo-path="$logo_path">
-            <h4 style="margin: 0 0 5px 0; text-align: Left;">{{ $title }}</h4>
-            {{-- Bagian Filter Laporan --}}
-            <table>
-                {{-- Contoh Filter Status (Diambil dari request) --}}
+        <x-admin.report.header :logo-path="$logo_path" :title="$title">
+            <table class="report-header-info">
                 <tr>
                     <td style="width: 2cm;">Status</td>
                     <td>:</td>
@@ -55,13 +50,15 @@
                     </td>
                 </tr>
 
-                <tr>
-                    <td style="width: 2cm;">Jenis</td>
-                    <td>:</td>
-                    <td>
-                        {{ $filter['type'] == 'all' ? 'Semua' : \App\Models\Customer::Types[$filter['type']] }}
-                    </td>
-                </tr>
+                @if ($filter['type'] != 'all')
+                    <tr>
+                        <td style="width: 2cm;">Jenis</td>
+                        <td>:</td>
+                        <td>
+                            {{ \App\Models\Customer::Types[$filter['type']] }}
+                        </td>
+                    </tr>
+                @endif
 
                 <tr>
                     <td style="width: 2cm;">Level Harga</td>
@@ -72,12 +69,6 @@
                 </tr>
             </table>
         </x-admin.report.header>
-        <br>
-        <div class="text-center">
-            Dibuat oleh <b>{{ Auth::user()->username }}</b> pada {{ format_datetime(now()) }} |
-            {{ env('APP_NAME') . ' v' . env('APP_VERSION_STR') }}
-        </div>
-        <br>
         <table class="table table-bordered table-striped table-condensed center-th table-sm" style="width:100%">
             <thead>
                 <tr>
@@ -119,13 +110,6 @@
                     </tr>
                 @endforelse
             </tbody>
-            {{-- Opsional: Tambahkan Total/Summary di Tfoot jika diperlukan --}}
-            {{-- <tfoot>
-                <tr>
-                    <th class="text-right" colspan="{{ count($headers) }}">Total Item</th>
-                    <th class="text-right">{{ $items->count() }}</th>
-                </tr>
-            </tfoot> --}}
         </table>
     </div>
 

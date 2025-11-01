@@ -71,13 +71,8 @@
 
 @section('content')
     <div class="page">
-
-        {{-- HEADER LAPORAN --}}
-        <x-admin.report.header :logo-path="$logo_path">
-            <h4 style="margin: 0 0 5px 0; text-align: Left;">{{ $title }}</h4>
-            {{-- Bagian Filter Laporan --}}
-            <table>
-                {{-- 💡 2. FILTER: Status --}}
+        <x-admin.report.header :logo-path="$logo_path" :title="$title">
+            <table class="report-header-info">
                 <tr>
                     <td style="width: 3cm;">Status</td>
                     <td style="vertical-align: top">:</td>
@@ -86,52 +81,53 @@
                     </td>
                 </tr>
 
-                {{-- 💡 2. FILTER: Jenis (Sudah benar, hanya perlu diperjelas dengan konstanta Product::Types) --}}
-                <tr>
-                    <td style="vertical-align: top">Jenis</td>
-                    <td style="vertical-align: top">:</td>
-                    <td>
-                        @if (empty($filter['types']))
-                            Semua
-                        @else
+                @if (!empty($filter['types']))
+                    <tr>
+                        <td style="vertical-align: top">Jenis</td>
+                        <td style="vertical-align: top">:</td>
+                        <td>
                             {{ implode(', ', array_map(fn($t) => Product::Types[$t] ?? $t, $filter['types'])) }}
-                        @endif
-                    </td>
-                </tr>
+                        </td>
+                    </tr>
+                @endif
 
-                {{-- 💡 2. FILTER: Kategori (MENGGUNAKAN FUNGSI HELPER) --}}
-                <tr>
-                    <td style="vertical-align: top">Kategori</td>
-                    <td style="vertical-align: top">:</td>
-                    <td>
-                        {{ $format_filter_list($filter['categories'], $categories, 'id', 'name', 2) }}
-                    </td>
-                </tr>
+                @if (!empty($filter['categories']))
+                    <tr>
+                        <td style="vertical-align: top">Kategori</td>
+                        <td style="vertical-align: top">:</td>
+                        <td>
+                            {{ $format_filter_list($filter['categories'], $categories, 'id', 'name', 2) }}
+                        </td>
+                    </tr>
+                @endif
 
-                {{-- 💡 2. FILTER: Pemasok (Supplier) (MENGGUNAKAN FUNGSI HELPER) --}}
-                <tr>
-                    <td style="vertical-align: top">Pemasok</td>
-                    <td style="vertical-align: top">:</td>
-                    <td>
-                        {{ $format_filter_list($filter['suppliers'], $suppliers, 'id', 'name', 2) }}
-                    </td>
-                </tr>
+                @if (!empty($filter['suppliers']))
+                    <tr>
+                        <td style="vertical-align: top">Pemasok</td>
+                        <td style="vertical-align: top">:</td>
+                        <td>
+                            {{ $format_filter_list($filter['suppliers'], $suppliers, 'id', 'name', 2) }}
+                        </td>
+                    </tr>
+                @endif
             </table>
         </x-admin.report.header>
-        <br>
-        <div class="text-center">
-            Dibuat oleh <b>{{ Auth::user()->username }}</b> pada {{ format_datetime(now()) }} |
-            {{ env('APP_NAME') . ' v' . env('APP_VERSION_STR') }}
-        </div>
-        <br>
-
-        {{-- TABEL DATA PRODUK --}}
         <table class="table table-bordered table-striped table-condensed center-th table-sm" style="width:100%">
             <thead>
                 <tr>
                     <th style="width:1%">No</th>
                     @foreach ($headers as $col_key => $col_label)
-                        <th>{{ $col_label }}</th>
+                        <th colspan="{{ match ($col_key) {
+                            'stock' => '2',
+                            default => '1',
+                        } }}"
+                            class="{{ match ($col_key) {
+                                'cost', 'price_1', 'price_2', 'price_3' => 'text-right',
+                                'active', 'type', 'stock' => 'text-center',
+                                default => 'text-left',
+                            } }}">
+                            {{ $col_label }}
+                        </th>
                     @endforeach
                 </tr>
             </thead>
@@ -140,28 +136,35 @@
                     <tr>
                         <td class="text-right">{{ $i + 1 }}</td>
                         @foreach ($headers as $col_key => $col_label)
-                            <td
-                                class="{{ match ($col_key) {
-                                    'cost', 'price_1', 'price_2', 'price_3', 'stock' => 'text-right',
-                                    'active', 'type' => 'text-center',
-                                    default => 'text-left',
-                                } }}">
-                                @if (in_array($col_key, ['cost', 'price_1', 'price_2', 'price_3']))
+                            @if ($col_key == 'stock')
+                                <td class="text-right">
                                     {{ format_number($item->$col_key) }}
-                                @elseif ($col_key == 'active')
-                                    {{ $item->$col_key ? 'Aktif' : 'Tidak Aktif' }}
-                                @elseif ($col_key == 'type')
-                                    {{ $item->type_label }}
-                                @elseif ($col_key == 'category')
-                                    {{ $item->category->name ?? '-' }}
-                                @elseif ($col_key == 'supplier')
-                                    {{ $item->supplier->name ?? '-' }}
-                                @elseif ($col_key == 'stock')
-                                    {{ format_number($item->$col_key) }} {{ $item->uom ?? '' }}
-                                @else
-                                    {{ $item->$col_key }}
-                                @endif
-                            </td>
+                                </td>
+                                <td>
+                                    {{ $item->uom ?? '' }}
+                                </td>
+                            @else
+                                <td
+                                    class="{{ match ($col_key) {
+                                        'cost', 'price_1', 'price_2', 'price_3' => 'text-right',
+                                        'active', 'type' => 'text-center',
+                                        default => 'text-left',
+                                    } }}">
+                                    @if (in_array($col_key, ['cost', 'price_1', 'price_2', 'price_3']))
+                                        {{ format_number($item->$col_key) }}
+                                    @elseif ($col_key == 'active')
+                                        {{ $item->$col_key ? 'Aktif' : 'Tidak Aktif' }}
+                                    @elseif ($col_key == 'type')
+                                        {{ $item->type_label }}
+                                    @elseif ($col_key == 'category')
+                                        {{ $item->category->name ?? '-' }}
+                                    @elseif ($col_key == 'supplier')
+                                        {{ $item->supplier->name ?? '-' }}
+                                    @else
+                                        {{ $item->$col_key }}
+                                    @endif
+                                </td>
+                            @endif
                         @endforeach
                     </tr>
                 @empty
