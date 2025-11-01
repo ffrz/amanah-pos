@@ -528,7 +528,7 @@ const isValidOrder = computed(() => {
                 ref="customerAutocompleteRef"
                 class="custom-select full-width col col-12 bg-white"
                 v-model="customer"
-                label="Pemasok"
+                label="Pelanggan"
                 :disable="isProcessing"
                 @customer-selected="handleCustomerSelected"
                 :min-length="1"
