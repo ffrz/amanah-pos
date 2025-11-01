@@ -80,12 +80,12 @@ class SalesOrderService
             $q->where('delivery_status', '=', $filter['delivery_status']);
         }
 
-        if (!empty($filter['year']) && $filter['year'] !== 'all') {
-            $q->whereYear('datetime', $filter['year']);
+        if (!empty($filter['start_date'])) {
+            $q->whereDate('datetime', '>=', $filter['start_date']);
+        }
 
-            if (!empty($filter['month']) && $filter['month'] !== 'all') {
-                $q->whereMonth('datetime', $filter['month']);
-            }
+        if (!empty($filter['end_date'])) {
+            $q->where('datetime', '<=', $filter['end_date'] . ' 23:59:59');
         }
 
         if (!empty($filter['customer_id']) && $filter['customer_id'] !== 'all') {

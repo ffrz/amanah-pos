@@ -8,6 +8,7 @@
     :error-message="props.errorMessage"
     :mask="props.displayMask"
     :rules="displayRules"
+    :hide-bottom-space="props.hideBottomSpace"
   >
     <template v-slot:append>
       <q-btn
@@ -16,6 +17,7 @@
         flat
         rounded
         dense
+        size="sm"
       >
         <q-popup-proxy cover transition-show="scale" transition-hide="scale">
           <q-date
@@ -32,6 +34,7 @@
         flat
         rounded
         dense
+        size="sm"
       >
         <q-popup-proxy cover transition-show="scale" transition-hide="scale">
           <q-time
@@ -97,6 +100,10 @@ const props = defineProps({
   maxDate: {
     type: [Date, null],
     default: null,
+  },
+  hideBottomSpace: {
+    type: Boolean,
+    default: false,
   },
 });
 
