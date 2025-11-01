@@ -35,3 +35,4 @@ vendor.zip
 deploy/config.json
 #/public/build/assets
 #/public/build
+deploy/config.tmp.json
