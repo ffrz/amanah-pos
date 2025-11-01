@@ -76,13 +76,14 @@ class OperationalCostService
             $q->where('finance_account_id', '=', $filter['finance_account_id']);
         }
 
-        if (!empty($filter['year']) && $filter['year'] !== 'null') {
-            $q->whereYear('date', $filter['year']);
-
-            if (!empty($filter['month']) && $filter['month'] !== 'null') {
-                $q->whereMonth('date', $filter['month']);
-            }
+        if (!empty($filter['start_date'])) {
+            $q->whereDate('datetime', '>=', $filter['start_date']);
         }
+
+        if (!empty($filter['end_date'])) {
+            $q->where('datetime', '<=', $filter['end_date'] . ' 23:59:59');
+        }
+
 
         $q->orderBy($options['order_by'], $options['order_type']);
 

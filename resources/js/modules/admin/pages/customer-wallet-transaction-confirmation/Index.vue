@@ -3,15 +3,8 @@ import { computed, onMounted, reactive, ref, watch } from "vue";
 import { getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
 import { router } from "@inertiajs/vue3";
-
 import { formatDateTime, formatNumber } from "@/helpers/formatter";
-import { getCurrentMonth, getCurrentYear } from "@/helpers/datetime";
-import {
-  createMonthOptions,
-  createOptions,
-  createYearOptions,
-} from "@/helpers/options";
-
+import { createOptions } from "@/helpers/options";
 import {
   handleDelete,
   handleFetchItems,
@@ -21,6 +14,8 @@ import ImageViewer from "@/components/ImageViewer.vue";
 import CustomerWalletTransactionConfirmationStatusChip from "@/components/CustomerWalletTransactionConfirmationStatusChip.vue";
 import useTableHeight from "@/composables/useTableHeight";
 import LongTextView from "@/components/LongTextView.vue";
+import dayjs from "dayjs";
+import DateTimePicker from "@/components/DateTimePicker.vue";
 
 const title = "Konfirmasi Top Up Wallet";
 const $q = useQuasar();
@@ -32,18 +27,8 @@ const filterToolbarRef = ref(null);
 const tableHeight = useTableHeight(filterToolbarRef);
 const activeImagePath = ref(null);
 const showImageViewer = ref(false);
-const currentYear = getCurrentYear();
-const currentMonth = getCurrentMonth();
-
-const yearOptions = [
-  { label: "Semua Tahun", value: "all" },
-  ...createYearOptions(currentYear - 2, currentYear).reverse(),
-];
-
-const monthOptions = [
-  { value: "all", label: "Semua Bulan" },
-  ...createMonthOptions(),
-];
+const startDate = dayjs().startOf("month").toDate();
+const endDate = dayjs().endOf("month").toDate();
 
 const statusOptions = [
   { value: "all", label: "Semua Status" },
@@ -54,8 +39,8 @@ const statusOptions = [
 
 const filter = reactive({
   search: "",
-  year: currentYear,
-  month: currentMonth,
+  start_date: startDate,
+  end_date: endDate,
   status: "all",
   ...getQueryParams(),
 });
@@ -122,9 +107,15 @@ onMounted(() => {
 });
 
 const fetchItems = (props = null) => {
+  const apiFilter = {
+    ...filter,
+    start_date: dayjs(filter.start_date).format("YYYY-MM-DD"),
+    end_date: dayjs(filter.end_date).format("YYYY-MM-DD"),
+  };
+
   handleFetchItems({
     pagination,
-    filter,
+    filter: apiFilter,
     props,
     rows,
     url: route("admin.customer-wallet-transaction-confirmation.data"),
@@ -141,15 +132,6 @@ const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return columns;
   return columns.filter((col) => ["code", "action"].includes(col.name));
 });
-
-watch(
-  () => filter.year,
-  (newVal) => {
-    if (newVal === null) {
-      filter.month = null;
-    }
-  }
-);
 
 const acceptItem = (row) =>
   handlePost({
@@ -207,29 +189,25 @@ const showAttachment = (url) => {
     <template #header v-if="showFilter">
       <q-toolbar class="filter-bar" ref="filterToolbarRef">
         <div class="row q-col-gutter-xs items-center q-pa-sm full-width">
-          <q-select
-            v-model="filter.year"
-            :options="yearOptions"
-            label="Tahun"
+          <DateTimePicker
+            v-model="filter.start_date"
+            label="Mulai Tanggal"
             dense
             outlined
             class="col-xs-6 col-sm-2"
-            emit-value
-            map-options
             @update:model-value="onFilterChange"
+            hide-bottom-space
+            date-only
           />
-          <q-select
-            v-if="filter.year !== 'all'"
-            v-model="filter.month"
-            :options="monthOptions"
-            label="Bulan"
+          <DateTimePicker
+            v-model="filter.end_date"
+            label="Sampai Tanggal"
             dense
             outlined
             class="col-xs-6 col-sm-2"
-            emit-value
-            map-options
-            :disable="filter.year === null"
             @update:model-value="onFilterChange"
+            hide-bottom-space
+            date-only
           />
           <q-select
             v-model="filter.status"

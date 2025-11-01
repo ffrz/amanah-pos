@@ -53,12 +53,12 @@ class StockMovementService
             $q->where('ref_type', $filter['ref_type']);
         }
 
-        if (!empty($filter['year']) && $filter['year'] !== 'all') {
-            $q->whereYear('created_at', $filter['year']);
+        if (!empty($filter['start_date'])) {
+            $q->whereDate('created_at', '>=', $filter['start_date']);
+        }
 
-            if (!empty($filter['month']) && $filter['month'] !== 'all') {
-                $q->whereMonth('created_at', $filter['month']);
-            }
+        if (!empty($filter['end_date'])) {
+            $q->where('created_at', '<=', $filter['end_date'] . ' 23:59:59');
         }
 
         $q->orderBy($options['order_by'], $options['order_type']);

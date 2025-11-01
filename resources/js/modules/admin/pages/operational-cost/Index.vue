@@ -5,12 +5,13 @@ import { handleDelete, handleFetchItems } from "@/helpers/client-req-handler";
 import { getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
 import { formatDate, formatNumber } from "@/helpers/formatter";
-import { createMonthOptions, createYearOptions } from "@/helpers/options";
 import { useCostCategoryFilter } from "@/composables/useCostCategoryOptions";
 import useTableHeight from "@/composables/useTableHeight";
 import LongTextView from "@/components/LongTextView.vue";
 import ImageViewer from "@/components/ImageViewer.vue";
 import { useFinanceAccount } from "@/composables/useFinanceAccount";
+import dayjs from "dayjs";
+import DateTimePicker from "@/components/DateTimePicker.vue";
 
 const title = "Biaya Operasional";
 const page = usePage();
@@ -21,19 +22,11 @@ const filterToolbarRef = ref(null);
 const tableHeight = useTableHeight(filterToolbarRef);
 const activeImagePath = ref(null);
 const showImageViewer = ref(false);
+const startDate = dayjs().startOf("month").toDate();
+const endDate = dayjs().endOf("month").toDate();
 
 const rows = ref([]);
 const loading = ref(true);
-const currentYear = new Date().getFullYear();
-const currentMonth = new Date().getMonth() + 1; // months are 0-based, so adding 1 to get correct month number
-
-const years = [
-  { label: "Semua Tahun", value: null },
-  { label: `${currentYear}`, value: currentYear },
-  ...createYearOptions(currentYear - 2, currentYear - 1).reverse(),
-];
-
-const months = [{ value: null, label: "Semua Bulan" }, ...createMonthOptions()];
 
 const { costCategoryOptions } = useCostCategoryFilter(page.props.categories);
 const categories = [
@@ -53,8 +46,8 @@ const filter = reactive({
   search: "",
   finance_account_id: "all",
   category_id: "all",
-  year: currentYear,
-  month: currentMonth,
+  start_date: startDate,
+  end_date: endDate,
   ...getQueryParams(),
 });
 const pagination = ref({
@@ -132,9 +125,15 @@ const deleteItem = (row) =>
   });
 
 const fetchItems = (props = null) => {
+  const apiFilter = {
+    ...filter,
+    start_date: dayjs(filter.start_date).format("YYYY-MM-DD"),
+    end_date: dayjs(filter.end_date).format("YYYY-MM-DD"),
+  };
+
   handleFetchItems({
     pagination,
-    filter,
+    filter: apiFilter,
     props,
     rows,
     url: route("admin.operational-cost.data"),
@@ -151,15 +150,6 @@ const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return columns;
   return columns.filter((col) => col.name === "code" || col.name === "action");
 });
-
-watch(
-  () => filter.year,
-  (newVal) => {
-    if (newVal === null) {
-      filter.month = null;
-    }
-  }
-);
 
 const showAttachment = (url) => {
   activeImagePath.value = url;
@@ -193,28 +183,25 @@ const showAttachment = (url) => {
     <template #header v-if="showFilter">
       <q-toolbar class="filter-bar" ref="filterToolbarRef">
         <div class="row q-col-gutter-xs items-center q-pa-sm full-width">
-          <q-select
-            v-model="filter.year"
-            :options="years"
-            label="Tahun"
+          <DateTimePicker
+            v-model="filter.start_date"
+            label="Mulai Tanggal"
             dense
             outlined
             class="col-xs-6 col-sm-2"
-            emit-value
-            map-options
             @update:model-value="onFilterChange"
+            hide-bottom-space
+            date-only
           />
-          <q-select
-            v-model="filter.month"
-            :options="months"
-            label="Bulan"
+          <DateTimePicker
+            v-model="filter.end_date"
+            label="Sampai Tanggal"
             dense
             outlined
             class="col-xs-6 col-sm-2"
-            emit-value
-            map-options
-            :disable="filter.year === null"
             @update:model-value="onFilterChange"
+            hide-bottom-space
+            date-only
           />
           <q-select
             v-model="filter.category_id"

@@ -41,8 +41,8 @@ class GetDataRequest extends DefaultGetDataRequest
         $this->merge([
             'filter' => [
                 'search' => $filter['search'] ?? null,
-                'year'   => $filter['year'] ?? 'all',
-                'month'  => $filter['month'] ?? 'all',
+                'start_date'   => $filter['start_date'] ?? null,
+                'end_date'  => $filter['end_date'] ?? null,
                 'type'   => $filter['type'] ?? 'all',
                 'status' => $filter['status'] ?? 'all',
             ],

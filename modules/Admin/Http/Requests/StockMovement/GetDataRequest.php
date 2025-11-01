@@ -43,8 +43,8 @@ class GetDataRequest extends DefaultGetDataRequest
                 'product_id' => $filter['product_id'] ?? null,
                 'search' => $filter['search'] ?? null,
                 'ref_type' => $filter['ref_type'] ?? 'all',
-                'year' => $filter['year'] ?? 'all',
-                'month' => $filter['month'] ?? 'all',
+                'start_date'   => $filter['start_date'] ?? null,
+                'end_date'  => $filter['end_date'] ?? null,
             ],
         ]);
     }
