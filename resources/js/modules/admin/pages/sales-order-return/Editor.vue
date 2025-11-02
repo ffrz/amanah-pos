@@ -12,7 +12,6 @@ import axios from "axios";
 import ItemListTable from "./editor/ItemsListTable.vue";
 import CheckBox from "@/components/CheckBox.vue";
 import ItemEditorDialog from "./editor/ItemEditorDialog.vue";
-import DigitalClock from "@/components/DigitalClock.vue";
 import CustomerAutocomplete from "@/components/CustomerAutocomplete.vue";
 import {
   formatDateTime,
@@ -20,7 +19,6 @@ import {
   formatNumber,
 } from "@/helpers/formatter";
 import HelpDialog from "./editor/HelpDialog.vue";
-import { useFullscreen } from "@/composables/useFullscreen";
 import { showError, showWarning, showInfo } from "@/composables/useNotify";
 import OrderInfoDialog from "./editor/OrderInfoDialog.vue";
 import LongTextView from "@/components/LongTextView.vue";
@@ -37,8 +35,6 @@ const itemEditorRef = ref(null);
 const customerAutocompleteRef = ref(null);
 const showHelpDialog = ref(false);
 const authLayoutRef = ref(null);
-const targetDiv = ref(null);
-const { isFullscreen, toggleFullscreen } = useFullscreen(targetDiv);
 const title = "Retur #" + page.props.data.code;
 const customer = ref(page.props.data.customer);
 const userInput = ref("");
@@ -65,13 +61,6 @@ const total = computed(() => {
     return sum + item.price * item.quantity;
   }, 0);
 });
-
-const handleFullScreenClicked = () => {
-  toggleFullscreen();
-  if (!isFullscreen.value) {
-    authLayoutRef?.value?.hideDrawer();
-  }
-};
 
 // validations
 const validateQuantity = (qty) => {
@@ -298,18 +287,10 @@ onMounted(() => {
     } else if (e.key === "F4") {
       e.preventDefault();
       mergeItem.value = !mergeItem.value;
-    } else if (e.key === "F10" || (e.ctrlKey && e.key === "Enter")) {
+    } else if (e.key === "F12" || (e.ctrlKey && e.key === "Enter")) {
       e.preventDefault();
       closeOrder();
-    } else if (e.key === "F11") {
-      e.preventDefault();
-      handleFullScreenClicked();
-    } else if (
-      e.key === "F5" ||
-      e.key === "F6" ||
-      e.key === "F7" ||
-      e.key === "F12"
-    ) {
+    } else if (e.key === "F5" || e.key === "F6" || e.key === "F7") {
       e.preventDefault();
     }
   };

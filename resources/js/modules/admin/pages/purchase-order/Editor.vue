@@ -9,7 +9,6 @@ import PaymentDialog from "./editor/PaymentDialog.vue";
 import ProductBrowserDialog from "@/components/ProductBrowserDialog.vue";
 import CheckBox from "@/components/CheckBox.vue";
 import ItemEditorDialog from "./editor/ItemEditorDialog.vue";
-import DigitalClock from "@/components/DigitalClock.vue";
 import SupplierAutocomplete from "@/components/SupplierAutocomplete.vue";
 import {
   formatDateTime,
@@ -17,13 +16,13 @@ import {
   formatNumber,
 } from "@/helpers/formatter";
 import HelpDialog from "./editor/HelpDialog.vue";
-import { useFullscreen } from "@/composables/useFullscreen";
 import { showError, showWarning, showInfo } from "@/composables/useNotify";
 import OrderInfoDialog from "./editor/OrderInfoDialog.vue";
 import LongTextView from "@/components/LongTextView.vue";
 import SuccessDialog from "./editor/SuccessDialog.vue";
 import BarcodeInputEditor from "@/components/BarcodeInputEditor.vue";
 import PartyInfo from "@/components/PartyInfo.vue";
+import UserSessionInfo from "@/components/UserSessionInfo.vue";
 
 const $q = useQuasar();
 const page = usePage();
@@ -33,8 +32,6 @@ const itemEditorRef = ref(null);
 const supplierAutocompleteRef = ref(null);
 const showHelpDialog = ref(false);
 const authLayoutRef = ref(null);
-const targetDiv = ref(null);
-const { isFullscreen, toggleFullscreen } = useFullscreen(targetDiv);
 const title = page.props.data.code;
 const supplier = ref(page.props.data.supplier);
 const payment = ref(null);
@@ -64,13 +61,6 @@ const total = computed(() => {
     return sum + item.cost * item.quantity;
   }, 0);
 });
-
-const handleFullScreenClicked = () => {
-  toggleFullscreen();
-  if (!isFullscreen.value) {
-    authLayoutRef?.value?.hideDrawer();
-  }
-};
 
 // validations
 const validateQuantity = (qty) => {
@@ -286,18 +276,10 @@ onMounted(() => {
     } else if (e.key === "F4") {
       e.preventDefault();
       mergeItem.value = !mergeItem.value;
-    } else if (e.key === "F10") {
+    } else if (e.key === "F12" || (e.ctrlKey && e.key === "Enter")) {
       e.preventDefault();
       showPaymentDialog.value = true;
-    } else if (e.key === "F11") {
-      e.preventDefault();
-      handleFullScreenClicked();
-    } else if (
-      e.key === "F5" ||
-      e.key === "F6" ||
-      e.key === "F7" ||
-      e.key === "F12"
-    ) {
+    } else if (e.key === "F5" || e.key === "F6" || e.key === "F7") {
       e.preventDefault();
     }
   };
@@ -438,27 +420,7 @@ const invoicePreview = () => {
       </div>
     </template>
     <template #right-button>
-      <div class="row items-center">
-        <template v-if="$q.screen.gt.sm">
-          <div class="text-weight-bold">
-            {{ page.props.auth.user.username }}
-          </div>
-          <div class="q-mx-sm">|</div>
-          <div>
-            <DigitalClock />
-          </div>
-        </template>
-        <q-btn
-          v-if="false"
-          class="q-ml-sm"
-          :icon="isFullscreen ? 'fullscreen_exit' : 'fullscreen'"
-          dense
-          color="grey-7"
-          flat
-          rounded
-          @click="handleFullScreenClicked()"
-        />
-      </div>
+      <UserSessionInfo v-if="$q.screen.gt.sm" />
     </template>
     <q-page class="bg-grey-2 column fit">
       <q-card square flat class="full-width col column">
