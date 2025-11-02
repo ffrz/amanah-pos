@@ -17,7 +17,6 @@ import {
   formatNumber,
 } from "@/helpers/formatter";
 import HelpDialog from "./editor/HelpDialog.vue";
-import { useFullscreen } from "@/composables/useFullscreen";
 import { showError, showWarning, showInfo } from "@/composables/useNotify";
 import OrderInfoDialog from "./editor/OrderInfoDialog.vue";
 import LongTextView from "@/components/LongTextView.vue";
@@ -25,6 +24,7 @@ import SuccessDialog from "./editor/SuccessDialog.vue";
 import { getCurrentInstance } from "vue";
 import BarcodeInputEditor from "@/components/BarcodeInputEditor.vue";
 import PartyInfo from "@/components/PartyInfo.vue";
+import UserSessionInfo from "@/components/UserSessionInfo.vue";
 
 const $q = useQuasar();
 const page = usePage();
@@ -34,8 +34,6 @@ const itemEditorRef = ref(null);
 const customerAutocompleteRef = ref(null);
 const showHelpDialog = ref(false);
 const authLayoutRef = ref(null);
-const targetDiv = ref(null);
-const { isFullscreen, toggleFullscreen } = useFullscreen(targetDiv);
 const title = page.props.data.code;
 const customer = ref(page.props.data.customer);
 const payment = ref(null);
@@ -66,13 +64,6 @@ const total = computed(() => {
     return sum + item.price * item.quantity;
   }, 0);
 });
-
-const handleFullScreenClicked = () => {
-  toggleFullscreen();
-  // if (!isFullscreen.value) {
-  //   authLayoutRef?.value?.hideDrawer();
-  // }
-};
 
 // validations
 const validateQuantity = (qty) => {
@@ -302,20 +293,12 @@ onMounted(() => {
     } else if (e.key === "F4") {
       e.preventDefault();
       mergeItem.value = !mergeItem.value;
-    } else if (e.key === "F10" || (e.ctrlKey && e.key === "Enter")) {
+    } else if (e.key === "F12" || (e.ctrlKey && e.key === "Enter")) {
       e.preventDefault();
       if (isValidOrder.value) {
         showPaymentDialog.value = true;
       }
-    } else if (e.key === "F11") {
-      e.preventDefault();
-      handleFullScreenClicked();
-    } else if (
-      e.key === "F5" ||
-      e.key === "F6" ||
-      e.key === "F7" ||
-      e.key === "F12"
-    ) {
+    } else if (e.key === "F5" || e.key === "F6" || e.key === "F7") {
       e.preventDefault();
     }
   };
@@ -493,31 +476,7 @@ const isValidOrder = computed(() => {
       </div>
     </template>
     <template #right-button>
-      <div class="row items-center">
-        <template v-if="$q.screen.gt.sm">
-          <div class="text-weight-bold">
-            {{ page.props.auth.user.username }}
-          </div>
-          <div class="q-mx-sm">|</div>
-          <div class="text-weight-bold">
-            {{ page.props.data.cashier_session?.cashier_terminal?.name }}
-          </div>
-          <div class="q-mx-sm">|</div>
-          <div>
-            <DigitalClock />
-          </div>
-        </template>
-        <q-btn
-          v-if="false"
-          class="q-ml-sm"
-          :icon="isFullscreen ? 'fullscreen_exit' : 'fullscreen'"
-          dense
-          color="grey-7"
-          flat
-          rounded
-          @click="handleFullScreenClicked()"
-        />
-      </div>
+      <UserSessionInfo v-if="$q.screen.gt.sm" />
     </template>
     <q-page class="bg-grey-2 column fit">
       <q-card square flat class="full-width col column">

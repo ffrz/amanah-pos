@@ -27,6 +27,7 @@ import LongTextView from "@/components/LongTextView.vue";
 import ProductBrowserDialog from "@/components/ProductBrowserDialog.vue";
 import BarcodeInputEditor from "@/components/BarcodeInputEditor.vue";
 import PartyInfo from "@/components/PartyInfo.vue";
+import UserSessionInfo from "@/components/UserSessionInfo.vue";
 
 const $q = useQuasar();
 const page = usePage();
@@ -466,27 +467,7 @@ const isValidWalletBalance = computed(() => {
       </div>
     </template>
     <template #right-button>
-      <div class="row items-center">
-        <template v-if="$q.screen.gt.sm">
-          <div class="text-weight-bold">
-            {{ page.props.auth.user.username }}
-          </div>
-          <div class="q-mx-sm">|</div>
-          <div>
-            <DigitalClock />
-          </div>
-        </template>
-        <q-btn
-          v-if="false"
-          class="q-ml-sm"
-          :icon="isFullscreen ? 'fullscreen_exit' : 'fullscreen'"
-          dense
-          color="grey-7"
-          flat
-          rounded
-          @click="handleFullScreenClicked()"
-        />
-      </div>
+      <UserSessionInfo v-if="$q.screen.gt.sm" />
     </template>
     <q-page class="bg-grey-2 column fit">
       <q-card square flat class="full-width col column">

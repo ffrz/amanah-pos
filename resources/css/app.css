@@ -357,12 +357,13 @@ table.detail tr:nth-child(even) td {
 .q-tabs__content {
   background: #f8f8f8;
 }
+
 .q-tabs--horizontal .q-tab--inactive {
   background: #f8f8f8;
   border-bottom: 1px solid #ddd;
 }
 
-.q-tabs--horizontal .q-tab--active{
+.q-tabs--horizontal .q-tab--active {
   background: #fff;
 }
 

@@ -239,7 +239,7 @@ defineExpose({
                 <q-icon name="o_business_center" />
               </q-item-section>
               <q-item-section>
-                <q-item-label>Pemasok Baru </q-item-label>
+                <q-item-label>Supplier Baru </q-item-label>
               </q-item-section>
             </q-item>
 
@@ -443,7 +443,7 @@ defineExpose({
                 <q-icon name="people" />
               </q-item-section>
               <q-item-section>
-                <q-item-label>Pemasok</q-item-label>
+                <q-item-label>Supplier</q-item-label>
               </q-item-section>
             </q-item>
           </q-expansion-item>
