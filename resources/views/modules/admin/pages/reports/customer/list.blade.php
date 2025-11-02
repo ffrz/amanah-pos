@@ -106,7 +106,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="{{ count($headers) + 1 }}" class="text-center">Tidak ada data pelanggan.</td>
+                        <td colspan="{{ count($headers) + 1 }}" class="text-center">Data tidak tersedia.</td>
                     </tr>
                 @endforelse
             </tbody>

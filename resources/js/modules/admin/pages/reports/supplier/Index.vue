@@ -13,6 +13,7 @@ const title = "Laporan Supplier";
 const primaryColumns = createOptions(page.props.primary_columns);
 const optionalColumns = createOptions(page.props.optional_columns);
 const initialColumns = page.props.initial_columns;
+const templates = page.props.templates;
 
 const statusOptions = [
   { value: "all", label: "Semua" },
@@ -80,6 +81,7 @@ const handleReportSubmit = ({ format, form }) => {
       :initialColumns="initialColumns"
       :initialFilter="initialFilter"
       :initialSortOptions="initialSortOptions"
+      :templates="templates"
       @submit="handleReportSubmit"
     >
       <template #filter="{ form }">

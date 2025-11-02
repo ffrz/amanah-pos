@@ -21,6 +21,29 @@ use Illuminate\Http\Request;
 
 class SupplierReportController extends BaseController
 {
+    protected string $default_title = 'Laporan Daftar Supplier';
+
+    protected array $templates = [
+        'supplier_list' =>
+        [
+            'value' => 'supplier_list',
+            'label' => 'Daftar Supplier',
+            'columns' => ['code', 'name', 'phone_1', 'address'],
+        ],
+        // 'supplier_actual_wallet_balance' =>
+        // [
+        //     'value' => 'supplier_actual_wallet_balance',
+        //     'label' => 'Saldo Deposit Pemasok Aktual',
+        //     'columns' => ['code', 'name', 'wallet_balance', 'phone_1', 'address'],
+        // ],
+        'supplier_actual_balance' =>
+        [
+            'value' => 'supplier_actual_balance',
+            'label' => 'Saldo Utang/Piutang Supplier Aktual',
+            'columns' => ['code', 'name', 'balance', 'phone_1', 'address'],
+        ],
+    ];
+
     protected $primary_columns = [
         'code' => 'Kode',
         'name' => 'Nama',
@@ -45,19 +68,14 @@ class SupplierReportController extends BaseController
 
     public function index()
     {
-        return inertia('reports/supplier/Index', [
-            'primary_columns' => $this->primary_columns,
-            'optional_columns' => $this->optional_columns,
-            'initial_columns' => $this->initial_columns,
-        ]);
+        return $this->generateIndexResponse('reports/supplier/Index');
     }
 
     public function generate(Request $request)
     {
         $data = $request->validate([
-            'filter' => 'nullable|array',
+            ...$this->getDefaultValidationRules(),
             'filter.status' => 'nullable|string|in:all,active,inactive',
-            ...$this->getDefaultValidationRules()
         ]);
 
         $q = Supplier::query();
@@ -66,14 +84,20 @@ class SupplierReportController extends BaseController
             $q->where('active', $data['filter']['status'] == 'active');
         }
 
-        return $this->generatePdfReport(
+        if (!empty($data['template'])) {
+            if ($data['template'] == 'supplier_actual_wallet_balance') {
+                $q->where('wallet_balance', '<>', 0);
+            }
+
+            if ($data['template'] == 'supplier_actual_balance') {
+                $q->where('balance', '<>', 0);
+            }
+        }
+
+        return $this->generateReport(
             'modules.admin.pages.reports.supplier.list',
-            [
-                'title' => 'Laporan Daftar Supplier',
-                'items' => $this->processQuery($q, $data['columns']),
-                'filter' => $data['filter'],
-                'columns' => $data['columns'],
-            ]
+            $data,
+            $q
         );
     }
 }

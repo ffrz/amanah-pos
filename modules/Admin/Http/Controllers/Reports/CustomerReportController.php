@@ -21,6 +21,29 @@ use Illuminate\Http\Request;
 
 class CustomerReportController extends BaseController
 {
+    protected string $default_title = 'Laporan Daftar Pelanggan';
+
+    protected array $templates = [
+        'customer_list' =>
+        [
+            'value' => 'customer_list',
+            'label' => 'Daftar Pelanggan',
+            'columns' => ['code', 'name', 'phone', 'address'],
+        ],
+        'customer_actual_wallet_balance' =>
+        [
+            'value' => 'customer_actual_wallet_balance',
+            'label' => 'Saldo Deposit Pelanggan Aktual',
+            'columns' => ['code', 'name', 'wallet_balance', 'phone', 'address'],
+        ],
+        'customer_actual_balance' =>
+        [
+            'value' => 'customer_actual_balance',
+            'label' => 'Saldo Utang/Piutang Pelanggan Aktual',
+            'columns' => ['code', 'name', 'balance', 'phone', 'address'],
+        ],
+    ];
+
     protected $primary_columns = [
         'code' => 'Kode',
         'name' => 'Nama',
@@ -45,21 +68,16 @@ class CustomerReportController extends BaseController
 
     public function index()
     {
-        return inertia('reports/customer/Index', [
-            'primary_columns' => $this->primary_columns,
-            'optional_columns' => $this->optional_columns,
-            'initial_columns' => $this->initial_columns,
-        ]);
+        return $this->generateIndexResponse('reports/customer/Index');
     }
 
     public function generate(Request $request)
     {
         $data = $request->validate([
-            'filter' => 'nullable|array',
+            ...$this->getDefaultValidationRules(),
             'filter.status' => 'nullable|string|in:all,active,inactive',
             'filter.type' => 'nullable|string',
             'filter.default_price_type' => 'nullable|string',
-            ...$this->getDefaultValidationRules()
         ]);
 
         $q = Customer::query();
@@ -77,14 +95,19 @@ class CustomerReportController extends BaseController
             $q->where('type', $filter['type']);
         }
 
-        return $this->generatePdfReport(
+        if (!empty($data['template'])) {
+            if ($data['template'] == 'customer_actual_wallet_balance') {
+                $q->where('wallet_balance', '<>', 0);
+            }
+            if ($data['template'] == 'customer_actual_balance') {
+                $q->where('balance', '<>', 0);
+            }
+        }
+
+        return $this->generateReport(
             'modules.admin.pages.reports.customer.list',
-            [
-                'title' => 'Laporan Daftar Pelanggan',
-                'items' => $this->processQuery($q, $data['columns']),
-                'filter' => $data['filter'],
-                'columns' => $data['columns'],
-            ]
+            $data,
+            $q
         );
     }
 }

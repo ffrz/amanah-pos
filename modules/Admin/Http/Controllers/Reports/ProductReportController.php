@@ -22,11 +22,42 @@ use Modules\Admin\Services\CommonDataService;
 
 class ProductReportController extends BaseController
 {
+    protected string $default_title = 'Laporan Daftar Produk';
+
+    protected array $templates = [
+        'report_1' => [
+            'value' => 'report_1',
+            'label' => 'Daftar Harga Pokok',
+            'columns' => ['name', 'description', 'category', 'stock', 'cost'],
+        ],
+        'report_2' => [
+            'value' => 'report_2',
+            'label' => 'Daftar Harga Eceran',
+            'columns' => ['name', 'description', 'category', 'stock', 'price_1'],
+        ],
+        'report_3' => [
+            'value' => 'report_3',
+            'label' => 'Daftar Harga Partai',
+            'columns' => ['name', 'description', 'category', 'stock', 'price_2'],
+        ],
+        'report_4' => [
+            'value' => 'report_4',
+            'label' => 'Daftar Harga Grosir',
+            'columns' => ['name', 'description', 'category', 'stock', 'price_3'],
+        ],
+        'report_5' => [
+            'value' => 'report_5',
+            'label' => 'Daftar Stok Aktual',
+            'columns' => ['name', 'description', 'category', 'stock'],
+        ],
+    ];
+
     protected $primary_columns = [
         'name' => 'Nama',
     ];
 
     protected $optional_columns = [
+        'description' => 'Deskripsi',
         'cost' => 'Modal / Harga Beli',
         'price_1' => 'Harga Eceran',
         'price_2' => 'Harga Partai',
@@ -52,10 +83,8 @@ class ProductReportController extends BaseController
 
     public function index()
     {
-        return inertia('reports/product/Index', [
-            'primary_columns' => $this->primary_columns,
-            'optional_columns' => $this->optional_columns,
-            'initial_columns' => $this->initial_columns,
+        return $this->generateIndexResponse('reports/product/Index', [
+
             'categories' => $this->commonDataService->getProductCategories(),
             'suppliers' => $this->commonDataService->getSuppliers(),
         ]);
@@ -64,16 +93,14 @@ class ProductReportController extends BaseController
     public function generate(Request $request)
     {
         $data = $request->validate([
-            'filter' => 'nullable|array',
+            ...$this->getDefaultValidationRules(),
             'filter.status' => 'nullable|string|in:all,active,inactive',
-            // Tambahkan validasi untuk memastikan elemen array adalah integer atau string yang valid
             'filter.types' => 'nullable|array',
             'filter.types.*' => 'string|in:' . implode(',', array_keys(\App\Models\Product::Types)),
             'filter.categories' => 'nullable|array',
-            'filter.categories.*' => 'integer', // Asumsi kategori adalah ID
+            'filter.categories.*' => 'integer',
             'filter.suppliers' => 'nullable|array',
-            'filter.suppliers.*' => 'integer',   // Asumsi supplier adalah ID
-            ...$this->getDefaultValidationRules()
+            'filter.suppliers.*' => 'integer',
         ]);
 
         $data['filter']['status'] = $data['filter']['status'] ?? 'all';
@@ -110,7 +137,7 @@ class ProductReportController extends BaseController
 
         $filter = $data['filter'];
         if (!empty($filter['status']) && $filter['status'] != 'all') {
-            $q->where('active', $filter['status'] == 'active');
+            $q->where('products.active', $filter['status'] == 'active');
         }
 
         if (!empty($filter['types'])) {
@@ -136,17 +163,14 @@ class ProductReportController extends BaseController
             $queryColumns[] = 'id';
         }
 
-        return $this->generatePdfReport(
+        $data['categories'] = $this->commonDataService->getProductCategories();
+        $data['suppliers']  = $this->commonDataService->getSuppliers();
+        $data['query_columns'] = $queryColumns;
+
+        return $this->generateReport(
             'modules.admin.pages.reports.product.list',
-            [
-                'title' => 'Laporan Daftar Produk',
-                // Kirim $q dengan $queryColumns yang sudah disesuaikan
-                'items' => $this->processQuery($q, $queryColumns),
-                'filter' => $data['filter'],
-                'columns' => $data['columns'],
-                'categories' => $this->commonDataService->getProductCategories(),
-                'suppliers' => $this->commonDataService->getSuppliers(),
-            ]
+            $data,
+            $q
         );
     }
 
@@ -223,7 +247,7 @@ class ProductReportController extends BaseController
         }
 
         // Jika relasi di-eager load di generate() (menggunakan with()), pastikan Foreign Key ada.
-        // Jika Anda sudah menambahkan category_id dan supplier_id di generate(), 
+        // Jika Anda sudah menambahkan category_id dan supplier_id di generate(),
         // pastikan keduanya juga diawali prefix 'products.' di sini jika join dilakukan.
 
         return $q->select($selects)->get();

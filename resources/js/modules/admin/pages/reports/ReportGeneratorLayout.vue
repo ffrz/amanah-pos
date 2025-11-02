@@ -1,10 +1,15 @@
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import { useQuasar } from "quasar";
 
 const $q = useQuasar();
 
 const props = defineProps({
+  templates: {
+    type: Array,
+    required: false,
+    default: () => [],
+  },
   primaryColumns: {
     type: Array,
     required: true,
@@ -27,10 +32,17 @@ const props = defineProps({
   },
 });
 
-const columnOptions = computed(() => [
-  ...props.primaryColumns,
-  ...props.optionalColumns,
-]);
+const templateOptions = [
+  {
+    value: null,
+    label: "Disesuaikan",
+  },
+  ...props.templates,
+];
+
+const columnOptions = computed(() => {
+  return [...props.primaryColumns, ...props.optionalColumns];
+});
 
 const primaryColumnValues = computed(() =>
   props.primaryColumns.map((c) => c.value)
@@ -43,6 +55,7 @@ const orientationOptions = [
 ];
 
 const getInitialValue = () => ({
+  template: null,
   columns: props.initialColumns,
   filter: JSON.parse(JSON.stringify(props.initialFilter)),
   sortOptions: JSON.parse(JSON.stringify(props.initialSortOptions)),
@@ -105,9 +118,8 @@ const emit = defineEmits(["submit"]);
 const addSortOption = () => {
   const maxSort = 3;
   const currentSortCount = form.value.sortOptions.length;
-  const selectedColumnCount = form.value.columns.length; // 💡 Kolom yang dipilih
+  const selectedColumnCount = form.value.columns.length;
 
-  // 🚨 Cek batasan ganda
   if (currentSortCount >= maxSort) {
     $q.notify({
       type: "warning",
@@ -165,6 +177,27 @@ const getAvailableSortOptions = computed(() => (currentIndex) => {
   });
 });
 
+watch(
+  () => form.value.template,
+  (newTemplate, oldTemplate) => {
+    if (newTemplate !== oldTemplate && newTemplate !== null) {
+      const template = props.templates.find((a) => a.value === newTemplate);
+      form.value.columns = template.columns;
+    } else if (newTemplate === null) {
+      form.value.columns = props.initialColumns;
+    }
+  }
+);
+
+watch(
+  () => form.value.columns,
+  (newCols, oldCols) => {
+    if (oldCols != newCols && form.value.template != null) {
+      // form.value.template = null;
+    }
+  }
+);
+
 defineExpose({
   form,
   submit,
@@ -178,163 +211,209 @@ defineExpose({
     <div class="col col-md-8">
       <div class="q-col-gutter-sm row">
         <div class="col-xs-12 col-md-7">
-          <q-card square flat bordered class="full-width q-mb-sm">
-            <q-card-section class="bg-grey-2 q-py-sm">
-              <div class="text-subtitle2 text-bold text-grey-8">
+          <q-expansion-item default-opened class="full-width q-mb-sm bg-grey-2">
+            <template v-slot:header>
+              <div
+                class="full-width bg-grey-2 text-subtitle2 text-bold text-grey-8 row items-center"
+              >
+                <q-icon name="analytics" size="xs" class="q-mr-sm" />
+                Jenis Laporan
+              </div>
+            </template>
+
+            <q-card square flat bordered class="full-width">
+              <q-card-section class="q-py-sm">
+                <div>
+                  <q-select
+                    label="Pilih Laporan"
+                    v-model="form.template"
+                    :options="templateOptions"
+                    map-options
+                    emit-value
+                    hide-bottom-space
+                  />
+                </div>
+              </q-card-section>
+            </q-card>
+          </q-expansion-item>
+
+          <q-expansion-item default-opened class="full-width q-mb-sm bg-grey-2">
+            <template v-slot:header>
+              <div
+                class="text-subtitle2 text-bold text-grey-8 row items-center"
+              >
                 <q-icon name="data_table" size="xs" class="q-mr-sm" />
                 Kolom
               </div>
-            </q-card-section>
-            <q-card-section class="q-py-sm">
-              <div>
-                <q-select
-                  label="Pilih Kolom"
-                  v-model="form.columns"
-                  :options="columnOptions"
-                  map-options
-                  emit-value
-                  multiple
-                  clearable
-                  use-chips
-                  @remove="onRemoveColumn"
-                  @clear="form.columns = primaryColumnValues.slice()"
-                  :rules="[
-                    (val) =>
-                      (val && val.length > 0) || 'Pilih minimal satu kolom',
-                  ]"
-                  hide-bottom-space
-                >
-                  <template v-slot:selected-item="scope">
-                    <q-chip
-                      :removable="
-                        !primaryColumnValues.includes(scope.opt.value)
-                      "
-                      @remove="
-                        onRemoveColumn(scope.opt) &&
-                          scope.removeAtIndex(scope.index)
-                      "
-                      dense
-                    >
-                      {{ scope.opt.label }}
-                    </q-chip>
-                  </template>
-                </q-select>
-              </div>
-            </q-card-section>
-          </q-card>
+            </template>
 
-          <q-card square flat bordered class="full-width">
-            <q-card-section class="bg-grey-2 q-py-sm">
-              <div class="text-subtitle2 text-bold text-grey-8">
+            <q-card square flat bordered class="full-width">
+              <q-card-section class="q-py-sm">
+                <div>
+                  <q-select
+                    label="Pilih Kolom"
+                    v-model="form.columns"
+                    :options="columnOptions"
+                    map-options
+                    emit-value
+                    multiple
+                    clearable
+                    use-chips
+                    @remove="onRemoveColumn"
+                    @clear="form.columns = initialColumns.slice()"
+                    :rules="[
+                      (val) =>
+                        (val && val.length > 0) || 'Pilih minimal satu kolom',
+                    ]"
+                    hide-bottom-space
+                  >
+                    <template v-slot:selected-item="scope">
+                      <q-chip
+                        :removable="
+                          !primaryColumnValues.includes(scope.opt.value)
+                        "
+                        @remove="
+                          onRemoveColumn(scope.opt) &&
+                            scope.removeAtIndex(scope.index)
+                        "
+                        dense
+                      >
+                        {{ scope.opt.label }}
+                      </q-chip>
+                    </template>
+                  </q-select>
+                </div>
+              </q-card-section>
+            </q-card>
+          </q-expansion-item>
+
+          <q-expansion-item class="full-width q-mb-sm bg-grey-2">
+            <template v-slot:header>
+              <div
+                class="text-subtitle2 text-bold text-grey-8 row items-center"
+              >
                 <q-icon name="filter_alt" size="xs" class="q-mr-sm" />
                 Filter
               </div>
-            </q-card-section>
-            <q-card-section class="q-py-sm">
-              <slot name="filter" :form="form" />
-            </q-card-section>
-          </q-card>
+            </template>
 
-          <q-card square flat bordered class="full-width q-mt-sm">
-            <q-card-section class="bg-grey-2 q-py-sm">
-              <div class="text-subtitle2 text-bold text-grey-8">
+            <q-card square flat bordered class="full-width">
+              <q-card-section class="q-py-sm">
+                <slot name="filter" :form="form" />
+              </q-card-section>
+            </q-card>
+          </q-expansion-item>
+
+          <q-expansion-item class="full-width q-mb-sm bg-grey-2">
+            <template v-slot:header>
+              <div
+                class="text-subtitle2 text-bold text-grey-8 row items-center"
+              >
                 <q-icon name="sort" size="xs" class="q-mr-sm" />
                 Urutkan
               </div>
-            </q-card-section>
-            <q-card-section class="q-py-sm">
-              <div
-                v-for="(sort, index) in form.sortOptions"
-                :key="index"
-                class="row q-col-gutter-sm q-mb-sm items-center"
-              >
-                <q-select
-                  v-model="sort.column"
-                  class="col-grow"
-                  style="min-width: 150px"
-                  :options="getAvailableSortOptions(index)"
-                  map-options
-                  dense
-                  emit-value
-                  :label="index + 1 + ` - Urut berdasarkan`"
-                />
+            </template>
 
-                <q-btn
-                  :icon="
-                    sort.order === 'asc' ? 'arrow_upward' : 'arrow_downward'
+            <q-card square flat bordered class="full-width">
+              <q-card-section class="q-py-sm">
+                <div
+                  v-for="(sort, index) in form.sortOptions"
+                  :key="index"
+                  class="row q-col-gutter-sm q-mb-sm items-center"
+                >
+                  <q-select
+                    v-model="sort.column"
+                    class="col-grow"
+                    style="min-width: 150px"
+                    :options="getAvailableSortOptions(index)"
+                    map-options
+                    dense
+                    emit-value
+                    :label="index + 1 + ` - Urut berdasarkan`"
+                  />
+
+                  <q-btn
+                    :icon="
+                      sort.order === 'asc' ? 'arrow_upward' : 'arrow_downward'
+                    "
+                    color="grey-8"
+                    flat
+                    round
+                    dense
+                    @click="sort.order = sort.order === 'asc' ? 'desc' : 'asc'"
+                    class="q-ml-sm"
+                    size="sm"
+                  >
+                    <q-tooltip>
+                      Urutkan:
+                      {{
+                        sort.order === "asc"
+                          ? "Terkecil ke Terbesar"
+                          : "Terbesar ke Terkecil"
+                      }}
+                    </q-tooltip>
+                  </q-btn>
+
+                  <q-btn
+                    v-if="form.sortOptions.length > 1"
+                    icon="delete"
+                    color="red"
+                    flat
+                    round
+                    dense
+                    @click="removeSortOption(index)"
+                    class="q-ml-xs"
+                    size="sm"
+                  >
+                    <q-tooltip>Hapus Opsi Urutan</q-tooltip>
+                  </q-btn>
+                </div>
+
+                <div
+                  class="row q-mt-md"
+                  v-if="
+                    form.sortOptions.length < 3 &&
+                    form.sortOptions.length < form.columns.length
                   "
-                  color="grey-8"
-                  flat
-                  round
-                  dense
-                  @click="sort.order = sort.order === 'asc' ? 'desc' : 'asc'"
-                  class="q-ml-sm"
-                  size="sm"
                 >
-                  <q-tooltip>
-                    Urutkan:
-                    {{
-                      sort.order === "asc"
-                        ? "Terkecil ke Terbesar"
-                        : "Terbesar ke Terkecil"
-                    }}
-                  </q-tooltip>
-                </q-btn>
+                  <q-btn
+                    label="Tambah Opsi Pengurutan"
+                    icon="add"
+                    color="blue-grey"
+                    flat
+                    dense
+                    size="sm"
+                    @click="addSortOption"
+                  />
+                </div>
+              </q-card-section>
+            </q-card>
+          </q-expansion-item>
 
-                <q-btn
-                  v-if="form.sortOptions.length > 1"
-                  icon="delete"
-                  color="red"
-                  flat
-                  round
-                  dense
-                  @click="removeSortOption(index)"
-                  class="q-ml-xs"
-                  size="sm"
-                >
-                  <q-tooltip>Hapus Opsi Urutan</q-tooltip>
-                </q-btn>
-              </div>
-
+          <q-expansion-item class="full-width bg-grey-2">
+            <template v-slot:header>
               <div
-                class="row q-mt-md"
-                v-if="
-                  form.sortOptions.length < 3 &&
-                  form.sortOptions.length < form.columns.length
-                "
+                class="text-subtitle2 text-bold text-grey-8 row items-center"
               >
-                <q-btn
-                  label="Tambah Opsi Pengurutan"
-                  icon="add"
-                  color="blue-grey"
-                  flat
-                  dense
-                  size="sm"
-                  @click="addSortOption"
-                />
-              </div>
-            </q-card-section>
-          </q-card>
-
-          <q-card square flat bordered class="full-width q-mt-sm">
-            <q-card-section class="bg-grey-2 q-py-sm">
-              <div class="text-subtitle2 text-bold text-grey-8">
                 <q-icon name="rotate_right" size="xs" class="q-mr-sm" />
                 Halaman
               </div>
-            </q-card-section>
-            <q-card-section class="q-py-sm">
-              <div>
-                <q-select
-                  label="Orientasi"
-                  v-model="form.orientation"
-                  :options="orientationOptions"
-                  map-options
-                  emit-value
-                />
-              </div>
-            </q-card-section>
-          </q-card>
+            </template>
+
+            <q-card square flat bordered class="full-width">
+              <q-card-section class="q-py-sm">
+                <div>
+                  <q-select
+                    label="Orientasi"
+                    v-model="form.orientation"
+                    :options="orientationOptions"
+                    map-options
+                    emit-value
+                  />
+                </div>
+              </q-card-section>
+            </q-card>
+          </q-expansion-item>
         </div>
 
         <div class="col-xs-12 col-md-5">
@@ -374,3 +453,19 @@ defineExpose({
     </div>
   </q-page>
 </template>
+<style scoped>
+.q-expansion-item {
+  border: 1px solid #ddd;
+}
+
+.q-expansion-item .q-card {
+  border: none;
+}
+
+.q-expansion-item :deep(.q-item__section) {
+  padding-right: 0;
+}
+.q-expansion-item :deep(.text-subtitle2) {
+  flex-grow: 1;
+}
+</style>
