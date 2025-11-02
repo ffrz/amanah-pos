@@ -243,20 +243,20 @@ const menuItems = {
                 <q-item
                   clickable
                   v-ripple
-                  @click="router.get(route('admin.purchase-order.add'))"
-                >
-                  <q-item-section>Pembelian Baru</q-item-section>
-                  <q-item-section side><q-icon name="add" /></q-item-section>
-                </q-item>
-                <q-item
-                  clickable
-                  v-ripple
                   @click="router.get(route('admin.purchase-order.index'))"
                 >
                   <q-item-section>Pembelian</q-item-section>
                   <q-item-section side
                     ><q-icon name="chevron_right"
                   /></q-item-section>
+                </q-item>
+                <q-item
+                  clickable
+                  v-ripple
+                  @click="router.get(route('admin.purchase-order.add'))"
+                >
+                  <q-item-section>Pembelian Baru</q-item-section>
+                  <q-item-section side><q-icon name="add" /></q-item-section>
                 </q-item>
                 <q-separator />
                 <q-item
