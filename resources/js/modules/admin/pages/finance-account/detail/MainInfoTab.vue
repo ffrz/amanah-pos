@@ -6,6 +6,7 @@ const page = usePage();
 </script>
 
 <template>
+  <div class="text-bold text-grey-8">Informasi Umum</div>
   <table class="detail">
     <tbody>
       <tr>
@@ -54,14 +55,14 @@ const page = usePage();
         <td>:</td>
         <td>{{ page.props.data.notes }}</td>
       </tr>
+    </tbody>
+  </table>
+  <div class="q-mt-md text-bold text-grey-8">Opsi Lanjutan</div>
+  <table class="detail">
+    <tbody>
       <tr>
-        <td colspan="3" class="text-bold text-grey-9">
-          <div class="q-mt-sm">Opsi Lanjutan</div>
-        </td>
-      </tr>
-      <tr>
-        <td>Tampilkan di Penjualan</td>
-        <td>:</td>
+        <td style="width: 170px">Tampilkan di Penjualan</td>
+        <td style="width: 1px">:</td>
         <td>
           {{ page.props.data.show_in_pos_payment ? "Ya" : "Tidak" }}
         </td>

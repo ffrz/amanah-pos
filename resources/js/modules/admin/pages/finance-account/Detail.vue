@@ -50,11 +50,10 @@ const tab = ref("main");
             <q-tabs
               v-model="tab"
               dense
-              class="text-grey-7"
               active-color="primary"
               indicator-color="primary"
               align="justify"
-              narrow-indicator
+              switch-indicator
             >
               <q-tab name="main" label="Info Akun" />
               <q-tab name="history" label="Riwayat Transaksi" />

@@ -17,7 +17,7 @@ import LongTextView from "@/components/LongTextView.vue";
 import dayjs from "dayjs";
 import DateTimePicker from "@/components/DateTimePicker.vue";
 
-const title = "Konfirmasi Top Up Wallet";
+const title = "Konfirmasi Top Up Deposit";
 const $q = useQuasar();
 const showFilter = ref(false);
 const rows = ref([]);
@@ -109,8 +109,8 @@ onMounted(() => {
 const fetchItems = (props = null) => {
   const apiFilter = {
     ...filter,
-    start_date: dayjs(filter.start_date).format("YYYY-MM-DD"),
-    end_date: dayjs(filter.end_date).format("YYYY-MM-DD"),
+    start_date: dayjs(filter.start_date).format("YYYY-MM-DD HH:mm:ss"),
+    end_date: dayjs(filter.end_date).format("YYYY-MM-DD HH:mm:ss"),
   };
 
   handleFetchItems({

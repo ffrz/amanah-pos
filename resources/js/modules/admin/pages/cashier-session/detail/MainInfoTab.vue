@@ -1,5 +1,5 @@
 <script setup>
-import { usePage } from "@inertiajs/vue3";
+import { router, usePage } from "@inertiajs/vue3";
 import {
   formatDateTime,
   formatDateTimeFromNow,
@@ -10,17 +10,13 @@ const page = usePage();
 </script>
 
 <template>
+  <div class="text-bold text-grey-8">Info Sesi</div>
   <table class="detail">
     <tbody>
       <tr>
-        <td colspan="3">
-          <div class="text-bold text-grey-8">Info Sesi</div>
-        </td>
-      </tr>
-      <tr>
-        <td style="width: 130px">Session ID</td>
+        <td style="width: 130px">Kode</td>
         <td style="width: 1px">:</td>
-        <td>{{ page.props.data.id }}</td>
+        <td>{{ page.props.data.code }}</td>
       </tr>
       <tr>
         <td>Terminal</td>
@@ -31,7 +27,10 @@ const page = usePage();
         <td>Kasir</td>
         <td>:</td>
         <td>
-          {{ page.props.data.user.username }} - {{ page.props.data.user.name }}
+          <my-link :href="route('admin.user.detail', page.props.data.user.id)">
+            {{ page.props.data.user.name }} -
+            {{ page.props.data.user.username }}
+          </my-link>
         </td>
       </tr>
       <tr>
@@ -41,12 +40,11 @@ const page = usePage();
           {{ !page.props.data.is_closed ? "Aktif" : "Ditutup" }}
         </td>
       </tr>
-
-      <tr>
-        <td colspan="100%">
-          <div class="q-mt-sm text-grey-8">Info Buka Sesi</div>
-        </td>
-      </tr>
+    </tbody>
+  </table>
+  <div class="q-mt-md text-grey-8 text-bold">Info Buka Sesi</div>
+  <table class="detail">
+    <tbody>
       <tr>
         <td>Saldo Awal</td>
         <td>:</td>
@@ -59,12 +57,11 @@ const page = usePage();
         <td>:</td>
         <td>{{ page.props.data.opening_notes }}</td>
       </tr>
-
-      <tr>
-        <td colspan="100%">
-          <div class="q-mt-sm text-grey-8">Rincian Pendapatan & Kas</div>
-        </td>
-      </tr>
+    </tbody>
+  </table>
+  <div class="q-mt-md text-bold text-grey-8">Rincian Pendapatan & Kas</div>
+  <table class="detail">
+    <tbody>
       <tr>
         <td>Total Penjualan</td>
         <td>:</td>
@@ -89,13 +86,12 @@ const page = usePage();
           </td>
         </tr>
       </template>
-
+    </tbody>
+  </table>
+  <table class="detail">
+    <tbody>
       <template v-if="page.props.data.is_closed">
-        <tr>
-          <td colspan="100%">
-            <div class="q-mt-sm text-grey-8">Info Tutup Sesi</div>
-          </td>
-        </tr>
+        <div class="q-mt-md text-bold text-grey-8">Info Tutup Sesi</div>
         <tr>
           <td>Saldo Akhir</td>
           <td>:</td>
@@ -132,12 +128,11 @@ const page = usePage();
           </td>
         </tr>
       </template>
-
-      <tr>
-        <td colspan="3">
-          <div class="text-bold text-grey-8 q-mt-md">Info Rekaman</div>
-        </td>
-      </tr>
+    </tbody>
+  </table>
+  <div class="q-mt-md text-bold text-grey-8">Info Rekaman</div>
+  <table class="detail">
+    <tbody>
       <tr v-if="page.props.data.created_at">
         <td colspan="100%">
           Dibuat {{ formatDateTimeFromNow(page.props.data.created_at) }} oleh

@@ -78,7 +78,7 @@ class SalesOrderReturnService
         }
 
         if (!empty($filter['end_date'])) {
-            $q->where('datetime', '<=', $filter['end_date'] . ' 23:59:59');
+            $q->where('datetime', '<=', $filter['end_date']);
         }
 
         if (!empty($filter['customer_id']) && $filter['customer_id'] !== 'all') {

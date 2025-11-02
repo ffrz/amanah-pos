@@ -51,7 +51,14 @@ class CashierSession extends BaseModel
         'closing_notes',
     ];
 
-    protected $appends = ['total_income', 'total_expense', 'total_sales', 'actual_balance'];
+    protected $appends = [
+        'code',
+        'total_income',
+        'total_expense',
+        'total_sales',
+        'actual_balance'
+    ];
+
 
     /**
      * The attributes that should be cast to native types.
@@ -79,6 +86,11 @@ class CashierSession extends BaseModel
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function getCodeAttribute()
+    {
+        return 'CSX-' . $this->id;
     }
 
     /**

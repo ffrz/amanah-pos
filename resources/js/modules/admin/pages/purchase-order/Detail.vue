@@ -85,7 +85,7 @@ const print = () => {
             active-color="primary"
             indicator-color="primary"
             align="justify"
-            narrow-indicator
+            switch-indicator
           >
             <q-tab name="invoice" label="Rincian" />
             <q-tab name="payment" label="Pembayaran" v-if="!isPreview" />

@@ -199,7 +199,7 @@ const computedColumns = computed(() => {
             <q-td key="id" :props="props" class="wrap-column">
               <div>
                 <q-icon class="inline-icon" name="tag" />
-                ID: {{ props.row.id }}
+                {{ props.row.code }}
               </div>
               <div>
                 <q-icon class="inline-icon" name="point_of_sale" />

@@ -138,9 +138,9 @@ a:hover {
 }
 
 /** butuh border untuk pemisah tab dengan content */
-.q-tabs {
+/* .q-tabs {
   border-bottom: 1px solid #ddd;
-}
+} */
 
 .q-tab {
   text-transform: none !important;
@@ -159,6 +159,11 @@ a:hover {
 table.detail {
   border-collapse: collapse;
   width: 100%;
+}
+
+table.detail td:nth-child(1),
+table.detail td:nth-child(2) {
+  color: #555;
 }
 
 table.detail td {
@@ -345,9 +350,20 @@ table.detail tr:nth-child(even) td {
   border-bottom: 1px solid #ddd;
 }
 
-.q-tab--inactive {
-  background: #eee;
+.q-tabs--vertical .q-tab {
   border-bottom: 1px solid #ddd;
+}
+
+.q-tabs__content {
+  background: #f8f8f8;
+}
+.q-tabs--horizontal .q-tab--inactive {
+  background: #f8f8f8;
+  border-bottom: 1px solid #ddd;
+}
+
+.q-tabs--horizontal .q-tab--active{
+  background: #fff;
 }
 
 .q-tab--active {

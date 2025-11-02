@@ -79,7 +79,7 @@ class PurchaseOrderReturnService
         }
 
         if (!empty($filter['end_date'])) {
-            $q->where('datetime', '<=', $filter['end_date'] . ' 23:59:59');
+            $q->where('datetime', '<=', $filter['end_date']);
         }
 
         if (!empty($filter['supplier_id']) && $filter['supplier_id'] !== 'all') {

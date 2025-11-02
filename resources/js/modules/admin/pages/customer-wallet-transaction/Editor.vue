@@ -9,7 +9,7 @@ import ImageUpload from "@/components/ImageUpload.vue";
 
 const page = usePage();
 const title =
-  (!!page.props.data.id ? "Edit" : "Catat") + " Transaksi Dompet Pelanggan";
+  (!!page.props.data.id ? "Edit" : "Catat") + " Transaksi Deposit Pelanggan";
 
 const { filteredCustomers, filterCustomersFn } = useCustomerFilter(
   page.props.customers,
@@ -17,8 +17,8 @@ const { filteredCustomers, filterCustomersFn } = useCustomerFilter(
 );
 
 const types = [
-  { label: "Deposit (+)", value: "deposit" },
-  { label: "Penarikan (-)", value: "withdrawal" },
+  { label: "Deposit / Uang Masuk (+)", value: "deposit" },
+  { label: "Pengembalian / Uang Keluar (-)", value: "withdrawal" },
 
   // ini gak boleh ada di transaksi manual, hanay digunakan oleh transaksi penjualan
   // { label: "Pembelian (-)", value: "sales_order_payment" },
@@ -108,7 +108,7 @@ const submit = () => {
               </q-select>
               <q-select
                 v-model="form.type"
-                label="Jenis"
+                label="Jenis Transaksi"
                 :options="types"
                 map-options
                 emit-value

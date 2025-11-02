@@ -12,8 +12,6 @@ const $q = useQuasar();
 const page = usePage();
 const title = "Laporan Produk";
 
-console.log(page.props.errors);
-
 const primaryColumns = createOptions(page.props.primary_columns);
 const optionalColumns = createOptions(page.props.optional_columns);
 const initialColumns = page.props.initial_columns;

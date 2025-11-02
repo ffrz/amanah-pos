@@ -32,7 +32,7 @@ const title = "Rincian Transaksi";
           <q-card square flat bordered class="col">
             <q-card-section>
               <div class="text-subtitle1 text-bold text-grey-8">
-                Rincian Transaksi Wallet
+                Rincian Transaksi Deposit
               </div>
               <table class="detail">
                 <tbody>

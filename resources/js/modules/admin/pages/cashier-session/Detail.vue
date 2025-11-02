@@ -50,13 +50,12 @@ watch(
               active-color="primary"
               indicator-color="primary"
               align="justify"
-              narrow-indicator
+              switch-indicator
             >
               <q-tab name="main" label="Ringkasan" />
               <q-tab name="sales" label="Transaksi Penjualan" />
               <q-tab name="finance" label="Transaksi Keuangan" />
             </q-tabs>
-            <q-separator />
             <q-tab-panels v-model="tab" animated class="q-pa-none">
               <q-tab-panel name="main">
                 <MainInfoTab :data="data" />

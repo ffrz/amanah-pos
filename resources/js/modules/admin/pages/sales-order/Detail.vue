@@ -110,7 +110,7 @@ const print = (size) => {
             active-color="primary"
             indicator-color="primary"
             align="justify"
-            narrow-indicator
+            switch-indicator
           >
             <q-tab name="invoice" label="Invoice" />
             <q-tab name="payment" label="Pembayaran" v-if="!isPreview" />

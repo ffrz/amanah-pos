@@ -330,7 +330,7 @@ defineExpose({
                 $can('admin.customer-wallet-transaction.index')
               "
               icon="wallet"
-              label="Wallet"
+              label="Deposit"
               :default-opened="
                 $page.url.startsWith('/admin/customer-wallet-transactions') ||
                 $page.url.startsWith(
@@ -362,7 +362,7 @@ defineExpose({
                   <q-icon name="add_task" />
                 </q-item-section>
                 <q-item-section>
-                  <q-item-label>Konfirmasi Top Up</q-item-label>
+                  <q-item-label>Konfirmasi Deposit</q-item-label>
                 </q-item-section>
               </q-item>
               <q-item
@@ -381,7 +381,7 @@ defineExpose({
                   <q-icon name="moving" />
                 </q-item-section>
                 <q-item-section>
-                  <q-item-label>Transaksi</q-item-label>
+                  <q-item-label>Transaksi Deposit</q-item-label>
                 </q-item-section>
               </q-item>
             </q-expansion-item>

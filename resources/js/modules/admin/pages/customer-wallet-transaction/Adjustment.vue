@@ -6,7 +6,7 @@ import { scrollToFirstErrorField } from "@/helpers/utils";
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
 import { computed, watch } from "vue";
 const page = usePage();
-const title = "Penyesuaian Saldo Dompet Pelanggan";
+const title = "Penyesuaian Saldo Deposit Pelanggan";
 
 const { filteredCustomers, filterCustomersFn } = useCustomerFilter(
   page.props.customers,

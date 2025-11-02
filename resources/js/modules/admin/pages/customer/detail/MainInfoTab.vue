@@ -22,13 +22,9 @@ const confirmDelete = () => {
 </script>
 
 <template>
+  <div class="text-bold text-grey-8">Info Pelanggan</div>
   <table class="detail">
     <tbody>
-      <tr>
-        <td colspan="3">
-          <div class="text-bold text-grey-8">Info Pelanggan</div>
-        </td>
-      </tr>
       <tr>
         <td style="width: 120px">Kode</td>
         <td style="width: 1px">:</td>
@@ -66,16 +62,22 @@ const confirmDelete = () => {
         <td>{{ page.props.data.address ? page.props.data.address : "-" }}</td>
       </tr>
       <tr>
-        <td>Saldo Wallet</td>
+        <td>Saldo Deposit</td>
         <td>:</td>
-        <td>
+        <td
+          :class="
+            page.props.data.wallet_balance < 0 ? 'text-red' : 'text-green'
+          "
+        >
           Rp. {{ formatNumberWithSymbol(page.props.data.wallet_balance) }}
         </td>
       </tr>
       <tr>
-        <td>Saldo Utang / Piutang</td>
+        <td>{{ page.props.data.balance > 0 ? "Piutang" : "Utang" }}</td>
         <td>:</td>
-        <td>Rp. {{ formatNumberWithSymbol(page.props.data.balance) }}</td>
+        <td :class="page.props.data.balance < 0 ? 'text-red' : 'text-green'">
+          Rp. {{ formatNumberWithSymbol(page.props.data.balance) }}
+        </td>
       </tr>
       <tr>
         <td>Status</td>
@@ -84,11 +86,12 @@ const confirmDelete = () => {
           {{ page.props.data.active ? "Aktif" : "Tidak Aktif" }}
         </td>
       </tr>
-      <tr>
-        <td colspan="3">
-          <div class="text-bold text-grey-8 q-mt-md">Info Akun</div>
-        </td>
-      </tr>
+    </tbody>
+  </table>
+
+  <div class="text-bold text-grey-8 q-mt-md">Info Akun</div>
+  <table class="detail">
+    <tbody>
       <tr v-if="page.props.data.created_at">
         <td>Dibuat</td>
         <td>:</td>

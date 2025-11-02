@@ -100,7 +100,7 @@ const print = (size) => {
             active-color="primary"
             indicator-color="primary"
             align="justify"
-            narrow-indicator
+            switch-indicator
           >
             <q-tab name="main-info" label="Info Retur" />
             <q-tab name="refund" label="Refund Pembayaran" v-if="!isPreview" />

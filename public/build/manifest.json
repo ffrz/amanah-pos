@@ -1,16 +1,16 @@
 {
-  "_virtual_pwa-register-CaVreFnI.css": {
-    "file": "assets/virtual_pwa-register-CaVreFnI.css",
-    "src": "_virtual_pwa-register-CaVreFnI.css"
+  "_virtual_pwa-register-BKSxcjRZ.css": {
+    "file": "assets/virtual_pwa-register-BKSxcjRZ.css",
+    "src": "_virtual_pwa-register-BKSxcjRZ.css"
   },
-  "_virtual_pwa-register-CrWYLpiD.js": {
-    "file": "assets/virtual_pwa-register-CrWYLpiD.js",
+  "_virtual_pwa-register-BNxYNVuv.js": {
+    "file": "assets/virtual_pwa-register-BNxYNVuv.js",
     "name": "virtual_pwa-register",
     "dynamicImports": [
       "node_modules/workbox-window/build/workbox-window.prod.es5.mjs"
     ],
     "css": [
-      "assets/virtual_pwa-register-CaVreFnI.css"
+      "assets/virtual_pwa-register-BKSxcjRZ.css"
     ],
     "assets": [
       "assets/flUhRq6tzZclQEJ-Vdg-IuiaDsNcIhQ8tQ-D-x-0Q06.woff2",
@@ -92,29 +92,29 @@
     "isDynamicEntry": true
   },
   "resources/css/app.css": {
-    "file": "assets/app-CQhi9eOG.css",
+    "file": "assets/app-D4thLGZJ.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/js/modules/admin/app.js": {
-    "file": "assets/app-DBB2Zbbq.js",
+    "file": "assets/app-RbVoKIre.js",
     "name": "app",
     "src": "resources/js/modules/admin/app.js",
     "isEntry": true,
     "imports": [
-      "_virtual_pwa-register-CrWYLpiD.js"
+      "_virtual_pwa-register-BNxYNVuv.js"
     ],
     "css": [
-      "assets/app-Csjsjdsv.css"
+      "assets/app-DCYM33gX.css"
     ]
   },
   "resources/js/modules/customer/app.js": {
-    "file": "assets/app-DAN3xdgi.js",
+    "file": "assets/app-DPUQsad-.js",
     "name": "app",
     "src": "resources/js/modules/customer/app.js",
     "isEntry": true,
     "imports": [
-      "_virtual_pwa-register-CrWYLpiD.js"
+      "_virtual_pwa-register-BNxYNVuv.js"
     ],
     "css": [
       "assets/app-Bi-c-X5Z.css"

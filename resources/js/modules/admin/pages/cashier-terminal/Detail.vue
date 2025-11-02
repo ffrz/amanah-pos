@@ -35,7 +35,7 @@ const tab = ref("main");
               active-color="primary"
               indicator-color="primary"
               align="justify"
-              narrow-indicator
+              switch-indicator
             >
               <q-tab name="main" label="Info Utama" />
               <q-tab name="session-history" label="Riwayat Sesi Kasir" />

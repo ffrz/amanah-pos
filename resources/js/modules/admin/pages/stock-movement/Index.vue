@@ -108,8 +108,8 @@ onMounted(() => {
 const fetchItems = (props = null) => {
   const apiFilter = {
     ...filter,
-    start_date: dayjs(filter.start_date).format("YYYY-MM-DD"),
-    end_date: dayjs(filter.end_date).format("YYYY-MM-DD"),
+    start_date: dayjs(filter.start_date).format("YYYY-MM-DD HH:mm:ss"),
+    end_date: dayjs(filter.end_date).format("YYYY-MM-DD HH:mm:ss"),
   };
 
   handleFetchItems({

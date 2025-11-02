@@ -39,8 +39,9 @@
         <q-popup-proxy cover transition-show="scale" transition-hide="scale">
           <q-time
             v-model="timeValue"
-            mask="HH:mm"
+            mask="HH:mm:ss"
             format24h
+            with-seconds
             @update:model-value="updateDateTime"
           />
         </q-popup-proxy>
@@ -87,11 +88,11 @@ const props = defineProps({
   },
   displayFormat: {
     type: String,
-    default: "DD/MM/YYYY HH:mm",
+    default: "DD/MM/YYYY HH:mm:ss",
   },
   displayMask: {
     type: String,
-    default: "##/##/#### ##:##",
+    default: "##/##/#### ##:##:##",
   },
   minDate: {
     type: [Date, null],
@@ -120,7 +121,10 @@ const combinedDatetime = computed(() => {
   }
 
   if (dateValue.value && timeValue.value) {
-    return dayjs(`${dateValue.value} ${timeValue.value}`, "YYYY-MM-DD HH:mm");
+    return dayjs(
+      `${dateValue.value} ${timeValue.value}`,
+      "YYYY-MM-DD HH:mm:ss"
+    );
   }
   return null;
 });
@@ -166,9 +170,8 @@ watch(
   () => props.modelValue,
   (newValue) => {
     if (newValue instanceof Date) {
-      console.log(newValue);
       dateValue.value = dayjs(newValue).format("YYYY-MM-DD");
-      timeValue.value = dayjs(newValue).format("HH:mm");
+      timeValue.value = dayjs(newValue).format("HH:mm:ss");
       displayDatetime.value = dayjs(newValue).format(props.displayFormat);
     } else {
       dateValue.value = "";

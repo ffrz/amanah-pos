@@ -1,5 +1,5 @@
 <script setup>
-import { formatDateTime } from "@/helpers/formatter";
+import { formatDate, formatDateTime } from "@/helpers/formatter";
 import { usePage } from "@inertiajs/vue3";
 import { computed } from "vue";
 
@@ -114,13 +114,7 @@ const getUpdaterName = (updater) => {
                         :href="route('admin.user-role.detail', { id: role.id })"
                         style="text-decoration: none"
                       >
-                        <q-chip
-                          clickable
-                          color="indigo-1"
-                          text-color="indigo-10"
-                          icon="military_tech"
-                          size="sm"
-                        >
+                        <q-chip clickable icon="military_tech" size="sm">
                           {{ role.name }}
                         </q-chip>
                       </i-link>
@@ -131,26 +125,21 @@ const getUpdaterName = (updater) => {
 
               <q-item>
                 <q-item-section>
-                  <q-item-label caption>Dibuat</q-item-label>
-                  <q-item-label>
-                    {{ formatDateTime(user.created_at) }} oleh
-                    <span class="text-bold"
+                  <q-item-label caption>Informasi Rekaman</q-item-label>
+                  <q-item-label v-if="user.created_at">
+                    Dibuat {{ formatDateTime(user.created_at) }} oleh
+                    <span
                       >{{ user.creator?.name ?? "Sistem" }} ({{
                         user.creator?.username ?? "system"
                       }})</span
                     >
                   </q-item-label>
-                </q-item-section>
-              </q-item>
-
-              <q-item v-if="user.updated_at">
-                <q-item-section>
-                  <q-item-label caption>Diperbarui</q-item-label>
-                  <q-item-label>
+                  <q-item-label v-if="user.updated_at">
+                    Diperbarui
                     {{ formatDateTime(user.updated_at) }}
                     <template v-if="user.updater">
                       oleh
-                      <span class="text-bold"
+                      <span
                         >{{ user.updater.name }} ({{
                           user.updater.username
                         }})</span
@@ -162,28 +151,19 @@ const getUpdaterName = (updater) => {
 
               <q-item>
                 <q-item-section>
-                  <q-item-label caption>Terakhir Login</q-item-label>
-                  <q-item-label class="text-bold">
+                  <q-item-label caption>Aktifitas</q-item-label>
+                  <q-item-label>
+                    <q-icon class="inline-icon" name="login" />
                     {{
                       user.last_login_datetime
-                        ? $dayjs(user.last_login_datetime).format(
-                            "DD MMMM YYYY HH:mm:ss"
-                          )
+                        ? "Terakhir login pada " +
+                          formatDateTime(user.last_login_datetime)
                         : "Belum pernah login"
                     }}
                   </q-item-label>
-                </q-item-section>
-              </q-item>
-
-              <q-item v-if="user.last_activity_datetime" class="q-mb-md">
-                <q-item-section>
-                  <q-item-label caption>Aktifitas Terakhir</q-item-label>
-                  <q-item-label class="text-bold">
-                    {{
-                      $dayjs(user.last_activity_datetime).format(
-                        "DD MMMM YYYY HH:mm:ss"
-                      )
-                    }}
+                  <q-item-label v-if="user.last_activity_datetime">
+                    <q-icon class="inline-icon" name="calendar_today" />
+                    {{ formatDateTime(user.last_activity_datetime) }} -
                     {{ user.last_activity_description }}
                   </q-item-label>
                 </q-item-section>

@@ -82,10 +82,10 @@ const $q = useQuasar();
               active-color="primary"
               indicator-color="primary"
               align="justify"
-              narrow-indicator
+              switch-indicator
             >
               <q-tab name="main" label="Info Utama" />
-              <q-tab name="history" label="Riwayat Wallet" />
+              <q-tab name="history" label="Riwayat Deposit" />
               <q-tab name="order-history" label="Riwayat Order" />
               <!-- <q-tab name="version-history" label="Riwayat Dokumen" /> -->
             </q-tabs>

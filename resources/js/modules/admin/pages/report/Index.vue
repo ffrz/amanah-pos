@@ -6,12 +6,11 @@ import { useQuasar } from "quasar"; // Import useQuasar untuk deteksi breakpoint
 const $q = useQuasar();
 const title = "Laporan";
 const activeTab = ref("sales");
-const isSmallScreen = computed(() => $q.screen.lt.md);
+const isSmallScreen = computed(() => true);
 
 const reportCategories = {
   sales: {
     label: "Penjualan",
-    //count: 1,
     icon: "o_payments",
     reports: [
       {
@@ -20,17 +19,10 @@ const reportCategories = {
         icon: "analytics",
         route: "admin.report.sales-order.gross-profit",
       },
-      {
-        title: "Pelanggan",
-        subtitle: "Daftar pelanggan",
-        icon: "o_groups",
-        route: "admin.report.customer.index",
-      },
     ],
   },
   purchasing: {
     label: "Pembelian",
-    //count: 2,
     icon: "o_shopping_cart",
     reports: [
       {
@@ -38,12 +30,6 @@ const reportCategories = {
         subtitle: "Daftar rincian pembelian",
         icon: "o_receipt_long",
         route: "admin.report.purchase-order.detail",
-      },
-      {
-        title: "Supplier",
-        subtitle: "Daftar supplier",
-        icon: "o_groups",
-        route: "admin.report.supplier.index",
       },
     ],
   },
@@ -59,42 +45,63 @@ const reportCategories = {
       },
     ],
   },
+  customer: {
+    label: "Pelanggan",
+    icon: "o_groups",
+    reports: [
+      {
+        title: "Daftar Pelanggan",
+        subtitle: "Laporan daftar pelanggan",
+        icon: "o_groups",
+        route: "admin.report.customer.index",
+      },
+    ],
+  },
+  supplier: {
+    label: "Supplier",
+    icon: "o_groups",
+    reports: [
+      {
+        title: "Daftar Supplier",
+        subtitle: "Laporan daftar supplier",
+        icon: "o_groups",
+        route: "admin.report.supplier.index",
+      },
+    ],
+  },
 };
 
 const sortedReportCategories = [
   { id: "sales", ...reportCategories.sales },
   { id: "purchasing", ...reportCategories.purchasing },
   { id: "inventory", ...reportCategories.inventory },
+  { id: "customer", ...reportCategories.customer },
+  { id: "supplier", ...reportCategories.supplier },
 ];
 </script>
 
 <template>
   <i-head :title="title" />
   <authenticated-layout>
+    <template #title>{{ title }}</template>
     <div class="q-pa-xs">
       <q-card flat bordered class="report-container full-width">
         <q-tabs
           v-model="activeTab"
           dense
           class="text-grey-7"
-          align="left"
-          :vertical="!isSmallScreen"
-          :switch-indicator="isSmallScreen"
-          :inline-label="isSmallScreen"
-          :mobile-arrows="isSmallScreen"
+          active-color="primary"
+          indicator-color="primary"
+          inline-label
+          mobile-arrows
+          align="justify"
+          switch-indicator
           :breakpoint="0"
         >
           <q-tab
             v-for="category in sortedReportCategories"
             :key="category.id"
             :name="category.id"
-            :class="{
-              'bg-blue-2': activeTab === category.id && !isSmallScreen,
-              'q-py-md': !isSmallScreen,
-              'q-py-sm': isSmallScreen,
-            }"
-            content-class="full-width"
-            style="min-height: 50px"
           >
             <div class="row items-center full-width">
               <q-icon
@@ -106,7 +113,7 @@ const sortedReportCategories = [
                 {{ category.label }}
               </div>
               <q-badge
-                v-if="category.count && !isSmallScreen"
+                v-if="category.count"
                 color="grey-5"
                 text-color="dark"
                 rounded
@@ -116,8 +123,6 @@ const sortedReportCategories = [
             </div>
           </q-tab>
         </q-tabs>
-
-        <q-separator :vertical="!isSmallScreen" />
 
         <q-tab-panels v-model="activeTab" animated class="q-pa-none">
           <q-tab-panel
@@ -173,25 +178,6 @@ const sortedReportCategories = [
 <style scoped>
 /* Kontainer utama yang menampung tabs dan panels */
 .report-container {
-  display: flex;
-  /* Tumpuk secara vertikal di layar kecil */
-  flex-direction: column;
-  min-height: 80vh;
-}
-
-/* Override default Quasar: Di layar besar, buat tabs dan panels berdampingan */
-@media (min-width: 1024px) {
-  /* breakpoint md atau lebih */
-  .report-container {
-    flex-direction: row; /* Berdampingan */
-  }
-  .report-container > .q-tabs {
-    width: 300px; /* Lebar kolom kiri */
-    border-right: 1px solid #e0e0e0;
-  }
-  .report-container > .q-tab-panels {
-    flex-grow: 1; /* Ambil sisa lebar */
-    width: auto;
-  }
+  min-height: 90vh;
 }
 </style>
