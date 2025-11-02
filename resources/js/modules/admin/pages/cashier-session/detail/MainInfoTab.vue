@@ -4,6 +4,7 @@ import {
   formatDateTime,
   formatDateTimeFromNow,
   formatMoney,
+  formatNumber,
 } from "@/helpers/formatter";
 
 const page = usePage();
@@ -14,8 +15,8 @@ const page = usePage();
   <table class="detail">
     <tbody>
       <tr>
-        <td style="width: 130px">Kode</td>
-        <td style="width: 1px">:</td>
+        <td>Kode</td>
+        <td>:</td>
         <td>{{ page.props.data.code }}</td>
       </tr>
       <tr>
@@ -37,20 +38,22 @@ const page = usePage();
         <td>Status</td>
         <td>:</td>
         <td>
-          {{ !page.props.data.is_closed ? "Aktif" : "Ditutup" }}
+          {{ !page.props.data.is_closed ? "Aktif" : "Selesai" }}
         </td>
       </tr>
     </tbody>
   </table>
   <div class="q-mt-md text-grey-8 text-bold">Info Buka Sesi</div>
-  <table class="detail">
+  <table class="detail with-currency">
     <tbody>
       <tr>
         <td>Saldo Awal</td>
         <td>:</td>
-        <td>
-          {{ formatMoney(page.props.data.opening_balance) }}
+        <td>Rp.</td>
+        <td class="text-right">
+          {{ formatNumber(page.props.data.opening_balance) }}
         </td>
+        <td></td>
       </tr>
       <tr v-if="page.props.data.opening_notes">
         <td>Catatan</td>
@@ -60,44 +63,65 @@ const page = usePage();
     </tbody>
   </table>
   <div class="q-mt-md text-bold text-grey-8">Rincian Pendapatan & Kas</div>
-  <table class="detail">
+  <table class="detail with-currency">
     <tbody>
       <tr>
         <td>Total Penjualan</td>
         <td>:</td>
-        <td>{{ formatMoney(page.props.data.total_sales) }}</td>
+        <td>Rp.</td>
+        <td class="text-right">
+          {{ formatNumber(page.props.data.total_sales) }}
+        </td>
+        <td></td>
       </tr>
+    </tbody>
+  </table>
+  <div class="q-mt-md text-bold text-grey-8">Rincian Kas</div>
+  <table class="detail with-currency">
+    <tbody>
       <tr>
         <td>Total Pemasukan</td>
         <td>:</td>
-        <td>{{ formatMoney(page.props.data.total_income) }}</td>
+        <td>Rp.</td>
+        <td class="text-right">
+          {{ formatNumber(page.props.data.total_income) }}
+        </td>
+        <td></td>
       </tr>
       <tr>
         <td>Total Pengeluaran</td>
         <td>:</td>
-        <td>{{ formatMoney(page.props.data.total_expense) }}</td>
+        <td>Rp.</td>
+        <td class="text-right">
+          {{ formatNumber(page.props.data.total_expense) }}
+        </td>
+        <td></td>
       </tr>
       <template v-if="!page.props.data.is_closed">
         <tr>
           <td>Saldo Aktual</td>
           <td>:</td>
-          <td>
-            {{ formatMoney(page.props.data.actual_balance) }}
+          <td>Rp.</td>
+          <td class="text-right">
+            {{ formatNumber(page.props.data.actual_balance) }}
           </td>
+          <td></td>
         </tr>
       </template>
     </tbody>
   </table>
-  <table class="detail">
+  <table class="detail with-currency">
     <tbody>
       <template v-if="page.props.data.is_closed">
         <div class="q-mt-md text-bold text-grey-8">Info Tutup Sesi</div>
         <tr>
           <td>Saldo Akhir</td>
           <td>:</td>
-          <td>
-            {{ formatMoney(page.props.data.closing_balance) }}
+          <td>Rp.</td>
+          <td class="text-right">
+            {{ formatNumber(page.props.data.closing_balance) }}
           </td>
+          <td></td>
         </tr>
         <tr v-if="page.props.data.closing_notes">
           <td>Catatan</td>
@@ -152,3 +176,17 @@ const page = usePage();
     </tbody>
   </table>
 </template>
+<style>
+.detail td:first-child {
+  width: 130px;
+}
+.detail td:nth-child(2) {
+  width: 1px;
+}
+.detail.with-currency td:nth-child(3) {
+  width: 1px;
+}
+.detail.with-currency td:nth-child(4) {
+  width: 100px;
+}
+</style>
