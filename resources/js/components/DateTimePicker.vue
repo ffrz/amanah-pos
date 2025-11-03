@@ -173,7 +173,7 @@ watch(
       dateValue.value = dayjs(newValue).format("YYYY-MM-DD");
       timeValue.value = dayjs(newValue).format("HH:mm:ss");
       displayDatetime.value = dayjs(newValue).format(props.displayFormat);
-    } else {
+    } else if (newValue === null || newValue === undefined) {
       dateValue.value = "";
       timeValue.value = "";
       displayDatetime.value = "";
