@@ -63,7 +63,7 @@ const orientationOptions = [
 const getInitialValue = () => ({
   template: null,
   columns: props.initialColumns,
-  filter: props.initialFilter,
+  filter: structuredClone(props.initialFilter),
   sortOptions: props.initialSortOptions,
   orientation: "auto",
 });
