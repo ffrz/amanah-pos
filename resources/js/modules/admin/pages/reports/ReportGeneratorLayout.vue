@@ -1,8 +1,10 @@
 <script setup>
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, toRaw } from "vue";
 import { useQuasar } from "quasar";
 
 const $q = useQuasar();
+
+const emit = defineEmits(["beforeSubmit"]);
 
 const props = defineProps({
   templates: {
@@ -29,6 +31,10 @@ const props = defineProps({
   initialSortOptions: {
     type: Array,
     default: () => [],
+  },
+  routeName: {
+    type: String,
+    required: true,
   },
 });
 
@@ -57,8 +63,8 @@ const orientationOptions = [
 const getInitialValue = () => ({
   template: null,
   columns: props.initialColumns,
-  filter: JSON.parse(JSON.stringify(props.initialFilter)),
-  sortOptions: JSON.parse(JSON.stringify(props.initialSortOptions)),
+  filter: props.initialFilter,
+  sortOptions: props.initialSortOptions,
   orientation: "auto",
 });
 
@@ -101,7 +107,7 @@ const onRemoveColumn = ({ index, value }) => {
   return true;
 };
 
-const submit = (format) => {
+const handleSubmit = async (format) => {
   if (form.value.columns.length === 0) {
     $q.notify({
       type: "negative",
@@ -110,10 +116,36 @@ const submit = (format) => {
     });
     return;
   }
-  emit("submit", { format, form: form.value });
-};
 
-const emit = defineEmits(["submit"]);
+  const rawForm = toRaw(form.value);
+  let params = {
+    ...rawForm,
+    format: format,
+  };
+
+  emit("beforeSubmit", params);
+
+  try {
+    const url = route(props.routeName, params);
+
+    window.open(url, "_blank");
+
+    if (format !== "html") {
+      $q.notify({
+        type: "positive",
+        message: `Laporan ${format.toUpperCase()} sedang diunduh.`,
+        timeout: 2000,
+      });
+    }
+  } catch (error) {
+    $q.notify({
+      type: "negative",
+      message: "Gagal menghasilkan URL laporan. [ROUTE ERROR]",
+      timeout: 5000,
+    });
+    console.error("Route error:", error);
+  }
+};
 
 const addSortOption = () => {
   const maxSort = 3;
@@ -189,18 +221,8 @@ watch(
   }
 );
 
-watch(
-  () => form.value.columns,
-  (newCols, oldCols) => {
-    if (oldCols != newCols && form.value.template != null) {
-      // form.value.template = null;
-    }
-  }
-);
-
 defineExpose({
   form,
-  submit,
   reset,
   columnOptions,
 });
@@ -425,7 +447,7 @@ defineExpose({
                   class="full-width"
                   color="primary"
                   icon="print"
-                  @click="submit('html')"
+                  @click="handleSubmit('html')"
                 />
               </div>
               <div class="q-my-sm">
@@ -434,7 +456,7 @@ defineExpose({
                   class="full-width"
                   color="red"
                   icon="picture_as_pdf"
-                  @click="submit('pdf')"
+                  @click="handleSubmit('pdf')"
                 />
               </div>
               <div class="q-my-sm">

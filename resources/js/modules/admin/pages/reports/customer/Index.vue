@@ -1,12 +1,9 @@
 <script setup>
-import { ref } from "vue";
 import ReportGeneratorLayout from "../ReportGeneratorLayout.vue";
 import BackButton from "@/components/BackButton.vue";
-import { useQuasar } from "quasar";
 import { createOptions } from "@/helpers/options";
 import { usePage } from "@inertiajs/vue3";
 
-const $q = useQuasar();
 const page = usePage();
 const title = "Laporan Pelanggan";
 
@@ -49,36 +46,6 @@ const initialSortOptions = [
     order: "asc",
   },
 ];
-
-const reportGeneratorRef = ref(null);
-
-const handleReportSubmit = ({ format, form }) => {
-  const params = {
-    ...form,
-    format: format,
-  };
-
-  try {
-    const url = route("admin.report.customer.generate", params);
-
-    window.open(url, "_blank");
-
-    if (format !== "html") {
-      $q.notify({
-        type: "positive",
-        message: `Laporan ${format.toUpperCase()} sedang diunduh.`,
-        timeout: 2000,
-      });
-    }
-  } catch (error) {
-    $q.notify({
-      type: "negative",
-      message: "Gagal menghasilkan URL laporan. [ROUTE ERROR]",
-      timeout: 5000,
-    });
-    console.error("Route error:", error);
-  }
-};
 </script>
 
 <template>
@@ -93,14 +60,13 @@ const handleReportSubmit = ({ format, form }) => {
     <template #right-button></template>
 
     <ReportGeneratorLayout
-      ref="reportGeneratorRef"
       :primaryColumns="primaryColumns"
       :optionalColumns="optionalColumns"
       :initialColumns="initialColumns"
       :initialFilter="initialFilter"
       :initialSortOptions="initialSortOptions"
       :templates="templates"
-      @submit="handleReportSubmit"
+      routeName="admin.report.customer.generate"
     >
       <template #filter="{ form }">
         <q-select

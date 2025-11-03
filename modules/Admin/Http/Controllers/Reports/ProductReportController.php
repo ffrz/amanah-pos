@@ -176,7 +176,7 @@ class ProductReportController extends BaseController
 
     // Modules\Admin\Http\Controllers\Reports\ProductReportController
 
-    protected function processQuery(\Illuminate\Database\Eloquent\Builder $q, $columns)
+    protected function processQuery(\Illuminate\Database\Eloquent\Builder $q, $columns, $data)
     {
         $sortOptions = request('sortOptions') ?? [];
         $queryColumns = $columns;

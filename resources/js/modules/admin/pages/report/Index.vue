@@ -14,10 +14,10 @@ const reportCategories = {
     icon: "o_payments",
     reports: [
       {
-        title: "Keuntungan Penjualan",
-        subtitle: "Daftar penjualan berikut laba kotor",
-        icon: "analytics",
-        route: "admin.report.sales-order.gross-profit",
+        title: "Laporan Rekapitulasi Penjualan",
+        subtitle: "Laporan daftar rekapitulasi penjualan",
+        icon: "o_receipt_long",
+        route: "admin.report.sales-order-recap.index",
       },
     ],
   },

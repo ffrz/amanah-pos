@@ -3,23 +3,21 @@ import { usePage } from "@inertiajs/vue3";
 import ReportGeneratorLayout from "../ReportGeneratorLayout.vue";
 import BackButton from "@/components/BackButton.vue";
 import { createOptions } from "@/helpers/options";
+import DateTimePicker from "@/components/DateTimePicker.vue";
+import dayjs from "dayjs";
 
 const page = usePage();
-const title = "Laporan Supplier";
+const title = "Laporan Penjualan";
 
 const primaryColumns = createOptions(page.props.primary_columns);
 const optionalColumns = createOptions(page.props.optional_columns);
 const initialColumns = page.props.initial_columns;
 const templates = page.props.templates;
 
-const statusOptions = [
-  { value: "all", label: "Semua" },
-  { value: "active", label: "Aktif" },
-  { value: "inactive", label: "Tidak Aktif" },
-];
-
 const initialFilter = {
   status: "active",
+  start_date: dayjs().startOf("month").toDate(),
+  end_date: dayjs().endOf("month").toDate(),
 };
 
 const initialSortOptions = [
@@ -28,6 +26,14 @@ const initialSortOptions = [
     order: "asc",
   },
 ];
+const handleBeforeSubmit = (params) => {
+  params.filter.start_date = dayjs(params.filter.start_date).format(
+    "YYYY-MM-DD HH:mm:ss"
+  );
+  params.filter.end_date = dayjs(params.filter.end_date).format(
+    "YYYY-MM-DD HH:mm:ss"
+  );
+};
 </script>
 
 <template>
@@ -48,14 +54,23 @@ const initialSortOptions = [
       :initialFilter="initialFilter"
       :initialSortOptions="initialSortOptions"
       :templates="templates"
-      routeName="admin.report.supplier.generate"
+      @beforeSubmit="handleBeforeSubmit"
+      routeName="admin.report.sales-order-recap.generate"
     >
       <template #filter="{ form }">
-        <q-select
-          label="Status"
-          v-model="form.filter.status"
-          :options="statusOptions"
-          map-options
+        <DateTimePicker
+          v-model="form.filter.start_date"
+          label="Mulai Tanggal"
+          class="col-xs-6 col-sm-2"
+          hide-bottom-space
+          date-only
+        />
+        <DateTimePicker
+          v-model="form.filter.end_date"
+          label="Sampai Tanggal"
+          class="col-xs-6 col-sm-2"
+          hide-bottom-space
+          date-only
         />
       </template>
     </ReportGeneratorLayout>

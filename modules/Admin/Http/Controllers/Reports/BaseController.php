@@ -65,7 +65,7 @@ class BaseController extends Controller
     protected function generateReport($view, $data, $q)
     {
         $data['title'] = !empty($data['template']) ? $this->templates[$data['template']]['label'] : $this->default_title;
-        $data['items'] = $this->processQuery($q, $data['query_columns'] ?? $data['columns']);
+        $data['items'] = $this->processQuery($q, $data['query_columns'] ?? $data['columns'], $data);
         return $this->_generateReport(
             $view,
             $data
@@ -115,7 +115,7 @@ class BaseController extends Controller
         return $orientation;
     }
 
-    protected function processQuery(\Illuminate\Database\Eloquent\Builder $q, $columns)
+    protected function processQuery(\Illuminate\Database\Eloquent\Builder $q, $columns, $data)
     {
         $sortOptions = request('sortOptions');
 
