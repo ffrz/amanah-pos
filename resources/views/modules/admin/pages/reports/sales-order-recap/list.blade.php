@@ -43,8 +43,8 @@
                     <td style="width: 2cm;">Periode</td>
                     <td>:</td>
                     <td>
-                        {{ format_date($filter['start_date']) }} s/d
-                        {{ format_date($filter['end_date']) }}
+                        {{ format_datetime($filter['start_date']) }} s/d <br />
+                        {{ format_datetime($filter['end_date']) }}
                     </td>
                 </tr>
             </table>
@@ -54,7 +54,12 @@
             <thead>
                 <tr>
                     @foreach ($headers as $col_key => $col_label)
-                        <th>{{ $col_label }}</th>
+                        <th
+                            class="{{ match ($col_key) {
+                                'total_item', 'total_price', 'grand_total' => 'text-right',
+                                default => 'text-left',
+                            } }}">
+                            {{ $col_label }}</th>
                     @endforeach
                 </tr>
             </thead>
