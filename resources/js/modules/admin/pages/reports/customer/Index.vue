@@ -1,16 +1,11 @@
 <script setup>
 import ReportGeneratorLayout from "../ReportGeneratorLayout.vue";
 import BackButton from "@/components/BackButton.vue";
-import { createOptions } from "@/helpers/options";
 import { usePage } from "@inertiajs/vue3";
 
 const page = usePage();
 const title = "Laporan Pelanggan";
-
-const primaryColumns = createOptions(page.props.primary_columns);
-const optionalColumns = createOptions(page.props.optional_columns);
-const initialColumns = page.props.initial_columns;
-const templates = page.props.templates;
+const options = page.props.options;
 
 const statusOptions = [
   { value: "all", label: "Semua" },
@@ -22,9 +17,9 @@ const typeOptions = [
   { value: "all", label: "Semua" },
   { value: "general", label: "Umum" },
   { value: "staff", label: "Staff" },
-  { value: "category_1", label: "Kategori 1" },
-  { value: "category_2", label: "Kategori 2" },
-  { value: "category_3", label: "Kategori 3" },
+  { value: "category1", label: "Kategori 1" },
+  { value: "category2", label: "Kategori 2" },
+  { value: "category3", label: "Kategori 3" },
 ];
 
 const priceOptions = [
@@ -32,19 +27,6 @@ const priceOptions = [
   { value: "price_1", label: "Harga Eceran" },
   { value: "price_2", label: "Harga Partai" },
   { value: "price_3", label: "Harga Grosir" },
-];
-
-const initialFilter = {
-  status: "active",
-  type: "all",
-  default_price_type: "all",
-};
-
-const initialSortOptions = [
-  {
-    column: "code",
-    order: "asc",
-  },
 ];
 </script>
 
@@ -60,12 +42,7 @@ const initialSortOptions = [
     <template #right-button></template>
 
     <ReportGeneratorLayout
-      :primaryColumns="primaryColumns"
-      :optionalColumns="optionalColumns"
-      :initialColumns="initialColumns"
-      :initialFilter="initialFilter"
-      :initialSortOptions="initialSortOptions"
-      :templates="templates"
+      :options="options"
       routeName="admin.report.customer.generate"
     >
       <template #filter="{ form }">

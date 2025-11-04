@@ -66,6 +66,23 @@ class SupplierReportController extends BaseController
         'address'
     ];
 
+    protected $initial_sorts = [
+        [
+            'column' => 'code',
+            'order'  => 'asc',
+        ]
+    ];
+
+    protected $initial_filter = [
+        "status" => "active",
+    ];
+
+    protected $page_orientation_editable = true;
+
+    protected $sorts_editable = true;
+
+    protected $columns_editable = true;
+
     public function index()
     {
         return $this->generateIndexResponse('reports/supplier/Index');

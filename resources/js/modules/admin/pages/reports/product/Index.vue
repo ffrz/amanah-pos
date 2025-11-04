@@ -9,10 +9,7 @@ import { useSupplierFilter } from "@/composables/useSupplierFilter";
 const page = usePage();
 const title = "Laporan Produk";
 
-const primaryColumns = createOptions(page.props.primary_columns);
-const optionalColumns = createOptions(page.props.optional_columns);
-const initialColumns = page.props.initial_columns;
-const templates = page.props.templates;
+const options = page.props.options;
 
 const { filteredCategories, filterCategories } = useProductCategoryFilter(
   page.props.categories
@@ -28,20 +25,6 @@ const statusOptions = [
 ];
 
 const typeOptions = createOptions(window.CONSTANTS.PRODUCT_TYPES);
-
-const initialFilter = {
-  status: "active",
-  types: [],
-  categories: [],
-  suppliers: [],
-};
-
-const initialSortOptions = [
-  {
-    column: "name",
-    order: "asc",
-  },
-];
 </script>
 
 <template>
@@ -55,12 +38,7 @@ const initialSortOptions = [
     </template>
     <template #right-button></template>
     <ReportGeneratorLayout
-      :primaryColumns="primaryColumns"
-      :optionalColumns="optionalColumns"
-      :initialColumns="initialColumns"
-      :initialFilter="initialFilter"
-      :initialSortOptions="initialSortOptions"
-      :templates="templates"
+      :options="options"
       routeName="admin.report.product.generate"
     >
       <template #filter="{ form }">

@@ -25,28 +25,28 @@ class ProductReportController extends BaseController
     protected string $default_title = 'Laporan Daftar Produk';
 
     protected array $templates = [
-        'report_1' => [
-            'value' => 'report_1',
+        'cost_list' => [
+            'value' => 'cost_list',
             'label' => 'Daftar Harga Pokok',
             'columns' => ['name', 'description', 'category', 'stock', 'cost'],
         ],
-        'report_2' => [
-            'value' => 'report_2',
+        'price_list_1' => [
+            'value' => 'price_list_1',
             'label' => 'Daftar Harga Eceran',
             'columns' => ['name', 'description', 'category', 'stock', 'price_1'],
         ],
-        'report_3' => [
-            'value' => 'report_3',
+        'price_list_2' => [
+            'value' => 'price_list_2',
             'label' => 'Daftar Harga Partai',
             'columns' => ['name', 'description', 'category', 'stock', 'price_2'],
         ],
-        'report_4' => [
-            'value' => 'report_4',
+        'price_list_3' => [
+            'value' => 'price_list_3',
             'label' => 'Daftar Harga Grosir',
             'columns' => ['name', 'description', 'category', 'stock', 'price_3'],
         ],
-        'report_5' => [
-            'value' => 'report_5',
+        'actual_stock' => [
+            'value' => 'actual_stock',
             'label' => 'Daftar Stok Aktual',
             'columns' => ['name', 'description', 'category', 'stock'],
         ],
@@ -74,6 +74,26 @@ class ProductReportController extends BaseController
         'stock',
         'price_1',
     ];
+
+    protected $initial_sorts = [
+        [
+            'column' => 'name',
+            'order'  => 'asc',
+        ]
+    ];
+
+    protected $initial_filter = [
+        "status"     => "active",
+        "types"      => [],
+        "categories" => [],
+        "suppliers"  => [],
+    ];
+
+    protected $page_orientation_editable = true;
+
+    protected $sorts_editable = true;
+
+    protected $columns_editable = true;
 
     public function __construct(
         protected CommonDataService $commonDataService,

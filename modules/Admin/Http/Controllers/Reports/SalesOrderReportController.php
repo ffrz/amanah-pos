@@ -19,36 +19,24 @@ namespace Modules\Admin\Http\Controllers\Reports;
 use App\Models\SalesOrder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule; // Tambahkan import Rule
 use Modules\Admin\Services\CommonDataService;
 
 class SalesOrderReportController extends BaseController
 {
-    protected string $default_title = 'Laporan Penjualan';
-
     protected array $views = [
-        'report_1' => 'modules.admin.pages.reports.sales-order-recap.list',
-        'report_2' => 'modules.admin.pages.reports.sales-order-detail.list',
+        'sales_order_recap' => 'modules.admin.pages.reports.sales-order.recap',
+        'sales_order_detail' => 'modules.admin.pages.reports.sales-order.detail',
     ];
 
     protected array $templates = [
-        'report_1' => [
-            'value' => 'report_1',
+        'sales_order_recap' => [
+            'value' => 'sales_order_recap',
             'label' => 'Laporan Rekapitulasi Penjualan',
         ],
-        'report_2' => [
-            'value' => 'report_2',
+        'sales_order_detail' => [
+            'value' => 'sales_order_detail',
             'label' => 'Laporan Rincian Penjualan',
         ],
-    ];
-
-    protected $primary_columns = [
-        'code' => 'Kode',
-        'datetime' => 'Tanggal',
-        'customer' => 'Pelanggan',
-        'total_item' => 'Total Item',
-        'total_price' => 'Sub Total (Rp)',
-        'grand_total' => 'Total (Rp)',
     ];
 
     public function __construct(
@@ -106,8 +94,8 @@ class SalesOrderReportController extends BaseController
         $q->where('status', \App\Models\SalesOrder::Status_Closed);
 
         $subqueryTotalItems = '(
-            SELECT SUM(quantity) 
-            FROM sales_order_details as sod 
+            SELECT SUM(quantity)
+            FROM sales_order_details as sod
             WHERE sod.order_id = sales_orders.id AND sod.return_id IS NULL
         )';
 
@@ -123,7 +111,7 @@ class SalesOrderReportController extends BaseController
             'sales_orders.total_tax',
         ];
 
-        if ($data['template'] === 'report_2') {
+        if ($data['template'] === 'sales_order_detail') {
             $q->with([
                 'details' => function ($r) {
                     $r->whereNull('return_id')
@@ -132,24 +120,12 @@ class SalesOrderReportController extends BaseController
             ]);
             $selects[] = 'sales_orders.datetime';
         } else {
-            $selects[] = DB::raw('DATE(sales_orders.datetime) as date');
+            $selects[] = DB::raw('sales_orders.datetime');
         }
 
         $q->select($selects);
 
-        $sortOptions = request('sortOptions');
-        if (is_array($sortOptions)) {
-            foreach ($sortOptions as $option) {
-                $column = $option['column'];
-                $order = $option['order'];
-                if (in_array($column, array_keys($this->primary_columns))) {
-                    $q->orderBy($column, $order);
-                }
-            }
-        } else {
-            // Default sorting
-            $q->orderBy('datetime', 'asc');
-        }
+        $q->orderBy('datetime', 'asc');
 
         return $q->get();
     }

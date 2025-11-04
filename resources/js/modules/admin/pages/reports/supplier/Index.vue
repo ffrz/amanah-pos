@@ -2,31 +2,15 @@
 import { usePage } from "@inertiajs/vue3";
 import ReportGeneratorLayout from "../ReportGeneratorLayout.vue";
 import BackButton from "@/components/BackButton.vue";
-import { createOptions } from "@/helpers/options";
 
 const page = usePage();
 const title = "Laporan Supplier";
-
-const primaryColumns = createOptions(page.props.primary_columns);
-const optionalColumns = createOptions(page.props.optional_columns);
-const initialColumns = page.props.initial_columns;
-const templates = page.props.templates;
+const options = page.props.options;
 
 const statusOptions = [
   { value: "all", label: "Semua" },
   { value: "active", label: "Aktif" },
   { value: "inactive", label: "Tidak Aktif" },
-];
-
-const initialFilter = {
-  status: "active",
-};
-
-const initialSortOptions = [
-  {
-    column: "code",
-    order: "asc",
-  },
 ];
 </script>
 
@@ -42,12 +26,7 @@ const initialSortOptions = [
     <template #right-button></template>
 
     <ReportGeneratorLayout
-      :primaryColumns="primaryColumns"
-      :optionalColumns="optionalColumns"
-      :initialColumns="initialColumns"
-      :initialFilter="initialFilter"
-      :initialSortOptions="initialSortOptions"
-      :templates="templates"
+      :options="options"
       routeName="admin.report.supplier.generate"
     >
       <template #filter="{ form }">

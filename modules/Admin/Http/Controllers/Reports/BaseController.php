@@ -21,17 +21,33 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class BaseController extends Controller
 {
+    // judul default
     protected string $default_title = '';
 
+    // daftar template yang tersedia untuk laporan
     protected array $templates = [];
 
+    // kolom utama yang wajib ada
     protected $primary_columns = [];
 
+    // kolom opsional yang bisa ditambahkan / dipilih oleh user
     protected $optional_columns = [];
 
+    // semua kolom yang tersedia di laporan
     protected $all_columns = [];
 
+    // kolom awal yang ditampilkan ke pengguna
     protected $initial_columns = [];
+
+    protected $initial_filter = [];
+
+    protected $initial_sorts = [];
+
+    protected $page_orientation_editable = false;
+
+    protected $sorts_editable = false;
+
+    protected $columns_editable = false;
 
     public function __construct()
     {
@@ -41,10 +57,18 @@ class BaseController extends Controller
     public function generateIndexResponse($view, $data = [])
     {
         return inertia($view, [
-            'primary_columns' => $this->primary_columns,
-            'optional_columns' => $this->optional_columns,
-            'initial_columns' => $this->initial_columns,
-            'templates' => array_values($this->templates),
+            'options' => [
+                'primary_columns'  => $this->primary_columns,
+                'optional_columns' => $this->optional_columns,
+                'initial_columns'  => $this->initial_columns,
+                'initial_filter'   => $this->initial_filter,
+                'initial_sorts' => $this->initial_sorts,
+                'templates' => array_values($this->templates),
+
+                'page_orientation_editable' => $this->page_orientation_editable,
+                'sorts_editable' => $this->sorts_editable,
+                'columns_editable' => $this->columns_editable,
+            ],
             ...$data
         ]);
     }
@@ -53,19 +77,19 @@ class BaseController extends Controller
     {
         return [
             'template' => 'nullable|string:in:' . join(',', array_keys($this->templates)),
-            'columns' => 'required|array|min:1|in:' . implode(',', array_keys($this->all_columns)),
+            'columns'  => 'nullable|array|min:1|in:' . implode(',', array_keys($this->all_columns)),
             'sortOptions' => 'nullable|array',
             'sortOptions.*.column' => 'required_with:sortOptions|string|in:' . implode(',', array_keys($this->all_columns)),
-            'sortOptions.*.order' => 'required_with:sortOptions|string|in:asc,desc',
-            'orientation' => 'required|string|in:auto,portrait,landscape',
-            'filter' => 'nullable|array',
+            'sortOptions.*.order'  => 'required_with:sortOptions|string|in:asc,desc',
+            'orientation' => 'nullable|string|in:auto,portrait,landscape',
+            'filter'      => 'nullable|array',
         ];
     }
 
     protected function generateReport($view, $data, $q)
     {
         $data['title'] = !empty($data['template']) ? $this->templates[$data['template']]['label'] : $this->default_title;
-        $data['items'] = $this->processQuery($q, $data['query_columns'] ?? $data['columns'], $data);
+        $data['items'] = $this->processQuery($q, $data['query_columns'] ?? $data['columns'] ?? [], $data);
         return $this->_generateReport(
             $view,
             $data
@@ -108,7 +132,7 @@ class BaseController extends Controller
         $orientation = request('orientation', '');
         if ($orientation == 'auto') {
             $orientation = 'portrait';
-            if (count(request('columns')) > 6) {
+            if (count(request('columns', [])) > 6) {
                 $orientation = 'landscape';
             }
         }

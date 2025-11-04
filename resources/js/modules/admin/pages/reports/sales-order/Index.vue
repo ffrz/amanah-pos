@@ -9,23 +9,10 @@ import dayjs from "dayjs";
 const page = usePage();
 const title = "Laporan Rincian Penjualan";
 
-const primaryColumns = createOptions(page.props.primary_columns);
-const optionalColumns = createOptions(page.props.optional_columns);
-const initialColumns = page.props.initial_columns;
-const templates = page.props.templates;
+const options = page.props.options;
 
-const initialFilter = {
-  customer_ids: [],
-  start_date: dayjs().startOf("month").toDate(),
-  end_date: dayjs().endOf("month").toDate(),
-};
-
-const initialSortOptions = [
-  {
-    column: "code",
-    order: "asc",
-  },
-];
+options.initial_filter.start_date = dayjs().startOf("month").toDate();
+options.initial_filter.end_date = dayjs().endOf("month").toDate();
 </script>
 
 <template>
@@ -40,12 +27,7 @@ const initialSortOptions = [
     <template #right-button></template>
 
     <ReportGeneratorLayout
-      :primaryColumns="primaryColumns"
-      :optionalColumns="optionalColumns"
-      :initialColumns="initialColumns"
-      :initialFilter="initialFilter"
-      :initialSortOptions="initialSortOptions"
-      :templates="templates"
+      :options="options"
       routeName="admin.report.sales-order.generate"
     >
       <template #filter="{ form }">

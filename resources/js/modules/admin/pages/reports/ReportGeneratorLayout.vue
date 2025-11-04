@@ -1,36 +1,18 @@
 <script setup>
 import { ref, computed, watch, toRaw, onMounted } from "vue";
 import { useQuasar } from "quasar";
+// Asumsi path ini valid, tidak diubah
+import { createOptions } from "@/helpers/options";
+import dayjs from "dayjs";
 
 const $q = useQuasar();
 
 const emit = defineEmits(["beforeSubmit"]);
 
 const props = defineProps({
-  templates: {
-    type: Array,
-    required: false,
-    default: () => [],
-  },
-  primaryColumns: {
-    type: Array,
-    required: true,
-  },
-  optionalColumns: {
-    type: Array,
-    default: () => [],
-  },
-  initialColumns: {
-    type: Array,
-    required: true,
-  },
-  initialFilter: {
+  options: {
     type: Object,
-    default: () => ({}),
-  },
-  initialSortOptions: {
-    type: Array,
-    default: () => [],
+    required: true,
   },
   routeName: {
     type: String,
@@ -38,15 +20,15 @@ const props = defineProps({
   },
 });
 
-const templateOptions = [...props.templates];
+const primaryColumns = createOptions(props.options.primary_columns);
+const optionalColumns = createOptions(props.options.optional_columns);
+const templateOptions = [...props.options.templates];
 
 const columnOptions = computed(() => {
-  return [...props.primaryColumns, ...props.optionalColumns];
+  return [...primaryColumns, ...optionalColumns];
 });
 
-const primaryColumnValues = computed(() =>
-  props.primaryColumns.map((c) => c.value)
-);
+const primaryColumnValues = computed(() => primaryColumns.map((c) => c.value));
 
 const orientationOptions = [
   { value: "auto", label: "Otomatis" },
@@ -54,13 +36,52 @@ const orientationOptions = [
   { value: "landscape", label: "Lansekap" },
 ];
 
-const getInitialValue = () => ({
-  template: templateOptions[0].value,
-  columns: props.initialColumns,
-  filter: structuredClone(props.initialFilter),
-  sortOptions: props.initialSortOptions,
-  orientation: "auto",
+// Computed property untuk mendapatkan template yang sedang aktif
+const currentTemplate = computed(() => {
+  return props.options.templates.find((t) => t.value === form.value.template);
 });
+
+// Computed property yang mengecek opsi template, fallback ke global jika tidak ada
+const getTemplateOptionWithFallback = (key) => {
+  const templateOption = currentTemplate.value?.[key];
+
+  // Jika properti diset secara eksplisit di template (bukan undefined/null), gunakan itu
+  if (templateOption !== undefined && templateOption !== null) {
+    return templateOption;
+  }
+
+  // Fallback ke opsi global
+  return props.options[key];
+};
+
+const isColumnsEditable = computed(
+  () =>
+    optionalColumns.length > 0 &&
+    getTemplateOptionWithFallback("columns_editable")
+);
+const isSortsEditable = computed(
+  () =>
+    getTemplateOptionWithFallback("sorts_editable") &&
+    getInitialValue().columns.length > 0
+);
+const isPageOrientationEditable = computed(() =>
+  getTemplateOptionWithFallback("page_orientation_editable")
+);
+
+const getInitialValue = () => {
+  const initialTemplate = templateOptions.find(
+    (t) => t.value === templateOptions[0].value
+  );
+
+  return {
+    template: templateOptions[0].value,
+    // Gunakan columns dari template pertama, atau fallback ke global
+    columns: initialTemplate?.columns || props.options.initial_columns || [],
+    filter: props.options.initial_filter,
+    sortOptions: initialTemplate?.initial_sorts || props.options.initial_sorts, // Menambahkan fallback sortOptions dari template
+    orientation: "auto",
+  };
+};
 
 const form = ref(getInitialValue());
 
@@ -74,7 +95,7 @@ const reset = () => {
 
 const onRemoveColumn = ({ index, value }) => {
   if (primaryColumnValues.value.includes(value)) {
-    const col = props.primaryColumns.find((c) => c.value === value);
+    const col = primaryColumns.find((c) => c.value === value);
     $q.notify({
       type: "negative",
       message: `Kolom (${col.label}) tidak boleh dihapus.`,
@@ -102,7 +123,7 @@ const onRemoveColumn = ({ index, value }) => {
 };
 
 const handleSubmit = async (format) => {
-  if (form.value.columns.length === 0) {
+  if (getInitialValue().columns > 0 && form.value.columns.length === 0) {
     $q.notify({
       type: "negative",
       message: `Kolom belum dipilih.`,
@@ -125,10 +146,6 @@ const handleSubmit = async (format) => {
     }
   }
 
-  // TODO: disini kita harus transform seluruh filter, jika ada yang tipenya objek
-  // kita bisa transform ke format datetime yang disepakati di server
-  // jika server butuhnya date, maka time bisa diabaikan
-  // fungsi before submit ini dibiarkan saja barangkali masih butuh customization
   emit("beforeSubmit", params);
 
   try {
@@ -219,12 +236,31 @@ watch(
   () => form.value.template,
   (newTemplate, oldTemplate) => {
     if (newTemplate !== oldTemplate && newTemplate !== null) {
-      const template = props.templates.find((a) => a.value === newTemplate);
+      const template = props.options.templates.find(
+        (a) => a.value === newTemplate
+      );
+
       if (template.columns) {
         form.value.columns = template.columns;
+      } else {
+        form.value.columns = props.options.initial_columns;
+      }
+
+      if (template.initial_sorts) {
+        form.value.sortOptions = template.initial_sorts;
+      } else {
+        form.value.sortOptions = props.options.initial_sorts;
+      }
+
+      if (template.page_orientation) {
+        form.value.orientation = template.page_orientation;
+      } else {
+        form.value.orientation = "auto";
       }
     } else if (newTemplate === null) {
-      form.value.columns = props.initialColumns;
+      form.value.columns = props.options.initial_columns;
+      form.value.sortOptions = props.options.initial_sorts;
+      form.value.orientation = "auto";
     }
   }
 );
@@ -287,7 +323,7 @@ defineExpose({
           <q-expansion-item
             default-opened
             class="full-width q-mb-sm bg-grey-2"
-            v-if="optionalColumns.length > 0"
+            v-if="isColumnsEditable"
           >
             <template v-slot:header>
               <div
@@ -311,7 +347,12 @@ defineExpose({
                     clearable
                     use-chips
                     @remove="onRemoveColumn"
-                    @clear="form.columns = initialColumns.slice()"
+                    @clear="
+                      form.columns =
+                        props.options.templates
+                          .find((t) => t.value === form.template)
+                          ?.columns.slice() || []
+                    "
                     :rules="[
                       (val) =>
                         (val && val.length > 0) || 'Pilih minimal satu kolom',
@@ -338,7 +379,10 @@ defineExpose({
             </q-card>
           </q-expansion-item>
 
-          <q-expansion-item class="full-width q-mb-sm bg-grey-2">
+          <q-expansion-item
+            class="full-width q-mb-sm bg-grey-2"
+            v-if="isSortsEditable"
+          >
             <template v-slot:header>
               <div
                 class="text-subtitle2 text-bold text-grey-8 row items-center"
@@ -424,7 +468,10 @@ defineExpose({
             </q-card>
           </q-expansion-item>
 
-          <q-expansion-item class="full-width bg-grey-2">
+          <q-expansion-item
+            class="full-width bg-grey-2"
+            v-if="isPageOrientationEditable"
+          >
             <template v-slot:header>
               <div
                 class="text-subtitle2 text-bold text-grey-8 row items-center"
