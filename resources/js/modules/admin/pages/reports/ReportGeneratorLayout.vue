@@ -77,7 +77,7 @@ const getInitialValue = () => {
     template: templateOptions[0].value,
     // Gunakan columns dari template pertama, atau fallback ke global
     columns: initialTemplate?.columns || props.options.initial_columns || [],
-    filter: props.options.initial_filter,
+    filter: { ...props.options.initial_filter },
     sortOptions: initialTemplate?.initial_sorts || props.options.initial_sorts, // Menambahkan fallback sortOptions dari template
     orientation: "auto",
   };
