@@ -49,9 +49,10 @@ class SalesOrderService
 
         $q = SalesOrder::with(['customer', 'details', 'details.product', 'cashier', 'cashierSession.cashierTerminal']);
 
+
         if (!empty($filter['search'])) {
             $q->where(function ($q) use ($filter) {
-                $q->orWhere('code', 'like', "%" . $filter['search'] . "%");
+                $q->where('code', 'like', "%" . $filter['search'] . "%");
                 $q->orWhere('notes', 'like', '%' . $filter['search'] . '%');
                 $q->orWhere('customer_code', 'like', '%' . $filter['search'] . '%');
                 $q->orWhere('customer_name', 'like', '%' . $filter['search'] . '%');
@@ -60,8 +61,7 @@ class SalesOrderService
             });
 
             $q->orWhereHas('details.product', function ($q) use ($filter) {
-                $q->orWhere('name', 'like', "%" . $filter['search'] . "%");
-                $q->orWhere('barcode', 'like', "%" . $filter['search'] . "%");
+                $q->where('name', 'like', "%" . $filter['search'] . "%");
             });
         }
 

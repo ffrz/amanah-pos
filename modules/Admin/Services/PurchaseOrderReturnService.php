@@ -49,7 +49,7 @@ class PurchaseOrderReturnService
 
         if (!empty($filter['search'])) {
             $q->where(function ($q) use ($filter) {
-                $q->orWhere('code', 'like', "%" . $filter['search'] . "%");
+                $q->where('code', 'like', "%" . $filter['search'] . "%");
                 $q->orWhere('notes', 'like', '%' . $filter['search'] . '%');
                 $q->orWhere('supplier_code', 'like', '%' . $filter['search'] . '%');
                 $q->orWhere('supplier_name', 'like', '%' . $filter['search'] . '%');
@@ -58,8 +58,7 @@ class PurchaseOrderReturnService
             });
 
             $q->orWhereHas('details.product', function ($q) use ($filter) {
-                $q->where('name', 'like', "%" . $filter['search'] . "%")
-                    ->orWhere('barcode', 'like', "%" . $filter['search'] . "%");
+                $q->where('name', 'like', "%" . $filter['search'] . "%");
             });
         }
 

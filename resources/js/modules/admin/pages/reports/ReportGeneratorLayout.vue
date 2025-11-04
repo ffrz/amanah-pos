@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch, toRaw } from "vue";
+import { ref, computed, watch, toRaw, onMounted } from "vue";
 import { useQuasar } from "quasar";
 
 const $q = useQuasar();
@@ -38,13 +38,7 @@ const props = defineProps({
   },
 });
 
-const templateOptions = [
-  {
-    value: null,
-    label: "Disesuaikan",
-  },
-  ...props.templates,
-];
+const templateOptions = [...props.templates];
 
 const columnOptions = computed(() => {
   return [...props.primaryColumns, ...props.optionalColumns];
@@ -61,7 +55,7 @@ const orientationOptions = [
 ];
 
 const getInitialValue = () => ({
-  template: null,
+  template: templateOptions[0].value,
   columns: props.initialColumns,
   filter: structuredClone(props.initialFilter),
   sortOptions: props.initialSortOptions,
@@ -123,6 +117,18 @@ const handleSubmit = async (format) => {
     format: format,
   };
 
+  for (const optionKey of Object.keys(params.filter)) {
+    if (params.filter[optionKey] instanceof Date) {
+      params.filter[optionKey] = dayjs(params.filter[optionKey]).format(
+        "YYYY-MM-DD HH:mm:ss"
+      );
+    }
+  }
+
+  // TODO: disini kita harus transform seluruh filter, jika ada yang tipenya objek
+  // kita bisa transform ke format datetime yang disepakati di server
+  // jika server butuhnya date, maka time bisa diabaikan
+  // fungsi before submit ini dibiarkan saja barangkali masih butuh customization
   emit("beforeSubmit", params);
 
   try {
@@ -214,7 +220,9 @@ watch(
   (newTemplate, oldTemplate) => {
     if (newTemplate !== oldTemplate && newTemplate !== null) {
       const template = props.templates.find((a) => a.value === newTemplate);
-      form.value.columns = template.columns;
+      if (template.columns) {
+        form.value.columns = template.columns;
+      }
     } else if (newTemplate === null) {
       form.value.columns = props.initialColumns;
     }
@@ -259,7 +267,28 @@ defineExpose({
             </q-card>
           </q-expansion-item>
 
-          <q-expansion-item default-opened class="full-width q-mb-sm bg-grey-2">
+          <q-expansion-item class="full-width q-mb-sm bg-grey-2" default-opened>
+            <template v-slot:header>
+              <div
+                class="text-subtitle2 text-bold text-grey-8 row items-center"
+              >
+                <q-icon name="filter_alt" size="xs" class="q-mr-sm" />
+                Filter
+              </div>
+            </template>
+
+            <q-card square flat bordered class="full-width">
+              <q-card-section class="q-py-sm">
+                <slot name="filter" :form="form" />
+              </q-card-section>
+            </q-card>
+          </q-expansion-item>
+
+          <q-expansion-item
+            default-opened
+            class="full-width q-mb-sm bg-grey-2"
+            v-if="optionalColumns.length > 0"
+          >
             <template v-slot:header>
               <div
                 class="text-subtitle2 text-bold text-grey-8 row items-center"
@@ -305,23 +334,6 @@ defineExpose({
                     </template>
                   </q-select>
                 </div>
-              </q-card-section>
-            </q-card>
-          </q-expansion-item>
-
-          <q-expansion-item class="full-width q-mb-sm bg-grey-2">
-            <template v-slot:header>
-              <div
-                class="text-subtitle2 text-bold text-grey-8 row items-center"
-              >
-                <q-icon name="filter_alt" size="xs" class="q-mr-sm" />
-                Filter
-              </div>
-            </template>
-
-            <q-card square flat bordered class="full-width">
-              <q-card-section class="q-py-sm">
-                <slot name="filter" :form="form" />
               </q-card-section>
             </q-card>
           </q-expansion-item>

@@ -38,7 +38,7 @@ use Modules\Admin\Http\Controllers\PurchaseOrderReturnController;
 use Modules\Admin\Http\Controllers\ReportController;
 use Modules\Admin\Http\Controllers\Reports\CustomerReportController;
 use Modules\Admin\Http\Controllers\Reports\ProductReportController;
-use Modules\Admin\Http\Controllers\Reports\SalesOrderRecapController;
+use Modules\Admin\Http\Controllers\Reports\SalesOrderReportController;
 use Modules\Admin\Http\Controllers\Reports\SupplierReportController;
 use Modules\Admin\Http\Controllers\SalesOrderController;
 use Modules\Admin\Http\Controllers\SalesOrderReturnController;
@@ -86,8 +86,8 @@ Route::middleware([Auth::class])
             Route::get('product', [ProductReportController::class, 'index'])->name('admin.report.product.index');
             Route::get('product/generate', [ProductReportController::class, 'generate'])->name('admin.report.product.generate');
 
-            Route::get('sales-order-recap', [SalesOrderRecapController::class, 'index'])->name('admin.report.sales-order-recap.index');
-            Route::get('sales-order-recap/generate', [SalesOrderRecapController::class, 'generate'])->name('admin.report.sales-order-recap.generate');
+            Route::get('sales-order', [SalesOrderReportController::class, 'index'])->name('admin.report.sales-order.index');
+            Route::get('sales-order/generate', [SalesOrderReportController::class, 'generate'])->name('admin.report.sales-order.generate');
         });
 
         Route::prefix('settings')->group(function () {

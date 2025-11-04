@@ -48,7 +48,7 @@ class SalesOrderReturnService
 
         if (!empty($filter['search'])) {
             $q->where(function ($q) use ($filter) {
-                $q->orWhere('code', 'like', "%" . $filter['search'] . "%");
+                $q->where('code', 'like', "%" . $filter['search'] . "%");
                 $q->orWhere('notes', 'like', '%' . $filter['search'] . '%');
                 $q->orWhere('customer_code', 'like', '%' . $filter['search'] . '%');
                 $q->orWhere('customer_name', 'like', '%' . $filter['search'] . '%');
@@ -57,8 +57,7 @@ class SalesOrderReturnService
             });
 
             $q->orWhereHas('details.product', function ($q) use ($filter) {
-                $q->where('name', 'like', "%" . $filter['search'] . "%")
-                    ->orWhere('barcode', 'like', "%" . $filter['search'] . "%");
+                $q->where('name', 'like', "%" . $filter['search'] . "%");
             });
         }
 

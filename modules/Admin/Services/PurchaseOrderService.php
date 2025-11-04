@@ -294,7 +294,7 @@ class PurchaseOrderService
 
         if (!empty($filter['search'])) {
             $q->where(function ($q) use ($filter) {
-                $q->orWhere('code', 'like', "%" . $filter['search'] . "%");
+                $q->where('code', 'like', "%" . $filter['search'] . "%");
                 $q->orWhere('notes', 'like', '%' . $filter['search'] . '%');
                 $q->orWhere('supplier_code', 'like', '%' . $filter['search'] . '%');
                 $q->orWhere('supplier_name', 'like', '%' . $filter['search'] . '%');
@@ -302,10 +302,9 @@ class PurchaseOrderService
                 // $q->orWhere('supplier_address', 'like', '%' . $filter['search'] . '%');
             });
 
-            // $q->orWhereHas('details.product', function ($q) use ($filter) {
-            //     $q->where('name', 'like', "%" . $filter['search'] . "%")
-            //         ->orWhere('barcode', 'like', "%" . $filter['search'] . "%");
-            // });
+            $q->orWhereHas('details.product', function ($q) use ($filter) {
+                $q->where('name', 'like', "%" . $filter['search'] . "%");
+            });
         }
 
         if (!empty($filter['status']) && $filter['status'] != 'all') {

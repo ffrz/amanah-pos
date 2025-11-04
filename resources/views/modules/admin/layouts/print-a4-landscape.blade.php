@@ -44,7 +44,9 @@
         @yield('content')
     </div>
     <script>
-        window.addEventListener("load", window.print());
+        @if (env('APP_ENV') == 'production')
+            window.addEventListener("load", window.print());
+        @endif
     </script>
 </body>
 

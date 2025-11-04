@@ -7,7 +7,7 @@ import DateTimePicker from "@/components/DateTimePicker.vue";
 import dayjs from "dayjs";
 
 const page = usePage();
-const title = "Laporan Penjualan";
+const title = "Laporan Rincian Penjualan";
 
 const primaryColumns = createOptions(page.props.primary_columns);
 const optionalColumns = createOptions(page.props.optional_columns);
@@ -15,7 +15,7 @@ const initialColumns = page.props.initial_columns;
 const templates = page.props.templates;
 
 const initialFilter = {
-  status: "active",
+  customer_ids: [],
   start_date: dayjs().startOf("month").toDate(),
   end_date: dayjs().endOf("month").toDate(),
 };
@@ -26,14 +26,6 @@ const initialSortOptions = [
     order: "asc",
   },
 ];
-const handleBeforeSubmit = (params) => {
-  params.filter.start_date = dayjs(params.filter.start_date).format(
-    "YYYY-MM-DD HH:mm:ss"
-  );
-  params.filter.end_date = dayjs(params.filter.end_date).format(
-    "YYYY-MM-DD HH:mm:ss"
-  );
-};
 </script>
 
 <template>
@@ -54,8 +46,7 @@ const handleBeforeSubmit = (params) => {
       :initialFilter="initialFilter"
       :initialSortOptions="initialSortOptions"
       :templates="templates"
-      @beforeSubmit="handleBeforeSubmit"
-      routeName="admin.report.sales-order-recap.generate"
+      routeName="admin.report.sales-order.generate"
     >
       <template #filter="{ form }">
         <DateTimePicker

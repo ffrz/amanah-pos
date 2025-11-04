@@ -217,3 +217,7 @@ table.info table td {
 .report-header-info td:first-child {
     padding-left: 10px;
 }
+
+table.summary td, table.summary th {
+    padding: 2px 5px;
+}
