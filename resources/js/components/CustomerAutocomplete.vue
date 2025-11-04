@@ -1,5 +1,6 @@
 <template>
   <q-select
+    v-bind="$attrs"
     :class="class"
     ref="qSelectRef"
     v-model="selectedCustomer"
@@ -19,6 +20,15 @@
     option-value="id"
     option-label="name"
   >
+    <template #prepend>
+      <q-icon
+        name="person_add"
+        class="q-icon cursor-pointer"
+        size="xs"
+        @click.prevent="addCustomer"
+      />
+    </template>
+
     <template #option="scope">
       <q-item v-bind="scope.itemProps">
         <q-item-section>
@@ -46,12 +56,14 @@
       </div>
     </template>
   </q-select>
+  <CustomerEditorDialog ref="editorDialog" />
 </template>
 
 <script setup>
 import { onMounted, ref, watch } from "vue";
 import axios from "axios";
-
+import CustomerEditorDialog from "./CustomerEditorDialog.vue";
+const editorDialog = ref(null);
 const qSelectRef = ref(null);
 const props = defineProps({
   modelValue: {
@@ -75,8 +87,11 @@ const emit = defineEmits(["update:modelValue", "customerSelected"]);
 const options = ref([]);
 let timeoutId = null;
 
-// State lokal untuk v-model
 const selectedCustomer = ref(props.modelValue);
+
+const addCustomer = () => {
+  editorDialog.value.open();
+};
 
 onMounted(() => {
   // Inisialisasi dengan data awal dari prop

@@ -27,8 +27,8 @@ const pagination = ref({
   page: 1,
   rowsPerPage: 10,
   rowsNumber: 10,
-  sortBy: "name",
-  descending: false,
+  sortBy: "id",
+  descending: true,
 });
 
 const columns = [
