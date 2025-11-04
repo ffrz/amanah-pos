@@ -57,7 +57,10 @@ class SalesOrderReportController extends BaseController
     {
         $data = $request->validate([
             ...$this->getDefaultValidationRules(),
-            // 'filter.customer_id' => ['nullable', 'integer'],
+            'filter.start_date' => 'required|date',
+            'filter.end_date' => 'required|date',
+            'filter.customer_ids' => 'nullable|array',
+            'filter.customer_ids.*' => 'integer',
         ]);
 
         $q = SalesOrder::query();
@@ -79,6 +82,8 @@ class SalesOrderReportController extends BaseController
     {
         $filter = $data['filter'];
 
+        $q->where('status', \App\Models\SalesOrder::Status_Closed);
+
         if (!empty($filter['start_date'])) {
             $q->whereDate('datetime', '>=', $filter['start_date']);
         }
@@ -87,11 +92,12 @@ class SalesOrderReportController extends BaseController
             $q->whereDate('datetime', '<=', $filter['end_date']);
         }
 
-        if (!empty($filter['customer_id'])) {
-            $q->where('customer_id', $filter['customer_id']);
+        if (isset($filter['customer_ids']) && is_array($filter['customer_ids'])) {
+            $customer_ids = array_filter($filter['customer_ids']);
+            if (!empty($customer_ids)) {
+                $q->whereIn('customer_id', $customer_ids);
+            }
         }
-
-        $q->where('status', \App\Models\SalesOrder::Status_Closed);
 
         $subqueryTotalItems = '(
             SELECT SUM(quantity)

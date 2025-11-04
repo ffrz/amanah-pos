@@ -2,17 +2,18 @@
 import { usePage } from "@inertiajs/vue3";
 import ReportGeneratorLayout from "../ReportGeneratorLayout.vue";
 import BackButton from "@/components/BackButton.vue";
-import { createOptions } from "@/helpers/options";
 import DateTimePicker from "@/components/DateTimePicker.vue";
 import dayjs from "dayjs";
+import { useCustomerFilter } from "@/composables/useCustomerFilter";
 
 const page = usePage();
 const title = "Laporan Rincian Penjualan";
-
 const options = page.props.options;
-
 options.initial_filter.start_date = dayjs().startOf("month").toDate();
 options.initial_filter.end_date = dayjs().endOf("month").toDate();
+const { filteredCustomers, filterCustomersFn } = useCustomerFilter(
+  page.props.customers
+);
 </script>
 
 <template>
@@ -44,6 +45,18 @@ options.initial_filter.end_date = dayjs().endOf("month").toDate();
           class="col-xs-6 col-sm-2"
           hide-bottom-space
           date-only
+        />
+        <q-select
+          label="Pelanggan"
+          v-model="form.filter.customer_ids"
+          :options="filteredCustomers"
+          @filter="filterCustomersFn"
+          map-options
+          emit-value
+          use-input
+          clearable
+          multiple
+          use-chips
         />
       </template>
     </ReportGeneratorLayout>
