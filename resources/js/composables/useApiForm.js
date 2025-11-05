@@ -17,23 +17,38 @@ export function hasFiles(data) {
 export function useApiForm(rememberKeyOrData, maybeData = null) {
   const form = useForm(rememberKeyOrData, maybeData);
 
+  // Simpan default pertama kali
+  form.__defaults = cloneDeep(form.data());
+
   form.setData = (newData) => {
-    const currentData = form.data(); // dapatkan struktur form awal
+    const currentData = form.data();
     Object.keys(currentData).forEach((key) => {
       if (Object.prototype.hasOwnProperty.call(newData, key)) {
         const value = newData[key];
-        // hindari assign nested object secara langsung
-        if (
-          value !== null &&
-          typeof value === "object" &&
-          !Array.isArray(value)
-        ) {
-          form[key] = JSON.parse(JSON.stringify(value)); // clone aman
-        } else {
-          form[key] = value;
-        }
+        form[key] =
+          value && typeof value === "object" && !Array.isArray(value)
+            ? JSON.parse(JSON.stringify(value))
+            : value;
       }
     });
+  };
+
+  // ✅ Override reset
+  form.reset = (keys = null) => {
+    const defaults = cloneDeep(form.__defaults);
+    if (keys === null) {
+      Object.keys(defaults).forEach((key) => {
+        form[key] = defaults[key];
+      });
+    } else if (Array.isArray(keys)) {
+      keys.forEach((key) => {
+        if (Object.prototype.hasOwnProperty.call(defaults, key)) {
+          form[key] = defaults[key];
+        }
+      });
+    }
+    form.clearErrors?.();
+    form.isDirty = false;
   };
 
   let transform = (data) => data;
