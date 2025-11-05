@@ -31,7 +31,8 @@ class SaveRequest extends FormRequest
 
         $rules = [
             'id' => 'nullable|integer|exists:suppliers,id',
-            'name' => 'required|string|max:50|unique:suppliers,name' . ($supplierId ? ',' . $supplierId : ''),
+            'code' => 'required|string|max:40|unique:suppliers,code' . ($supplierId ? ',' . $supplierId : ''),
+            'name' => 'required|string|max:100',
             'phone_1' => 'nullable|max:50',
             'phone_2' => 'nullable|max:50',
             'phone_3' => 'nullable|max:50',
