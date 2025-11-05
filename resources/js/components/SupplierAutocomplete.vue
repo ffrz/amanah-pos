@@ -1,5 +1,6 @@
 <template>
   <q-select
+    v-bind="$attrs"
     :class="class"
     ref="qSelectRef"
     v-model="selectedSupplier"
@@ -19,6 +20,15 @@
     option-value="id"
     option-label="name"
   >
+    <template #prepend>
+      <q-icon
+        name="person_add"
+        class="q-icon cursor-pointer"
+        size="xs"
+        @click.prevent="addSupplier"
+      />
+    </template>
+
     <template #option="scope">
       <q-item v-bind="scope.itemProps">
         <q-item-section>
@@ -46,12 +56,18 @@
       </div>
     </template>
   </q-select>
+  <SupplierEditorDialog
+    ref="editorDialog"
+    @supplier-created="onSupplierCreated"
+  />
 </template>
 
 <script setup>
 import { onMounted, ref, watch } from "vue";
 import axios from "axios";
+import SupplierEditorDialog from "./SupplierEditorDialog.vue";
 
+const editorDialog = ref(null);
 const qSelectRef = ref(null);
 const props = defineProps({
   modelValue: {
@@ -75,23 +91,23 @@ const emit = defineEmits(["update:modelValue", "supplierSelected"]);
 const options = ref([]);
 let timeoutId = null;
 
-// State lokal untuk v-model
 const selectedSupplier = ref(props.modelValue);
 
+const addSupplier = () => {
+  editorDialog.value.open();
+};
+
 onMounted(() => {
-  // Inisialisasi dengan data awal dari prop
   if (props.initialData) {
     selectedSupplier.value = props.initialData;
   }
 });
 
-// Watcher untuk menyinkronkan state internal dan eksternal
 watch(selectedSupplier, (newValue) => {
   emit("update:modelValue", newValue);
   emit("supplierSelected", newValue);
 });
 
-// Watcher untuk mengupdate state internal jika props.modelValue berubah
 watch(
   () => props.modelValue,
   (newValue) => {
@@ -131,5 +147,11 @@ const filterFn = (val, update) => {
         });
       });
   }, 100);
+};
+
+const onSupplierCreated = (newSupplier) => {
+  selectedSupplier.value = newSupplier;
+  options.value = [newSupplier, ...options.value];
+  focus();
 };
 </script>
