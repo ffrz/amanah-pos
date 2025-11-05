@@ -19,6 +19,7 @@ namespace Modules\Admin\Http\Controllers;
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Supplier;
+use Illuminate\Http\Request;
 use Modules\Admin\Http\Requests\Supplier\SaveRequest;
 use Modules\Admin\Http\Requests\Supplier\GetDataRequest;
 use Modules\Admin\Services\SupplierService;
@@ -68,11 +69,15 @@ class SupplierController extends Controller
         ]);
     }
 
-    public function editor($id = 0)
+    public function editor(Request $request, $id = 0)
     {
         $item = $this->supplierService->findOrCreate($id);
 
         $this->authorize($id ? 'update' : 'create', $item);
+
+        if ($request->expectsJson()) {
+            return JsonResponseHelper::success($item);
+        }
 
         return inertia('supplier/Editor', [
             'data' => $item,
@@ -86,6 +91,10 @@ class SupplierController extends Controller
         $this->authorize($item->id ? 'update' : 'create', $item);
 
         $this->supplierService->save($item, $request->validated());
+
+        if ($request->expectsJson()) {
+            return JsonResponseHelper::success($item);
+        }
 
         return redirect()
             ->route('admin.supplier.detail', $item->id)
