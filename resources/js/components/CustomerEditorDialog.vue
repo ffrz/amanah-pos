@@ -1,12 +1,12 @@
 <script setup>
-import { ref, computed } from "vue"; // Tambahkan 'computed'
+import { ref, computed } from "vue";
 import { useQuasar } from "quasar";
 import axios from "axios";
 import CustomerForm from "@/components/CustomerForm.vue";
 
 const $q = useQuasar();
 const isModalOpen = ref(false);
-const isSubmitting = ref(false);
+const isLoading = ref(false);
 const simpleMode = ref(true);
 
 const form = ref({
@@ -21,38 +21,39 @@ const form = ref({
   type: "general",
 });
 
-// Local error state
 const formErrors = ref({});
 
 const emit = defineEmits(["customerCreated"]);
 
-// --- Logika Penambahan ---
-// Computed property untuk menentukan apakah dialog harus fullscreen
 const isFullScreen = computed(() => {
-  return true;
-  // Jika lebar layar kurang dari breakpoint 'sm' (biasanya < 600px), setel fullscreen=true
   return $q.screen.lt.sm;
 });
-// --- Akhir Logika Penambahan ---
 
-const open = (query) => {
-  form.value.name = query || "";
-  form.value.code = "";
-  form.value.phone = "";
-  formErrors.value = {};
+const open = async (query) => {
+  isLoading.value = true;
   isModalOpen.value = true;
+  try {
+    const response = await axios.get(route("admin.customer.add"));
+    form.value = { ...response.data.data };
+    formErrors.value = {};
+  } catch (error) {
+    console.error("Quick Create Failed:", error.response);
+    $q.notify({
+      type: "negative",
+      message: "Gagal mengambil data awal pelanggan.",
+    });
+  } finally {
+    isLoading.value = false;
+  }
 };
 defineExpose({ open });
 
 const submitQuickCreate = async () => {
-  isSubmitting.value = true;
+  isLoading.value = true;
   formErrors.value = {};
 
   try {
-    const response = await axios.post(
-      route("api.customer.quick-save"),
-      form.value
-    );
+    const response = await axios.post(route("admin.customer.save"), form.value);
 
     $q.notify({
       type: "positive",
@@ -77,22 +78,18 @@ const submitQuickCreate = async () => {
       message: errorMessage,
     });
   } finally {
-    isSubmitting.value = false;
+    isLoading.value = false;
   }
 };
 </script>
 
 <template>
-  <!-- Gunakan prop :fullscreen yang diikat ke computed property isFullScreen -->
-
   <q-dialog
     v-model="isModalOpen"
     fullscreen
     persistent
     :fullscreen="isFullScreen"
   >
-    <!-- Atur ukuran card hanya jika tidak dalam mode fullscreen (desktop/tablet) -->
-
     <q-card :style="isFullScreen ? '' : 'width: 600px; max-width: 90vw'">
       <q-card-section class="row items-center q-pb-none">
         <div class="text-subtitle1 text-grey-8">Tambah Pelanggan Baru</div>
@@ -103,17 +100,17 @@ const submitQuickCreate = async () => {
           round
           dense
           v-close-popup
-          :disable="isSubmitting"
+          :disable="isLoading"
           size="sm"
         />
       </q-card-section>
 
       <q-card-section class="q-pt-md">
         <CustomerForm
-          :bordered="false"
+          :dialog-mode="true"
           :form-data="form"
           :form-errors="formErrors"
-          :processing="isSubmitting"
+          :processing="isLoading"
           :simple-mode="simpleMode"
           @update:simpleMode="simpleMode = $event"
           @submit="submitQuickCreate"
@@ -132,14 +129,14 @@ const submitQuickCreate = async () => {
           color="grey"
           flat
           v-close-popup
-          :disable="isSubmitting"
+          :disable="isLoading"
         />
 
         <q-btn
           label="Simpan"
           type="submit"
           color="primary"
-          :loading="isSubmitting"
+          :loading="isLoading"
           @click="submitQuickCreate"
         />
       </q-card-actions>

@@ -56,7 +56,10 @@
       </div>
     </template>
   </q-select>
-  <CustomerEditorDialog ref="editorDialog" />
+  <CustomerEditorDialog
+    ref="editorDialog"
+    @customer-created="onCustomerCreated"
+  />
 </template>
 
 <script setup>
@@ -146,5 +149,11 @@ const filterFn = (val, update) => {
         });
       });
   }, 100);
+};
+
+const onCustomerCreated = (newCustomer) => {
+  selectedCustomer.value = newCustomer;
+  options.value = [newCustomer, ...options.value];
+  focus();
 };
 </script>

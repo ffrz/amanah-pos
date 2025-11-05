@@ -16,6 +16,7 @@
 
 namespace Modules\Admin\Http\Controllers;
 
+use App\Helpers\AutoResponseHelper;
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
@@ -74,14 +75,21 @@ class CustomerController extends Controller
         ]);
     }
 
-    public function editor($id = 0)
+    public function editor(Request $request, $id = 0)
     {
         $item = $this->customerService->findOrCreate($id);
 
         $this->authorize($id ? 'update' : 'create', $item);
 
+        $data = $item->toArray();
+        $data['password'] = '12345';
+
+        if ($request->expectsJson()) {
+            return JsonResponseHelper::success($data);
+        }
+
         return inertia('customer/Editor', [
-            'data' => $item,
+            'data' => $data
         ]);
     }
 
@@ -92,6 +100,10 @@ class CustomerController extends Controller
         $this->authorize($request->id ? 'update' : 'create', $item);
 
         $this->customerService->save($item, $request->validated());
+
+        if ($request->expectsJson()) {
+            return JsonResponseHelper::success($item);
+        }
 
         return redirect(route('admin.customer.detail', $item->id))
             ->with('success', "Pelanggan $item->name telah disimpan.");
