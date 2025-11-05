@@ -24,6 +24,7 @@ use Modules\Admin\Http\Requests\ProductCategory\GetDataRequest;
 use Modules\Admin\Http\Requests\ProductCategory\SaveRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -98,11 +99,15 @@ class ProductCategoryController extends Controller
      * @throws \Illuminate\Auth\Access\AuthorizationException
      * @throws \Illuminate\Database\Eloquent\ModelNotFoundException Jika ID ditemukan tetapi tidak ada.
      */
-    public function editor(int $id = 0)
+    public function editor(Request $request, int $id = 0)
     {
         $item = $this->productCategoryService->findOrCreate($id);
 
         $this->authorize($id ? 'update' : 'create', $item);
+
+        if ($request->expectsJson()) {
+            return JsonResponseHelper::success($item);
+        }
 
         return Inertia::render('product-category/Editor', [
             'data' => $item,
@@ -113,16 +118,20 @@ class ProductCategoryController extends Controller
      * Menyimpan (membuat atau memperbarui) kategori produk.
      *
      * @param SaveRequest $request Request yang berisi data yang divalidasi.
-     * @return RedirectResponse
+     * @return RedirectResponse|JsonResponse
      * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function save(SaveRequest $request): RedirectResponse
+    public function save(SaveRequest $request): RedirectResponse|JsonResponse
     {
         $item = $this->productCategoryService->findOrCreate($request->id);
 
         $this->authorize($request->id ? 'update' : 'create', $item);
 
         $item = $this->productCategoryService->save($item, $request->validated());
+
+        if ($request->expectsJson()) {
+            return JsonResponseHelper::success($item);
+        }
 
         return redirect(route('admin.product-category.index'))
             ->with('success', "Kategori $item->name telah disimpan.");

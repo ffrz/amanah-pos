@@ -1,7 +1,7 @@
 <script setup>
-import { router, useForm, usePage } from "@inertiajs/vue3";
+import ProductCategoryForm from "@/components/ProductCategoryForm.vue";
 import { handleSubmit } from "@/helpers/client-req-handler";
-import { scrollToFirstErrorField } from "@/helpers/utils";
+import { router, useForm, usePage } from "@inertiajs/vue3";
 import { useQuasar } from "quasar";
 
 const $q = useQuasar();
@@ -15,10 +15,7 @@ const form = useForm({
 });
 
 const submit = () =>
-  handleSubmit({
-    form,
-    url: route("admin.product-category.save"),
-  });
+  handleSubmit({ form, url: route("admin.product-category.save") });
 </script>
 
 <template>
@@ -40,59 +37,12 @@ const submit = () =>
     </template>
     <q-page class="row justify-center">
       <div class="col col-md-6 q-pa-xs">
-        <q-form
-          class="row"
-          @submit.prevent="submit"
-          @validation-error="scrollToFirstErrorField"
-        >
-          <q-card square flat bordered class="col">
-            <q-card-section class="q-pt-none">
-              <input type="hidden" name="id" v-model="form.id" />
-              <q-input
-                autofocus
-                v-model.trim="form.name"
-                label="Nama Kategori"
-                lazy-rules
-                :error="!!form.errors.name"
-                :disable="form.processing"
-                :error-message="form.errors.name"
-                :rules="[
-                  (val) => (val && val.length > 0) || 'Nama harus diisi.',
-                ]"
-                hide-bottom-space
-              />
-              <q-input
-                v-model.trim="form.description"
-                type="textarea"
-                autogrow
-                counter
-                maxlength="200"
-                label="Deskripsi"
-                lazy-rules
-                :disable="form.processing"
-                :error="!!form.errors.description"
-                :error-message="form.errors.description"
-                hide-bottom-space
-              />
-            </q-card-section>
-            <q-card-section class="q-gutter-sm">
-              <q-btn
-                icon="save"
-                type="submit"
-                label="Simpan"
-                color="primary"
-                :disable="form.processing"
-                :loading="form.processing"
-              />
-              <q-btn
-                icon="cancel"
-                label="Batal"
-                :disable="form.processing"
-                @click="form.reset()"
-              />
-            </q-card-section>
-          </q-card>
-        </q-form>
+        <ProductCategoryForm
+          :form-data="form"
+          :form-errors="form.errors"
+          :processing="form.processing"
+          @submit="submit"
+        />
       </div>
     </q-page>
   </authenticated-layout>

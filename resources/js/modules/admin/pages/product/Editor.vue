@@ -2,14 +2,15 @@
 import { router, useForm, usePage } from "@inertiajs/vue3";
 import { handleSubmit } from "@/helpers/client-req-handler";
 import { scrollToFirstErrorField } from "@/helpers/utils";
-import { useProductCategoryFilter } from "@/composables/useProductCategoryFilter";
-import { useSupplierFilter } from "@/composables/useSupplierFilter";
+// import { useProductCategoryFilter } from "@/composables/useProductCategoryFilter"; // DIHAPUS
 import { createOptions } from "@/helpers/options";
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
 import CheckBox from "@/components/CheckBox.vue";
 import PercentInput from "@/components/PercentInput.vue";
-import { onMounted, ref, watch } from "vue"; // <-- Import ref dan watch
+import { onMounted, ref, watch } from "vue";
 import BarcodeInput from "@/components/BarcodeInput.vue";
+import SupplierAutocomplete from "@/components/SupplierAutocomplete.vue";
+import ProductCategoryAutocomplete from "@/components/ProductCategoryAutocomplete.vue"; // DITAMBAHKAN
 
 const page = usePage();
 const title = (!!page.props.data.id ? "Edit" : "Tambah") + " Produk";
@@ -17,7 +18,7 @@ const types = createOptions(window.CONSTANTS.PRODUCT_TYPES);
 
 // Flag untuk mencegah loop tak terbatas (infinite loop) saat sinkronisasi
 const isSyncing = ref(false);
-
+const selectedSupplier = ref(page.props.data.supplier);
 const form = useForm({
   id: page.props.data.id,
   category_id: page.props.data.category_id,
@@ -53,29 +54,14 @@ const form = useForm({
   notes: page.props.data.notes || "",
 });
 
-const submit = () => handleSubmit({ form, url: route("admin.product.save") });
+const submit = () => {
+  handleSubmit({ form, url: route("admin.product.save") });
+};
 
-function initSuppliers(suppliers) {
-  if (page.props.data.id && page.props.data.supplier) {
-    const isSupplierInList = suppliers.some(
-      (s) => s.id === page.props.data.supplier_id
-    );
-
-    if (!isSupplierInList) {
-      suppliers.unshift(page.props.data.supplier);
-    }
-  }
-  return suppliers;
-}
-
-const { filteredCategories, filterCategories } = useProductCategoryFilter(
-  page.props.categories
-);
-const { filteredSuppliers, filterSupplierFn } = useSupplierFilter(
-  initSuppliers(page.props.suppliers)
-);
-
-// --- LOGIKA SINKRONISASI HARGA JUAL DAN MARGIN ---
+// DIHAPUS: Komponen ProductCategoryAutocomplete kini menangani filtering kategori secara internal
+// const { filteredCategories, filterCategories } = useProductCategoryFilter(
+//   page.props.categories
+// );
 
 // Hitung Margin Persen (Harga Jual -> Margin)
 const calculateMargin = (price, cost) => {
@@ -102,7 +88,10 @@ const calculatePrice = (cost, margin) => {
   return Math.round(newPrice);
 };
 
-// 1. Master Watcher: Ketika COST berubah, hitung ulang semua HARGA JUAL berdasarkan margin % yang sudah ada
+watch(selectedSupplier, (newSupplierValue) => {
+  form.supplier_id = newSupplierValue ? newSupplierValue.id : null;
+});
+
 watch(
   () => form.cost,
   (newCost) => {
@@ -182,6 +171,7 @@ onMounted(() => {
   for (let i = 1; i <= 3; i++) {
     form[`price_${i}_markup`] = calculateMargin(form[`price_${i}`], form.cost);
   }
+  console.log(selectedSupplier.value);
 });
 
 // --- END LOGIKA SINKRONISASI ---
@@ -271,30 +261,28 @@ onMounted(() => {
                 Mengganti kode/nama setelah produk digunakan dapat mempengaruhi
                 konsistensi data.
               </div> -->
-              <q-select
-                v-model="form.category_id"
+
+              <!-- START: Ganti QSelect dengan ProductCategoryAutocomplete -->
+              <ProductCategoryAutocomplete
+                v-model:modelValue="form.category_id"
+                :categories="page.props.categories"
                 label="Kategori (Opsional)"
-                use-input
-                input-debounce="300"
-                clearable
-                :options="filteredCategories"
-                map-options
-                emit-value
-                @filter="filterCategories"
-                option-label="label"
-                option-value="value"
                 :error="!!form.errors.category_id"
                 :disable="form.processing"
-                hide-bottom-space
-              >
-                <template v-slot:no-option>
-                  <q-item>
-                    <q-item-section>Kategori tidak ditemukan</q-item-section>
-                  </q-item>
-                </template>
-              </q-select>
+                :error-message="form.errors.category_id"
+              />
+              <!-- END: Ganti QSelect dengan ProductCategoryAutocomplete -->
 
-              <q-select
+              <SupplierAutocomplete
+                v-model="selectedSupplier"
+                label="Supplier Default (Opsional)"
+                :error="!!form.errors.supplier_id"
+                :error-message="form.errors.supplier_id"
+                :disable="form.processing"
+                option-label="label"
+                option-value="value"
+              />
+              <!-- <q-select
                 v-if="$can('admin.product:view-supplier')"
                 v-model="form.supplier_id"
                 label="Supplier Default (Opsional)"
@@ -316,7 +304,7 @@ onMounted(() => {
                     <q-item-section>Supplier tidak ditemukan</q-item-section>
                   </q-item>
                 </template>
-              </q-select>
+              </q-select> -->
 
               <CheckBox
                 class="q-mt-md"
@@ -485,8 +473,8 @@ onMounted(() => {
                         dense
                         v-model:modelValue="form.price_2"
                         lazyRules
-                        :readonly="form.price_2_option == 'markup'"
                         :disable="form.processing"
+                        :readonly="form.price_2_option == 'markup'"
                         :error="!!form.errors.price_2"
                         :errorMessage="form.errors.price_2"
                         hide-bottom-space
