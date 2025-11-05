@@ -1,22 +1,13 @@
 <script setup>
 import { router } from "@inertiajs/vue3";
 import { scrollToFirstErrorField } from "@/helpers/utils";
-import { useFormError } from "@/composables/useFormError";
 
 const props = defineProps({
-  formData: {
-    type: Object,
-    required: true,
-  },
-  formErrors: {
+  form: {
     type: Object,
     required: true,
   },
   dialogMode: {
-    type: Boolean,
-    default: false,
-  },
-  processing: {
     type: Boolean,
     default: false,
   },
@@ -28,11 +19,6 @@ const emit = defineEmits([
   "validationError",
   "cancel",
 ]);
-
-const { getErrorMessage } = useFormError(
-  () => props.formErrors,
-  () => props.dialogMode
-);
 </script>
 
 <template>
@@ -49,32 +35,32 @@ const { getErrorMessage } = useFormError(
       :class="{ 'no-shadow no-border': dialogMode }"
     >
       <q-card-section :class="{ 'q-pa-none': dialogMode }">
-        <input type="hidden" name="id" v-model="props.formData.id" />
+        <input type="hidden" name="id" v-model="form.id" />
 
         <q-input
           autofocus
-          v-model.trim="props.formData.name"
+          v-model.trim="form.name"
           label="Nama Kategori"
           lazy-rules
-          :disable="props.processing"
-          :error="!!getErrorMessage('name')"
-          :error-message="getErrorMessage('name')"
+          :disable="form.processing"
+          :error="!!form.errors.name"
+          :error-message="form.errors.name"
           :rules="[(val) => (val && val.length > 0) || 'Nama harus diisi.']"
           hide-bottom-space
           class="q-mb-md"
         />
 
         <q-input
-          v-model.trim="props.formData.description"
+          v-model.trim="form.description"
           type="textarea"
           autogrow
           counter
           maxlength="200"
           label="Deskripsi"
           lazy-rules
-          :disable="props.processing"
-          :error="!!getErrorMessage('description')"
-          :error-message="getErrorMessage('description')"
+          :disable="form.processing"
+          :error="!!form.errors.description"
+          :error-message="form.errors.description"
           hide-bottom-space
         />
       </q-card-section>
@@ -88,13 +74,13 @@ const { getErrorMessage } = useFormError(
           type="submit"
           label="Simpan"
           color="primary"
-          :disable="props.processing"
-          :loading="props.processing"
+          :disable="form.processing"
+          :loading="form.processing"
         />
         <q-btn
           icon="cancel"
           label="Batal"
-          :disable="props.processing"
+          :disable="form.processing"
           @click.stop="
             dialogMode
               ? $emit('cancel')

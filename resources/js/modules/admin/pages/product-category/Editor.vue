@@ -37,12 +37,7 @@ const submit = () =>
     </template>
     <q-page class="row justify-center">
       <div class="col col-md-6 q-pa-xs">
-        <ProductCategoryForm
-          :form-data="form"
-          :form-errors="form.errors"
-          :processing="form.processing"
-          @submit="submit"
-        />
+        <ProductCategoryForm :form="form" @submit="submit" />
       </div>
     </q-page>
   </authenticated-layout>

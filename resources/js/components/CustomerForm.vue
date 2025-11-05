@@ -33,16 +33,16 @@ const toggleSimpleMode = () => {
     @submit.prevent="$emit('submit')"
     @validation-error="$emit('validationError', $event)"
   >
-    <input type="hidden" name="id" v-model="props.form.id" />
+    <input type="hidden" name="id" v-model="form.id" />
 
     <q-card square flat class="col" :bordered="!dialogMode">
       <q-card-section :class="dialogMode ? 'q-pa-none' : 'q-pt-none'">
         <q-input
           autofocus
-          v-model.trim="props.form.code"
+          v-model.trim="form.code"
           label="Kode Pelanggan"
           :error="!!form.errors.code"
-          :disable="props.form.processing"
+          :disable="form.processing"
           :error-message="form.errors.code"
           :rules="[(val) => (val && val.length > 0) || 'Kode harus diisi.']"
           lazy-rules
@@ -51,10 +51,10 @@ const toggleSimpleMode = () => {
         />
 
         <q-input
-          v-model.trim="props.form.name"
+          v-model.trim="form.name"
           label="Nama Pelanggan"
           :error="!!form.errors.name"
-          :disable="props.form.processing"
+          :disable="form.processing"
           :error-message="form.errors.name"
           :rules="[(val) => (val && val.length > 0) || 'Nama harus diisi.']"
           lazy-rules
@@ -63,7 +63,7 @@ const toggleSimpleMode = () => {
         />
 
         <q-select
-          v-model="props.form.default_price_type"
+          v-model="form.default_price_type"
           :options="priceOptions"
           label="Tipe Harga"
           map-options
@@ -71,7 +71,7 @@ const toggleSimpleMode = () => {
           hide-bottom-space
           :error="!!form.errors.default_price_type"
           :error-message="form.errors.default_price_type"
-          :disable="props.form.processing"
+          :disable="form.processing"
           transition-show="jump-up"
           transition-hide="jump-up"
           class="q-mb-md"
@@ -79,13 +79,13 @@ const toggleSimpleMode = () => {
 
         <q-select
           v-if="!simpleMode"
-          v-model="props.form.type"
+          v-model="form.type"
           label="Jenis Akun"
           :options="types"
           map-options
           emit-value
           lazy-rules
-          :disable="props.form.processing"
+          :disable="form.processing"
           transition-show="jump-up"
           transition-hide="jump-up"
           :error="!!form.errors.type"
@@ -95,10 +95,10 @@ const toggleSimpleMode = () => {
         />
 
         <q-input
-          v-model.trim="props.form.phone"
+          v-model.trim="form.phone"
           type="text"
           label="No HP"
-          :disable="props.form.processing"
+          :disable="form.processing"
           :error="!!form.errors.phone"
           :error-message="form.errors.phone"
           lazy-rules
@@ -107,11 +107,11 @@ const toggleSimpleMode = () => {
         />
 
         <q-input
-          v-model.trim="props.form.address"
+          v-model.trim="form.address"
           type="textarea"
           maxlength="200"
           label="Alamat"
-          :disable="props.form.processing"
+          :disable="form.processing"
           :error="!!form.errors.address"
           :error-message="form.errors.address"
           autogrow
@@ -122,9 +122,9 @@ const toggleSimpleMode = () => {
         />
 
         <StandardCheckBox
-          v-model="props.form.active"
+          v-model="form.active"
           label="Aktif"
-          :disable="props.form.processing"
+          :disable="form.processing"
           class="q-mb-md"
         />
 
@@ -132,13 +132,13 @@ const toggleSimpleMode = () => {
           v-if="!simpleMode"
           autocomplete="off"
           aria-autocomplete="none"
-          v-model="props.form.password"
+          v-model="form.password"
           :label="
-            !props.form.id
+            !form.id
               ? 'Kata Sandi Baru (Wajib diisi)'
               : 'Kata Sandi (Isi jika ingin mengganti)'
           "
-          :disable="props.form.processing"
+          :disable="form.processing"
           :error="!!form.errors.password"
           :error-message="form.errors.password"
           lazy-rules
