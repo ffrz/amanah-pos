@@ -57,7 +57,7 @@ class StockAdjustmentService
         }
 
         if (!empty($filter['start_date'])) {
-            $q->whereDate('datetime', '>=', $filter['start_date']);
+            $q->where('datetime', '>=', $filter['start_date']);
         }
 
         if (!empty($filter['end_date'])) {

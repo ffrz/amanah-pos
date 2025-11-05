@@ -37,3 +37,5 @@ deploy/config.json
 #/public/build
 deploy/config.tmp.json
 /public/build
+/public/build
+/public/build

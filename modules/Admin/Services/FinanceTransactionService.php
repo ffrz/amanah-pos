@@ -110,7 +110,21 @@ class FinanceTransactionService
     {
         $filter = $options['filter'];
 
-        $q = FinanceTransaction::with('account');
+        $q = FinanceTransaction::with([
+            'account' => function ($query) {
+                $query->select('id', 'name', 'bank', 'number', 'holder');
+            }
+        ])
+            ->select(
+                'id',
+                'code',
+                'datetime',
+                'type',
+                'amount',
+                'notes',
+                'image_path',
+                'account_id'
+            );
 
         if (!empty($filter['search'])) {
             $q->where(function ($q) use ($filter) {
@@ -120,13 +134,12 @@ class FinanceTransactionService
         }
 
         if (!empty($filter['start_date'])) {
-            $q->whereDate('datetime', '>=', $filter['start_date']);
+            $q->where('datetime', '>=', $filter['start_date']);
         }
 
         if (!empty($filter['end_date'])) {
             $q->where('datetime', '<=', $filter['end_date']);
         }
-
 
         if (!empty($filter['type']) && $filter['type'] !== 'all') {
             $q->where('type', $filter['type']);

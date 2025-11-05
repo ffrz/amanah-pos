@@ -42,7 +42,14 @@ class CustomerWalletTransactionConfirmationService
 
     public function getData(array $options): LengthAwarePaginator
     {
-        $q = CustomerWalletTransactionConfirmation::with(['customer', 'financeAccount']);
+        $q = CustomerWalletTransactionConfirmation::with([
+            'customer' => function ($query) {
+                $query->select('id', 'code', 'name');
+            },
+            'financeAccount' => function ($query) {
+                $query->select('id', 'name', 'bank', 'holder', 'number');
+            },
+        ]);
 
         $filter = $options['filter'];
 
@@ -54,7 +61,7 @@ class CustomerWalletTransactionConfirmationService
         }
 
         if (!empty($filter['start_date'])) {
-            $q->whereDate('datetime', '>=', $filter['start_date']);
+            $q->where('datetime', '>=', $filter['start_date']);
         }
 
         if (!empty($filter['end_date'])) {

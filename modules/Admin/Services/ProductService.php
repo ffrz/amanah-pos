@@ -48,7 +48,27 @@ class ProductService
     public function getData(array $options): LengthAwarePaginator
     {
         $filter = $options['filter'];
-        $query = Product::query()->with(['supplier', 'category']);
+        $query = Product::query()->with([
+            'supplier' => function ($query) {
+                $query->select('id', 'code', 'name');
+            },
+            'category' => function ($query) {
+                $query->select('id', 'name');
+            },
+        ])
+            ->select([
+                'id',
+                'supplier_id',
+                'category_id',
+                'name',
+                'cost',
+                'uom',
+                'stock',
+                'price_1',
+                'price_2',
+                'price_3',
+                'active',
+            ]);
 
         if (isset($filter['search']) && $filter['search']) {
             $query->where(function ($q) use ($filter) {
@@ -107,7 +127,15 @@ class ProductService
 
         $query->orderBy($options['order_by'], $options['order_type']);
 
-        return $query->paginate($options['per_page'])->withQueryString();
+        $paginator = $query->paginate($options['per_page'])->withQueryString();
+
+        $paginator->getCollection()->each(function ($customer) {
+            $customer->makeHidden([
+                'type_label',
+            ]);
+        });
+
+        return $paginator;
     }
 
     public function duplicate($id): Product

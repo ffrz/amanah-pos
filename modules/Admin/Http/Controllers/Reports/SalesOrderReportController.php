@@ -85,11 +85,11 @@ class SalesOrderReportController extends BaseController
         $q->where('status', \App\Models\SalesOrder::Status_Closed);
 
         if (!empty($filter['start_date'])) {
-            $q->whereDate('datetime', '>=', $filter['start_date']);
+            $q->where('datetime', '>=', $filter['start_date']);
         }
 
         if (!empty($filter['end_date'])) {
-            $q->whereDate('datetime', '<=', $filter['end_date']);
+            $q->where('datetime', '<=', $filter['end_date']);
         }
 
         if (isset($filter['customer_ids']) && is_array($filter['customer_ids'])) {

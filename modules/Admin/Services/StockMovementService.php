@@ -18,9 +18,6 @@ namespace Modules\Admin\Services;
 
 use App\Models\Product;
 use App\Models\StockMovement;
-
-use Modules\Admin\Http\Requests\StockMovement\GetDataRequest;
-
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -33,7 +30,20 @@ class StockMovementService
     {
         $filter = $options['filter'];
 
-        $q = StockMovement::with(['creator', 'product']);
+        $q = StockMovement::query()
+            ->select([
+                'id',
+                'code',
+                'created_at',
+                'notes',
+                'product_name',
+                'quantity',
+                'quantity_after',
+                'quantity_before',
+                'ref_id',
+                'ref_type',
+                'uom',
+            ]);
 
         if (!empty($filter['product_id'])) {
             $q->where('product_id', $filter['product_id']);
@@ -42,10 +52,7 @@ class StockMovementService
         if (!empty($filter['search'])) {
             $q->where(function (Builder $query) use ($filter) {
                 $query->where('notes', 'like', '%' . $filter['search'] . '%');
-
-                $query->orWhereHas('product', function ($productQuery) use ($filter) {
-                    $productQuery->where('name', 'like', '%' . $filter['search'] . '%');
-                });
+                $query->orWhere('product_name', 'like', '%' . $filter['search'] . '%');
             });
         }
 

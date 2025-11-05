@@ -246,7 +246,7 @@ const computedColumns = computed(() => {
               <template v-if="$q.screen.lt.sm">
                 <div>
                   <q-icon name="token" class="inline-icon" />
-                  {{ props.row.product.name }}
+                  {{ props.row.product_name }}
                 </div>
                 <div
                   :class="
@@ -268,7 +268,7 @@ const computedColumns = computed(() => {
               </template>
             </q-td>
             <q-td key="product" :props="props">
-              {{ props.row.product.name }}
+              {{ props.row.product_name }}
             </q-td>
             <q-td key="quantity_before" :props="props">
               {{ formatNumber(props.row.quantity_before) }}

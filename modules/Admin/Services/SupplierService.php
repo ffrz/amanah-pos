@@ -135,7 +135,16 @@ class SupplierService
     {
         $filter = $options['filter'];
 
-        $q = Supplier::query();
+        $q = Supplier::query()->select([
+            'id',
+            'code',
+            'name',
+            // 'wallet_balance',
+            'balance',
+            'phone_1',
+            'address',
+            'active'
+        ]);;
 
         if (!empty($filter['search'])) {
             $q->where(function (Builder $q) use ($filter) {

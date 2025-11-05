@@ -290,7 +290,7 @@ class PurchaseOrderService
     {
         $filter = $options['filter'];
 
-        $q = PurchaseOrder::with(['supplier', 'details', 'details.product']);
+        $q = PurchaseOrder::query();
 
         if (!empty($filter['search'])) {
             $q->where(function ($q) use ($filter) {
@@ -298,12 +298,9 @@ class PurchaseOrderService
                 $q->orWhere('notes', 'like', '%' . $filter['search'] . '%');
                 $q->orWhere('supplier_code', 'like', '%' . $filter['search'] . '%');
                 $q->orWhere('supplier_name', 'like', '%' . $filter['search'] . '%');
-                // $q->orWhere('supplier_phone', 'like', '%' . $filter['search'] . '%');
-                // $q->orWhere('supplier_address', 'like', '%' . $filter['search'] . '%');
-            });
-
-            $q->orWhereHas('details.product', function ($q) use ($filter) {
-                $q->where('name', 'like', "%" . $filter['search'] . "%");
+                $q->orWhereHas('details.product', function ($q) use ($filter) {
+                    $q->where('name', 'like', "%" . $filter['search'] . "%");
+                });
             });
         }
 
@@ -329,7 +326,7 @@ class PurchaseOrderService
         }
 
         if (!empty($filter['start_date'])) {
-            $q->whereDate('datetime', '>=', $filter['start_date']);
+            $q->where('datetime', '>=', $filter['start_date']);
         }
 
         if (!empty($filter['end_date'])) {
@@ -340,7 +337,6 @@ class PurchaseOrderService
             $q->where('supplier_id', $filter['supplier_id']);
         }
 
-        // $q->select(['id', 'total_price', 'datetime', 'status', 'payment_status', 'delivery_status'])
         $q->orderBy($options['order_by'], $options['order_type']);
 
         return $q->paginate($options['per_page']);

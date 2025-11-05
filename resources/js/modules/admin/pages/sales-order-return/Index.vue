@@ -22,8 +22,6 @@ const loading = ref(true);
 const tableRef = ref(null);
 const filterToolbarRef = ref(null);
 const tableHeight = useTableHeight(filterToolbarRef);
-const startDate = dayjs().startOf("month").toDate();
-const endDate = dayjs().endOf("month").toDate();
 
 const statusOptions = [
   { value: "all", label: "Semua Status" },
@@ -39,8 +37,8 @@ const filter = reactive({
   search: "",
   status: "all",
   refund_status: "all",
-  start_date: startDate,
-  end_date: endDate,
+  start_date: dayjs().startOf("month").toDate(),
+  end_date: dayjs().endOf("month").toDate(),
   ...getQueryParams(),
 });
 
@@ -336,17 +334,17 @@ const computedColumns = computed(() => {
                   Terminal:
                   {{ props.row.cashier_session?.cashier_terminal?.name }}
                 </div>
-                <div v-if="props.row.customer">
+                <div v-if="props.row.customer_id">
                   <q-icon name="person" class="inline-icon" />
                   <my-link
                     :href="
                       route('admin.customer.detail', {
-                        id: props.row.customer.id,
+                        id: props.row.customer_id,
                       })
                     "
                     @click.stop
-                    >&nbsp; {{ props.row.customer.code }} -
-                    {{ props.row.customer.name }}
+                    >&nbsp; {{ props.row.customer_code }} -
+                    {{ props.row.customer_name }}
                   </my-link>
                 </div>
                 <div>Rp. {{ formatNumber(props.row.grand_total) }}</div>
@@ -387,11 +385,19 @@ const computedColumns = computed(() => {
               </div>
             </q-td>
             <q-td key="customer_id" :props="props">
-              <div v-if="props.row.customer">
+              <div v-if="props.row.customer_id">
                 <div>
                   <q-icon name="person" class="inline-icon" />
-                  {{ props.row.customer_code }} -
-                  {{ props.row.customer_name }}
+                  <my-link
+                    :href="
+                      route('admin.customer.detail', {
+                        id: props.row.customer_id,
+                      })
+                    "
+                    @click.stop
+                    >&nbsp; {{ props.row.customer_code }} -
+                    {{ props.row.customer_name }}
+                  </my-link>
                 </div>
                 <div v-if="props.row.customer_phone">
                   <q-icon name="phone" class="inline-icon" />

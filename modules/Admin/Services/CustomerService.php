@@ -41,9 +41,25 @@ class CustomerService
         return $lockedCustomer;
     }
 
-    public function find(int $id): Customer
+    public function find(int $id, $cols = "*"): Customer
     {
-        return Customer::with(['creator', 'updater'])->findOrFail($id);
+        $query = Customer::query();
+
+        if ($cols !== "*") {
+            $selectedColumns = is_array($cols) ? $cols : explode(',', $cols);
+            $requiredFks = ['id', 'creator_id', 'updater_id'];
+            $finalColumns = array_unique(array_merge($selectedColumns, $requiredFks));
+            $query->select($finalColumns);
+        }
+
+        return $query->with([
+            'creator' => function ($q) {
+                $q->select('id', 'name', 'username');
+            },
+            'updater' => function ($q) {
+                $q->select('id', 'name', 'username');
+            }
+        ])->findOrFail($id);
     }
 
     public function findOrCreate($id): Customer
@@ -81,7 +97,16 @@ class CustomerService
     {
         $filter = $options['filter'];
 
-        $q = Customer::query();
+        $q = Customer::query()->select([
+            'id',
+            'code',
+            'name',
+            'wallet_balance',
+            'balance',
+            'phone',
+            'address',
+            'active'
+        ]);
 
         if (!empty($filter['search'])) {
             $q->where(function ($q) use ($filter) {
@@ -98,7 +123,16 @@ class CustomerService
 
         $q->orderBy($options['order_by'], $options['order_type']);
 
-        return $q->paginate($options['per_page'])->withQueryString();
+        $paginator =  $q->paginate($options['per_page'])->withQueryString();
+
+        $paginator->getCollection()->each(function ($customer) {
+            $customer->makeHidden([
+                'type_label',
+                'default_price_type_label'
+            ]);
+        });
+
+        return $paginator;
     }
 
     public function save(Customer $item, array $data): Customer

@@ -45,7 +45,7 @@ class PurchaseOrderReturnService
         $orderType = $options['order_type'];
         $filter = $options['filter'];
 
-        $q = PurchaseOrderReturn::with(['purchaseOrder', 'supplier', 'details', 'details.product']);
+        $q = PurchaseOrderReturn::with(['purchaseOrder:id,code']);
 
         if (!empty($filter['search'])) {
             $q->where(function ($q) use ($filter) {
@@ -55,10 +55,10 @@ class PurchaseOrderReturnService
                 $q->orWhere('supplier_name', 'like', '%' . $filter['search'] . '%');
                 $q->orWhere('supplier_phone', 'like', '%' . $filter['search'] . '%');
                 $q->orWhere('supplier_address', 'like', '%' . $filter['search'] . '%');
-            });
 
-            $q->orWhereHas('details.product', function ($q) use ($filter) {
-                $q->where('name', 'like', "%" . $filter['search'] . "%");
+                $q->orWhereHas('details.product', function ($q) use ($filter) {
+                    $q->where('name', 'like', "%" . $filter['search'] . "%");
+                });
             });
         }
 
@@ -74,7 +74,7 @@ class PurchaseOrderReturnService
         }
 
         if (!empty($filter['start_date'])) {
-            $q->whereDate('datetime', '>=', $filter['start_date']);
+            $q->where('datetime', '>=', $filter['start_date']);
         }
 
         if (!empty($filter['end_date'])) {

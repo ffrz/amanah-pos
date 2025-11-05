@@ -54,7 +54,7 @@ class OperationalCostService
     {
         $filter = $options['filter'];
 
-        $q = OperationalCost::with(['category', 'financeAccount']);
+        $q = OperationalCost::with(['category:id,name', 'financeAccount:id,name,bank,number,holder']);
 
         if (!empty($filter['search'])) {
             $q->where(function ($q) use ($filter) {
@@ -77,11 +77,11 @@ class OperationalCostService
         }
 
         if (!empty($filter['start_date'])) {
-            $q->whereDate('datetime', '>=', $filter['start_date']);
+            $q->where('date', '>=', $filter['start_date']);
         }
 
         if (!empty($filter['end_date'])) {
-            $q->where('datetime', '<=', $filter['end_date']);
+            $q->where('date', '<=', $filter['end_date']);
         }
 
 

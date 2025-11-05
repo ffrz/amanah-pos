@@ -56,9 +56,7 @@ class Supplier extends BaseModel
     ];
 
 
-    protected $appends = [
-        'actual_balance',
-    ];
+    protected $appends = [];
 
     protected function casts(): array
     {

@@ -533,18 +533,6 @@ const goToDetail = (props) => {
                   Supplier: {{ props.row.supplier.name }}
                 </div>
               </template>
-              <LongTextView
-                v-if="props.row.description"
-                :text="props.row.description"
-                icon="notes"
-                :max-length="200"
-              />
-              <LongTextView
-                v-if="props.row.notes"
-                :text="props.row.notes"
-                icon="notes"
-                :max-length="200"
-              />
             </q-td>
           </q-tr>
         </template>

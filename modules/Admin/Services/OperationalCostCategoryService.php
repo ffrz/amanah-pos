@@ -47,7 +47,8 @@ class OperationalCostCategoryService
     {
         $filter = $options['filter'];
 
-        $q = OperationalCostCategory::query();
+        $q = OperationalCostCategory::query()
+            ->select(['id', 'name', 'description']);
 
         if (!empty($filter['search'])) {
             $q->where(function ($q) use ($filter) {

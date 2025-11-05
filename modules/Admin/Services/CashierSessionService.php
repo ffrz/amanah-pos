@@ -62,7 +62,12 @@ class CashierSessionService
     {
         $filter = $options['filter'];
 
-        $q = CashierSession::with(['cashierTerminal', 'user']);
+        $q = CashierSession::with([
+            'cashierTerminal:id,name,finance_account_id',
+            'user:id,name,username',
+            'cashierTerminal.financeAccount:id,name,balance'
+        ])
+            ->select();
 
         if (!empty($filter['search'])) {
             $q->where(function ($q) use ($filter) {

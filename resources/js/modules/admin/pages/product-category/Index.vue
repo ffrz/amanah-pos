@@ -35,7 +35,7 @@ const columns = [
   },
   {
     name: "description",
-    label: "Catatan",
+    label: "Deskripsi",
     field: "description",
     align: "left",
   },

@@ -51,7 +51,14 @@ class CustomerWalletTransactionService
     {
         $filter = $options['filter'];
 
-        $q = CustomerWalletTransaction::with(['customer', 'financeAccount']);
+        $q = CustomerWalletTransaction::with([
+            'customer' => function ($query) {
+                $query->select('id', 'code', 'name');
+            },
+            'financeAccount' => function ($query) {
+                $query->select('id', 'name', 'bank', 'holder', 'number');
+            },
+        ]);
 
         if (!empty($filter['search'])) {
             $q->where(function ($q) use ($filter) {
@@ -61,7 +68,7 @@ class CustomerWalletTransactionService
         }
 
         if (!empty($filter['start_date'])) {
-            $q->whereDate('datetime', '>=', $filter['start_date']);
+            $q->where('datetime', '>=', $filter['start_date']);
         }
 
         if (!empty($filter['end_date'])) {

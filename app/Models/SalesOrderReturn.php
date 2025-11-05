@@ -35,7 +35,7 @@ class SalesOrderReturn extends BaseModel
     protected $fillable = [
         'code',
         'sales_order_id',
-        'user_id', // Siapa yang memproses retur
+        'user_id',
 
         'customer_id',
         'customer_code',

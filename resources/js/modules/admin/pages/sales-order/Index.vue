@@ -365,18 +365,18 @@ const computedColumns = computed(() => {
                   Terminal:
                   {{ props.row.cashier_session?.cashier_terminal?.name }}
                 </div>
-                <div v-if="props.row.customer">
+                <div v-if="props.row.customer_id">
                   <q-icon name="person" class="inline-icon" />
                   Pelanggan:
                   <my-link
                     :href="
                       route('admin.customer.detail', {
-                        id: props.row.customer.id,
+                        id: props.row.customer_id,
                       })
                     "
                     @click.stop
-                    >&nbsp; {{ props.row.customer.code }} -
-                    {{ props.row.customer.name }}
+                    >&nbsp; {{ props.row.customer_code }} -
+                    {{ props.row.customer_name }}
                   </my-link>
                 </div>
                 <div>
@@ -419,7 +419,7 @@ const computedColumns = computed(() => {
               </div>
             </q-td>
             <q-td key="customer_id" :props="props">
-              <div v-if="props.row.customer">
+              <div v-if="props.row.customer_id">
                 <div>
                   <q-icon name="person" class="inline-icon" />
                   {{ props.row.customer_code }} -

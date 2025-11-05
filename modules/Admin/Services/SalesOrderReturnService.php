@@ -44,7 +44,26 @@ class SalesOrderReturnService
         $orderType = $options['order_type'];
         $filter = $options['filter'];
 
-        $q = SalesOrderReturn::with(['salesOrder', 'customer', 'details', 'details.product']);
+        $q = SalesOrderReturn::with([
+            'salesOrder:id,code'
+        ]);
+
+        $q->select([
+            'id',
+            'code',
+            'datetime',
+            'status',
+            'refund_status',
+            'grand_total',
+            'notes',
+            'cashier_id',
+            'customer_id',
+            'customer_code',
+            'customer_name',
+            'customer_phone',
+            'customer_address',
+
+        ]);
 
         if (!empty($filter['search'])) {
             $q->where(function ($q) use ($filter) {
@@ -54,10 +73,10 @@ class SalesOrderReturnService
                 $q->orWhere('customer_name', 'like', '%' . $filter['search'] . '%');
                 $q->orWhere('customer_phone', 'like', '%' . $filter['search'] . '%');
                 $q->orWhere('customer_address', 'like', '%' . $filter['search'] . '%');
-            });
 
-            $q->orWhereHas('details.product', function ($q) use ($filter) {
-                $q->where('name', 'like', "%" . $filter['search'] . "%");
+                $q->orWhereHas('details.product', function ($q) use ($filter) {
+                    $q->where('name', 'like', "%" . $filter['search'] . "%");
+                });
             });
         }
 
@@ -73,7 +92,7 @@ class SalesOrderReturnService
         }
 
         if (!empty($filter['start_date'])) {
-            $q->whereDate('datetime', '>=', $filter['start_date']);
+            $q->where('datetime', '>=', $filter['start_date']);
         }
 
         if (!empty($filter['end_date'])) {
@@ -88,10 +107,17 @@ class SalesOrderReturnService
             $q->where('cashier_session_id', $filter['cashier_session_id']);
         }
 
-        // $q->select(['id', 'total_price', 'datetime', 'status', 'payment_status', 'delivery_status'])
         $q->orderBy($orderBy, $orderType);
 
-        return $q->paginate($options['per_page']);
+        $paginator = $q->paginate($options['per_page']);
+        $paginator->getCollection()->each(function ($data) {
+            $data->makeHidden([
+                'customer',
+                'status_label',
+                'payment_status_label',
+            ]);
+        });
+        return $paginator;
     }
 
     public function createOrderReturn(SalesOrder $order): SalesOrderReturn

@@ -39,7 +39,8 @@ class CashierTerminalService
     {
         $filter = $options['filter'];
 
-        $q = CashierTerminal::with(['financeAccount']);
+        $q = CashierTerminal::with(['financeAccount:id,name'])
+            ->select(['id', 'name', 'location', 'notes', 'active', 'finance_account_id']);
 
         if (!empty($filter['search'])) {
             $searchTerm = $filter['search'];

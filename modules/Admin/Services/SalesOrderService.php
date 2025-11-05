@@ -47,7 +47,34 @@ class SalesOrderService
         $orderType = $options['order_type'];
         $filter = $options['filter'];
 
-        $q = SalesOrder::with(['customer', 'details', 'details.product', 'cashier', 'cashierSession.cashierTerminal']);
+        $q = SalesOrder::with([
+            'cashier' => fn($q) => $q->select('id', 'username', 'name'),
+            'cashierSession' => function ($q) {
+                $q->select('id', 'cashier_terminal_id')
+                    ->with([
+                        'cashierTerminal' => fn($q) => $q->select('id', 'name')
+                    ]);
+            },
+        ]);
+
+        $q->select([
+            'id',
+            'code',
+            'status',
+            'payment_status',
+            'delivery_status',
+            'customer_id',
+            'cashier_id',
+            'cashier_session_id',
+            'datetime',
+            'grand_total',
+            'balance',
+            'notes',
+            'customer_code',
+            'customer_name',
+            'customer_phone',
+            'customer_address'
+        ]);
 
 
         if (!empty($filter['search'])) {
@@ -58,10 +85,10 @@ class SalesOrderService
                 $q->orWhere('customer_name', 'like', '%' . $filter['search'] . '%');
                 $q->orWhere('customer_phone', 'like', '%' . $filter['search'] . '%');
                 $q->orWhere('customer_address', 'like', '%' . $filter['search'] . '%');
-            });
 
-            $q->orWhereHas('details.product', function ($q) use ($filter) {
-                $q->where('name', 'like', "%" . $filter['search'] . "%");
+                $q->orWhereHas('details.product', function ($q) use ($filter) {
+                    $q->where('name', 'like', "%" . $filter['search'] . "%");
+                });
             });
         }
 
@@ -81,7 +108,7 @@ class SalesOrderService
         }
 
         if (!empty($filter['start_date'])) {
-            $q->whereDate('datetime', '>=', $filter['start_date']);
+            $q->where('datetime', '>=', $filter['start_date']);
         }
 
         if (!empty($filter['end_date'])) {
@@ -96,10 +123,19 @@ class SalesOrderService
             $q->where('cashier_session_id', $filter['cashier_session_id']);
         }
 
-        // $q->select(['id', 'total_price', 'datetime', 'status', 'payment_status', 'delivery_status'])
         $q->orderBy($orderBy, $orderType);
 
-        return $q->paginate($options['per_page']);
+        $paginator = $q->paginate($options['per_page']);
+        $paginator->getCollection()->each(function ($data) {
+            $data->makeHidden([
+                'customer',
+                'cashier_id',
+                'cashier_session_id',
+                'status_label',
+                'payment_status_label',
+            ]);
+        });
+        return $paginator;
     }
 
     public function createOrder(): SalesOrder
