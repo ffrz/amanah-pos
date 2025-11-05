@@ -36,3 +36,4 @@ deploy/config.json
 #/public/build/assets
 #/public/build
 deploy/config.tmp.json
+/public/build
