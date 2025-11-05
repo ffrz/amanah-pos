@@ -3,15 +3,12 @@ import { router, useForm, usePage } from "@inertiajs/vue3";
 import { handleSubmit } from "@/helpers/client-req-handler";
 import { scrollToFirstErrorField } from "@/helpers/utils";
 import { ref } from "vue";
-import SupplierForm from "@/components/SupplierForm.vue"; // Import komponen form inti
+import SupplierForm from "@/components/SupplierForm.vue";
 
 const page = usePage();
 const title = (!!page.props.data.id ? "Edit" : "Tambah") + " Pemasok";
-
-// Simple mode state
 const simpleMode = ref(true);
 
-// Initialize Inertia form with all fields
 const form = useForm({
   id: page.props.data.id,
   code: page.props.data.code,
@@ -37,7 +34,6 @@ const submit = () => handleSubmit({ form, url: route("admin.supplier.save") });
 
 <template>
   <i-head :title="title" />
-  <!-- Asumsi AuthenticatedLayout dan IHead tersedia -->
   <authenticated-layout :show-drawer-button="true">
     <template #title>{{ title }}</template>
 
@@ -54,7 +50,6 @@ const submit = () => handleSubmit({ form, url: route("admin.supplier.save") });
       </div>
     </template>
     <template #right-button>
-      <!-- Tombol ini memicu submit form di SupplierForm melalui @submit pada template -->
       <q-btn
         class="q-ml-xs"
         type="submit"
@@ -70,9 +65,7 @@ const submit = () => handleSubmit({ form, url: route("admin.supplier.save") });
     <q-page class="row justify-center">
       <div class="col col-md-6 q-pa-xs">
         <SupplierForm
-          :form-data="form"
-          :form-errors="form.errors"
-          :processing="form.processing"
+          :form="form"
           :simple-mode="simpleMode"
           @update:simpleMode="simpleMode = $event"
           @submit="submit"

@@ -1,15 +1,15 @@
 <script setup>
 import { ref, computed } from "vue";
 import { useQuasar } from "quasar";
-import axios from "axios";
 import SupplierForm from "@/components/SupplierForm.vue";
+import { useApiForm } from "@/composables/useApiForm";
+import { handleLoadForm, handleSubmit } from "@/helpers/client-req-handler";
 
 const $q = useQuasar();
-const isModalOpen = ref(false);
-const isLoading = ref(false);
+const showDialog = ref(false);
 const simpleMode = ref(true);
 
-const form = ref({
+const form = useApiForm({
   id: null,
   code: null,
   name: "",
@@ -37,66 +37,31 @@ const isFullScreen = computed(() => {
   return $q.screen.lt.sm;
 });
 
-const open = async (query) => {
-  isLoading.value = true;
-  isModalOpen.value = true;
-  simpleMode.value = true;
-  try {
-    // Asumsi rute untuk data awal add/edit supplier adalah 'admin.supplier.add'
-    const response = await axios.get(route("admin.supplier.add"));
-    form.value = { ...response.data.data };
-    formErrors.value = {};
-  } catch (error) {
-    console.error("Quick Create Failed:", error.response);
-    $q.notify({
-      type: "negative",
-      message: "Gagal mengambil data awal pemasok.",
-    });
-  } finally {
-    isLoading.value = false;
-  }
+const open = async () => {
+  await handleLoadForm({
+    form,
+    url: route("admin.supplier.add"),
+  });
+  showDialog.value = true;
 };
+
+const submit = async () => {
+  handleSubmit({
+    form,
+    url: route("admin.supplier.save"),
+    onSuccess: (response) => {
+      showDialog.value = false;
+      emit("supplierCreated", response.data);
+    },
+  });
+};
+
 defineExpose({ open });
-
-const submitQuickCreate = async () => {
-  isLoading.value = true;
-  formErrors.value = {};
-
-  try {
-    // Asumsi rute untuk menyimpan supplier adalah 'admin.supplier.save'
-    const response = await axios.post(route("admin.supplier.save"), form.value);
-
-    $q.notify({
-      type: "positive",
-      message: `Pemasok ${response.data.data.name} berhasil ditambahkan!`,
-    });
-    isModalOpen.value = false;
-
-    emit("supplierCreated", response.data.data);
-  } catch (error) {
-    console.error("Quick Create Failed:", error.response);
-    let errorMessage = "Gagal menambahkan pemasok.";
-
-    if (error.response && error.response.status === 422) {
-      formErrors.value = error.response.data.errors || {};
-      errorMessage = "Formulir tidak valid. Cek kembali input Anda.";
-    } else if (error.response) {
-      errorMessage = error.response.data.message || errorMessage;
-    }
-
-    $q.notify({
-      type: "negative",
-      message: errorMessage,
-    });
-  } finally {
-    isLoading.value = false;
-  }
-};
 </script>
 
 <template>
   <q-dialog
-    v-model="isModalOpen"
+    v-model="showDialog"
     fullscreen
     persistent
     :fullscreen="isFullScreen"
@@ -111,7 +76,7 @@ const submitQuickCreate = async () => {
           round
           dense
           v-close-popup
-          :disable="isLoading"
+          :disable="form.processing"
           size="sm"
         />
       </q-card-section>
@@ -119,12 +84,10 @@ const submitQuickCreate = async () => {
       <q-card-section class="q-pt-md">
         <SupplierForm
           :dialog-mode="true"
-          :form-data="form"
-          :form-errors="formErrors"
-          :processing="isLoading"
+          :form="form"
           :simple-mode="simpleMode"
           @update:simpleMode="simpleMode = $event"
-          @submit="submitQuickCreate"
+          @submit="submit"
           @validation-error="
             $q.notify({
               type: 'negative',
@@ -140,15 +103,15 @@ const submitQuickCreate = async () => {
           color="grey"
           flat
           v-close-popup
-          :disable="isLoading"
+          :disable="form.processing"
         />
 
         <q-btn
           label="Simpan"
           type="submit"
           color="primary"
-          :loading="isLoading"
-          @click="submitQuickCreate"
+          :loading="form.processing"
+          @click="submit"
         />
       </q-card-actions>
     </q-card>

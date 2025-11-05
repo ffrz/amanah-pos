@@ -4,24 +4,14 @@ import { createOptions } from "@/helpers/options";
 import StandardCheckBox from "@/components/StandardCheckBox.vue";
 
 const props = defineProps({
-  /**
-   * Mode tampilan, true jika berada di dalam Quasar dialog (untuk styling)
-   */
   dialogMode: {
     type: Boolean,
     default: false,
   },
-  /**
-   * Objek form yang berasal dari useApiForm atau useForm Inertia.
-   * Berisi: .data, .processing, .errors
-   */
   form: {
     type: Object,
     required: true,
   },
-  /**
-   * Mode input sederhana (menyembunyikan field yang jarang digunakan)
-   */
   simpleMode: {
     type: Boolean,
     default: true,
@@ -29,15 +19,9 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["submit", "validationError", "update:simpleMode"]);
-
-// Pilihan untuk dropdown
 const types = createOptions(window.CONSTANTS.CUSTOMER_TYPES);
 const priceOptions = createOptions(window.CONSTANTS.PRODUCT_PRICE_TYPES);
-
-// State untuk toggle tampilan password
-// Tampilkan secara default jika ini adalah form "Buat Baru" (tidak ada ID)
 const showPassword = ref(!props.form.id || props.form.password ? true : false);
-
 const toggleSimpleMode = () => {
   emit("update:simpleMode", !props.simpleMode);
 };
@@ -49,12 +33,10 @@ const toggleSimpleMode = () => {
     @submit.prevent="$emit('submit')"
     @validation-error="$emit('validationError', $event)"
   >
-    <!-- Field tersembunyi untuk ID (akses props.form) -->
     <input type="hidden" name="id" v-model="props.form.id" />
 
     <q-card square flat class="col" :bordered="!dialogMode">
       <q-card-section :class="dialogMode ? 'q-pa-none' : 'q-pt-none'">
-        <!-- Kode Pelanggan -->
         <q-input
           autofocus
           v-model.trim="props.form.code"
@@ -68,7 +50,6 @@ const toggleSimpleMode = () => {
           class="q-mb-md"
         />
 
-        <!-- Nama Pelanggan -->
         <q-input
           v-model.trim="props.form.name"
           label="Nama Pelanggan"
@@ -81,7 +62,6 @@ const toggleSimpleMode = () => {
           class="q-mb-md"
         />
 
-        <!-- Tipe Harga -->
         <q-select
           v-model="props.form.default_price_type"
           :options="priceOptions"
@@ -97,7 +77,6 @@ const toggleSimpleMode = () => {
           class="q-mb-md"
         />
 
-        <!-- Jenis Akun (Hanya di mode lengkap) -->
         <q-select
           v-if="!simpleMode"
           v-model="props.form.type"
@@ -115,7 +94,6 @@ const toggleSimpleMode = () => {
           class="q-mb-md"
         />
 
-        <!-- No HP -->
         <q-input
           v-model.trim="props.form.phone"
           type="text"
@@ -128,7 +106,6 @@ const toggleSimpleMode = () => {
           class="q-mb-md"
         />
 
-        <!-- Alamat -->
         <q-input
           v-model.trim="props.form.address"
           type="textarea"
@@ -144,7 +121,6 @@ const toggleSimpleMode = () => {
           class="q-mb-md"
         />
 
-        <!-- Checkbox Aktif -->
         <StandardCheckBox
           v-model="props.form.active"
           label="Aktif"
@@ -152,7 +128,6 @@ const toggleSimpleMode = () => {
           class="q-mb-md"
         />
 
-        <!-- Kata Sandi (Hanya di mode lengkap) -->
         <q-input
           v-if="!simpleMode"
           autocomplete="off"
@@ -178,7 +153,6 @@ const toggleSimpleMode = () => {
           </template>
         </q-input>
 
-        <!-- Toggle Mode Sederhana/Lengkap -->
         <div class="q-mt-md">
           <div
             class="cursor-pointer text-grey-8"
@@ -195,7 +169,6 @@ const toggleSimpleMode = () => {
       </q-card-section>
     </q-card>
 
-    <!-- Input submit tersembunyi untuk memicu submit form QForm -->
     <input type="submit" style="display: none" />
   </q-form>
 </template>

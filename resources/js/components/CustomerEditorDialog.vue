@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, nextTick } from "vue";
+import { ref, computed } from "vue";
 import { useQuasar } from "quasar";
 import CustomerForm from "@/components/CustomerForm.vue";
 import { useApiForm } from "@/composables/useApiForm";
@@ -36,7 +36,7 @@ const open = async () => {
 };
 
 const submit = async () => {
-  await handleSubmit({
+  handleSubmit({
     form,
     url: route("admin.customer.save"),
     onSuccess: (response) => {
