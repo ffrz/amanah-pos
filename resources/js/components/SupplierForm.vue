@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from "vue";
 import StandardCheckBox from "@/components/StandardCheckBox.vue";
+import { useFormError } from "@/composables/useFormError";
 
 const props = defineProps({
   dialogMode: {
@@ -27,22 +28,10 @@ const props = defineProps({
 
 const emit = defineEmits(["submit", "validationError", "update:simpleMode"]);
 
-const errors = computed(() => {
-  if (props.dialogMode) {
-    const newErrors = {};
-    for (const key in props.formErrors) {
-      if (
-        Array.isArray(props.formErrors[key]) &&
-        props.formErrors[key].length > 0
-      ) {
-        newErrors[key] = props.formErrors[key][0];
-      }
-    }
-    return newErrors;
-  }
-
-  return props.formErrors;
-});
+const { getErrorMessage } = useFormError(
+  () => props.formErrors,
+  () => props.dialogMode
+);
 
 const toggleSimpleMode = () => {
   emit("update:simpleMode", !props.simpleMode);
@@ -58,27 +47,32 @@ const toggleSimpleMode = () => {
     <input type="hidden" name="id" v-model="props.formData.id" />
     <q-card square flat class="col" :bordered="!dialogMode">
       <q-card-section :class="dialogMode ? 'q-pa-none' : 'q-pt-none'">
+        <!-- Kode Pemasok -->
         <q-input
           autofocus
           v-model.trim="props.formData.code"
           label="Kode Pemasok"
-          :error="!!errors.code"
+          :error="!!getErrorMessage('code')"
           :disable="props.processing"
-          :error-message="errors.code"
+          :error-message="getErrorMessage('code')"
           :rules="[(val) => (val && val.length > 0) || 'Kode harus diisi.']"
           lazy-rules
           hide-bottom-space
+          class="q-mb-md"
         />
+        <!-- Nama Pemasok -->
         <q-input
           v-model.trim="props.formData.name"
           label="Nama Pemasok"
-          :error="!!errors.name"
+          :error="!!getErrorMessage('name')"
           :disable="props.processing"
-          :error-message="errors.name"
+          :error-message="getErrorMessage('name')"
           :rules="[(val) => (val && val.length > 0) || 'Nama harus diisi.']"
           lazy-rules
           hide-bottom-space
+          class="q-mb-md"
         />
+        <!-- Telepon -->
         <div class="row q-col-gutter-md">
           <q-input
             v-model.trim="props.formData.phone_1"
@@ -86,8 +80,8 @@ const toggleSimpleMode = () => {
             label="No Telp"
             lazy-rules
             :disable="props.processing"
-            :error="!!errors.phone_1"
-            :error-message="errors.phone_1"
+            :error="!!getErrorMessage('phone_1')"
+            :error-message="getErrorMessage('phone_1')"
             hide-bottom-space
             class="col"
           />
@@ -98,8 +92,8 @@ const toggleSimpleMode = () => {
             label="No Telp 2"
             lazy-rules
             :disable="props.processing"
-            :error="!!errors.phone_2"
-            :error-message="errors.phone_2"
+            :error="!!getErrorMessage('phone_2')"
+            :error-message="getErrorMessage('phone_2')"
             hide-bottom-space
             class="col"
           />
@@ -110,12 +104,13 @@ const toggleSimpleMode = () => {
             label="No Telp 3"
             lazy-rules
             :disable="props.processing"
-            :error="!!errors.phone_3"
-            :error-message="errors.phone_3"
+            :error="!!getErrorMessage('phone_3')"
+            :error-message="getErrorMessage('phone_3')"
             hide-bottom-space
             class="col"
           />
         </div>
+        <!-- Alamat -->
         <q-input
           v-model.trim="props.formData.address"
           type="textarea"
@@ -125,10 +120,11 @@ const toggleSimpleMode = () => {
           label="Alamat"
           lazy-rules
           :disable="props.processing"
-          :error="!!errors.address"
-          :error-message="errors.address"
+          :error="!!getErrorMessage('address')"
+          :error-message="getErrorMessage('address')"
           hide-bottom-space
         />
+        <!-- Alamat Retur -->
         <q-input
           v-if="!simpleMode"
           v-model.trim="props.formData.return_address"
@@ -139,8 +135,8 @@ const toggleSimpleMode = () => {
           label="Alamat Retur"
           lazy-rules
           :disable="props.processing"
-          :error="!!errors.return_address"
-          :error-message="errors.return_address"
+          :error="!!getErrorMessage('return_address')"
+          :error-message="getErrorMessage('return_address')"
           hide-bottom-space
         />
 
@@ -155,8 +151,8 @@ const toggleSimpleMode = () => {
             label="Nama Bank"
             lazy-rules
             :disable="props.processing"
-            :error="!!errors.bank_account_name_1"
-            :error-message="errors.bank_account_name_1"
+            :error="!!getErrorMessage('bank_account_name_1')"
+            :error-message="getErrorMessage('bank_account_name_1')"
             hide-bottom-space
             class="col-4"
           />
@@ -166,8 +162,8 @@ const toggleSimpleMode = () => {
             label="Nomor Rekening"
             lazy-rules
             :disable="props.processing"
-            :error="!!errors.bank_account_number_1"
-            :error-message="errors.bank_account_number_1"
+            :error="!!getErrorMessage('bank_account_number_1')"
+            :error-message="getErrorMessage('bank_account_number_1')"
             hide-bottom-space
             class="col-4"
           />
@@ -177,8 +173,8 @@ const toggleSimpleMode = () => {
             label="Atas Nama"
             lazy-rules
             :disable="props.processing"
-            :error="!!errors.bank_account_holder_1"
-            :error-message="errors.bank_account_holder_1"
+            :error="!!getErrorMessage('bank_account_holder_1')"
+            :error-message="getErrorMessage('bank_account_holder_1')"
             hide-bottom-space
             class="col-4"
           />
@@ -195,8 +191,8 @@ const toggleSimpleMode = () => {
             label="Nama Bank"
             lazy-rules
             :disable="props.processing"
-            :error="!!errors.bank_account_name_2"
-            :error-message="errors.bank_account_name_2"
+            :error="!!getErrorMessage('bank_account_name_2')"
+            :error-message="getErrorMessage('bank_account_name_2')"
             hide-bottom-space
             class="col-4"
           />
@@ -206,8 +202,8 @@ const toggleSimpleMode = () => {
             label="Nomor Rekening"
             lazy-rules
             :disable="props.processing"
-            :error="!!errors.bank_account_number_2"
-            :error-message="errors.bank_account_number_2"
+            :error="!!getErrorMessage('bank_account_number_2')"
+            :error-message="getErrorMessage('bank_account_number_2')"
             hide-bottom-space
             class="col-4"
           />
@@ -217,8 +213,8 @@ const toggleSimpleMode = () => {
             label="Atas Nama"
             lazy-rules
             :disable="props.processing"
-            :error="!!errors.bank_account_holder_2"
-            :error-message="errors.bank_account_holder_2"
+            :error="!!getErrorMessage('bank_account_holder_2')"
+            :error-message="getErrorMessage('bank_account_holder_2')"
             hide-bottom-space
             class="col-4"
           />
@@ -232,8 +228,8 @@ const toggleSimpleMode = () => {
             label="URL 1"
             lazy-rules
             :disable="props.processing"
-            :error="!!errors.url_1"
-            :error-message="errors.url_1"
+            :error="!!getErrorMessage('url_1')"
+            :error-message="getErrorMessage('url_1')"
             hide-bottom-space
             class="col"
           />
@@ -243,8 +239,8 @@ const toggleSimpleMode = () => {
             label="URL 2"
             lazy-rules
             :disable="props.processing"
-            :error="!!errors.url_2"
-            :error-message="errors.url_2"
+            :error="!!getErrorMessage('url_2')"
+            :error-message="getErrorMessage('url_2')"
             hide-bottom-space
             class="col"
           />

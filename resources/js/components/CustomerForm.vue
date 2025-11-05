@@ -2,6 +2,7 @@
 import { computed, ref } from "vue";
 import { createOptions } from "@/helpers/options";
 import StandardCheckBox from "@/components/StandardCheckBox.vue";
+import { useFormError } from "@/composables/useFormError";
 
 const props = defineProps({
   dialogMode: {
@@ -28,22 +29,10 @@ const props = defineProps({
 
 const emit = defineEmits(["submit", "update:simpleMode"]);
 
-const errors = computed(() => {
-  if (props.dialogMode) {
-    const newErrors = {};
-    for (const key in props.formErrors) {
-      if (
-        Array.isArray(props.formErrors[key]) &&
-        props.formErrors[key].length > 0
-      ) {
-        newErrors[key] = props.formErrors[key][0];
-      }
-    }
-    return newErrors;
-  }
-
-  return props.formErrors;
-});
+const { getErrorMessage } = useFormError(
+  () => props.formErrors,
+  () => props.dialogMode
+);
 
 const types = createOptions(window.CONSTANTS.CUSTOMER_TYPES);
 const priceOptions = createOptions(window.CONSTANTS.PRODUCT_PRICE_TYPES);
@@ -66,9 +55,9 @@ const toggleSimpleMode = () => {
           autofocus
           v-model.trim="props.formData.code"
           label="Kode Pelanggan"
-          :error="!!errors.code"
+          :error="!!getErrorMessage('code')"
           :disable="props.processing"
-          :error-message="errors.code"
+          :error-message="getErrorMessage('code')"
           :rules="[(val) => (val && val.length > 0) || 'Kode harus diisi.']"
           lazy-rules
           hide-bottom-space
@@ -76,9 +65,9 @@ const toggleSimpleMode = () => {
         <q-input
           v-model.trim="props.formData.name"
           label="Nama Pelanggan"
-          :error="!!errors.name"
+          :error="!!getErrorMessage('name')"
           :disable="props.processing"
-          :error-message="errors.name"
+          :error-message="getErrorMessage('name')"
           :rules="[(val) => (val && val.length > 0) || 'Nama harus diisi.']"
           lazy-rules
           hide-bottom-space
@@ -90,8 +79,8 @@ const toggleSimpleMode = () => {
           map-options
           emit-value
           hide-bottom-space
-          :error="!!errors.default_price_type"
-          :error-message="errors.default_price_type"
+          :error="!!getErrorMessage('default_price_type')"
+          :error-message="getErrorMessage('default_price_type')"
           :disable="props.processing"
           transition-show="jump-up"
           transition-hide="jump-up"
@@ -107,8 +96,8 @@ const toggleSimpleMode = () => {
           :disable="props.processing"
           transition-show="jump-up"
           transition-hide="jump-up"
-          :error="!!errors.type"
-          :error-message="errors.type"
+          :error="!!getErrorMessage('type')"
+          :error-message="getErrorMessage('type')"
           hide-bottom-space
         />
         <q-input
@@ -116,8 +105,8 @@ const toggleSimpleMode = () => {
           type="text"
           label="No HP"
           :disable="props.processing"
-          :error="!!errors.phone"
-          :error-message="errors.phone"
+          :error="!!getErrorMessage('phone')"
+          :error-message="getErrorMessage('phone')"
           lazy-rules
           hide-bottom-space
         />
@@ -127,8 +116,8 @@ const toggleSimpleMode = () => {
           maxlength="200"
           label="Alamat"
           :disable="props.processing"
-          :error="!!errors.address"
-          :error-message="errors.address"
+          :error="!!getErrorMessage('address')"
+          :error-message="getErrorMessage('address')"
           autogrow
           counter
           lazy-rules
@@ -150,8 +139,8 @@ const toggleSimpleMode = () => {
               : 'Kata Sandi (Isi jika ingin mengganti)'
           "
           :disable="props.processing"
-          :error="!!errors.password"
-          :error-message="errors.password"
+          :error="!!getErrorMessage('password')"
+          :error-message="getErrorMessage('password')"
           lazy-rules
           hide-bottom-space
           :type="showPassword ? 'text' : 'password'"

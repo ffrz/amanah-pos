@@ -1,7 +1,7 @@
 <script setup>
 import { router } from "@inertiajs/vue3";
-import { computed } from "vue";
 import { scrollToFirstErrorField } from "@/helpers/utils";
+import { useFormError } from "@/composables/useFormError";
 
 const props = defineProps({
   formData: {
@@ -29,26 +29,10 @@ const emit = defineEmits([
   "cancel",
 ]);
 
-const processedErrors = computed(() => {
-  const finalErrors = {};
-  if (props.dialogMode) {
-    for (const key in props.formErrors) {
-      const errorValue = props.formErrors[key];
-      if (Array.isArray(errorValue) && errorValue.length > 0) {
-        finalErrors[key] = errorValue[0];
-      } else if (typeof errorValue === "string") {
-        finalErrors[key] = errorValue;
-      }
-    }
-  } else {
-    return props.formErrors;
-  }
-  return finalErrors;
-});
-
-const getErrorMessage = (key) => {
-  return processedErrors.value[key] || null;
-};
+const { getErrorMessage } = useFormError(
+  () => props.formErrors,
+  () => props.dialogMode
+);
 </script>
 
 <template>

@@ -74,9 +74,7 @@ defineExpose({
   <q-dialog v-model="isModalOpen" persistent>
     <q-card style="width: 400px; max-width: 90vw">
       <q-card-section class="row items-center q-pb-none">
-        <div class="text-subtitle1 text-grey-8">
-          Tambah Kategori Produk Baru
-        </div>
+        <div class="text-subtitle1 text-grey-8">Tambah Kategori Produk</div>
         <q-space />
         <q-btn
           icon="close"
