@@ -53,6 +53,7 @@ class CustomerService
             'type' => Customer::Type_General,
             'code' => $this->generateCustomerCode(),
             'default_price_type' => Product::PriceType_Price1,
+            'active' => true,
         ]);
     }
 

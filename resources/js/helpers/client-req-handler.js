@@ -39,17 +39,16 @@ export const transformPayload = (form, fields) => {
   });
 };
 
-export function handleSubmit(data) {
+export async function handleSubmit(data) {
   const { form, url, onSuccess, onError } = data;
 
   form.clearErrors();
-  form.post(url, {
+  await form.post(url, {
     preserveScroll: true,
     onSuccess: (response) => {
       if (response.message) {
         Notify.create({
           message: response.message,
-          icon: "info",
           color: "grey",
           actions: [
             { icon: "close", color: "white", round: true, dense: true },
@@ -218,4 +217,26 @@ export function handleFetchItems(options) {
         scrollableElement.scrollTop = 0;
       });
     });
+}
+
+export async function handleLoadForm(data) {
+  const { form, url, onSuccess, onError } = data;
+  try {
+    form.reset();
+    form.clearErrors();
+    form.processing = true;
+
+    const response = await axios.get(url);
+    form.setData(response.data.data);
+    if (onSuccess) onSuccess(response);
+  } catch (error) {
+    console.error("Quick Create Failed:", error);
+    $q.notify({
+      type: "negative",
+      message: "Gagal mengambil data awal pelanggan.",
+    });
+    if (onError) onError(response);
+  } finally {
+    form.processing = false;
+  }
 }

@@ -23,7 +23,7 @@ class JsonResponseHelper
     /**
      * Success response
      */
-    public static function success($data = null, string $message = 'Success', int $status = 200): JsonResponse
+    public static function success($data = null, string $message = 'Sukses', int $status = 200): JsonResponse
     {
         return response()->json([
             'status'  => 'success',
@@ -35,7 +35,7 @@ class JsonResponseHelper
     /**
      * Error response
      */
-    public static function error(string $message = 'Error', int $status = 500, $errors = null): JsonResponse
+    public static function error(string $message = 'Kesalahan', int $status = 500, $errors = null): JsonResponse
     {
         return response()->json([
             'status'  => 'error',

@@ -67,9 +67,7 @@ const submit = () =>
       <div class="col col-md-6 q-pa-xs">
         <CustomerForm
           bordered
-          :form-data="form"
-          :form-errors="form.errors"
-          :processing="form.processing"
+          :form="form"
           :simple-mode="simpleMode"
           @update:simpleMode="simpleMode = $event"
           @submit="submit"
