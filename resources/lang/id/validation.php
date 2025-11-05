@@ -27,9 +27,13 @@ return [
     // ],
     'attributes' => [
         'username' => 'Username',
+        'code' => 'Kode',
         'name' => 'Nama',
         'email' => 'Email',
         'phone' => 'No Telepon',
+        'phone_1' => 'No Telepon',
+        'phone_2' => 'No Telepon',
+        'phone_3' => 'No Telepon',
         'role' => 'Role',
         'address' => 'Alamat',
         'date' => 'Tanggal',
