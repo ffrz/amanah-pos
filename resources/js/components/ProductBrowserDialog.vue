@@ -27,7 +27,7 @@ const props = defineProps({
   },
 });
 
-const showCost = ref(false);
+const showCost = ref(props.showCost);
 const showCostEnabled = ref(props.showCost);
 
 // Emit event
@@ -378,7 +378,7 @@ watch(
               tabindex="0"
               :props="props"
               :class="{
-                inactive:
+                lowstock:
                   ['stocked', 'raw_materials'].includes(props.row.type) &&
                   props.row.stock <= 0,
                 'selected-row': selectedIndex === props.rowIndex,
@@ -447,6 +447,21 @@ watch(
 
 .selected-row td,
 .selected-row {
-  background-color: rgb(255, 255, 118) !important;
+  background-color: rgb(186, 216, 255) !important;
+  border-color: rgb(0, 183, 255) !important;
+  border-style: solid none solid none !important;
+  border-width: 1px !important;
+}
+
+.selected-row td:first-child {
+  border-left-style: solid !important;
+}
+
+.selected-row td:last-child {
+  border-right-style: solid !important;
+}
+
+.lowstock {
+  color: #a00;
 }
 </style>

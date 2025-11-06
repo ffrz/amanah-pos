@@ -58,6 +58,7 @@ class ProductService
         ])
             ->select([
                 'id',
+                'type', // product browser butuh jenis untuk nampilin stok
                 'supplier_id',
                 'category_id',
                 'name',
