@@ -3,13 +3,13 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
+ *
  * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
+ *
  * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
+ *
  * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
@@ -54,6 +54,7 @@ class UserActivityLog extends Model
     public const Category_CustomerWallet = 'customer-wallet';
     public const Category_StockAdjustment = 'stock-adjustment';
     public const Category_TaxScheme = 'tax-scheme';
+    public const Category_Uom = 'uom';
 
     /**
      * Array pemetaan Kategori untuk tampilan (Opsional, tapi konsisten)
@@ -83,6 +84,7 @@ class UserActivityLog extends Model
         self::Category_CustomerWallet => 'Manajemen Walet Pelanggan',
         self::Category_StockAdjustment => 'Manajemen Penyesuaian Stok',
         self::Category_TaxScheme => 'Manajemen Skema Pajak',
+        self::Category_Uom => 'Manajemen Satuan',
     ];
 
     /**
@@ -197,6 +199,11 @@ class UserActivityLog extends Model
     public const Name_TaxScheme_Update = 'tax-scheme.update';
     public const Name_TaxScheme_Delete = 'tax-scheme.delete';
 
+    // Uom
+    public const Name_Uom_Create = 'uom.create';
+    public const Name_Uom_Update = 'uom.update';
+    public const Name_Uom_Delete = 'uom.delete';
+
     /**
      * Array pemetaan Nama Aktivitas
      */
@@ -283,6 +290,10 @@ class UserActivityLog extends Model
         self::Name_TaxScheme_Create => 'Membuat Skema Pajak',
         self::Name_TaxScheme_Update => 'Memperbarui Skema Pajak',
         self::Name_TaxScheme_Delete => 'Menghapus Skema Pajak',
+
+        self::Name_Uom_Create => 'Membuat Satuan',
+        self::Name_Uom_Update => 'Memperbarui Satuan',
+        self::Name_Uom_Delete => 'Menghapus Satuan',
     ];
 
     // Kolom yang dapat diisi massal

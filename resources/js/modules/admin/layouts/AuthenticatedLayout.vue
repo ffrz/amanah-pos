@@ -461,7 +461,8 @@ defineExpose({
               $page.url.startsWith('/admin/products') ||
               $page.url.startsWith('/admin/product-categories') ||
               $page.url.startsWith('/admin/stock-adjustments') ||
-              $page.url.startsWith('/admin/stock-movements')
+              $page.url.startsWith('/admin/stock-movements') ||
+              $page.url.startsWith('/admin/uoms')
             "
           >
             <q-item
@@ -522,6 +523,21 @@ defineExpose({
               </q-item-section>
               <q-item-section>
                 <q-item-label>Kategori Produk</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item
+              v-if="$can('admin.uom.index')"
+              class="subnav"
+              clickable
+              v-ripple
+              :active="$page.url.startsWith('/admin/uoms')"
+              @click="router.get(route('admin.uom.index'))"
+            >
+              <q-item-section avatar>
+                <q-icon name="bia" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Satuan Produk</q-item-label>
               </q-item-section>
             </q-item>
           </q-expansion-item>

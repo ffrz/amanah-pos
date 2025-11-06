@@ -53,6 +53,7 @@ use Modules\Admin\Http\Controllers\Settings\DatabaseSettingsController;
 use Modules\Admin\Http\Controllers\Settings\PosSettingsController;
 use Modules\Admin\Http\Controllers\Settings\UserActivityLogController;
 use Modules\Admin\Http\Controllers\TaxSchemeController;
+use Modules\Admin\Http\Controllers\UomController;
 
 Route::middleware(NonAuthenticated::class)
     ->group(function () {
@@ -138,6 +139,16 @@ Route::middleware([Auth::class])
                 Route::get('edit/{id}', [ProductCategoryController::class, 'editor'])->name('admin.product-category.edit');
                 Route::post('save', [ProductCategoryController::class, 'save'])->name('admin.product-category.save');
                 Route::post('delete/{id}', [ProductCategoryController::class, 'delete'])->name('admin.product-category.delete');
+            });
+
+            Route::prefix('uoms')->group(function () {
+                Route::get('', [UomController::class, 'index'])->name('admin.uom.index');
+                Route::get('data', [UomController::class, 'data'])->name('admin.uom.data');
+                Route::get('add', [UomController::class, 'editor'])->name('admin.uom.add');
+                Route::get('edit/{id}', [UomController::class, 'editor'])->name('admin.uom.edit');
+                Route::get('duplicate/{id}', [UomController::class, 'duplicate'])->name('admin.uom.duplicate');
+                Route::post('save', [UomController::class, 'save'])->name('admin.uom.save');
+                Route::post('delete/{id}', [UomController::class, 'delete'])->name('admin.uom.delete');
             });
 
             Route::prefix('finance-accounts')->group(function () {
