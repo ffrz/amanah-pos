@@ -3,13 +3,13 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
+ *
  * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
+ *
  * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
+ *
  * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
@@ -18,7 +18,6 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Spatie\Permission\Models\Permission;
-use Illuminate\Support\Facades\Log;
 use App\Constants\AppPermissions;
 
 class SyncPermissions extends Command
@@ -44,33 +43,46 @@ class SyncPermissions extends Command
     {
         $this->info('Starting permissions synchronization...');
 
-        // Dapatkan semua izin yang terdefinisi dalam kelas AppPermissions.
-        // Asumsi metode `all()` mengembalikan array multi-dimensi dengan kategori.
+        // Ambil seluruh permission yang didefinisikan di AppPermissions
         $allPermissions = AppPermissions::all();
 
-        // Koleksi untuk melacak izin yang ada dan baru
-        $existingPermissions = Permission::all()->pluck('name')->toArray();
+        // Ambil semua permission yang sudah ada di DB (keyBy name agar mudah diakses)
+        $existingPermissions = Permission::all()->keyBy('name');
+
         $permissionsToCreate = [];
-        $permissionsInCode = []; // List of all permission names in the code
+        $permissionsToUpdate = [];
+        $permissionsInCode = [];
 
         foreach ($allPermissions as $category => $permissions) {
             foreach ($permissions as $permissionName => $permissionLabel) {
-                // Tambahkan nama izin ke array untuk pelacakan izin di kode
                 $permissionsInCode[] = $permissionName;
 
-                // Tambahkan izin ke array untuk dibuat jika belum ada di database
-                if (!in_array($permissionName, $existingPermissions)) {
+                if (!isset($existingPermissions[$permissionName])) {
+                    // Belum ada → buat baru
                     $permissionsToCreate[] = [
                         'name' => $permissionName,
                         'label' => $permissionLabel,
                         'category' => $category,
-                        'guard_name' => 'web', // Sesuaikan dengan guard Anda
+                        'guard_name' => 'web',
                     ];
+                } else {
+                    // Sudah ada → cek apakah label / kategori perlu diperbarui
+                    $perm = $existingPermissions[$permissionName];
+                    if (
+                        $perm->label !== $permissionLabel ||
+                        $perm->category !== $category
+                    ) {
+                        $permissionsToUpdate[] = [
+                            'id' => $perm->id,
+                            'label' => $permissionLabel,
+                            'category' => $category,
+                        ];
+                    }
                 }
             }
         }
 
-        // Buat izin yang belum ada
+        // Buat izin baru
         if (!empty($permissionsToCreate)) {
             Permission::insert($permissionsToCreate);
             $this->info(count($permissionsToCreate) . ' new permissions created.');
@@ -78,17 +90,23 @@ class SyncPermissions extends Command
             $this->info('No new permissions to create.');
         }
 
-        // Hapus izin di database yang tidak lagi ada di kode
-        $permissionsToDelete = array_diff($existingPermissions, $permissionsInCode);
-
-        if (!empty($permissionsToDelete)) {
-            Permission::whereIn('name', $permissionsToDelete)->delete();
-            $this->warn(count($permissionsToDelete) . ' permissions have been deleted from the database.');
+        // Update izin yang berubah label/category
+        if (!empty($permissionsToUpdate)) {
+            foreach ($permissionsToUpdate as $update) {
+                Permission::where('id', $update['id'])->update([
+                    'label' => $update['label'],
+                    'category' => $update['category'],
+                ]);
+            }
+            $this->info(count($permissionsToUpdate) . ' permissions updated.');
         } else {
-            $this->info('No permissions to delete.');
+            $this->info('No permissions to update.');
         }
 
-        // Reset cache Spatie setelah sinkronisasi
+        // Tidak ada penghapusan data (permission lama dibiarkan)
+        $this->comment('Skipped deletion step — old permissions retained.');
+
+        // Reset cache Spatie
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
         $this->info('Permissions synchronized successfully!');

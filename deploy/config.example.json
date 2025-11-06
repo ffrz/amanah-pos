@@ -27,9 +27,11 @@
     "tenants": {
         "shiftcom": {
             "host": "ftp.mysite.my.id",
+            "domain": "subdomain.mysite.my.id",
             "user": "username",
             "pass": "pass",
             "remote_path": "/public_html/tentant1"
         }
-    }
+    },
+    "app_patch_token": "YOUR_SECRET_TOKEN_HERE"
 }

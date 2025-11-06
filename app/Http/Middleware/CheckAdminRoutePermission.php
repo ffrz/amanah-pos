@@ -77,21 +77,35 @@ class CheckAdminRoutePermission
 
         // Mendefinisikan rute yang akan di-bypass dari pemeriksaan izin
         $bypassRoutes = [
-            // 'admin.dashboard',
             'admin.home',
-
             'admin.profile.edit',
             'admin.profile.update',
             'admin.profile.update-password',
-
             'admin.auth.logout',
 
-            // route berikut ini harus pakai authorization
             'admin.sales-order.add-item',
             'admin.sales-order.remove-item',
             'admin.sales-order.update',
             'admin.sales-order.update-item',
-            // Tambahkan rute lain yang tidak memerlukan izin
+            'admin.sales-order.print',
+
+            'admin.purchase-order.add-item',
+            'admin.purchase-order.remove-item',
+            'admin.purchase-order.update',
+            'admin.purchase-order.update-item',
+            'admin.purchase-order.print',
+
+            'admin.sales-order-return.add-item',
+            'admin.sales-order-return.remove-item',
+            'admin.sales-order-return.update',
+            'admin.sales-order-return.update-item',
+            'admin.sales-order-return.print',
+
+            'admin.purchase-order-return.add-item',
+            'admin.purchase-order-return.remove-item',
+            'admin.purchase-order-return.update',
+            'admin.purchase-order-return.update-item',
+            'admin.purchase-order-return.print',
         ];
 
         // Bypass jika rute ada dalam daftar pengecualian

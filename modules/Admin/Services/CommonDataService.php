@@ -32,7 +32,7 @@ class CommonDataService
      */
     public function __construct()
     {
-        // Dependencies untuk service lain (Supplier, Customer, dll.) 
+        // Dependencies untuk service lain (Supplier, Customer, dll.)
         // harus diinjeksikan di sini juga jika metode mereka direfaktor.
     }
 
@@ -118,7 +118,8 @@ class CommonDataService
     public function getAclPermissions()
     {
         // TODO: Pertimbangkan caching di sini.
-        return Permission::all();
+        $permissions = Permission::all();
+        return $permissions;
     }
 
     public function getRoles()

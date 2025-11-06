@@ -277,6 +277,22 @@ function deployTenant(string $name, array $tenantCfg, array $globalCfg): void
     logMessage("✅ Finished deployment for [$name]");
 }
 
+function patch($domain, $token)
+{
+    $url = 'https://' . $domain . '/patch-apply.php?token=' . $token;
+
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 15,
+    ]);
+
+    $response = curl_exec($ch);
+    curl_close($ch);
+
+    logMessage($response ?: 'Failed to connect to ' . $url);
+}
+
 function main(array $argv): void
 {
     $root = __DIR__;
@@ -300,10 +316,13 @@ function main(array $argv): void
             logMessage("❌ Tenant [$target] not found in config.json");
             exit(1);
         }
-        deployTenant($target, $cfg['tenants'][$target], $cfg);
+        $tenantConfig = $cfg['tenants'][$target];
+        // deployTenant($target, $tenantConfig, $cfg);
+        patch($tenantConfig['domain'], $cfg['app_patch_token']);
     } else {
         foreach ($cfg['tenants'] as $name => $tenantCfg) {
             deployTenant($name, $tenantCfg, $cfg);
+            patch($tenantCfg['domain'], $cfg['app_patch_token']);
         }
     }
 
