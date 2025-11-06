@@ -20,7 +20,7 @@ const submit = () =>
     url: route("admin.auth.login"),
     onSuccess: () => {
       form.processing = true;
-      window.location.href = route("admin.dashboard");
+      window.location.href = route("admin.home");
     },
   });
 const showPassword = ref(false);

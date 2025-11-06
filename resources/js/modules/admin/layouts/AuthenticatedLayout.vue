@@ -182,7 +182,7 @@ defineExpose({
           </q-item>
           <q-expansion-item icon="o_fast_forward" label="Pintasan">
             <q-item
-              v-if="$can('admin.sales-order.add')"
+              v-if="$can('admin.sales-order.edit')"
               class="subnav show-icon"
               clickable
               v-ripple
@@ -197,7 +197,7 @@ defineExpose({
             </q-item>
 
             <q-item
-              v-if="$can('admin.purchase-order.add')"
+              v-if="$can('admin.purchase-order.edit')"
               class="subnav show-icon"
               clickable
               v-ripple
