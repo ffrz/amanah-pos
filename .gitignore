@@ -33,9 +33,6 @@ vendor.zip
 
 # Deployment configuration
 deploy/config.json
-#/public/build/assets
-#/public/build
+/public/build/assets
+/public/build
 deploy/config.tmp.json
-/public/build
-/public/build
-/public/build
