@@ -1,29 +1,33 @@
 <?php
 
 /**
- * Simple Multi-Tenant FTP Deployer (Incremental + Cleanup)
+ * Incremental Multi-Tenant FTP Deployer
+ * --------------------------------------
  * Author: Fahmi Fauzi Rahman
- * Updated to use config.json for include_path, exclude_path, tenants
+ * Features:
+ *  - Incremental upload via deploy-list.php (mtime compare)
+ *  - Recursive FTP sync + cleanup
+ *  - Exclude/include paths from config.json
+ *  - Auto call patch endpoint after deployment
+ *  - Auto force-upload deploy-list.php to public/ if missing
  */
 
-function logMessage(string $message): void
+function logMessage(string $msg): void
 {
-    echo "[" . date('H:i:s') . "] " . $message . PHP_EOL;
+    echo "[" . date('H:i:s') . "] " . $msg . PHP_EOL;
 }
 
+/**
+ * Pastikan direktori remote ada, buat jika belum
+ */
 function ftpEnsureDir($ftp, string $remoteDir): bool
 {
-    // ... (Fungsi ini tetap sama)
     $parts = explode('/', trim($remoteDir, '/'));
     $path = '';
     foreach ($parts as $part) {
         if ($part === '') continue;
         $path .= '/' . $part;
-        // Gunakan @ftp_chdir tanpa mencoba kembali ke root jika tidak perlu.
-        if (@ftp_chdir($ftp, $path)) {
-            // @ftp_chdir($ftp, '/'); // go back root after test - Dihapus/dikomentari karena tidak perlu
-            continue;
-        }
+        if (@ftp_chdir($ftp, $path)) continue;
         if (!@ftp_mkdir($ftp, $path)) {
             logMessage("❌ Failed to create directory: $path");
             return false;
@@ -32,191 +36,196 @@ function ftpEnsureDir($ftp, string $remoteDir): bool
     return true;
 }
 
-function ftpDeleteDir($ftp, string $remoteDir): void
+/**
+ * Force upload deploy-list.php ke /public jika belum ada
+ */
+function ensureDeployListExists($ftp, string $localFile, string $remoteRoot): void
 {
-    // ... (Fungsi ini tetap sama)
-    $items = @ftp_mlsd($ftp, $remoteDir);
-    if ($items !== false) {
-        foreach ($items as $item) {
-            if ($item['name'] === '.' || $item['name'] === '..') continue;
-            $path = "$remoteDir/{$item['name']}";
-            if ($item['type'] === 'dir') {
-                ftpDeleteDir($ftp, $path);
-            } else {
-                @ftp_delete($ftp, $path);
-                logMessage("🗑️ Deleted remote file: $path");
+    $remotePath = rtrim($remoteRoot, '/') . '/public/deploy-list.php';
+    $remoteDir = dirname($remotePath);
+
+    $list = @ftp_nlist($ftp, $remoteDir);
+    $exists = false;
+    if ($list) {
+        foreach ($list as $file) {
+            if (basename($file) === 'deploy-list.php') {
+                $exists = true;
+                break;
             }
         }
     }
-    @ftp_rmdir($ftp, $remoteDir);
-    logMessage("🗑️ Removed directory: $remoteDir");
+
+    if (!$exists) {
+        logMessage("📤 deploy-list.php not found in remote, uploading...");
+        ftpEnsureDir($ftp, $remoteDir);
+        if (!ftp_put($ftp, $remotePath, $localFile, FTP_BINARY)) {
+            logMessage("❌ Failed to upload deploy-list.php");
+        } else {
+            logMessage("✅ Uploaded deploy-list.php to /public");
+            sleep(3);
+        }
+    } else {
+        logMessage("✅ deploy-list.php already exists in remote/public");
+    }
 }
 
 /**
- * Sinkronisasi rekursif antara lokal dan remote
- *
- * @param resource $ftp Koneksi FTP
- * @param string $localPath Path lokal saat ini
- * @param string $remotePath Path remote saat ini
- * @param array $exclude Array daftar item (path relatif) yang harus dikecualikan (ex: ['public/uploads', '.env'])
- * @param string $baseRemotePath Path root remote dari tenant
- * @param string $baseLocalPath Path root lokal dari folder yang di-include (folder yang pertama kali di-sync)
- * @param bool $makedir Apakah harus membuat direktori remote jika belum ada (hanya false untuk file tunggal)
+ * Ambil daftar file + timestamp dari remote (via deploy-list.php)
  */
-function ftpSyncAndClean($ftp, string $localPath, string $remotePath, array $exclude = [], string $baseRemotePath = '', string $baseLocalPath = '', bool $makedir = true): void
+function fetchRemoteFileList(string $domain, string $token): array
 {
-    // Inisialisasi base path untuk panggilan rekursif pertama
-    if (empty($baseLocalPath)) {
-        // baseLocalPath adalah folder induk dari path yang di-include (agar path relatif dihitung dengan benar)
-        $baseLocalPath = dirname($localPath) === '.' ? '' : dirname($localPath);
+    $url = "https://{$domain}/deploy-list.php?token={$token}";
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 30,
+        CURLOPT_SSL_VERIFYPEER => false,
+    ]);
+    $response = curl_exec($ch);
+    $err = curl_error($ch);
+    curl_close($ch);
+
+    if (!$response) {
+        logMessage("⚠️ Failed to fetch remote file list from $domain ($err)");
+        return [];
     }
 
-    // Fungsi untuk mendapatkan path relatif dari path lokal saat ini terhadap baseLocalPath
-    $getRelativePath = function (string $path) use ($baseLocalPath) {
-        $path = str_replace('\\', '/', $path); // Normalisasi path
-        $base = rtrim(str_replace('\\', '/', $baseLocalPath), '/');
-        if (empty($base) || $path === $base) {
-            return ltrim($path, '/');
+    $data = json_decode($response, true);
+    if (!is_array($data)) {
+        logMessage("⚠️ Invalid JSON response from deploy-list.php");
+        return [];
+    }
+
+    logMessage("✅ Remote file list fetched (" . count($data) . " files)");
+    return $data;
+}
+
+/**
+ * Sinkronisasi direktori lokal ke remote berdasarkan daftar file remote
+ */
+function ftpSyncIncremental($ftp, string $projectRoot, string $baseRemote, array $include, array $exclude, array $remoteList): void
+{
+    $projectRoot = realpath($projectRoot) ?: $projectRoot;
+    $projectRoot = rtrim(str_replace('\\', '/', $projectRoot), '/');
+
+    foreach ($include as $path) {
+        $includeReal = realpath($path);
+        if (!$includeReal || !file_exists($includeReal)) {
+            logMessage("⚠️ Skipped (not found): $path");
+            continue;
         }
-        // Hapus prefix $baseLocalPath dari $path
-        if (strpos($path, $base) === 0) {
-            $relativePath = substr($path, strlen($base));
-            return ltrim($relativePath, '/');
-        }
-        return ltrim($path, '/');
-    };
+        $includeReal = str_replace('\\', '/', $includeReal); // normalized
 
-    // Cek apakah direktori (localPath) saat ini sudah masuk daftar exclude
-    $currentRelativeDir = $getRelativePath($localPath);
-    if (!empty($currentRelativeDir) && in_array($currentRelativeDir, $exclude, true)) {
-        logMessage("🚫 Skipped (excluded directory): $localPath");
-        return; // Hentikan rekursi untuk direktori ini
-    }
+        if (is_dir($includeReal)) {
+            $iterator = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator($includeReal, RecursiveDirectoryIterator::SKIP_DOTS),
+                RecursiveIteratorIterator::SELF_FIRST
+            );
 
-    // Pastikan remote path adalah direktori
-    if ($makedir && is_dir($localPath)) {
-        @ftp_mkdir($ftp, $remotePath);
-    } elseif ($makedir && !is_dir($localPath)) {
-        // Jika ini adalah file tunggal dari deployTenant, kita harus memastikan direktori induk ada
-        $remoteDir = dirname($remotePath);
-        ftpEnsureDir($ftp, $remoteDir);
-    }
+            foreach ($iterator as $file) {
+                if ($file->isDir()) continue;
 
+                $filePath = str_replace('\\', '/', $file->getPathname());
 
-    $remoteItems = [];
-    $list = @ftp_mlsd($ftp, $remotePath);
-    if ($list !== false) {
-        foreach ($list as $item) {
-            if ($item['name'] === '.' || $item['name'] === '..') continue;
-            $remoteItems[$item['name']] = $item;
-        }
-    }
-
-    $localItems = is_dir($localPath) ? array_diff(scandir($localPath), ['.', '..']) : [];
-
-    // Upload atau update
-    if (is_dir($localPath)) {
-        foreach ($localItems as $name) {
-
-            $localFile = rtrim($localPath, '/') . '/' . $name;
-            $remoteFile = rtrim($remotePath, '/') . '/' . $name;
-            $relativeItemPath = $getRelativePath($localFile);
-
-            // Perbaikan 2.1: Cek path relatif item saat ini
-            if (in_array($relativeItemPath, $exclude, true)) {
-                logMessage("🚫 Skipped (excluded): $localFile");
-                unset($remoteItems[$name]); // Jangan hapus di cleanup
-                continue;
-            }
-
-            if (is_dir($localFile)) {
-                // Tambahkan base paths saat panggilan rekursif
-                // Note: baseRemotePath sudah tidak terlalu krusial, tapi biarkan saja. Fokus pada $baseLocalPath
-                ftpSyncAndClean($ftp, $localFile, $remoteFile, $exclude, $baseRemotePath, $baseLocalPath);
-            } else {
-                // ... (Logika upload file tetap sama)
-                $localMTime = filemtime($localFile);
-                $remoteMTime = 0;
-                if (isset($remoteItems[$name]['modify'])) {
-                    $remoteMTime = strtotime($remoteItems[$name]['modify']);
+                // compute relative path: prefer relative to project root, fallback to include root
+                if (strpos($filePath, $projectRoot . '/') === 0) {
+                    $relPath = substr($filePath, strlen($projectRoot) + 1);
+                } else {
+                    // fallback: relative to include folder
+                    $relPath = substr($filePath, strlen($includeReal) + 1);
                 }
+                $relPath = ltrim($relPath, '/');
+
+                // safety: skip if empty
+                if ($relPath === '') continue;
+
+                // Exclude check
+                $skip = false;
+                foreach ($exclude as $ex) {
+                    if (strpos($relPath, $ex) === 0) {
+                        $skip = true;
+                        break;
+                    }
+                }
+                if ($skip) continue;
+
+                $localPath = $file->getPathname();
+                $remotePath = rtrim($baseRemote, '/') . '/' . $relPath;
+
+                $localMTime = filemtime($localPath);
+                $remoteMTime = $remoteList[$relPath] ?? 0;
 
                 if ($remoteMTime < $localMTime) {
-                    logMessage("[*] Uploading updated: $remoteFile");
-                    if (!ftp_put($ftp, $remoteFile, $localFile, FTP_BINARY)) {
-                        logMessage("❌ Upload failed: $localFile");
+                    ftpEnsureDir($ftp, dirname($remotePath));
+                    logMessage("[*] Uploading: $relPath");
+                    if (!ftp_put($ftp, $remotePath, $localPath, FTP_BINARY)) {
+                        logMessage("❌ Upload failed: $relPath");
                     }
                 } else {
-                    logMessage("[=] Skipped (up-to-date): $remoteFile");
+                    logMessage("[=] Up-to-date: $relPath");
                 }
             }
-
-            unset($remoteItems[$name]); // Sudah di-handle (upload/skip)
-        }
-
-        // Perbaikan 2.2: Hapus yang tidak ada di lokal, LEWATKAN yang masuk daftar exclude
-        foreach ($remoteItems as $name => $info) {
-            // Karena item di $remoteItems tidak ada di lokal (localItems),
-            // kita hanya perlu mengecek apakah item ini atau direktori induknya masuk daftar exclude.
-
-            $remoteItemPath = rtrim($remotePath, '/') . '/' . $name;
-            // Kita tidak punya full path lokal yang sesuai, jadi kita harus menggunakan logika path relatif sebelumnya:
-
-            $currentRemoteRelativeDir = $getRelativePath($localPath);
-            $remoteRelativeItemPath = empty($currentRemoteRelativeDir)
-                ? $name
-                : $currentRemoteRelativeDir . '/' . $name;
-
-            // Jika item ini masuk daftar exclude, JANGAN HAPUS.
-            if (in_array($remoteRelativeItemPath, $exclude, true)) {
-                logMessage("🚫 Skipped (remote excluded from cleanup): $remoteItemPath");
-                continue;
-            }
-
-            // Periksa juga jika direktori induk dari item yang dihapus sudah di-exclude (Ini harusnya sudah dihandle di awal fungsi ini, tapi kita ulang cek untuk berjaga-jaga)
-            if (!empty($currentRelativeDir) && in_array($currentRelativeDir, $exclude, true)) {
-                logMessage("🚫 Skipped (remote excluded directory cleanup): $remoteItemPath");
-                continue;
-            }
-
-
-            if ($info['type'] === 'dir') {
-                ftpDeleteDir($ftp, $remoteItemPath);
+        } else {
+            // single file in include list
+            $filePath = str_replace('\\', '/', realpath($includeReal));
+            if (strpos($filePath, $projectRoot . '/') === 0) {
+                $relPath = substr($filePath, strlen($projectRoot) + 1);
             } else {
-                @ftp_delete($ftp, $remoteItemPath);
-                logMessage("🗑️ Deleted remote file: $remoteItemPath");
+                $relPath = basename($filePath);
             }
-        }
-    } else {
-        // Kalau $localPath file biasa (logika upload file tunggal)
-        // ... (Tidak diubah, karena sudah dipanggil dengan makedir=false dari deployTenant)
+            $relPath = ltrim($relPath, '/');
 
-        $localMTime = filemtime($localPath);
-        $remoteMTime = 0;
-        $remoteDir = dirname($remotePath);
-
-        $list = @ftp_mlsd($ftp, $remoteDir);
-        if ($list !== false) {
-            foreach ($list as $item) {
-                if ($item['name'] === basename($localPath) && isset($item['modify'])) {
-                    $remoteMTime = strtotime($item['modify']);
+            // Exclude check
+            $skip = false;
+            foreach ($exclude as $ex) {
+                if (strpos($relPath, $ex) === 0) {
+                    $skip = true;
                     break;
                 }
             }
-        }
+            if ($skip) continue;
 
-        if ($remoteMTime < $localMTime) {
-            logMessage("[*] Uploading updated file: $remotePath");
-            ftp_put($ftp, $remotePath, $localPath, FTP_BINARY);
-        } else {
-            logMessage("[=] Skipped (up-to-date): $remotePath");
+            $localMTime = filemtime($filePath);
+            $remoteMTime = $remoteList[$relPath] ?? 0;
+            $remotePath = rtrim($baseRemote, '/') . '/' . $relPath;
+
+            if ($remoteMTime < $localMTime) {
+                ftpEnsureDir($ftp, dirname($remotePath));
+                logMessage("[*] Uploading file: $relPath");
+                if (!ftp_put($ftp, $remotePath, $filePath, FTP_BINARY)) {
+                    logMessage("❌ Upload failed: $relPath");
+                }
+            } else {
+                logMessage("[=] Up-to-date: $relPath");
+            }
         }
     }
 }
 
+
+/**
+ * Jalankan patch endpoint setelah upload
+ */
+function patch(string $domain, string $token): void
+{
+    $url = "https://{$domain}/patch-apply.php?token={$token}";
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 20,
+        CURLOPT_SSL_VERIFYPEER => false,
+    ]);
+    $response = curl_exec($ch);
+    curl_close($ch);
+
+    logMessage("🧩 Patch: " . ($response ?: "No response"));
+}
+
+/**
+ * Deploy satu tenant
+ */
 function deployTenant(string $name, array $tenantCfg, array $globalCfg): void
 {
-    // ... (Logika koneksi dan root directory tidak diubah, dilewati untuk ringkasan)
     logMessage("=== Deploying [$name] ===");
 
     $ftp = @ftp_connect($tenantCfg['host']);
@@ -224,75 +233,43 @@ function deployTenant(string $name, array $tenantCfg, array $globalCfg): void
         logMessage("❌ Failed to connect: {$tenantCfg['host']}");
         return;
     }
+
     if (!@ftp_login($ftp, $tenantCfg['user'], $tenantCfg['pass'])) {
-        logMessage("❌ Login failed for user {$tenantCfg['user']}");
+        logMessage("❌ Login failed for {$tenantCfg['user']}");
         ftp_close($ftp);
         return;
     }
 
     ftp_pasv($ftp, true);
-    logMessage("🔗 Connected to {$tenantCfg['host']} as {$tenantCfg['user']}");
+    logMessage("🔗 Connected to {$tenantCfg['host']}");
 
     $remoteRoot = rtrim($tenantCfg['remote_path'], '/');
-    if (!ftpEnsureDir($ftp, $remoteRoot)) {
-        logMessage("❌ Failed to ensure remote root directory for tenant [$name]", false);
-        ftp_close($ftp);
-        return;
-    }
+    ftpEnsureDir($ftp, $remoteRoot);
 
+    $token = $globalCfg['app_patch_token'];
+    $domain = $tenantCfg['domain'];
     $includes = $globalCfg['include_path'] ?? [];
     $excludes = $globalCfg['exclude_path'] ?? [];
 
-    if (empty($includes) || !is_array($includes)) {
-        logMessage("⚠️ include_path is empty or invalid in config.json");
-        ftp_close($ftp);
-        return;
-    }
+    // Pastikan deploy-list.php tersedia
+    ensureDeployListExists($ftp, dirname(__DIR__) . '/public/deploy-list.php', $remoteRoot);
 
-    foreach ($includes as $path) {
-        $path = trim($path);
-        if ($path === '') continue;
+    // Ambil file list dari remote
+    $remoteList = fetchRemoteFileList($domain, $token);
 
-        if (!file_exists($path)) {
-            logMessage("⚠️ Skipped (not found): $path");
-            continue;
-        }
+    // Sinkronisasi
+    // use project root (one level up from deploy folder)
+    $projectRoot = realpath(__DIR__ . '/..') ?: __DIR__;
+    ftpSyncIncremental($ftp, $projectRoot, $remoteRoot, $includes, $excludes, $remoteList);
 
-        $remoteTarget = $remoteRoot . '/' . $path;
-
-        if (is_dir($path)) {
-            logMessage("🔄 Syncing directory: $path -> $remoteTarget");
-            // Pass baseLocalPath sebagai folder yang pertama kali di-sync (folder induk dari $path)
-            $baseLocalPath = dirname($path) === '.' ? '' : dirname($path);
-            ftpSyncAndClean($ftp, $path, $remoteTarget, $excludes, $remoteRoot, $baseLocalPath);
-        } else {
-            logMessage("⬆️ Uploading file: $path -> $remoteTarget");
-            // Untuk file tunggal, kita perlu tahu folder induknya untuk baseLocalPath
-            $baseLocalPath = dirname($path) === '.' ? '' : dirname($path);
-            ftpSyncAndClean($ftp, $path, $remoteTarget, $excludes, $remoteRoot, $baseLocalPath, makedir: false);
-        }
-    }
 
     ftp_close($ftp);
     logMessage("✅ Finished deployment for [$name]");
 }
 
-function patch($domain, $token)
-{
-    $url = 'https://' . $domain . '/patch-apply.php?token=' . $token;
-
-    $ch = curl_init($url);
-    curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT => 15,
-    ]);
-
-    $response = curl_exec($ch);
-    curl_close($ch);
-
-    logMessage($response ?: 'Failed to connect to ' . $url);
-}
-
+/**
+ * Entry point
+ */
 function main(array $argv): void
 {
     $root = __DIR__;
@@ -305,20 +282,19 @@ function main(array $argv): void
 
     $cfg = json_decode(file_get_contents($configFile), true);
     if (!$cfg) {
-        logMessage("❌ Invalid config.json format");
+        logMessage("❌ Invalid config.json");
         exit(1);
     }
 
     $target = $argv[1] ?? null;
-
     if ($target) {
         if (!isset($cfg['tenants'][$target])) {
-            logMessage("❌ Tenant [$target] not found in config.json");
+            logMessage("❌ Tenant [$target] not found");
             exit(1);
         }
-        $tenantConfig = $cfg['tenants'][$target];
-        // deployTenant($target, $tenantConfig, $cfg);
-        patch($tenantConfig['domain'], $cfg['app_patch_token']);
+        $tenantCfg = $cfg['tenants'][$target];
+        deployTenant($target, $tenantCfg, $cfg);
+        patch($tenantCfg['domain'], $cfg['app_patch_token']);
     } else {
         foreach ($cfg['tenants'] as $name => $tenantCfg) {
             deployTenant($name, $tenantCfg, $cfg);
