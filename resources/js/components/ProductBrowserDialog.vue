@@ -90,15 +90,17 @@ const columns = [
 ];
 
 const computedColumns = computed(() => {
-  if (showCost.value) {
+  // handle desktop
+  if ($q.screen.gt.sm) {
+    if (!showCost.value) {
+      return columns.filter((col) => col.name !== "cost");
+    }
+
     return columns;
   }
 
-  const cols = columns.filter((col) => col.name !== "cost");
-
-  if ($q.screen.gt.sm) return cols;
-
-  return cols.filter((col) => col.name === "name" || col.name === "stock");
+  // layar kecil
+  return columns.filter((col) => col.name === "name" || col.name === "stock");
 });
 
 onMounted(() => {
