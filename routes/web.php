@@ -39,6 +39,3 @@ Route::middleware(VerifyDeployToken::class)->prefix('sysmain')->group(function (
     Route::get('/up', [MaintenanceController::class, 'up']);
     Route::get('/migrate', [DatabaseMigrationController::class, 'migrate']);
 });
-
-
-require_once __DIR__ . '/web-api.php'; // Rute Web API untuk AJAX yang
