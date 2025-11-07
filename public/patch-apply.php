@@ -82,17 +82,18 @@ function run_cmd($cmd, $args = [])
     }
 }
 
+// Clear & rebuild caches (urutan penting: clear sebelum cache)
+run_cmd('optimize:clear');
+run_cmd('config:clear');
+run_cmd('route:clear');
+
 // Run commands (migrate harus pakai --force)
 run_cmd('migrate', ['--force' => true]);
-run_cmd('permission:sync');
+run_cmd('permissions:sync');
 
-// Clear & rebuild caches (urutan penting: clear sebelum cache)
-run_cmd('config:clear');
+run_cmd('optimize');
 run_cmd('config:cache');   // rebuild config cache
-run_cmd('route:clear');
 run_cmd('route:cache');    // rebuild routes cache
-run_cmd('view:clear');
-
 // Optional view:cache may not exist on older laravel, handle silently
 try {
     run_cmd('view:cache');

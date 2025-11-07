@@ -1,4 +1,5 @@
 {
+    "app_patch_token": "YOUR_SECRET_TOKEN_HERE",
     "include_path": [
         "app",
         "bootstrap",
@@ -32,6 +33,5 @@
             "pass": "pass",
             "remote_path": "/public_html/tentant1"
         }
-    },
-    "app_patch_token": "YOUR_SECRET_TOKEN_HERE"
+    }
 }
