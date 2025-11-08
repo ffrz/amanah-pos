@@ -525,12 +525,12 @@ const goToDetail = (props) => {
               </div>
               <div v-if="props.row.category_id">
                 <q-icon name="category" class="inline-icon" />
-                Kategori: {{ props.row.category.name }}
+                Kategori: {{ props.row.category?.name }}
               </div>
               <template v-if="$can('admin.product:view-supplier')">
                 <div v-if="props.row.supplier_id">
                   <q-icon name="local_shipping" class="inline-icon" />
-                  Supplier: {{ props.row.supplier.name }}
+                  Supplier: {{ props.row.supplier?.name }}
                 </div>
               </template>
             </q-td>

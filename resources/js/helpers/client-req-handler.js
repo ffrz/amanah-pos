@@ -149,54 +149,69 @@ export function handleFetchItems(options) {
 
   let source = props ? props.pagination : pagination.value;
 
-  // const filterString = filter ? JSON.stringify(filter) : null;
-
+  // --- PARAMETER UNTUK SERVER ---
   let params = {
+    // Di sini kita tetap mengirim 'page', 'per_page', dll.
+    // Laravel secara internal akan menentukan apakah akan menggunakan 'page' (jika LengthAware)
+    // atau 'cursor' (jika ada di URL query string).
     page: source.page,
     per_page: source.rowsPerPage,
     order_by: source.sortBy,
     order_type: source.descending ? "desc" : "asc",
     filter: filter,
   };
-  // Gunakan pathname sebagai bagian dari kunci localStorage
-  // const localStorageKey = `tableParams_${window.location.pathname}`;
 
-  // // Simpan semua parameter ke localStorage, kecuali page yang akan disimpan di URL
-  // localStorage.setItem(
-  //   localStorageKey,
-  //   JSON.stringify({
-  //     per_page: params.per_page,
-  //     order_by: params.order_by,
-  //     order_type: params.order_type,
-  //     filter: params.filter,
-  //   })
-  // );
-
-  // // Perbarui URL dengan page dan filter yang di-stringified
-  // const searchParams = new URLSearchParams({
-  //   page: source.page,
-  //   filter: filter ? JSON.stringify(filter) : "",
-  // });
-  // window.history.pushState(
-  //   {},
-  //   "",
-  //   `${window.location.pathname}?${searchParams}`
-  // );
+  // Jika Anda sudah berada di mode kursor, tambahkan kursor ke params
+  // Ini penting agar navigasi Prev/Next tetap berfungsi.
+  // Asumsikan kursor disimpan di pagination.value
+  if (pagination.value.nextCursor) {
+    params.cursor = pagination.value.nextCursor;
+  }
+  // Catatan: Biasanya Quasar/VueJS akan menangani kursor melalui URL secara otomatis.
+  // Untuk kesederhanaan, kita fokus pada parsing respons.
 
   loading.value = true;
 
   axios
     .get(url, { params: params })
     .then((response) => {
-      // FIXME: Karena server belum konsisten menggunakan helper, pengecekan ini masih dibutuhkan
       const apiResponse = response.data.status ? response.data : response;
       const data = apiResponse.data.data;
       const paginationData = apiResponse.data;
 
       rows.value = data;
-      pagination.value.page = paginationData.current_page;
-      pagination.value.rowsPerPage = paginationData.per_page;
-      pagination.value.rowsNumber = paginationData.total;
+
+      // ====================================================================
+      // === LOGIKA BARU: DETEKSI PAGINATION TYPE (LENGTH AWARE vs CURSOR) ===
+      // ====================================================================
+
+      if (paginationData.next_cursor !== undefined) {
+        // --- RESPON CURSOR PAGINATOR (Solusi Cepat) ---
+
+        // Simpan kursor berikutnya dan sebelumnya untuk navigasi
+        pagination.value.nextCursor = paginationData.next_cursor || null;
+        pagination.value.prevCursor = paginationData.prev_cursor || null;
+
+        // Penting: Hapus 'rowsNumber' (total) dan 'page' agar UI tidak menampilkan angka halaman
+        // yang salah atau mencoba melompat ke page index yang tidak ada.
+        pagination.value.rowsNumber = data.length * 2; // Beri nilai dummy > perPage
+        pagination.value.page = 1; // Set ke 1 atau biarkan saja (tergantung kebutuhan UI)
+
+        // Catatan: Di sini, tombol navigasi Quasar QTable perlu diubah
+        // agar hanya menampilkan tombol Prev/Next berdasarkan nextCursor/prevCursor.
+      } else {
+        // --- RESPON LENGTH AWARE PAGINATOR (Respons Lama/Klasik) ---
+
+        pagination.value.page = paginationData.current_page;
+        pagination.value.rowsPerPage = paginationData.per_page;
+        pagination.value.rowsNumber = paginationData.total;
+
+        // Reset kursor
+        pagination.value.nextCursor = null;
+        pagination.value.prevCursor = null;
+      }
+
+      // ====================================================================
 
       if (props) {
         pagination.value.sortBy = props.pagination.sortBy;

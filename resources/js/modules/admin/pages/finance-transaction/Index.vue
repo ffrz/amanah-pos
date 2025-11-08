@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from "vue";
 import { router, usePage } from "@inertiajs/vue3";
+// Pastikan import handleFetchItems sudah mengarah ke file yang dimodifikasi
 import { handleDelete, handleFetchItems } from "@/helpers/client-req-handler";
 import { getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
@@ -58,8 +59,11 @@ const pagination = ref({
   page: 1,
   rowsPerPage: 10,
   rowsNumber: 10,
-  sortBy: "id",
+  sortBy: "datetime",
   descending: true,
+  nextCursor: null,
+  prevCursor: null,
+  cursor: null,
 });
 
 const columns = [
@@ -68,14 +72,14 @@ const columns = [
     label: $q.screen.lt.md ? "Item" : "Kode",
     field: "id",
     align: "left",
-    sortable: true,
+    sortable: false,
   },
   {
     name: "datetime",
     label: "Waktu",
     field: "datetime",
     align: "left",
-    sortable: true,
+    sortable: false,
   },
   {
     name: "account",
@@ -123,6 +127,7 @@ const deleteItem = (row) =>
 const fetchItems = (props = null) => {
   const apiFilter = {
     ...filter,
+    // Pastikan format tanggal sesuai yang diharapkan oleh backend
     start_date: dayjs(filter.start_date).format("YYYY-MM-DD HH:mm:ss"),
     end_date: dayjs(filter.end_date).format("YYYY-MM-DD HH:mm:ss"),
   };
@@ -139,6 +144,11 @@ const fetchItems = (props = null) => {
 };
 
 const onFilterChange = () => {
+  // Ketika filter berubah, kita harus mereset kursor agar kembali ke awal data
+  pagination.value.nextCursor = null;
+  pagination.value.prevCursor = null;
+  pagination.value.cursor = null;
+  pagination.value.page = 1; // Kembali ke halaman 1
   fetchItems();
 };
 
@@ -154,6 +164,30 @@ const showAttachment = (url) => {
   activeImagePath.value = url;
   showImageViewer.value = true;
 };
+
+// --- LOGIKA BARU UNTUK CURSOR PAGINATION ---
+const isCursorMode = computed(() => {
+  // Kita anggap mode kursor aktif jika salah satu kursor memiliki nilai
+  return (
+    pagination.value.nextCursor !== null || pagination.value.prevCursor !== null
+  );
+});
+
+const goToCursorPage = (cursorType) => {
+  // 1. Set kursor yang akan dikirim pada request berikutnya ke properti 'cursor' sementara
+  if (cursorType === "next") {
+    pagination.value.cursor = pagination.value.nextCursor;
+  } else if (cursorType === "prev") {
+    pagination.value.cursor = pagination.value.prevCursor;
+  } else {
+    // Jika tidak ada tipe (misalnya, kembali ke awal), hapus kursor
+    pagination.value.cursor = null;
+  }
+
+  // 2. Panggil fetchItems. Logika pengiriman 'cursor' akan ditangani oleh handleFetchItems.js
+  fetchItems();
+};
+// --- AKHIR LOGIKA CURSOR PAGINATION ---
 </script>
 
 <template>
@@ -255,7 +289,7 @@ const showAttachment = (url) => {
         :loading="loading"
         :columns="computedColumns"
         :rows="rows"
-        :rows-per-page-options="[10, 25, 50]"
+        :rows-per-page-options="isCursorMode ? [] : [10, 25, 50]"
         @request="fetchItems"
         binary-state-sort
       >
@@ -385,6 +419,70 @@ const showAttachment = (url) => {
             </q-td>
           </q-tr>
         </template>
+
+        <!-- ========================================================== -->
+        <!-- === SLOT KRITIS: MENGGANTI PAGINATION DENGAN NAVIGASI KURSOR === -->
+        <!-- ========================================================== -->
+        <template
+          v-slot:pagination="{
+            pagination: qTablePagination,
+            prevPage,
+            nextPage,
+            pagesNumber,
+          }"
+        >
+          <div class="row full-width justify-end items-center">
+            <!-- Tampilkan navigasi kursor jika isCursorMode true -->
+            <template v-if="isCursorMode">
+              <q-btn
+                icon="chevron_left"
+                color="grey-8"
+                round
+                flat
+                dense
+                :disable="!pagination.prevCursor"
+                @click="goToCursorPage('prev')"
+              />
+              <q-btn
+                icon="chevron_right"
+                color="grey-8"
+                round
+                flat
+                dense
+                :disable="!pagination.nextCursor"
+                @click="goToCursorPage('next')"
+              />
+            </template>
+
+            <!-- Tampilkan navigasi standar (LengthAware) jika isCursorMode false -->
+            <template v-else>
+              <q-btn
+                icon="chevron_left"
+                color="grey-8"
+                round
+                flat
+                dense
+                :disable="qTablePagination.page === 1"
+                @click="prevPage"
+              />
+
+              <span class="q-mx-md text-caption text-grey-6">
+                Halaman {{ qTablePagination.page }} dari {{ pagesNumber }}
+              </span>
+
+              <q-btn
+                icon="chevron_right"
+                color="grey-8"
+                round
+                flat
+                dense
+                :disable="qTablePagination.page === pagesNumber"
+                @click="nextPage"
+              />
+            </template>
+          </div>
+        </template>
+        <!-- ========================================================== -->
       </q-table>
     </div>
     <ImageViewer v-model="showImageViewer" :imageUrl="`/${activeImagePath}`" />

@@ -23,7 +23,9 @@ use App\Models\FinanceTransaction;
 use App\Models\UserActivityLog;
 use Carbon\Carbon;
 use Exception;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class FinanceTransactionService
@@ -106,9 +108,11 @@ class FinanceTransactionService
         return $trx;
     }
 
-    public function getData(array $options): LengthAwarePaginator
+    public function getData(array $options)
     {
         $filter = $options['filter'];
+        $hasDateFilter = !empty($filter['start_date']) || !empty($filter['end_date']) || !empty($filter['from_datetime']);
+        $perPage = $options['per_page'] ?? 15;
 
         $q = FinanceTransaction::with([
             'account' => function ($query) {
@@ -124,22 +128,8 @@ class FinanceTransactionService
                 'notes',
                 'image_path',
                 'account_id'
-            );
-
-        if (!empty($filter['search'])) {
-            $q->where(function ($q) use ($filter) {
-                $q->orWhere('code', 'like', "%" . $filter['search'] . "%");
-                $q->orWhere('notes', 'like', '%' . $filter['search'] . '%');
-            });
-        }
-
-        if (!empty($filter['start_date'])) {
-            $q->where('datetime', '>=', $filter['start_date']);
-        }
-
-        if (!empty($filter['end_date'])) {
-            $q->where('datetime', '<=', $filter['end_date']);
-        }
+            )
+            ->whereNull('deleted_at');
 
         if (!empty($filter['type']) && $filter['type'] !== 'all') {
             $q->where('type', $filter['type']);
@@ -153,15 +143,46 @@ class FinanceTransactionService
             $q->where('created_by', $filter['user_id']);
         }
 
+        $startDate = $filter['start_date'] ?? null;
+        $endDate = $filter['end_date'] ?? null;
+
+        if ($startDate) {
+            $q->where('datetime', '>=', $startDate);
+        }
+        if ($endDate) {
+            $q->where('datetime', '<=', $endDate);
+        }
+
         if (!empty($filter['from_datetime'])) {
             $start = Carbon::parse($filter['from_datetime']);
             $end = empty($filter['to_datetime']) ? Carbon::now() : Carbon::parse($filter['to_datetime']);
             $q->whereBetween('created_at', [$start, $end]);
         }
 
-        $q->orderBy($options['order_by'], $options['order_type']);
+        // --- OPTIMASI KRITIS: PAKSA BATAS WAKTU JIKA TIDAK ADA FILTER DIBERIKAN ---
+        if (!$hasDateFilter) {
+            $defaultStartDate = Carbon::now()->subDays(90)->startOfDay();
+            $q->where('datetime', '>=', $defaultStartDate);
+        }
 
-        return $q->paginate($options['per_page'])->withQueryString();
+        if (!empty($filter['search'])) {
+            $q->where(function (Builder $q) use ($filter) {
+                // Catatan: Ini masih rentan terhadap Full Table Scan jika wildcard di depan
+                $q->orWhere('code', 'like', "%" . $filter['search'] . "%");
+                $q->orWhere('notes', 'like', '%' . $filter['search'] . '%');
+            });
+        }
+
+        // --- PENGURUTAN WAJIB UNTUK CURSOR PAGINATION ---
+        // Cursor pagination HARUS diurutkan berdasarkan kolom unik yang digunakan di kursor.
+        // Default Laravel menggunakan 'id', tetapi 'datetime' juga bisa (asalkan unik/digabung).
+        // Kita menggunakan datetime.
+        $orderBy = 'datetime';
+        $orderType = 'desc';
+
+        $q->orderBy($orderBy, $orderType);
+
+        return $q->cursorPaginate($perPage)->withQueryString();
     }
 
     public function delete(FinanceTransaction $item): FinanceTransaction
