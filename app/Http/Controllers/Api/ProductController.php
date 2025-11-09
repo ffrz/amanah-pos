@@ -38,17 +38,12 @@ use Modules\Admin\Services\ProductService;
 
 use Illuminate\Http\JsonResponse;
 use App\Http\Resources\ProductResource;
-use Illuminate\Support\Facades\Request;
 use Modules\Admin\Http\Requests\Product\SaveRequest;
+use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
-    protected $productService;
-
-    public function __construct(ProductService $productService)
-    {
-        $this->productService = $productService;
-    }
+    public function __construct(protected ProductService $productService) {}
 
     /**
      * Display a listing of products with search, filter, and pagination capabilities.
@@ -58,7 +53,7 @@ class ProductController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $filters = $request->validated();
+        $filters = $request->all();
         $perPage = $filters['per_page'] ?? 10;
 
         // Ekstrak opsi pengurutan dari filters untuk diteruskan ke ProductService
@@ -68,13 +63,18 @@ class ProductController extends Controller
         ];
 
         // Memanggil ProductService untuk mendapatkan query builder
-        $productsQuery = $this->productService->getProductsQuery($filters, $options);
+        $productsQuery = $this->productService->getData([
+            'filter' => [],
+            'order_by' => 'name',
+            'order_type' => 'asc',
+            'per_page' => 10,
+        ]);
 
         // Paginasi hasil
-        $products = $productsQuery->paginate($perPage);
+        // $products = $productsQuery->paginate($perPage);
 
         // Menggunakan ProductResource::collection untuk mengembalikan data dengan format yang konsisten
-        return ProductResource::collection($products)->response();
+        return ProductResource::collection($productsQuery)->response();
     }
 
     /**

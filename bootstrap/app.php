@@ -36,6 +36,17 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        $middleware->trustProxies(
+            at: [
+                '127.0.0.1', // Wajib: Mempercayai traffic dari Nginx/localhost
+                '::1',
+            ],
+            headers: Request::HEADER_X_FORWARDED_FOR |
+                Request::HEADER_X_FORWARDED_HOST |
+                Request::HEADER_X_FORWARDED_PORT |
+                Request::HEADER_X_FORWARDED_PROTO // 🚨 Wajib: Agar Laravel tahu itu HTTPS
+        );
+
         $middleware->web(append: [
             \App\Http\Middleware\SetModuleRootView::class,
             \App\Http\Middleware\HandleInertiaRequests::class,

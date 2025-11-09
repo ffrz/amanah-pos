@@ -14,6 +14,7 @@
  * Email: fahmifauzirahman@gmail.com
  */
 
+use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Deploy\DatabaseMigrationController;
 use App\Http\Controllers\Deploy\MaintenanceController;
 use App\Http\Middleware\VerifyDeployToken;
@@ -28,6 +29,8 @@ Route::get('/', function () {
         'company_address' => Setting::value('company.address', 'Indonesia'),
     ]);
 })->name('home');
+
+Route::get('/testing/products', [ProductController::class, 'index']);
 
 Route::get('/landing-page', function () {
     return view('landing-page');
