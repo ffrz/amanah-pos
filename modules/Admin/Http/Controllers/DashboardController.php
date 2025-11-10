@@ -3,13 +3,13 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
+ *
  * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
+ *
  * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
+ *
  * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
@@ -19,6 +19,8 @@ namespace Modules\Admin\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Models\FinanceAccount;
+use App\Models\FinanceTransaction;
+use App\Models\Product;
 use App\Models\SalesOrder;
 use App\Models\Supplier;
 use Carbon\Carbon;
@@ -39,6 +41,12 @@ class DashboardController extends Controller
         $topCustomerWallet = Customer::getTopCustomersByWalletBalance(5);
         return inertia('dashboard/Index', [
             'data' => [
+                'total_finance_balance' => FinanceAccount::totalActiveBalance(),
+                'total_finance_income' => FinanceTransaction::totalIncome($start_date, $end_date),
+                'total_finance_expense' => FinanceTransaction::totalExpense($start_date, $end_date),
+                'total_product_item' => Product::totalItem(),
+                'total_product_cost' => Product::totalCost(),
+                'total_product_price' => Product::totalPrice(),
                 'total_active_customer' => Customer::activeCustomerCount(),
                 'total_active_supplier' => Supplier::activeSupplierCount(),
                 'total_finance_account_balance' => FinanceAccount::totalActiveBalance(),

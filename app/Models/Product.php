@@ -3,13 +3,13 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
+ *
  * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
+ *
  * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
+ *
  * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
@@ -235,5 +235,29 @@ class Product extends BaseModel
             || DB::table('sales_order_details')
             ->where('product_id', $this->id)
             ->exists();
+    }
+
+    public static function totalCost()
+    {
+        return static::query()
+            ->where('type', static::Type_Stocked)
+            ->where('active', true)
+            ->sum(DB::raw("stock*cost"));
+    }
+
+    public static function totalPrice()
+    {
+        return static::query()
+            ->where('type', static::Type_Stocked)
+            ->where('active', true)
+            ->sum(DB::raw("stock*price_1"));
+    }
+
+    public static function totalItem()
+    {
+        return static::query()
+            ->where('type', static::Type_Stocked)
+            ->where('active', true)
+            ->sum(DB::raw("stock"));
     }
 }

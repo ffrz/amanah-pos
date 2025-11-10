@@ -6,25 +6,6 @@ import ActualSummaryCard from "./cards/ActualSummaryCard.vue";
 import ChartCard from "./cards/ChartCard.vue";
 import TopCard from "./cards/TopCard.vue";
 
-const page = usePage();
-
-const dashboardData = ref({
-  top_customers_sales: [
-    { name: "Wildan Medina", value: 1822000 },
-    { name: "Syafiq", value: 1754500 },
-    { name: "Umar", value: 1534000 },
-    { name: "Fauzan", value: 1212000 },
-    { name: "Rizky", value: 981500 },
-  ],
-  top_customers_topup: [
-    { name: "Abdullah", value: 1750000 },
-    { name: "Abdurrahman", value: 1500000 },
-    { name: "Zayd", value: 1250000 },
-    { name: "Syafiq", value: 800000 },
-    { name: "Umar", value: 650000 },
-  ],
-});
-
 const title = "Dashboard";
 const showFilter = ref(true);
 const selected_period = ref(getQueryParams()["period"] ?? "this_month");
@@ -91,11 +72,11 @@ const isDailiyPeriod = computed(() => {
 
     <div class="q-pa-xs">
       <div class="q-pa-none">
-        <ActualSummaryCard :dashboardData="dashboardData" />
+        <ActualSummaryCard />
       </div>
       <template v-if="isDailiyPeriod" >
-      <ChartCard :dashboardData="dashboardData" />
-      <TopCard :dashboardData="dashboardData" />
+      <ChartCard/>
+      <TopCard />
       </template v-if>
     </div>
   </authenticated-layout>

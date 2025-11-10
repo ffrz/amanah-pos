@@ -3,13 +3,13 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
+ *
  * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
+ *
  * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
+ *
  * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
@@ -21,6 +21,9 @@ use App\Models\Traits\HasTransactionCode;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
+use Mockery\Matcher\Type;
+use Tighten\Ziggy\Output\Types;
 
 class FinanceTransaction extends BaseModel
 {
@@ -157,5 +160,21 @@ class FinanceTransaction extends BaseModel
     public static function deleteByRef($id, $type)
     {
         static::where('ref_id', $id)->where('ref_type', $type)->delete();
+    }
+
+    public static function totalIncome($start_date, $end_date)
+    {
+        return static::where('type', static::Type_Income)
+            ->where('datetime', '>=', $start_date)
+            ->where('datetime', '<=', $end_date)
+            ->sum('amount');
+    }
+
+    public static function totalExpense($start_date, $end_date)
+    {
+        return static::where('type', static::Type_Expense)
+            ->where('datetime', '>=', $start_date)
+            ->where('datetime', '<=', $end_date)
+            ->sum(DB::raw('ABS(amount)'));
     }
 }
