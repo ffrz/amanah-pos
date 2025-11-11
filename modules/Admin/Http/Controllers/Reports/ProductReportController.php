@@ -18,6 +18,7 @@ namespace Modules\Admin\Http\Controllers\Reports;
 
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Modules\Admin\Services\CommonDataService;
 
 class ProductReportController extends BaseController
@@ -25,10 +26,15 @@ class ProductReportController extends BaseController
     protected string $default_title = 'Laporan Daftar Produk';
 
     protected array $templates = [
-        'cost_list' => [
-            'value' => 'cost_list',
-            'label' => 'Daftar Harga Pokok',
-            'columns' => ['name', 'description', 'category', 'stock', 'cost'],
+        'actual_stock' => [
+            'value' => 'actual_stock',
+            'label' => 'Daftar Stok Aktual',
+            'columns' => ['name', 'description', 'category', 'stock'],
+        ],
+        'low_stock_list' => [
+            'value' => 'low_stock_list',
+            'label' => 'Daftar Stok Rendah',
+            'columns' => ['name', 'description', 'category', 'stock'],
         ],
         'price_list_1' => [
             'value' => 'price_list_1',
@@ -45,10 +51,10 @@ class ProductReportController extends BaseController
             'label' => 'Daftar Harga Grosir',
             'columns' => ['name', 'description', 'category', 'stock', 'price_3'],
         ],
-        'actual_stock' => [
-            'value' => 'actual_stock',
-            'label' => 'Daftar Stok Aktual',
-            'columns' => ['name', 'description', 'category', 'stock'],
+        'cost_list' => [
+            'value' => 'cost_list',
+            'label' => 'Daftar Harga Pokok',
+            'columns' => ['name', 'description', 'category', 'stock', 'cost'],
         ],
     ];
 
@@ -175,6 +181,19 @@ class ProductReportController extends BaseController
         // 💡 3. HANDLE STOCK + UOM (Sudah benar)
         if (in_array('stock', $data['columns']) && !in_array('uom', $queryColumns)) {
             $queryColumns[] = 'uom';
+        }
+
+        if ($data['template'] == 'low_stock_list') {
+            $q->where('type', Product::Type_Stocked);
+            $q->whereColumn('stock', '<=', 'min_stock');
+
+            // Kolom `stock` dan `min_stock` HARUS di-select agar kondisi WHERE DB::raw berfungsi.
+            if (!in_array('stock', $queryColumns)) {
+                $queryColumns[] = 'stock';
+            }
+            if (!in_array('min_stock', $queryColumns)) {
+                $queryColumns[] = 'min_stock';
+            }
         }
 
         // 💡 4. WAJIB SELECT: Pastikan Primary Key (id) selalu ada
