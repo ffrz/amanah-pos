@@ -26,6 +26,7 @@ class SalesOrderReportController extends BaseController
     protected array $views = [
         'sales_order_recap' => 'modules.admin.pages.reports.sales-order.recap',
         'sales_order_detail' => 'modules.admin.pages.reports.sales-order.detail',
+        'profit_recap' => 'modules.admin.pages.reports.sales-order.profit',
     ];
 
     protected array $templates = [
@@ -36,6 +37,10 @@ class SalesOrderReportController extends BaseController
         'sales_order_detail' => [
             'value' => 'sales_order_detail',
             'label' => 'Laporan Rincian Penjualan',
+        ],
+        'profit_recap' => [
+            'value' => 'profit_recap',
+            'label' => 'Laporan Rekapitulasi Laba',
         ],
     ];
 
@@ -117,16 +122,20 @@ class SalesOrderReportController extends BaseController
             'sales_orders.total_tax',
         ];
 
-        if ($data['template'] === 'sales_order_detail') {
+        $selects[] = 'sales_orders.datetime';
+        if ($data['template'] === 'profit_recap') {
+            if (!in_array('total_cost', $selects)) {
+                $selects[] = 'sales_orders.total_cost';
+            }
+
+            $selects[] = DB::raw('sales_orders.grand_total - sales_orders.total_cost as total_profit');
+        } else if ($data['template'] === 'sales_order_detail') {
             $q->with([
                 'details' => function ($r) {
                     $r->whereNull('return_id')
                         ->select(['order_id', 'product_name', 'product_barcode', 'quantity', 'product_uom', 'price', 'subtotal_price', 'notes']);
                 }
             ]);
-            $selects[] = 'sales_orders.datetime';
-        } else {
-            $selects[] = DB::raw('sales_orders.datetime');
         }
 
         $q->select($selects);
