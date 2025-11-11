@@ -117,7 +117,6 @@ class SalesOrderReportController extends BaseController
             'sales_orders.customer_name',
             'sales_orders.total_price',
             'sales_orders.grand_total',
-            DB::raw("COALESCE({$subqueryTotalItems}, 0) as total_item"),
             'sales_orders.total_discount',
             'sales_orders.total_tax',
         ];
@@ -136,6 +135,9 @@ class SalesOrderReportController extends BaseController
                         ->select(['order_id', 'product_name', 'product_barcode', 'quantity', 'product_uom', 'price', 'subtotal_price', 'notes']);
                 }
             ]);
+            $selects[] = DB::raw("COALESCE({$subqueryTotalItems}, 0) as total_item");
+        } else {
+            $selects[] = DB::raw("COALESCE({$subqueryTotalItems}, 0) as total_item");
         }
 
         $q->select($selects);

@@ -39,7 +39,7 @@
             <thead>
                 <tr class="bg-gray-200">
                     <th class="text-left">No. Transaksi</th>
-                    <th class="text-left">Waktu</th>
+                    <th class="text-left">Waktu </th>
                     <th class="text-left">Pelanggan</th>
                     <th class="text-right">Grand Total (A)</th>
                     <th class="text-right">Total HPP (B)</th>
