@@ -41,6 +41,7 @@ onMounted(() => {
   }
 });
 
+console.log(page.props);
 defineExpose({
   hideDrawer,
 });
@@ -178,6 +179,32 @@ defineExpose({
             </q-item-section>
             <q-item-section>
               <q-item-label>Dashboard</q-item-label>
+            </q-item-section>
+          </q-item>
+          <q-item
+            v-if="$can('admin.cashier-session.open')"
+            clickable
+            v-ripple
+            @click="
+              router.get(
+                route(
+                  'admin.cashier-session.' +
+                    (page.props.auth.cashier_session ? 'close' : 'open'),
+                  page.props.auth.cashier_session?.id
+                )
+              )
+            "
+          >
+            <q-item-section avatar>
+              <q-icon
+                :name="page.props.auth.cashier_session ? 'logout' : 'login'"
+              />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label
+                >{{ !page.props.auth.cashier_session ? "Mulai" : "Tutup" }} Sesi
+                Kasir</q-item-label
+              >
             </q-item-section>
           </q-item>
           <q-expansion-item icon="o_fast_forward" label="Pintasan">

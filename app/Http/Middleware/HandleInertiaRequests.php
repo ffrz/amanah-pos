@@ -16,10 +16,12 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\CashierSession;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Middleware;
+use Modules\Admin\Services\CashierSessionService;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -59,6 +61,7 @@ class HandleInertiaRequests extends Middleware
                     'type' => $user->type,
                     'roles' => $request->user()->getRoleNames()->toArray(),
                 ];
+                $auth['cashier_session'] = app(CashierSessionService::class)->getActiveSession();
             }
         } else if ($module === 'customer') {
             $customer = Auth::guard('customer')->user();

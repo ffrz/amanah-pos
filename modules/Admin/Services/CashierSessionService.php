@@ -33,9 +33,9 @@ class CashierSessionService
         protected DocumentVersionService $documentVersionService,
     ) {}
 
-    public function getActiveSession($userId = null)
+    public function getActiveSession($userId = null, $relations = ['cashierTerminal', 'cashierTerminal.financeAccount'])
     {
-        return CashierSession::with(['cashierTerminal', 'cashierTerminal.financeAccount'])
+        return CashierSession::with($relations)
             ->where('user_id', !$userId ? Auth::user()->id : $userId)
             ->where('is_closed', false)
             ->first();
