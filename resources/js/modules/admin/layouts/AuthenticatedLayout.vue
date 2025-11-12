@@ -541,161 +541,143 @@ defineExpose({
               </q-item-section>
             </q-item>
           </q-expansion-item>
+
           <q-expansion-item
-            icon="business_center"
-            label="Back Office"
+            v-if="
+              $can('admin.cashier-session.index') ||
+              $can('admin.cashier-terminal.index')
+            "
+            icon="point_of_sale"
+            label="Kasir"
             :default-opened="
               $page.url.startsWith('/admin/cashier-terminals') ||
-              $page.url.startsWith('/admin/cashier-sessions') ||
+              $page.url.startsWith('/admin/cashier-session')
+            "
+          >
+            <q-item
+              v-if="$can('admin.cashier-session.index')"
+              class="subnav"
+              clickable
+              v-ripple
+              :active="$page.url.startsWith('/admin/cashier-sessions')"
+              @click="router.get(route('admin.cashier-session.index'))"
+            >
+              <q-item-section avatar>
+                <q-icon name="tv_signin" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Sesi Kasir</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item
+              v-if="$can('admin.cashier-terminal.index')"
+              class="subnav"
+              clickable
+              v-ripple
+              :active="$page.url.startsWith('/admin/cashier-terminals')"
+              @click="router.get(route('admin.cashier-terminal.index'))"
+            >
+              <q-item-section avatar>
+                <q-icon name="point_of_sale" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Terminal Kasir</q-item-label>
+              </q-item-section>
+            </q-item>
+          </q-expansion-item>
+
+          <q-expansion-item
+            v-if="
+              $can('admin.finance-transaction.index') ||
+              $can('admin.finance-account.index')
+            "
+            icon="finance"
+            label="Keuangan"
+            :default-opened="
               $page.url.startsWith('/admin/finance-accounts') ||
-              $page.url.startsWith('/admin/finance-transactions') ||
+              $page.url.startsWith('/admin/finance-transactions')
+            "
+          >
+            <q-item
+              v-if="$can('admin.finance-transaction.index')"
+              class="subnav"
+              clickable
+              v-ripple
+              :active="$page.url.startsWith('/admin/finance-transactions')"
+              @click="router.get(route('admin.finance-transaction.index'))"
+            >
+              <q-item-section avatar>
+                <q-icon name="moving" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Transaksi</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item
+              v-if="$can('admin.finance-account.index')"
+              class="subnav"
+              clickable
+              v-ripple
+              :active="$page.url.startsWith('/admin/finance-accounts')"
+              @click="router.get(route('admin.finance-account.index'))"
+            >
+              <q-item-section avatar>
+                <q-icon name="groups_2" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Akun Kas</q-item-label>
+              </q-item-section>
+            </q-item>
+          </q-expansion-item>
+
+          <q-expansion-item
+            v-if="
+              $can('admin.operational-cost.index') ||
+              $can('admin.operational-cost-category.index')
+            "
+            icon="paid"
+            label="Operasional"
+            :default-opened="
               $page.url.startsWith('/admin/operational-costs') ||
               $page.url.startsWith('/admin/operational-cost-categories')
             "
           >
-            <q-expansion-item
-              class="subnav show-icon"
-              v-if="
-                $can('admin.cashier-session.index') ||
-                $can('admin.cashier-terminal.index') ||
-                $can('admin.finance-account.index') ||
-                $can('admin.finance-transaction.index') ||
-                $can('admin.operational-cost.index') ||
-                $can('admin.operational-cost-category.index')
-              "
-              icon="point_of_sale"
-              label="Kasir"
-              :default-opened="
-                $page.url.startsWith('/admin/cashier-terminals') ||
-                $page.url.startsWith('/admin/cashier-session')
-              "
+            <q-item
+              v-if="$can('admin.operational-cost.index')"
+              class="subnav"
+              clickable
+              v-ripple
+              :active="$page.url.startsWith('/admin/operational-costs')"
+              @click="router.get(route('admin.operational-cost.index'))"
             >
-              <q-item
-                v-if="$can('admin.cashier-session.index')"
-                class="subnav"
-                clickable
-                v-ripple
-                :active="$page.url.startsWith('/admin/cashier-sessions')"
-                @click="router.get(route('admin.cashier-session.index'))"
-              >
-                <q-item-section avatar>
-                  <q-icon name="tv_signin" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>Sesi Kasir</q-item-label>
-                </q-item-section>
-              </q-item>
-              <q-item
-                v-if="$can('admin.cashier-terminal.index')"
-                class="subnav"
-                clickable
-                v-ripple
-                :active="$page.url.startsWith('/admin/cashier-terminals')"
-                @click="router.get(route('admin.cashier-terminal.index'))"
-              >
-                <q-item-section avatar>
-                  <q-icon name="point_of_sale" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>Terminal Kasir</q-item-label>
-                </q-item-section>
-              </q-item>
-            </q-expansion-item>
-
-            <q-expansion-item
-              v-if="
-                $can('admin.finance-transaction.index') ||
-                $can('admin.finance-account.index')
-              "
-              class="subnav show-icon"
-              icon="finance"
-              label="Keuangan"
-              :default-opened="
-                $page.url.startsWith('/admin/finance-accounts') ||
-                $page.url.startsWith('/admin/finance-transactions')
-              "
-            >
-              <q-item
-                v-if="$can('admin.finance-transaction.index')"
-                class="subnav"
-                clickable
-                v-ripple
-                :active="$page.url.startsWith('/admin/finance-transactions')"
-                @click="router.get(route('admin.finance-transaction.index'))"
-              >
-                <q-item-section avatar>
-                  <q-icon name="moving" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>Transaksi</q-item-label>
-                </q-item-section>
-              </q-item>
-              <q-item
-                v-if="$can('admin.finance-account.index')"
-                class="subnav"
-                clickable
-                v-ripple
-                :active="$page.url.startsWith('/admin/finance-accounts')"
-                @click="router.get(route('admin.finance-account.index'))"
-              >
-                <q-item-section avatar>
-                  <q-icon name="groups_2" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>Akun Kas</q-item-label>
-                </q-item-section>
-              </q-item>
-            </q-expansion-item>
-
-            <q-expansion-item
-              v-if="
-                $can('admin.operational-cost.index') ||
-                $can('admin.operational-cost-category.index')
-              "
-              class="subnav show-icon"
-              icon="paid"
-              label="Operasional"
-              :default-opened="
-                $page.url.startsWith('/admin/operational-costs') ||
+              <q-item-section avatar>
+                <q-icon name="request_quote" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Biaya Operasional</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item
+              v-if="$can('admin.operational-cost-category.index')"
+              class="subnav"
+              clickable
+              v-ripple
+              :active="
                 $page.url.startsWith('/admin/operational-cost-categories')
               "
+              @click="
+                router.get(route('admin.operational-cost-category.index'))
+              "
             >
-              <q-item
-                v-if="$can('admin.operational-cost.index')"
-                class="subnav"
-                clickable
-                v-ripple
-                :active="$page.url.startsWith('/admin/operational-costs')"
-                @click="router.get(route('admin.operational-cost.index'))"
-              >
-                <q-item-section avatar>
-                  <q-icon name="request_quote" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>Biaya Operasional</q-item-label>
-                </q-item-section>
-              </q-item>
-              <q-item
-                v-if="$can('admin.operational-cost-category.index')"
-                class="subnav"
-                clickable
-                v-ripple
-                :active="
-                  $page.url.startsWith('/admin/operational-cost-categories')
-                "
-                @click="
-                  router.get(route('admin.operational-cost-category.index'))
-                "
-              >
-                <q-item-section avatar>
-                  <q-icon name="category" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>Kategori</q-item-label>
-                </q-item-section>
-              </q-item>
-            </q-expansion-item>
+              <q-item-section avatar>
+                <q-icon name="category" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Kategori Biaya</q-item-label>
+              </q-item-section>
+            </q-item>
           </q-expansion-item>
+
           <q-item
             v-if="$can('admin.report.index')"
             clickable
@@ -710,6 +692,7 @@ defineExpose({
               <q-item-label>Laporan</q-item-label>
             </q-item-section>
           </q-item>
+
           <q-expansion-item
             icon="settings"
             label="Pengaturan"
