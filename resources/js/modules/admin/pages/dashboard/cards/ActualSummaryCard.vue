@@ -1,5 +1,5 @@
 <script setup>
-import { formatNumber } from "@/helpers/formatter";
+import { formatMoney, formatNumber } from "@/helpers/formatter";
 import { usePage } from "@inertiajs/vue3";
 const page = usePage();
 
@@ -8,22 +8,22 @@ const summaryItems = [
     title: "Penjualan",
     items: [
       {
-        label: "Total Transaksi",
-        value: formatNumber(page.props.data.total_sales_count),
-        icon: "shopping_cart",
-        color: "purple-3",
+        label: "Total Laba",
+        value: formatMoney(page.props.data.total_sales_profit),
+        icon: "attach_money",
+        color: "teal-3",
       },
       {
         label: "Total Penjualan",
-        value: formatNumber(page.props.data.total_sales),
+        value: formatMoney(page.props.data.total_sales),
         icon: "trending_up",
         color: "green-3",
       },
       {
-        label: "Total Laba",
-        value: formatNumber(page.props.data.total_sales_profit),
-        icon: "attach_money",
-        color: "teal-3",
+        label: "Jumlah Transaksi",
+        value: formatNumber(page.props.data.total_sales_count),
+        icon: "shopping_cart",
+        color: "purple-3",
       },
     ],
   },
@@ -31,23 +31,23 @@ const summaryItems = [
     title: "Pelanggan (Aktual)",
     items: [
       {
-        label: "Pelanggan Aktif",
-        value: page.props.data.total_active_customer,
-        icon: "person",
-        color: "blue-3",
-      },
-      {
         label: "Saldo Deposit",
-        value: formatNumber(page.props.data.total_customer_wallet_balance),
+        value: formatMoney(page.props.data.total_customer_wallet_balance),
         icon: "wallet",
         color: "green-3",
       },
       {
-        label: "Saldo Utang / Piutang",
-        value: formatNumber(page.props.data.total_customer_balance),
+        label: page.props.data.total_customer_balance < 0 ? "Piutang" : "Utang",
+        value: formatMoney(Math.abs(page.props.data.total_customer_balance)),
         icon: "balance",
         color: "red-3",
         bgColor: "#ffebee",
+      },
+      {
+        label: "Aktif",
+        value: page.props.data.total_active_customer,
+        icon: "person",
+        color: "blue-3",
       },
     ],
   },
@@ -56,13 +56,13 @@ const summaryItems = [
     items: [
       {
         label: "Total Modal",
-        value: formatNumber(page.props.data.total_product_cost),
+        value: formatMoney(page.props.data.total_product_cost),
         icon: "money",
         color: "orange-4",
       },
       {
         label: "Total Aset",
-        value: formatNumber(page.props.data.total_product_price),
+        value: formatMoney(page.props.data.total_product_price),
         icon: "money",
         color: "yellow-6",
       },
@@ -78,22 +78,22 @@ const summaryItems = [
     title: "Supplier  (Aktual)",
     items: [
       {
+        label: "Saldo Deposit",
+        value: formatMoney(page.props.data.total_supplier_wallet_balance),
+        icon: "wallet",
+        color: "cyan-3",
+      },
+      {
+        label: page.props.data.total_supplier_balance > 0 ? "Piutang" : "Utang",
+        value: formatMoney(Math.abs(page.props.data.total_supplier_balance)),
+        icon: "balance",
+        color: "pink-3",
+      },
+      {
         label: "Supplier Aktif",
         value: page.props.data.total_active_supplier,
         icon: "local_shipping",
         color: "indigo-3",
-      },
-      {
-        label: "Saldo Wallet / Deposit",
-        value: formatNumber(page.props.data.total_supplier_wallet_balance),
-        icon: "account_balance_wallet",
-        color: "cyan-3",
-      },
-      {
-        label: "Saldo Utang / Piutang",
-        value: formatNumber(page.props.data.total_supplier_balance),
-        icon: "credit_card",
-        color: "pink-3",
       },
     ],
   },
@@ -102,19 +102,19 @@ const summaryItems = [
     items: [
       {
         label: "Total Saldo (Aktual)",
-        value: formatNumber(page.props.data.total_finance_balance),
+        value: formatMoney(page.props.data.total_finance_balance),
         icon: "wallet",
         color: "orange-5",
       },
       {
         label: "Total Pemasukan",
-        value: formatNumber(page.props.data.total_finance_income),
+        value: formatMoney(page.props.data.total_finance_income),
         icon: "input",
         color: "green-5",
       },
       {
         label: "Total Pengeluaran",
-        value: formatNumber(page.props.data.total_finance_expense),
+        value: formatMoney(page.props.data.total_finance_expense),
         icon: "output",
         color: "red-5",
       },
