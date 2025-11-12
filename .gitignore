@@ -36,3 +36,6 @@ deploy/config.json
 /public/build/assets
 /public/build
 deploy/config.tmp.json
+public/build/manifest.json
+public/build/sw-admin.js
+public/build/sw-customer.js
