@@ -91,13 +91,13 @@ class ProductService
 
         if (isset($filter['stock_status']) && $filter['stock_status'] != 'all') {
             if ($filter['stock_status'] == 'low') {
-                $query->whereColumn('stock', '<', 'min_stock')->where('stock', '!=', 0);
+                $query->whereColumn('stock', '<', 'min_stock');
             } elseif ($filter['stock_status'] == 'out') {
                 $query->where('stock', '=', 0);
             } elseif ($filter['stock_status'] == 'over') {
                 $query->whereColumn('stock', '>', 'max_stock');
             } elseif ($filter['stock_status'] == 'ready') {
-                $query->where('stock', '>', 0);
+                $query->whereColumn('stock', '>', 0);
             }
         }
 
