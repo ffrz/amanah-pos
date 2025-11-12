@@ -1,11 +1,12 @@
 <script setup>
 import { router, usePage } from "@inertiajs/vue3";
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { getQueryParams } from "@/helpers/utils";
 import ActualSummaryCard from "./cards/ActualSummaryCard.vue";
 import ChartCard from "./cards/ChartCard.vue";
 import TopCard from "./cards/TopCard.vue";
 
+const isLoading = ref(false);
 const title = "Dashboard";
 const showFilter = ref(true);
 const selected_period = ref(getQueryParams()["period"] ?? "this_month");
@@ -22,7 +23,16 @@ const period_options = ref([
   { value: "prev_year", label: "Tahun Lalu" },
 ]);
 
+const selectedPeriodLabel = computed(() => {
+  const selectedOption = period_options.value.find(
+    (option) => option.value === selected_period.value
+  );
+  
+  return selectedOption ? selectedOption.label : selected_period.value;
+});
+
 const onFilterChange = () => {
+  isLoading.value = true;
   router.visit(route("admin.dashboard", { period: selected_period.value }));
 };
 
@@ -33,6 +43,12 @@ const isDailiyPeriod = computed(() => {
     return false;
   }
   return true;
+});
+
+onMounted(() => {
+    router.on('finish', () => {
+        isLoading.value = false;
+    });
 });
 </script>
 
@@ -65,14 +81,36 @@ const isDailiyPeriod = computed(() => {
             emit-value
             outlined
             @update:model-value="onFilterChange"
+            :disable="isLoading"
           />
         </div>
       </q-toolbar>
     </template>
 
+    <div
+        v-if="isLoading"
+        class="fixed-full flex flex-center"
+        style="background-color: rgba(255, 255, 255, 0.7); z-index: 1000;"
+    >
+        <q-circular-progress
+          indeterminate
+          show-value
+          size="100px"
+          :thickness="0.3"
+          color="primary"
+          center-color="white"
+          track-color="white"
+          class="q-ma-md"
+        >
+        <div class="text-grey-8 text-sm" style="font-size:13px;">
+        Memuat...
+        </div>
+        </q-circular-progress>
+    </div>
+
     <div class="q-pa-xs">
       <div class="q-pa-none">
-        <ActualSummaryCard />
+        <ActualSummaryCard :selectedPeriodLabel="selectedPeriodLabel" />
       </div>
       <template v-if="isDailiyPeriod" >
       <ChartCard/>

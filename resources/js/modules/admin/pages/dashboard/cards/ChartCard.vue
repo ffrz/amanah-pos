@@ -63,7 +63,7 @@ const barChartOptions = computed(() => ({
   },
   series: [
     {
-      name: "Penjualan",
+      name: "Omset Penjualan",
       type: "bar",
       data: page.props.data.chart_data_1.data,
       itemStyle: {
@@ -133,13 +133,15 @@ const pieChartOptions = computed(() => ({
   <div class="row q-col-gutter-sm q-pb-sm">
     <div class="col-md-6 col-12">
       <q-card square bordered flat class="full-width q-pa-md">
-        <div class="text-subtitle1 q-pb-sm">Penjualan</div>
+        <div class="text-subtitle1 text-center q-pb-sm">Omzet Penjualan</div>
         <VChart class="chart" :option="barChartOptions" autoresize />
       </q-card>
     </div>
     <div class="col-md-6 col-12">
       <q-card square bordered flat class="full-width q-pa-md">
-        <div class="text-subtitle1 q-pb-sm">Distribusi Omzet</div>
+        <div class="text-subtitle1 text-center q-pb-sm">
+          Distribusi Omzet Penjualan
+        </div>
         <VChart class="chart" :option="pieChartOptions" autoresize />
       </q-card>
     </div>

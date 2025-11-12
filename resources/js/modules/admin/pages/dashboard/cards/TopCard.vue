@@ -8,7 +8,9 @@ const page = usePage();
   <div class="row q-col-gutter-sm q-pb-sm">
     <div class="col-md-6 col-12">
       <q-card square bordered flat class="full-width full-height q-pa-md">
-        <div class="text-subtitle1 q-mb-sm">Top 5 Transaksi Pelanggan</div>
+        <div class="text-subtitle1 text-center q-mb-sm">
+          Top 5 Pelanggan (Penjualan)
+        </div>
         <template v-if="page.props.data.top_customers_revenue.length > 0">
           <q-list>
             <q-item
@@ -50,7 +52,9 @@ const page = usePage();
     </div>
     <div class="col-md-6 col-12">
       <q-card square bordered flat class="full-width full-height q-pa-md">
-        <div class="text-subtitle1 q-mb-sm">Top 5 Saldo Wallet Pelanggan</div>
+        <div class="text-subtitle1 text-center q-mb-sm">
+          Top 5 Deposit Pelanggan
+        </div>
         <template v-if="page.props.data.top_customers_wallet.length > 0">
           <q-list>
             <q-item
