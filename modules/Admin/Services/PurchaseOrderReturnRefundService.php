@@ -191,6 +191,7 @@ class PurchaseOrderReturnRefundService
     // OK
     private function processFinancialRecords(PurchaseOrderPayment $refund): void
     {
+        $amount = abs($refund->amount);
         if ($refund->type === PurchaseOrderPayment::Type_Transfer || $refund->type === PurchaseOrderPayment::Type_Cash) {
             if ($refund->finance_account_id) {
                 // membuat rekaman transaksi keuangan
@@ -198,7 +199,7 @@ class PurchaseOrderReturnRefundService
                     'account_id' => $refund->finance_account_id,
                     'datetime' => now(),
                     'type' => FinanceTransaction::Type_Income,
-                    'amount' => $refund->amount,
+                    'amount' => $amount,
                     'ref_id' => $refund->id,
                     'ref_type' => FinanceTransaction::RefType_PurchaseOrderReturnRefund,
                     'notes' => "Terima refund pembelian #{$refund->return->code}",
@@ -206,7 +207,7 @@ class PurchaseOrderReturnRefundService
 
                 // menambah saldo akun keuangan
                 FinanceAccount::where('id', $refund->finance_account_id)
-                    ->increment('balance', $refund->amount);
+                    ->increment('balance', $amount);
             }
         }
     }
@@ -214,6 +215,7 @@ class PurchaseOrderReturnRefundService
     // OK
     private function reverseFinancialRecords(PurchaseOrderPayment $payment): void
     {
+        $amount = abs($payment->amount);
         if ($payment->type === PurchaseOrderPayment::Type_Transfer || $payment->type === PurchaseOrderPayment::Type_Cash) {
             if ($payment->finance_account_id) {
                 // Hapus Transaksi Keuangan
@@ -223,7 +225,7 @@ class PurchaseOrderReturnRefundService
 
                 // Kembalikan Saldo Akun Keuangan (membalikkan decrement saat bayar)
                 FinanceAccount::where('id', $payment->finance_account_id)
-                    ->decrement('balance', $payment->amount);
+                    ->decrement('balance', $amount);
             }
         }
     }

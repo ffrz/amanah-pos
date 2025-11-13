@@ -3,13 +3,13 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
+ *
  * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
+ *
  * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
+ *
  * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
@@ -82,7 +82,7 @@ class FinanceTransactionService
             ],
             [
                 'account_id' => $newData['account_id'],
-                'category_id' => $newData['category_id'],
+                'category_id' => $newData['category_id'] ?? null,
                 'datetime' => $newData['datetime'],
                 'amount' => $newData['amount'],
                 'type' => $newData['type'],
@@ -316,7 +316,7 @@ class FinanceTransactionService
         $transaction = new FinanceTransaction();
         $transaction->fill([
             'account_id'  => $validated['account_id'],
-            'category_id' => $validated['category_id'],
+            'category_id' => $validated['category_id'] ?? null,
             'datetime'    => $validated['datetime'],
             'type'        => $validated['type'],
             'amount'      => $amount,
@@ -335,7 +335,7 @@ class FinanceTransactionService
         $fromTransaction = new FinanceTransaction();
         $fromTransaction->fill([
             'account_id'  => $validated['account_id'],
-            'category_id' => $validated['category_id'],
+            'category_id' => $validated['category_id'] ?? null,
             'datetime'    => $validated['datetime'],
             'type'        => FinanceTransaction::Type_Transfer,
             'amount'      => -$validated['amount'],
@@ -351,7 +351,7 @@ class FinanceTransactionService
         $toTransaction = new FinanceTransaction();
         $toTransaction->fill([
             'account_id'  => $validated['to_account_id'],
-            'category_id' => $validated['category_id'],
+            'category_id' => $validated['category_id'] ?? null,
             'datetime'    => $validated['datetime'],
             'type'        => FinanceTransaction::Type_Transfer,
             'amount'      => $validated['amount'], // masuk

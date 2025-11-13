@@ -202,6 +202,7 @@ class SalesOrderReturnRefundService
      */
     private function processFinancialRecords(SalesOrderPayment $refund): void
     {
+        $amount = abs($refund->amount);
         if ($refund->type === SalesOrderPayment::Type_Transfer || $refund->type === SalesOrderPayment::Type_Cash) {
             if ($refund->finance_account_id) {
                 // membuat rekaman transaksi keuangan
@@ -209,7 +210,7 @@ class SalesOrderReturnRefundService
                     'account_id' => $refund->finance_account_id,
                     'datetime' => now(),
                     'type' => FinanceTransaction::Type_Expense,
-                    'amount' => -$refund->amount,
+                    'amount' => -$amount,
                     'ref_id' => $refund->id,
                     'ref_type' => FinanceTransaction::RefType_SalesOrderReturnRefund,
                     'notes' => "Pembayaran transaksi #{$refund->return->code}",
@@ -217,7 +218,7 @@ class SalesOrderReturnRefundService
 
                 // mengurangi saldo akun keuangan
                 FinanceAccount::where('id', $refund->finance_account_id)
-                    ->decrement('balance', $refund->amount);
+                    ->decrement('balance', $amount);
             }
         } else if ($refund->type === SalesOrderPayment::Type_Wallet) {
             // Membuat rekaman transaksi wallet
@@ -225,7 +226,7 @@ class SalesOrderReturnRefundService
                 'customer_id' => $refund->return->customer_id,
                 'datetime' => now(),
                 'type' => CustomerWalletTransaction::Type_SalesOrderPayment,
-                'amount' => $refund->amount,
+                'amount' => $amount,
                 'ref_type' => CustomerWalletTransaction::RefType_SalesOrderReturnRefund,
                 'ref_id' => $refund->id,
                 'notes' => "Pengembalian dana retur #{$refund->return->code}",
@@ -233,7 +234,7 @@ class SalesOrderReturnRefundService
 
             // tambah saldo wallet pelanggan
             Customer::where('id', $refund->return->customer_id)
-                ->increment('wallet_balance', abs($refund->amount));
+                ->increment('wallet_balance', $amount);
         }
     }
 
@@ -242,6 +243,7 @@ class SalesOrderReturnRefundService
      */
     private function reverseFinancialRecords(SalesOrderPayment $payment): void
     {
+        $amount = abs($payment->amount);
         if ($payment->type === SalesOrderPayment::Type_Transfer || $payment->type === SalesOrderPayment::Type_Cash) {
             if ($payment->finance_account_id) {
                 // Hapus Transaksi Keuangan
@@ -251,7 +253,7 @@ class SalesOrderReturnRefundService
 
                 // Kembalikan Saldo Akun Keuangan (membalikkan increment saat bayar)
                 FinanceAccount::where('id', $payment->finance_account_id)
-                    ->increment('balance', $payment->amount);
+                    ->increment('balance', $amount);
             }
         } else if ($payment->type === SalesOrderPayment::Type_Wallet) {
             // Batalkan transaksi dompet pelanggan
@@ -261,7 +263,7 @@ class SalesOrderReturnRefundService
 
             // Kurangi saldo wallet
             Customer::where('id', $payment->return->customer_id)
-                ->decrement('wallet_balance', abs($payment->amount));
+                ->decrement('wallet_balance', $amount);
         }
     }
 }
