@@ -41,6 +41,21 @@ const accounts = [
   })),
 ];
 
+const categories = [
+  {
+    label: "Semua",
+    value: "all",
+  },
+  {
+    label: "Tanpa Kategori",
+    value: "none",
+  },
+  ...page.props.categories.map((cat) => ({
+    label: cat.name,
+    value: cat.id,
+  })),
+];
+
 const types = [
   { value: "all", label: "Semua" },
   ...createOptions(window.CONSTANTS.FINANCE_TRANSACTION_TYPES),
@@ -68,18 +83,10 @@ const pagination = ref({
 
 const columns = [
   {
-    name: "id",
-    label: $q.screen.lt.md ? "Item" : "Kode",
-    field: "id",
-    align: "left",
-    sortable: false,
-  },
-  {
     name: "datetime",
-    label: "Waktu",
+    label: $q.screen.lt.md ? "Item" : "Kode",
     field: "datetime",
     align: "left",
-    sortable: false,
   },
   {
     name: "account",
@@ -92,7 +99,6 @@ const columns = [
     label: "Jenis",
     field: "type",
     align: "left",
-    sortable: true,
   },
   {
     name: "amount",
@@ -154,7 +160,9 @@ const onFilterChange = () => {
 
 const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return columns;
-  return columns.filter((col) => col.name === "id" || col.name === "action");
+  return columns.filter(
+    (col) => col.name === "datetime" || col.name === "action"
+  );
 });
 
 const activeImagePath = ref(null);
@@ -258,6 +266,17 @@ const goToCursorPage = (cursorType) => {
             dense
             @update:model-value="onFilterChange"
           />
+          <q-select
+            v-model="filter.category_id"
+            label="Kategori"
+            :options="categories"
+            map-options
+            emit-value
+            class="custom-select col-xs-6 col-sm-2"
+            outlined
+            dense
+            @update:model-value="onFilterChange"
+          />
           <q-input
             class="col"
             outlined
@@ -316,18 +335,16 @@ const goToCursorPage = (cursorType) => {
               )
             "
           >
-            <q-td key="id" :props="props">
+            <q-td key="datetime" :props="props">
               <div>
-                <template v-if="$q.screen.lt.md">
-                  <q-icon class="inline-icon" name="tag" />
-                </template>
+                <q-icon class="inline-icon" name="tag" />
                 {{ props.row.code }}
               </div>
+              <div>
+                <q-icon class="inline-icon" name="calendar_clock" />
+                {{ formatDateTime(props.row.datetime) }}
+              </div>
               <template v-if="$q.screen.lt.md">
-                <div class="text-grey-8">
-                  <q-icon class="inline-icon" name="calendar_clock" />
-                  {{ formatDateTime(props.row.datetime) }}
-                </div>
                 <div class="text-bold text-grey-8">
                   <q-icon name="wallet" class="inline-icon" />
                   {{ props.row.account.name }}
@@ -354,14 +371,21 @@ const goToCursorPage = (cursorType) => {
                 </q-badge>
               </template>
             </q-td>
-            <q-td key="datetime" :props="props" class="wrap-column">
-              {{ formatDateTime(props.row.datetime) }}
-            </q-td>
             <q-td key="account" :props="props">
               {{ props.row.account?.name }}
             </q-td>
             <q-td key="type" :props="props">
-              {{ $CONSTANTS.FINANCE_TRANSACTION_TYPES[props.row.type] }}
+              <q-badge :color="props.row.amount < 0 ? 'red' : 'green'">
+                {{ $CONSTANTS.FINANCE_TRANSACTION_TYPES[props.row.type] }}
+              </q-badge>
+              <div v-if="props.row.category_id">
+                <q-icon name="category" class="inline-icon" />
+                {{ props.row.category.name }}
+              </div>
+              <div v-else>
+                <q-icon name="category" class="inline-icon" />
+                Tanpa Kategori
+              </div>
             </q-td>
             <q-td key="amount" :props="props" style="text-align: right">
               {{ formatNumberWithSymbol(props.row.amount) }}

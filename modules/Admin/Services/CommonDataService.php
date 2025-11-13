@@ -15,6 +15,7 @@ namespace Modules\Admin\Services;
 
 use App\Models\Customer;
 use App\Models\FinanceAccount;
+use App\Models\FinanceTransactionCategory;
 use App\Models\OperationalCostCategory;
 use App\Models\Product;
 use App\Models\Supplier;
@@ -102,6 +103,19 @@ class CommonDataService
 
         return $query->get($fields);
     }
+
+    /**
+     * Get finance transaction categories.
+     */
+    public function getFinanceTransactionCategories($fields = ['id', 'name'])
+    {
+        $query = FinanceTransactionCategory::query();
+
+        $query->orderBy('name');
+
+        return $query->get($fields);
+    }
+
 
     /**
      * Get operational cost categories.

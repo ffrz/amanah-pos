@@ -24,8 +24,6 @@ use App\Models\UserActivityLog;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class FinanceTransactionService
@@ -37,7 +35,7 @@ class FinanceTransactionService
 
     public function find(int $id): FinanceTransaction
     {
-        return FinanceTransaction::with(['account', 'creator', 'updater'])
+        return FinanceTransaction::with(['account', 'category', 'creator', 'updater'])
             ->findOrFail($id);
     }
 
@@ -84,6 +82,7 @@ class FinanceTransactionService
             ],
             [
                 'account_id' => $newData['account_id'],
+                'category_id' => $newData['category_id'],
                 'datetime' => $newData['datetime'],
                 'amount' => $newData['amount'],
                 'type' => $newData['type'],
@@ -117,7 +116,10 @@ class FinanceTransactionService
         $q = FinanceTransaction::with([
             'account' => function ($query) {
                 $query->select('id', 'name', 'bank', 'number', 'holder');
-            }
+            },
+            'category' => function ($query) {
+                $query->select('id', 'name');
+            },
         ])
             ->select(
                 'id',
@@ -127,7 +129,8 @@ class FinanceTransactionService
                 'amount',
                 'notes',
                 'image_path',
-                'account_id'
+                'account_id',
+                'category_id',
             )
             ->whereNull('deleted_at');
 
@@ -137,6 +140,14 @@ class FinanceTransactionService
 
         if (!empty($filter['account_id']) && $filter['account_id'] !== 'all') {
             $q->where('account_id', $filter['account_id']);
+        }
+
+        if (!empty($filter['category_id']) && $filter['category_id'] !== 'all') {
+            if ($filter['category_id'] === 'none') {
+                $q->whereNull('category_id');
+            } else {
+                $q->where('category_id', $filter['category_id']);
+            }
         }
 
         if (!empty($filter['user_id']) && $filter['user_id'] !== 'all') {
@@ -159,7 +170,6 @@ class FinanceTransactionService
             $q->whereBetween('created_at', [$start, $end]);
         }
 
-        // --- OPTIMASI KRITIS: PAKSA BATAS WAKTU JIKA TIDAK ADA FILTER DIBERIKAN ---
         if (!$hasDateFilter) {
             $defaultStartDate = Carbon::now()->subDays(90)->startOfDay();
             $q->where('datetime', '>=', $defaultStartDate);
@@ -167,20 +177,12 @@ class FinanceTransactionService
 
         if (!empty($filter['search'])) {
             $q->where(function (Builder $q) use ($filter) {
-                // Catatan: Ini masih rentan terhadap Full Table Scan jika wildcard di depan
                 $q->orWhere('code', 'like', "%" . $filter['search'] . "%");
                 $q->orWhere('notes', 'like', '%' . $filter['search'] . '%');
             });
         }
 
-        // --- PENGURUTAN WAJIB UNTUK CURSOR PAGINATION ---
-        // Cursor pagination HARUS diurutkan berdasarkan kolom unik yang digunakan di kursor.
-        // Default Laravel menggunakan 'id', tetapi 'datetime' juga bisa (asalkan unik/digabung).
-        // Kita menggunakan datetime.
-        $orderBy = 'datetime';
-        $orderType = 'desc';
-
-        $q->orderBy($orderBy, $orderType);
+        $q->orderBy('datetime', 'desc');
 
         return $q->cursorPaginate($perPage)->withQueryString();
     }
@@ -314,6 +316,7 @@ class FinanceTransactionService
         $transaction = new FinanceTransaction();
         $transaction->fill([
             'account_id'  => $validated['account_id'],
+            'category_id' => $validated['category_id'],
             'datetime'    => $validated['datetime'],
             'type'        => $validated['type'],
             'amount'      => $amount,
@@ -331,12 +334,13 @@ class FinanceTransactionService
     {
         $fromTransaction = new FinanceTransaction();
         $fromTransaction->fill([
-            'account_id' => $validated['account_id'],
-            'datetime'   => $validated['datetime'],
-            'type'       => FinanceTransaction::Type_Transfer,
-            'amount'     => -$validated['amount'],
-            'notes'      => 'Transfer ke akun #' . $validated['to_account_id'] . '. ' . $validated['notes'],
-            'image_path' => $validated['image_path'],
+            'account_id'  => $validated['account_id'],
+            'category_id' => $validated['category_id'],
+            'datetime'    => $validated['datetime'],
+            'type'        => FinanceTransaction::Type_Transfer,
+            'amount'      => -$validated['amount'],
+            'notes'       => 'Transfer ke akun #' . $validated['to_account_id'] . '. ' . $validated['notes'],
+            'image_path'  => $validated['image_path'],
         ]);
         $fromTransaction->save();
 
@@ -346,12 +350,13 @@ class FinanceTransactionService
         // Transaksi masuk ke akun tujuan
         $toTransaction = new FinanceTransaction();
         $toTransaction->fill([
-            'account_id' => $validated['to_account_id'],
-            'datetime'   => $validated['datetime'],
-            'type'       => FinanceTransaction::Type_Transfer,
-            'amount'     => $validated['amount'], // masuk
-            'notes'      => 'Transfer dari akun #' . $validated['account_id'] . '. ' . $validated['notes'],
-            'image_path' => $validated['image_path'],
+            'account_id'  => $validated['to_account_id'],
+            'category_id' => $validated['category_id'],
+            'datetime'    => $validated['datetime'],
+            'type'        => FinanceTransaction::Type_Transfer,
+            'amount'      => $validated['amount'], // masuk
+            'notes'       => 'Transfer dari akun #' . $validated['account_id'] . '. ' . $validated['notes'],
+            'image_path'  => $validated['image_path'],
         ]);
         $toTransaction->save();
 

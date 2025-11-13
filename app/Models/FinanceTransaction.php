@@ -36,6 +36,7 @@ class FinanceTransaction extends BaseModel
 
     protected $fillable = [
         'account_id',
+        'category_id',
         'code',
         'datetime',
         'type',
@@ -97,6 +98,7 @@ class FinanceTransaction extends BaseModel
     {
         return [
             'account_id' => 'integer',
+            'category_id' => 'integer',
             'datetime' => 'datetime',
             'type' => 'string',
             'amount' => 'decimal:2',
@@ -133,6 +135,11 @@ class FinanceTransaction extends BaseModel
     public function account()
     {
         return $this->belongsTo(FinanceAccount::class, 'account_id');
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(FinanceTransactionCategory::class, 'category_id');
     }
 
     public function ref()

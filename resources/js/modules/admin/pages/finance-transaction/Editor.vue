@@ -13,6 +13,11 @@ const accounts = page.props.accounts.map((account) => ({
   value: account.id,
 }));
 
+const categories = page.props.categories.map((category) => ({
+  label: category.name,
+  value: category.id,
+}));
+
 const types = [
   { label: "Pemasukan (+)", value: "income" },
   { label: "Pengeluaran (-)", value: "expense" },
@@ -22,6 +27,7 @@ const types = [
 const form = useForm({
   id: page.props.data.id,
   account_id: page.props.data.account_id,
+  category_id: page.props.data.category_id,
   to_account_id: page.props.data.to_account_id ?? null,
   type: page.props.data.type,
   datetime: new Date(page.props.data.datetime),
@@ -108,6 +114,19 @@ const submit = () => {
                 :error="!!form.errors.to_account_id"
                 :disable="form.processing"
                 hide-bottom-space
+              />
+              <q-select
+                class="custom-select"
+                v-model="form.category_id"
+                :label="'Kategori Transaksi'"
+                :options="categories"
+                map-options
+                emit-value
+                :errorMessage="form.errors.category_id"
+                :error="!!form.errors.category_id"
+                :disable="form.processing"
+                hide-bottom-space
+                clearable
               />
               <LocaleNumberInput
                 v-model:modelValue="form.amount"

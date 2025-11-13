@@ -82,6 +82,13 @@ const title = "Rincian Transaksi";
                       }}
                     </td>
                   </tr>
+                  <tr v-if="page.props.data.category_id">
+                    <td>Kategori</td>
+                    <td>:</td>
+                    <td>
+                      {{ page.props.data.category.name }}
+                    </td>
+                  </tr>
                   <tr>
                     <td>Jumlah</td>
                     <td>:</td>

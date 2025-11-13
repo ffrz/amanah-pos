@@ -36,7 +36,8 @@ class FinanceTransactionController extends Controller
         $this->authorize('viewAny', FinanceTransaction::class);
 
         return inertia('finance-transaction/Index', [
-            'accounts' => $this->commonDataService->getFinanceAccounts()
+            'accounts' => $this->commonDataService->getFinanceAccounts(),
+            'categories' => $this->commonDataService->getFinanceTransactionCategories(),
         ]);
     }
 
@@ -68,7 +69,8 @@ class FinanceTransactionController extends Controller
 
         return inertia('finance-transaction/Editor', [
             'data' => $item,
-            'accounts' => $this->commonDataService->getFinanceAccounts()
+            'accounts' => $this->commonDataService->getFinanceAccounts(),
+            'categories' => $this->commonDataService->getFinanceTransactionCategories(),
         ]);
     }
 

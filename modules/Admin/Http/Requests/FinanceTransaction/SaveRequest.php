@@ -28,6 +28,7 @@ class SaveRequest extends FormRequest
         return [
             'id'            => 'nullable|integer|exists:finance_transactions,id',
             'account_id'    => 'required|exists:finance_accounts,id',
+            'category_id'   => 'nullable|exists:finance_transaction_categories,id',
             'to_account_id' => 'nullable|exists:finance_accounts,id|different:account_id',
             'datetime'      => 'required|date',
             'type'          => 'required|in:' . implode(',', array_keys(FinanceTransaction::Types)),
@@ -45,8 +46,9 @@ class SaveRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'id'      => $this->id ?? null,
-            'notes'   => $this->notes ?? '',
+            'id' => $this->id ?? null,
+            'category_id' => $this->category_id ?? null,
+            'notes' => $this->notes ?? '',
         ]);
     }
 }
