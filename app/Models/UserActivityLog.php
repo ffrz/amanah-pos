@@ -43,6 +43,7 @@ class UserActivityLog extends Model
     public const Category_UserActivityLog = 'user-activity-log';
     public const Category_FinanceAccount = 'finance-account';
     public const Category_FinanceTransaction = 'finance-transaction';
+    public const Category_FinanceTransactionCategory = 'finance-transaction-category';
     public const Category_SalesOrder = 'sales-order';
     public const Category_SalesOrderReturn = 'sales-order-return';
     public const Category_PurchaseOrder = 'purchase-order';
@@ -62,8 +63,9 @@ class UserActivityLog extends Model
     public const Categories = [
         self::Category_Auth => 'Autentikasi Pengguna',
         self::Category_Inventory => 'Manajemen Inventori',
-        self::Category_FinanceAccount => 'Akun Keuangan',
-        self::Category_FinanceTransaction => 'Transaksi Keuangan',
+        self::Category_FinanceAccount => 'Manajemen Akun Keuangan',
+        self::Category_FinanceTransaction => 'Manajemen Transaksi Keuangan',
+        self::Category_FinanceTransactionCategory => 'Manajemen Kategori Transaksi Keuangan',
         self::Category_Settings => 'Pengaturan Sistem',
         self::Category_UserProfile => 'Profil Pengguna',
         self::Category_User => 'Manajemen Pengguna',
@@ -172,6 +174,10 @@ class UserActivityLog extends Model
     public const Name_FinanceTransaction_Update = 'finance-transaction.update';
     public const Name_FinanceTransaction_Delete = 'finance-transaction.delete';
 
+    public const Name_FinanceTransactionCategory_Create = 'finance-transaction-category.create';
+    public const Name_FinanceTransactionCategory_Update = 'finance-transaction-category.update';
+    public const Name_FinanceTransactionCategory_Delete = 'finance-transaction-category.delete';
+
     // Customer Wallet
     public const Name_CustomerWalletTopupConfirmation_Approve = 'customer-wallet-topup-confirmation.approve';
     public const Name_CustomerWalletTopupConfirmation_Reject  = 'customer-wallet-topup-confirmation.reject';
@@ -273,14 +279,20 @@ class UserActivityLog extends Model
         self::Name_FinanceAccount_Create => 'Membuat Akun Keuangan',
         self::Name_FinanceAccount_Update => 'Memperbarui Akun Keuangan',
         self::Name_FinanceAccount_Delete => 'Menghapus Akun Keuangan',
-
         self::Name_FinanceTransaction_Create => 'Membuat Transaksi Keuangan',
         self::Name_FinanceTransaction_Update => 'Memperbarui Transaksi Keuangan',
         self::Name_FinanceTransaction_Delete => 'Menghapus Transaksi Keuangan',
+        self::Name_FinanceTransactionCategory_Create => 'Membuat Kategori Transaksi Keuangan',
+        self::Name_FinanceTransactionCategory_Update => 'Memperbarui Kategori Transaksi Keuangan',
+        self::Name_FinanceTransactionCategory_Delete => 'Menghapus Kategori Transaksi Keuangan',
 
         self::Name_CashierSession_Open => 'Membuka Sesi Kasir',
         self::Name_CashierSession_Close => 'Menutup Sesi Kasir',
         self::Name_CashierSession_Delete => 'Menghapus Sesi Kasir',
+
+        self::Name_CashierTerminal_Create => 'Membuat Terminal Kasir',
+        self::Name_CashierTerminal_Update => 'Memperbarui Terminal Kasir',
+        self::Name_CashierTerminal_Delete => 'Menghapus Terminal Kasir',
 
         self::Name_StockAdjustment_Create => 'Membuat Penyesuaian Stok',
         self::Name_StockAdjustment_Close  => 'Menutup Penyesuaian Stok',

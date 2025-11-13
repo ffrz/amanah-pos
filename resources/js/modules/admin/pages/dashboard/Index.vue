@@ -96,7 +96,7 @@ onMounted(() => {
           indeterminate
           show-value
           size="100px"
-          :thickness="0.3"
+          :thickness="0.1"
           color="primary"
           center-color="white"
           track-color="white"

@@ -137,24 +137,25 @@ class AppPermissions
                 'admin.finance-transaction.delete' => 'Hapus Transaksi Keuangan',
                 // 'admin.finance-transaction.data' => 'Data Transaksi Keuangan',
             ],
+            'Manajemen Kategori Transaksi Keuangan' => [
+                'admin.finance-transaction-category.index' => 'Lihat Daftar Kategori Transaksi',
+                'admin.finance-transaction-category.add' => 'Tambah / Duplikat Kategori Transaksi',
+                'admin.finance-transaction-category.edit' => 'Edit Kategori Transaksi',
+                'admin.finance-transaction-category.delete' => 'Hapus Kategori Transaksi',
+            ],
+
             'Manajemen Biaya Operasional' => [
                 'admin.operational-cost.index' => 'Lihat Daftar Biaya Operasional',
                 'admin.operational-cost.detail' => 'Lihat Detail Biaya Operasional',
                 'admin.operational-cost.add' => 'Tambah / Duplikat Biaya Operasional',
                 'admin.operational-cost.edit' => 'Edit Biaya Operasional',
-                // 'admin.operational-cost.save' => 'Simpan Biaya Operasional',
                 'admin.operational-cost.delete' => 'Hapus Biaya Operasional',
-                // 'admin.operational-cost.duplicate' => 'Duplikasi Biaya Operasional',
-                // 'admin.operational-cost.data' => 'Data Biaya Operasional',
             ],
             'Manajemen Kategori Biaya Operasional' => [
                 'admin.operational-cost-category.index' => 'Lihat Daftar Kategori Biaya Operasional',
                 'admin.operational-cost-category.add' => 'Tambah / Duplikat Kategori Biaya Operasional',
                 'admin.operational-cost-category.edit' => 'Edit Kategori Biaya Operasional',
-                // 'admin.operational-cost-category.save' => 'Simpan Kategori Biaya Operasional',
                 'admin.operational-cost-category.delete' => 'Hapus Kategori Biaya Operasional',
-                // 'admin.operational-cost-category.duplicate' => 'Duplikasi Kategori Biaya Operasional',
-                // 'admin.operational-cost-category.data' => 'Data Kategori Biaya Operasional',
             ],
             'Manajemen Pembelian' => [
                 'admin.purchase-order.index' => 'Lihat Daftar Pembelian',

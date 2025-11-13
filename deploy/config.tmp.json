@@ -1,0 +1,65 @@
+{
+    "include_path": [
+        "app",
+        "bootstrap",
+        "config",
+        "database",
+        "modules",
+        "resources",
+        "routes",
+        "public",
+        "storage",
+        "artisan",
+        "LICENSE",
+        "VERSION",
+        "composer.json",
+        "composer.lock",
+        "vite.config.js"
+    ],
+    "exclude_path": [
+        "public/hot",
+        "public/uploads",
+        "bootstrap/cache",
+        "storage/debugbar",
+        "storage/framework/views",
+        "storage/logs"
+    ],
+    "tenants": {
+        "shiftcom": {
+            "host": "ftp.shift-apps.my.id",
+            "user": "shin9415",
+            "pass": "f9Yxy1dqe1ZP42",
+            "remote_path": "/public_html/_apps/shiftech-pos/shiftcom"
+        },
+        "addhiya": {
+            "host": "ftp.shift-apps.my.id",
+            "user": "shin9415",
+            "pass": "f9Yxy1dqe1ZP42",
+            "remote_path": "/public_html/_apps/shiftech-pos/addhiya"
+        },
+        "anadzsa": {
+            "host": "ftp.shift-apps.my.id",
+            "user": "shin9415",
+            "pass": "f9Yxy1dqe1ZP42",
+            "remote_path": "/public_html/_apps/shiftech-pos/anadzsa"
+        },
+        "demo": {
+            "host": "ftp.shift-apps.my.id",
+            "user": "shin9415",
+            "pass": "f9Yxy1dqe1ZP42",
+            "remote_path": "/public_html/_apps/shiftech-pos/demo"
+        },
+        "bogasejahtera": {
+            "host": "ftp.shift-apps.my.id",
+            "user": "shin9415",
+            "pass": "f9Yxy1dqe1ZP42",
+            "remote_path": "/public_html/_apps/shiftech-pos/bogasejahtera"
+        },
+        "nailulkhoir": {
+            "host": "ftp.shift-apps.my.id",
+            "user": "shin9415",
+            "pass": "f9Yxy1dqe1ZP42",
+            "remote_path": "/public_html/_apps/shiftech-pos/nailulkhoir"
+        }
+    }
+}

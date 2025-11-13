@@ -27,6 +27,7 @@ use Modules\Admin\Http\Controllers\CustomerWalletTransactionController;
 use Modules\Admin\Http\Controllers\DashboardController;
 use Modules\Admin\Http\Controllers\DocumentVersionController;
 use Modules\Admin\Http\Controllers\FinanceAccountController;
+use Modules\Admin\Http\Controllers\FinanceTransactionCategoryController;
 use Modules\Admin\Http\Controllers\FinanceTransactionController;
 use Modules\Admin\Http\Controllers\HomeController;
 use Modules\Admin\Http\Controllers\OperationalCostController;
@@ -170,6 +171,16 @@ Route::middleware([Auth::class])
                 Route::get('detail/{id}', [FinanceTransactionController::class, 'detail'])->name('admin.finance-transaction.detail');
                 Route::post('save', [FinanceTransactionController::class, 'save'])->name('admin.finance-transaction.save');
                 Route::post('delete/{id}', [FinanceTransactionController::class, 'delete'])->name('admin.finance-transaction.delete');
+            });
+
+            Route::prefix('finance-transaction-categories')->group(function () {
+                Route::get('', [FinanceTransactionCategoryController::class, 'index'])->name('admin.finance-transaction-category.index');
+                Route::get('data', [FinanceTransactionCategoryController::class, 'data'])->name('admin.finance-transaction-category.data');
+                Route::get('add', [FinanceTransactionCategoryController::class, 'editor'])->name('admin.finance-transaction-category.add');
+                Route::get('duplicate/{id}', [FinanceTransactionCategoryController::class, 'duplicate'])->name('admin.finance-transaction-category.duplicate');
+                Route::get('edit/{id}', [FinanceTransactionCategoryController::class, 'editor'])->name('admin.finance-transaction-category.edit');
+                Route::post('save', [FinanceTransactionCategoryController::class, 'save'])->name('admin.finance-transaction-category.save');
+                Route::post('delete/{id}', [FinanceTransactionCategoryController::class, 'delete'])->name('admin.finance-transaction-category.delete');
             });
 
             Route::prefix('cashier-terminals')->group(function () {

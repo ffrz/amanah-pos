@@ -22,8 +22,7 @@ Homestead.json
 /.vagrant
 .phpunit.result.cache
 vendor.zip
-/public/uploads
-/public/uploads/wallet-topup-confirmations
+/public/uploads/
 
 # Playwright
 /test-results/
@@ -33,9 +32,4 @@ vendor.zip
 
 # Deployment configuration
 deploy/config.json
-/public/build/assets
-/public/build
-deploy/config.tmp.json
-public/build/manifest.json
-public/build/sw-admin.js
-public/build/sw-customer.js
+/public/build/

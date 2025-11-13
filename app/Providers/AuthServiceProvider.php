@@ -23,6 +23,7 @@ use App\Models\CustomerWalletTransaction;
 use App\Models\CustomerWalletTransactionConfirmation;
 use App\Models\FinanceAccount;
 use App\Models\FinanceTransaction;
+use App\Models\FinanceTransactionCategory;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
 use App\Models\OperationalCost;
@@ -83,6 +84,7 @@ class AuthServiceProvider extends ServiceProvider
         CustomerWalletTransactionConfirmation::class => DefaultPolicy::class,
         CustomerWalletTransaction::class => DefaultPolicy::class,
         TaxScheme::class => DefaultPolicy::class,
+        FinanceTransactionCategory::class => DefaultPolicy::class,
     ];
 
     /**

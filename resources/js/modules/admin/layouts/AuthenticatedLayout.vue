@@ -622,7 +622,8 @@ defineExpose({
             label="Keuangan"
             :default-opened="
               $page.url.startsWith('/admin/finance-accounts') ||
-              $page.url.startsWith('/admin/finance-transactions')
+              $page.url.startsWith('/admin/finance-transactions') ||
+              $page.url.startsWith('/admin/finance-transaction-categories')
             "
           >
             <q-item
@@ -638,6 +639,25 @@ defineExpose({
               </q-item-section>
               <q-item-section>
                 <q-item-label>Transaksi</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item
+              v-if="$can('admin.finance-transaction-category.index')"
+              class="subnav"
+              clickable
+              v-ripple
+              :active="
+                $page.url.startsWith('/admin/finance-transaction-categories')
+              "
+              @click="
+                router.get(route('admin.finance-transaction-category.index'))
+              "
+            >
+              <q-item-section avatar>
+                <q-icon name="category" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Kategori Transaksi</q-item-label>
               </q-item-section>
             </q-item>
             <q-item

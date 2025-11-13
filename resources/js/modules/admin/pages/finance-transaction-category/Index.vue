@@ -6,7 +6,7 @@ import { getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
 import useTableHeight from "@/composables/useTableHeight";
 
-const title = "Kategori Biaya Operasional";
+const title = "Kategori Transaksi";
 const $q = useQuasar();
 const showFilter = ref(false);
 const rows = ref([]);
@@ -54,8 +54,8 @@ onMounted(() => {
 
 const deleteItem = (row) =>
   handleDelete({
-    message: `Hapus Kategori Biaya ${row.name}?`,
-    url: route("admin.operational-cost-category.delete", row.id),
+    message: `Hapus Kategori Transaksi ${row.name}?`,
+    url: route("admin.finance-transaction-category.delete", row.id),
     fetchItemsCallback: fetchItems,
     loading,
   });
@@ -66,7 +66,7 @@ const fetchItems = (props = null) => {
     filter,
     props,
     rows,
-    url: route("admin.operational-cost-category.data"),
+    url: route("admin.finance-transaction-category.data"),
     loading,
     tableRef,
   });
@@ -92,13 +92,13 @@ const computedColumns = computed(() => {
         @click="showFilter = !showFilter"
       />
       <q-btn
-        v-if="$can('admin.operational-cost-category.add')"
+        v-if="$can('admin.finance-transaction-category.add')"
         icon="add"
         dense
         rounded
         class="q-ml-sm"
         color="primary"
-        @click="router.get(route('admin.operational-cost-category.add'))"
+        @click="router.get(route('admin.finance-transaction-category.add'))"
       />
     </template>
     <template #header v-if="showFilter">
@@ -166,9 +166,9 @@ const computedColumns = computed(() => {
               <div class="flex justify-end">
                 <q-btn
                   v-if="
-                    $can('admin.operational-cost-category.add') ||
-                    $can('admin.operational-cost-category.edit') ||
-                    $can('admin.operational-cost-category.delete')
+                    $can('admin.finance-transaction-category.add') ||
+                    $can('admin.finance-transaction-category.edit') ||
+                    $can('admin.finance-transaction-category.delete')
                   "
                   icon="more_vert"
                   dense
@@ -184,14 +184,14 @@ const computedColumns = computed(() => {
                   >
                     <q-list style="width: 200px">
                       <q-item
-                        v-if="$can('admin.operational-cost-category.add')"
+                        v-if="$can('admin.finance-transaction-category.add')"
                         clickable
                         v-ripple
                         v-close-popup
                         @click.stop="
                           router.get(
                             route(
-                              'admin.operational-cost-category.duplicate',
+                              'admin.finance-transaction-category.duplicate',
                               props.row.id
                             )
                           )
@@ -203,14 +203,14 @@ const computedColumns = computed(() => {
                         <q-item-section>Duplikat</q-item-section>
                       </q-item>
                       <q-item
-                        v-if="$can('admin.operational-cost-category.edit')"
+                        v-if="$can('admin.finance-transaction-category.edit')"
                         clickable
                         v-ripple
                         v-close-popup
                         @click.stop="
                           router.get(
                             route(
-                              'admin.operational-cost-category.edit',
+                              'admin.finance-transaction-category.edit',
                               props.row.id
                             )
                           )
@@ -222,7 +222,7 @@ const computedColumns = computed(() => {
                         <q-item-section>Edit</q-item-section>
                       </q-item>
                       <q-item
-                        v-if="$can('admin.operational-cost-category.delete')"
+                        v-if="$can('admin.finance-transaction-category.delete')"
                         @click.stop="deleteItem(props.row)"
                         clickable
                         v-ripple
