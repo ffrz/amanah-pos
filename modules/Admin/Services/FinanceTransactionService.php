@@ -120,6 +120,7 @@ class FinanceTransactionService
             'category' => function ($query) {
                 $query->select('id', 'name');
             },
+            'tags:id,name',
         ])
             ->select(
                 'id',
@@ -148,6 +149,14 @@ class FinanceTransactionService
             } else {
                 $q->where('category_id', $filter['category_id']);
             }
+        }
+
+        if (!empty($filter['tags']) && is_array($filter['tags'])) {
+            $tagIds = array_map('intval', $filter['tags']);
+
+            $q->whereHas('tags', function ($q) use ($tagIds) {
+                $q->whereIn('finance_transaction_tags.id', $tagIds);
+            });
         }
 
         if (!empty($filter['user_id']) && $filter['user_id'] !== 'all') {
@@ -327,6 +336,10 @@ class FinanceTransactionService
 
         $this->addToBalance($transaction->account, $transaction->amount);
 
+        if (!empty($validated['tags'])) {
+            $this->syncTags($transaction, $validated['tags']);
+        }
+
         return $transaction;
     }
 
@@ -372,6 +385,25 @@ class FinanceTransactionService
         $toTransaction->ref_id = $fromTransaction->id;
         $toTransaction->save();
 
+        // tag
+
+        if (!empty($validated['tags'])) {
+            $this->syncTags($fromTransaction, $validated['tags']);
+            $this->syncTags($toTransaction, $validated['tags']);
+        }
+
         return [$fromTransaction, $toTransaction];
+    }
+
+    private function syncTags(FinanceTransaction $trx, array $tags): void
+    {
+        // Ambil hanya integer (jaga-jaga)
+        $cleanTags = collect($tags)
+            ->map(fn($v) => intval($v))
+            ->filter(fn($v) => $v > 0)
+            ->values()
+            ->all();
+
+        $trx->tags()->sync($cleanTags);
     }
 }

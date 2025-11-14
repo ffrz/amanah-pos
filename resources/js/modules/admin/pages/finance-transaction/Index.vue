@@ -56,6 +56,10 @@ const categories = [
   })),
 ];
 
+const tags = page.props.tags.map((tag) => ({
+  label: tag.name,
+  value: tag.id,
+}));
 const types = [
   { value: "all", label: "Semua" },
   ...createOptions(window.CONSTANTS.FINANCE_TRANSACTION_TYPES),
@@ -63,6 +67,7 @@ const types = [
 
 const filter = reactive({
   search: "",
+  tags: [],
   type: "all",
   account_id: "all",
   start_date: startDate,
@@ -124,7 +129,7 @@ onMounted(() => {
 
 const deleteItem = (row) =>
   handleDelete({
-    message: `Penghapusan transaksi keuangan bisa mengakibatkan data yang saling berkaitan di modul lain tidak konsisten. Anda setuju untuk menghapus transaksi ${row.code}?`,
+    message: `Penghapusan transaksi keuangan bisa mengakibatkan data yang saling berkaitan tidak konsisten. Anda setuju untuk menghapus transaksi ${row.code}?`,
     url: route("admin.finance-transaction.delete", row.id),
     fetchItemsCallback: fetchItems,
     loading,
@@ -277,6 +282,19 @@ const goToCursorPage = (cursorType) => {
             dense
             @update:model-value="onFilterChange"
           />
+          <q-select
+            v-model="filter.tags"
+            label="Label"
+            :options="tags"
+            map-options
+            emit-value
+            class="custom-select col-xs-6 col-sm-2"
+            outlined
+            dense
+            multiple
+            use-chips
+            @update:model-value="onFilterChange"
+          />
           <q-input
             class="col"
             outlined
@@ -360,22 +378,51 @@ const goToCursorPage = (cursorType) => {
                     formatNumber(Math.abs(props.row.amount))
                   }}
                 </div>
+                <q-badge
+                  :color="
+                    props.row.type == 'transfer'
+                      ? 'grey'
+                      : props.row.amount > 0
+                      ? 'green-8'
+                      : 'red-8'
+                  "
+                >
+                  {{ props.row.type_label }}
+                </q-badge>
+                <div v-if="props.row.category_id">
+                  <q-icon name="category" class="inline-icon" />
+                  {{ props.row.category.name }}
+                </div>
+                <div v-if="props.row.tags.length > 0">
+                  <q-badge
+                    v-for="tag in props.row.tags"
+                    :key="tag.id"
+                    class="q-mr-xs"
+                    color="grey-6"
+                    >#{{ tag.name }}</q-badge
+                  >
+                </div>
                 <LongTextView
                   v-if="props.row.notes"
                   icon="notes"
                   :text="props.row.notes"
                   class="text-grey-8"
                 />
-                <q-badge :color="props.row.amount > 0 ? 'green' : 'red'">
-                  {{ props.row.type_label }}
-                </q-badge>
               </template>
             </q-td>
             <q-td key="account" :props="props">
               {{ props.row.account?.name }}
             </q-td>
             <q-td key="type" :props="props">
-              <q-badge :color="props.row.amount < 0 ? 'red' : 'green'">
+              <q-badge
+                :color="
+                  props.row.type == 'transfer'
+                    ? 'grey'
+                    : props.row.amount < 0
+                    ? 'red-8'
+                    : 'green-8'
+                "
+              >
                 {{ $CONSTANTS.FINANCE_TRANSACTION_TYPES[props.row.type] }}
               </q-badge>
               <div v-if="props.row.category_id">
@@ -386,8 +433,22 @@ const goToCursorPage = (cursorType) => {
                 <q-icon name="category" class="inline-icon" />
                 Tanpa Kategori
               </div>
+              <div v-if="props.row.tags.length > 0">
+                <q-badge
+                  v-for="tag in props.row.tags"
+                  :key="tag.id"
+                  class="q-mr-xs"
+                  color="grey-5"
+                  >#{{ tag.name }}</q-badge
+                >
+              </div>
             </q-td>
-            <q-td key="amount" :props="props" style="text-align: right">
+            <q-td
+              key="amount"
+              :props="props"
+              style="text-align: right"
+              :class="props.row.amount > 0 ? 'text-green-8' : 'text-red-8'"
+            >
               {{ formatNumberWithSymbol(props.row.amount) }}
             </q-td>
             <q-td key="notes" :props="props" class="wrap-column">

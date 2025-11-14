@@ -142,6 +142,16 @@ class FinanceTransaction extends BaseModel
         return $this->belongsTo(FinanceTransactionCategory::class, 'category_id');
     }
 
+    public function tags()
+    {
+        return $this->belongsToMany(
+            FinanceTransactionTag::class,
+            'finance_transactions_has_tags',
+            'finance_transaction_id',
+            'finance_transaction_tag_id'
+        );
+    }
+
     public function ref()
     {
         return $this->morphTo();

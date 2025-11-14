@@ -18,6 +18,11 @@ const categories = page.props.categories.map((category) => ({
   value: category.id,
 }));
 
+const tags = page.props.tags.map((tag) => ({
+  label: tag.name,
+  value: tag.id,
+}));
+
 const types = [
   { label: "Pemasukan (+)", value: "income" },
   { label: "Pengeluaran (-)", value: "expense" },
@@ -28,6 +33,7 @@ const form = useForm({
   id: page.props.data.id,
   account_id: page.props.data.account_id,
   category_id: page.props.data.category_id,
+  tags: page.props.data.tags,
   to_account_id: page.props.data.to_account_id ?? null,
   type: page.props.data.type,
   datetime: new Date(page.props.data.datetime),
@@ -128,6 +134,21 @@ const submit = () => {
                 hide-bottom-space
                 clearable
               />
+              <q-select
+                class="custom-select"
+                v-model="form.tags"
+                :label="'Label'"
+                :options="tags"
+                multiple
+                use-chips
+                map-options
+                emit-value
+                :errorMessage="form.errors.tags"
+                :error="!!form.errors.tags"
+                :disable="form.processing"
+                hide-bottom-space
+                clearable
+              />
               <LocaleNumberInput
                 v-model:modelValue="form.amount"
                 label="Jumlah"
@@ -144,14 +165,12 @@ const submit = () => {
                 autogrow
                 counter
                 maxlength="200"
-                label="Catatan"
+                label="Catatan (Opsional)"
                 lazy-rules
                 :disable="form.processing"
                 :error="!!form.errors.notes"
                 :error-message="form.errors.notes"
-                :rules="[
-                  (val) => (val && val.length > 0) || 'Catatan harus diisi.',
-                ]"
+                :rules="[]"
                 hide-bottom-space
               />
               <ImageUpload

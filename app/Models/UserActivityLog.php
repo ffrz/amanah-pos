@@ -44,6 +44,7 @@ class UserActivityLog extends Model
     public const Category_FinanceAccount = 'finance-account';
     public const Category_FinanceTransaction = 'finance-transaction';
     public const Category_FinanceTransactionCategory = 'finance-transaction-category';
+    public const Category_FinanceTransactionTag = 'finance-transaction-tag';
     public const Category_SalesOrder = 'sales-order';
     public const Category_SalesOrderReturn = 'sales-order-return';
     public const Category_PurchaseOrder = 'purchase-order';
@@ -66,6 +67,7 @@ class UserActivityLog extends Model
         self::Category_FinanceAccount => 'Manajemen Akun Keuangan',
         self::Category_FinanceTransaction => 'Manajemen Transaksi Keuangan',
         self::Category_FinanceTransactionCategory => 'Manajemen Kategori Transaksi Keuangan',
+        self::Category_FinanceTransactionTag => 'Manajemen Label Transaksi Keuangan',
         self::Category_Settings => 'Pengaturan Sistem',
         self::Category_UserProfile => 'Profil Pengguna',
         self::Category_User => 'Manajemen Pengguna',
@@ -178,6 +180,10 @@ class UserActivityLog extends Model
     public const Name_FinanceTransactionCategory_Update = 'finance-transaction-category.update';
     public const Name_FinanceTransactionCategory_Delete = 'finance-transaction-category.delete';
 
+    public const Name_FinanceTransactionTag_Create = 'finance-transaction-tag.create';
+    public const Name_FinanceTransactionTag_Update = 'finance-transaction-tag.update';
+    public const Name_FinanceTransactionTag_Delete = 'finance-transaction-tag.delete';
+
     // Customer Wallet
     public const Name_CustomerWalletTopupConfirmation_Approve = 'customer-wallet-topup-confirmation.approve';
     public const Name_CustomerWalletTopupConfirmation_Reject  = 'customer-wallet-topup-confirmation.reject';
@@ -285,6 +291,9 @@ class UserActivityLog extends Model
         self::Name_FinanceTransactionCategory_Create => 'Membuat Kategori Transaksi Keuangan',
         self::Name_FinanceTransactionCategory_Update => 'Memperbarui Kategori Transaksi Keuangan',
         self::Name_FinanceTransactionCategory_Delete => 'Menghapus Kategori Transaksi Keuangan',
+        self::Name_FinanceTransactionTag_Create => 'Membuat Label Transaksi Keuangan',
+        self::Name_FinanceTransactionTag_Update => 'Memperbarui Label Transaksi Keuangan',
+        self::Name_FinanceTransactionTag_Delete => 'Menghapus Label Transaksi Keuangan',
 
         self::Name_CashierSession_Open => 'Membuka Sesi Kasir',
         self::Name_CashierSession_Close => 'Menutup Sesi Kasir',
