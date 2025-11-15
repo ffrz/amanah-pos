@@ -69,7 +69,7 @@ const reportCategories = {
       },
     ],
   },
-  supplier: {
+  finance: {
     label: "Keuangan",
     icon: "paid",
     reports: [
@@ -95,6 +95,7 @@ const sortedReportCategories = [
   { id: "inventory", ...reportCategories.inventory },
   { id: "customer", ...reportCategories.customer },
   { id: "supplier", ...reportCategories.supplier },
+  { id: "finance", ...reportCategories.finance },
 ];
 </script>
 

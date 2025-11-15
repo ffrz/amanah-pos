@@ -22,7 +22,6 @@
         </tr>
     </table>
     <div style="padding: 10px 0;font-size:smaller;color:#444;">
-        Dibuat oleh <b>{{ Auth::user()->username }}</b> pada {{ format_datetime(now()) }} |
-        {{ env('APP_NAME') . ' v' . env('APP_VERSION_STR') }}
+        Dibuat oleh <b>{{ Auth::user()->username }}</b> pada {{ format_datetime(now()) }}
     </div>
 </div>
