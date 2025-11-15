@@ -135,16 +135,12 @@ class FinanceTransactionService
             )
             ->whereNull('deleted_at');
 
-        // --- LOGIKA FILTER (TIDAK DIUBAH) ---
         if (!empty($filter['type']) && $filter['type'] !== 'all') {
             $q->where('type', $filter['type']);
         }
 
-        // Jika filter akun hanya 1, kita bisa langsung menggunakannya untuk saldo awal
-        $singleAccountId = null;
         if (!empty($filter['account_id']) && $filter['account_id'] !== 'all') {
-            $singleAccountId = $filter['account_id'];
-            $q->where('account_id', $singleAccountId);
+            $q->where('account_id', $filter['account_id']);
         }
 
         if (!empty($filter['category_id']) && $filter['category_id'] !== 'all') {
@@ -195,66 +191,9 @@ class FinanceTransactionService
             });
         }
 
-        // --- MODIFIKASI UNTUK SALDO BERJALAN ---
+        $q->orderBy('datetime', 'desc');
 
-        // 1. Ubah urutan menjadi ASC untuk perhitungan saldo
-        // cursorPaginate akan secara otomatis menyortir berdasarkan kolom cursor (biasanya 'id' dan kolom orderBy lainnya)
-        $q->orderBy('datetime', 'asc');
-
-        // 2. Ambil data dengan pagination
-        $paginatedTransactions = $q->cursorPaginate($perPage)->withQueryString();
-        $items = $paginatedTransactions->items();
-
-        if (empty($items)) {
-            return $paginatedTransactions;
-        }
-
-        // Tentukan tanggal sebelum transaksi pertama di halaman ini
-        $firstTransaction = head($items);
-        $earliestDate = Carbon::parse($firstTransaction->datetime)->subSecond();
-
-        // Kumpulkan semua account_id yang ada di halaman hasil
-        $accountIds = $singleAccountId ? [$singleAccountId] : collect($items)->pluck('account_id')->unique()->toArray();
-
-        // 3. Ambil Saldo Awal (Opening Balance) per Akun 
-        // Kita harus menghitung total amount dari semua transaksi sebelum earliestDate.
-
-        $openingBalances = FinanceTransaction::query()
-            ->whereIn('account_id', $accountIds)
-            ->where('datetime', '<=', $earliestDate)
-            ->whereNull('deleted_at')
-            ->groupBy('account_id')
-            ->select('account_id', DB::raw('SUM(amount) as opening_balance'))
-            ->pluck('opening_balance', 'account_id')
-            ->toArray();
-
-        // 4. Iterasi dan Hitung Saldo Berjalan (Running Balance)
-        $currentBalances = [];
-        foreach ($accountIds as $accountId) {
-            // Inisialisasi saldo berjalan dengan saldo awal (0 jika tidak ada transaksi sebelumnya)
-            $currentBalances[$accountId] = $openingBalances[$accountId] ?? 0;
-        }
-
-        foreach ($items as $transaction) {
-            // Ambil saldo berjalan saat ini untuk akun transaksi ini
-            $balance = $currentBalances[$transaction->account_id];
-
-            // Tambahkan (atau kurangi) jumlah transaksi ke saldo
-            $balance += $transaction->amount;
-
-            // Simpan saldo sebagai kolom 'balance' pada objek transaksi
-            $transaction->balance = $balance;
-
-            // Perbarui saldo berjalan untuk perhitungan transaksi berikutnya
-            $currentBalances[$transaction->account_id] = $balance;
-        }
-
-        // 5. Kembalikan Urutan ke DESC untuk tampilan daftar (terbaru di atas)
-        // Karena kita tidak memuat ulang koleksi, kita hanya perlu membalik urutan item
-        $reversedItems = collect($items)->reverse()->values();
-
-        $paginatedTransactions->setCollection($reversedItems);
-        return $paginatedTransactions;
+        return $q->cursorPaginate($perPage)->withQueryString();
     }
 
     public function delete(FinanceTransaction $item): FinanceTransaction

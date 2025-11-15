@@ -7,8 +7,6 @@ import { getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
 import {
   formatDateTime,
-  formatMoney,
-  formatMoneyWithSymbol,
   formatNumber,
   formatNumberWithSymbol,
   plusMinusSymbol,
@@ -111,12 +109,6 @@ const columns = [
     name: "amount",
     label: "Jumlah (Rp.)",
     field: "amount",
-    align: "right",
-  },
-  {
-    name: "balance",
-    label: "Saldo (Rp.)",
-    field: "balance",
     align: "right",
   },
   {
@@ -380,11 +372,11 @@ const goToCursorPage = (cursorType) => {
                   :class="props.row.amount < 0 ? 'text-red' : 'text-green'"
                 >
                   <q-icon name="money" class="inline-icon" />
-                  {{ formatMoneyWithSymbol(props.row.amount) }}
-                </div>
-                <div class="text-bold">
-                  <q-icon name="balance" class="inline-icon" />
-                  {{ formatMoney(props.row.balance) }}
+                  {{
+                    plusMinusSymbol(props.row.amount) +
+                    "Rp." +
+                    formatNumber(Math.abs(props.row.amount))
+                  }}
                 </div>
                 <q-badge
                   :color="
@@ -458,9 +450,6 @@ const goToCursorPage = (cursorType) => {
               :class="props.row.amount > 0 ? 'text-green-8' : 'text-red-8'"
             >
               {{ formatNumberWithSymbol(props.row.amount) }}
-            </q-td>
-            <q-td key="balance" :props="props" style="text-align: right">
-              {{ formatNumber(props.row.balance) }}
             </q-td>
             <q-td key="notes" :props="props" class="wrap-column">
               {{ props.row.notes }}

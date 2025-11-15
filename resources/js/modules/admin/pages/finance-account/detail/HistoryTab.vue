@@ -6,8 +6,6 @@ import { usePage } from "@inertiajs/vue3";
 import { useQuasar } from "quasar";
 import {
   formatDateTime,
-  formatMoney,
-  formatMoneyWithSymbol,
   formatNumber,
   plusMinusSymbol,
 } from "@/helpers/formatter";
@@ -58,12 +56,6 @@ const columns = [
     name: "amount",
     label: "Jumlah",
     field: "amount",
-    align: "right",
-  },
-  {
-    name: "balance",
-    label: "Saldo",
-    field: "balance",
     align: "right",
   },
   {
@@ -182,10 +174,10 @@ const fetchItems = (props = null) =>
           :props="props"
           :class="props.row.amount > 0 ? 'text-green' : 'text-red'"
         >
-          {{ formatMoneyWithSymbol(props.row.amount) }}
-        </q-td>
-        <q-td key="balance" :props="props">
-          {{ formatMoney(props.row.balance) }}
+          {{
+            plusMinusSymbol(props.row.amount) +
+            formatNumber(Math.abs(props.row.amount))
+          }}
         </q-td>
         <q-td key="notes" :props="props">
           <LongTextView :text="props.row.notes" :icon="notes" />
