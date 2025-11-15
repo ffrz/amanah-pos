@@ -5,6 +5,8 @@ import { scrollToFirstErrorField } from "@/helpers/utils";
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
 import DateTimePicker from "@/components/DateTimePicker.vue";
 import ImageUpload from "@/components/ImageUpload.vue";
+import { formatMoney } from "@/helpers/formatter";
+import { computed } from "vue";
 const page = usePage();
 const title = (!!page.props.data.id ? "Edit" : "Catat") + " Transaksi Keuangan";
 
@@ -47,6 +49,47 @@ const submit = () => {
   transformPayload(form, { datetime: "YYYY-MM-DD HH:mm:ss" });
   handleSubmit({ form, url: route("admin.finance-transaction.save") });
 };
+
+const selectedAccount = computed(() => {
+  if (form.account_id) {
+    return page.props.accounts.find((a) => {
+      return a.id == form.account_id;
+    });
+  }
+
+  return null;
+});
+
+const selectedDestinationAccount = computed(() => {
+  if (form.to_account_id) {
+    return page.props.accounts.find((a) => {
+      return a.id == form.to_account_id;
+    });
+  }
+
+  return null;
+});
+
+const finalBalance = computed(() => {
+  if (form.account_id) {
+    const balance = parseFloat(selectedAccount.value.balance);
+    if (form.type == "income") {
+      return balance + form.amount;
+    }
+
+    return balance - form.amount;
+  }
+
+  return 0;
+});
+
+const finalDestinationBalance = computed(() => {
+  if (form.to_account_id) {
+    return parseFloat(selectedDestinationAccount.value.balance) + form.amount;
+  }
+
+  return 0;
+});
 </script>
 
 <template>
@@ -108,6 +151,16 @@ const submit = () => {
                 :disable="form.processing"
                 hide-bottom-space
               />
+              <div v-if="form.account_id" class="q-mt-sm text-grey-8">
+                Saldo Awal: {{ formatMoney(selectedAccount.balance) }}
+              </div>
+              <div
+                v-if="form.account_id && form.amount > 0"
+                class="q-mt-sm text-grey-8"
+              >
+                Saldo akhir:
+                {{ formatMoney(finalBalance) }}
+              </div>
               <q-select
                 v-if="form.type == 'transfer'"
                 class="custom-select"
@@ -121,6 +174,17 @@ const submit = () => {
                 :disable="form.processing"
                 hide-bottom-space
               />
+              <div v-if="form.to_account_id" class="q-mt-sm text-grey-8">
+                Saldo Awal:
+                {{ formatMoney(selectedDestinationAccount.balance) }}
+              </div>
+              <div
+                v-if="form.to_account_id && form.amount > 0"
+                class="q-mt-sm text-grey-8"
+              >
+                Saldo akhir:
+                {{ formatMoney(finalDestinationBalance) }}
+              </div>
               <q-select
                 class="custom-select"
                 v-model="form.category_id"
