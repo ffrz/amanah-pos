@@ -371,17 +371,17 @@ const computedColumns = computed(() => {
                 }}
               </div>
               <template v-if="!$q.screen.gt.sm">
-                <div v-if="props.row.supplier">
+                <div v-if="props.row.supplier_id">
                   <q-icon name="person" class="inline-icon" />
                   <my-link
                     :href="
                       route('admin.supplier.detail', {
-                        id: props.row.supplier.id,
+                        id: props.row.supplier_id,
                       })
                     "
                     @click.stop
-                    >&nbsp;
-                    {{ props.row.supplier.name }}
+                  >
+                    {{ props.row.supplier_name }}
                   </my-link>
                 </div>
                 <div>Total: Rp. {{ formatNumber(props.row.grand_total) }}</div>
@@ -408,7 +408,7 @@ const computedColumns = computed(() => {
             </q-td>
 
             <q-td key="supplier_id" :props="props">
-              <div v-if="props.row.supplier">
+              <div v-if="props.row.supplier_id">
                 <div>
                   <q-icon name="person" class="inline-icon" />
                   {{ props.row.supplier_name }}

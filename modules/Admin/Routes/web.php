@@ -29,6 +29,7 @@ use Modules\Admin\Http\Controllers\DocumentVersionController;
 use Modules\Admin\Http\Controllers\FinanceAccountController;
 use Modules\Admin\Http\Controllers\FinanceTransactionCategoryController;
 use Modules\Admin\Http\Controllers\FinanceTransactionController;
+use Modules\Admin\Http\Controllers\FinanceTransactionTagController;
 use Modules\Admin\Http\Controllers\HomeController;
 use Modules\Admin\Http\Controllers\OperationalCostController;
 use Modules\Admin\Http\Controllers\OperationalCostCategoryController;
@@ -181,6 +182,16 @@ Route::middleware([Auth::class])
                 Route::get('edit/{id}', [FinanceTransactionCategoryController::class, 'editor'])->name('admin.finance-transaction-category.edit');
                 Route::post('save', [FinanceTransactionCategoryController::class, 'save'])->name('admin.finance-transaction-category.save');
                 Route::post('delete/{id}', [FinanceTransactionCategoryController::class, 'delete'])->name('admin.finance-transaction-category.delete');
+            });
+
+            Route::prefix('finance-transaction-tags')->group(function () {
+                Route::get('', [FinanceTransactionTagController::class, 'index'])->name('admin.finance-transaction-tag.index');
+                Route::get('data', [FinanceTransactionTagController::class, 'data'])->name('admin.finance-transaction-tag.data');
+                Route::get('add', [FinanceTransactionTagController::class, 'editor'])->name('admin.finance-transaction-tag.add');
+                Route::get('duplicate/{id}', [FinanceTransactionTagController::class, 'duplicate'])->name('admin.finance-transaction-tag.duplicate');
+                Route::get('edit/{id}', [FinanceTransactionTagController::class, 'editor'])->name('admin.finance-transaction-tag.edit');
+                Route::post('save', [FinanceTransactionTagController::class, 'save'])->name('admin.finance-transaction-tag.save');
+                Route::post('delete/{id}', [FinanceTransactionTagController::class, 'delete'])->name('admin.finance-transaction-tag.delete');
             });
 
             Route::prefix('cashier-terminals')->group(function () {

@@ -616,14 +616,17 @@ defineExpose({
           <q-expansion-item
             v-if="
               $can('admin.finance-transaction.index') ||
-              $can('admin.finance-account.index')
+              $can('admin.finance-account.index') ||
+              $can('admin.finance-transaction-category.index') ||
+              $can('admin.finance-transaction-tags.index')
             "
             icon="finance"
             label="Keuangan"
             :default-opened="
               $page.url.startsWith('/admin/finance-accounts') ||
               $page.url.startsWith('/admin/finance-transactions') ||
-              $page.url.startsWith('/admin/finance-transaction-categories')
+              $page.url.startsWith('/admin/finance-transaction-categories') ||
+              $page.url.startsWith('/admin/finance-transaction-tags')
             "
           >
             <q-item
@@ -639,6 +642,21 @@ defineExpose({
               </q-item-section>
               <q-item-section>
                 <q-item-label>Transaksi</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item
+              v-if="$can('admin.finance-account.index')"
+              class="subnav"
+              clickable
+              v-ripple
+              :active="$page.url.startsWith('/admin/finance-accounts')"
+              @click="router.get(route('admin.finance-account.index'))"
+            >
+              <q-item-section avatar>
+                <q-icon name="groups_2" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Akun Kas</q-item-label>
               </q-item-section>
             </q-item>
             <q-item
@@ -661,18 +679,18 @@ defineExpose({
               </q-item-section>
             </q-item>
             <q-item
-              v-if="$can('admin.finance-account.index')"
+              v-if="$can('admin.finance-transaction-tags.index')"
               class="subnav"
               clickable
               v-ripple
-              :active="$page.url.startsWith('/admin/finance-accounts')"
-              @click="router.get(route('admin.finance-account.index'))"
+              :active="$page.url.startsWith('/admin/finance-transaction-tags')"
+              @click="router.get(route('admin.finance-transaction-tag.index'))"
             >
               <q-item-section avatar>
-                <q-icon name="groups_2" />
+                <q-icon name="category" />
               </q-item-section>
               <q-item-section>
-                <q-item-label>Akun Kas</q-item-label>
+                <q-item-label>Label Transaksi</q-item-label>
               </q-item-section>
             </q-item>
           </q-expansion-item>

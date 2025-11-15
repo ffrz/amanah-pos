@@ -15,6 +15,7 @@ return [
     ],
     'min' => [
         'string' => ':attribute terlalu pendek, minimal :min karakter.',
+        'numeric' => 'Bilangan tidak valid.',
     ],
     'gt' => [
         'numeric' => ':attribute harus lebih dari :value'
@@ -39,7 +40,9 @@ return [
         'date' => 'Tanggal',
         'description' => 'Deskripsi',
         'category_id' => 'Kategori',
+        'account_id' => 'Akun',
         'notes' => 'Catatan',
+        'type' => 'Jenis',
         'amount' => 'Jumlah',
         'customer_name' => 'Nama Pelanggan',
         'customer_phone' => 'No Telepon',
