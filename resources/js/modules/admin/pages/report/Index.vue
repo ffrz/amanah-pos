@@ -69,6 +69,24 @@ const reportCategories = {
       },
     ],
   },
+  supplier: {
+    label: "Keuangan",
+    icon: "paid",
+    reports: [
+      {
+        title: "Laporan Transaksi",
+        subtitle: "Laporan Transaksi Keuangan",
+        icon: "receipt",
+        route: "admin.report.finance-transaction.index",
+      },
+      {
+        title: "Laporan Akun",
+        subtitle: "Laporan Akun Keuangan",
+        icon: "wallet",
+        route: "admin.report.finance-account.index",
+      },
+    ],
+  },
 };
 
 const sortedReportCategories = [
