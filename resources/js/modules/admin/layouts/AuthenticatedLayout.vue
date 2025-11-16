@@ -41,7 +41,6 @@ onMounted(() => {
   }
 });
 
-console.log(page.props);
 defineExpose({
   hideDrawer,
 });

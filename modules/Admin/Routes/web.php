@@ -40,6 +40,7 @@ use Modules\Admin\Http\Controllers\PurchaseOrderReturnController;
 use Modules\Admin\Http\Controllers\ReportController;
 use Modules\Admin\Http\Controllers\Reports\CustomerReportController;
 use Modules\Admin\Http\Controllers\Reports\FinanceAccountReportController;
+use Modules\Admin\Http\Controllers\Reports\FinanceTransactionReportController;
 use Modules\Admin\Http\Controllers\Reports\ProductReportController;
 use Modules\Admin\Http\Controllers\Reports\SalesOrderReportController;
 use Modules\Admin\Http\Controllers\Reports\SupplierReportController;
@@ -95,6 +96,9 @@ Route::middleware([Auth::class])
 
             Route::get('finance-account', [FinanceAccountReportController::class, 'index'])->name('admin.report.finance-account.index');
             Route::get('finance-account/generate', [FinanceAccountReportController::class, 'generate'])->name('admin.report.finance-account.generate');
+
+            Route::get('finance-transaction', [FinanceTransactionReportController::class, 'index'])->name('admin.report.finance-transaction.index');
+            Route::get('finance-transaction/generate', [FinanceTransactionReportController::class, 'generate'])->name('admin.report.finance-transaction.generate');
         });
 
         Route::prefix('settings')->group(function () {
