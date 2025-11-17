@@ -3,13 +3,13 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
+ *
  * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
+ *
  * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
+ *
  * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
@@ -141,7 +141,7 @@ class OperationalCostService
                 [
                     'ref_id'     => $item->id,
                     'ref_type'   => FinanceTransaction::RefType_OperationalCost,
-                    'datetime'   => new Carbon($item->date),
+                    'datetime'   => Carbon::now(), // ini gak konsisten karena gak ambil dari tanggal item
                     'account_id' => $item->finance_account_id,
                     'amount'     => -abs($item->amount),
                     'type'       => FinanceTransaction::Type_Expense,

@@ -109,17 +109,12 @@ class FinanceTransactionService
 
     public function getData(array $options)
     {
-        $filter = $options['filter'];
-        $hasDateFilter = !empty($filter['start_date']) || !empty($filter['end_date']) || !empty($filter['from_datetime']);
-        $perPage = $options['per_page'] ?? 15;
+        $filter  = $options['filter'] ?? [];
+        $perPage = $options['per_page'] ?? 20;
 
         $q = FinanceTransaction::with([
-            'account' => function ($query) {
-                $query->select('id', 'name', 'bank', 'number', 'holder');
-            },
-            'category' => function ($query) {
-                $query->select('id', 'name');
-            },
+            'account:id,name,bank,number,holder',
+            'category:id,name',
             'tags:id,name',
         ])
             ->select(
@@ -131,7 +126,7 @@ class FinanceTransactionService
                 'notes',
                 'image_path',
                 'account_id',
-                'category_id',
+                'category_id'
             )
             ->whereNull('deleted_at');
 
@@ -144,57 +139,52 @@ class FinanceTransactionService
         }
 
         if (!empty($filter['category_id']) && $filter['category_id'] !== 'all') {
-            if ($filter['category_id'] === 'none') {
-                $q->whereNull('category_id');
-            } else {
-                $q->where('category_id', $filter['category_id']);
-            }
+            $filter['category_id'] === 'none'
+                ? $q->whereNull('category_id')
+                : $q->where('category_id', $filter['category_id']);
         }
 
-        if (!empty($filter['tags']) && is_array($filter['tags'])) {
+        if (!empty($filter['tags'])) {
             $tagIds = array_map('intval', $filter['tags']);
-
-            $q->whereHas('tags', function ($q) use ($tagIds) {
-                $q->whereIn('finance_transaction_tags.id', $tagIds);
-            });
+            $q->whereHas('tags', fn($qq) => $qq->whereIn('finance_transaction_tags.id', $tagIds));
         }
 
         if (!empty($filter['user_id']) && $filter['user_id'] !== 'all') {
             $q->where('created_by', $filter['user_id']);
         }
 
-        $startDate = $filter['start_date'] ?? null;
-        $endDate = $filter['end_date'] ?? null;
-
-        if ($startDate) {
-            $q->where('datetime', '>=', $startDate);
+        if (!empty($filter['start_date'])) {
+            $q->where('datetime', '>=', $filter['start_date']);
         }
-        if ($endDate) {
-            $q->where('datetime', '<=', $endDate);
+
+        if (!empty($filter['end_date'])) {
+            $q->where('datetime', '<=', $filter['end_date']);
         }
 
         if (!empty($filter['from_datetime'])) {
             $start = Carbon::parse($filter['from_datetime']);
-            $end = empty($filter['to_datetime']) ? Carbon::now() : Carbon::parse($filter['to_datetime']);
+            $end   = !empty($filter['to_datetime'])
+                ? Carbon::parse($filter['to_datetime'])
+                : now();
             $q->whereBetween('created_at', [$start, $end]);
         }
 
-        if (!$hasDateFilter) {
-            $defaultStartDate = Carbon::now()->subDays(90)->startOfDay();
-            $q->where('datetime', '>=', $defaultStartDate);
-        }
-
         if (!empty($filter['search'])) {
-            $q->where(function (Builder $q) use ($filter) {
-                $q->orWhere('code', 'like', "%" . $filter['search'] . "%");
-                $q->orWhere('notes', 'like', '%' . $filter['search'] . '%');
+            $q->where(function ($x) use ($filter) {
+                $x->where('code', 'like', "%{$filter['search']}%")
+                    ->orWhere('notes', 'like', "%{$filter['search']}%");
             });
         }
 
-        $q->orderBy('datetime', 'desc');
+        if (empty($filter['start_date']) && empty($filter['end_date']) && empty($filter['from_datetime'])) {
+            $q->where('datetime', '>=', now()->subDays(90)->startOfDay());
+        }
+
+        $q->orderBy('id', 'desc');
 
         return $q->cursorPaginate($perPage)->withQueryString();
     }
+
 
     public function delete(FinanceTransaction $item): FinanceTransaction
     {

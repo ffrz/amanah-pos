@@ -321,13 +321,13 @@ const goToCursorPage = (cursorType) => {
         square
         color="primary"
         row-key="id"
-        v-model:pagination="pagination"
+        :pagination="pagination"
         :filter="filter.search"
         :loading="loading"
         :columns="computedColumns"
         :rows="rows"
-        :rows-per-page-options="isCursorMode ? [] : [10, 25, 50]"
-        @request="fetchItems"
+        :rows-per-page-options="[]"
+        @request="() => {}"
         binary-state-sort
       >
         <template v-slot:loading>
@@ -505,69 +505,26 @@ const goToCursorPage = (cursorType) => {
           </q-tr>
         </template>
 
-        <!-- ========================================================== -->
-        <!-- === SLOT KRITIS: MENGGANTI PAGINATION DENGAN NAVIGASI KURSOR === -->
-        <!-- ========================================================== -->
-        <template
-          v-slot:pagination="{
-            pagination: qTablePagination,
-            prevPage,
-            nextPage,
-            pagesNumber,
-          }"
-        >
-          <div class="row full-width justify-end items-center">
-            <!-- Tampilkan navigasi kursor jika isCursorMode true -->
-            <template v-if="isCursorMode">
-              <q-btn
-                icon="chevron_left"
-                color="grey-8"
-                round
-                flat
-                dense
-                :disable="!pagination.prevCursor"
-                @click="goToCursorPage('prev')"
-              />
-              <q-btn
-                icon="chevron_right"
-                color="grey-8"
-                round
-                flat
-                dense
-                :disable="!pagination.nextCursor"
-                @click="goToCursorPage('next')"
-              />
-            </template>
-
-            <!-- Tampilkan navigasi standar (LengthAware) jika isCursorMode false -->
-            <template v-else>
-              <q-btn
-                icon="chevron_left"
-                color="grey-8"
-                round
-                flat
-                dense
-                :disable="qTablePagination.page === 1"
-                @click="prevPage"
-              />
-
-              <span class="q-mx-md text-caption text-grey-6">
-                Halaman {{ qTablePagination.page }} dari {{ pagesNumber }}
-              </span>
-
-              <q-btn
-                icon="chevron_right"
-                color="grey-8"
-                round
-                flat
-                dense
-                :disable="qTablePagination.page === pagesNumber"
-                @click="nextPage"
-              />
-            </template>
-          </div>
+        <template v-slot:pagination>
+          <q-btn
+            icon="chevron_left"
+            :disable="!pagination.prevCursor"
+            @click="goToCursorPage('prev')"
+            dense
+            rounded
+            flat
+            class="q-mr-xs"
+          />
+          <q-btn
+            icon="chevron_right"
+            :disable="!pagination.nextCursor"
+            @click="goToCursorPage('next')"
+            dense
+            rounded
+            flat
+            class="q-ml-xs"
+          />
         </template>
-        <!-- ========================================================== -->
       </q-table>
     </div>
     <ImageViewer v-model="showImageViewer" :imageUrl="`/${activeImagePath}`" />
