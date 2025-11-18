@@ -127,6 +127,10 @@ onMounted(() => {
   fetchItems();
 });
 
+const editItem = (row) => {
+  router.get(route("admin.finance-transaction.edit", row.id));
+};
+
 const deleteItem = (row) =>
   handleDelete({
     message: `Penghapusan transaksi keuangan bisa mengakibatkan data yang saling berkaitan tidak konsisten. Anda setuju untuk menghapus transaksi ${row.code}?`,
@@ -485,6 +489,18 @@ const goToCursorPage = (cursorType) => {
                     transition-hide="scale"
                   >
                     <q-list style="width: 200px">
+                      <q-item
+                        v-if="$can('admin.finance-transaction.edit')"
+                        @click.stop="editItem(props.row)"
+                        clickable
+                        v-ripple
+                        v-close-popup
+                      >
+                        <q-item-section avatar>
+                          <q-icon name="edit" />
+                        </q-item-section>
+                        <q-item-section>Edit</q-item-section>
+                      </q-item>
                       <q-item
                         v-if="$can('admin.finance-transaction.delete')"
                         @click.stop="deleteItem(props.row)"
