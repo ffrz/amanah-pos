@@ -18,6 +18,7 @@ namespace App\Models;
 
 use App\Models\Traits\HasDocumentVersions;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 
@@ -179,6 +180,16 @@ class Product extends BaseModel
     public function getTypeLabelAttribute()
     {
         return self::Types[$this->type] ?? '-';
+    }
+
+    /**
+     * Relasi ke unit-unit produk yang berbeda.
+     *
+     * @return HasMany
+     */
+    public function productUnits(): HasMany
+    {
+        return $this->hasMany(ProductUnit::class);
     }
 
     /**
