@@ -39,7 +39,7 @@ class FinanceTransactionCategoryController extends Controller
      * @return void
      */
     public function __construct(
-        protected FinanceTransactionCategoryService $FinanceTransactionCategoryService,
+        protected FinanceTransactionCategoryService $financeTransactionCategoryService,
     ) {}
 
     /**
@@ -64,7 +64,7 @@ class FinanceTransactionCategoryController extends Controller
     {
         $this->authorize('viewAny', FinanceTransactionCategory::class);
 
-        $items = $this->FinanceTransactionCategoryService->getData($request->validated());
+        $items = $this->financeTransactionCategoryService->getData($request->validated());
 
         return JsonResponseHelper::success($items);
     }
@@ -79,7 +79,7 @@ class FinanceTransactionCategoryController extends Controller
     {
         $this->authorize('create', FinanceTransactionCategory::class);
 
-        $item = $this->FinanceTransactionCategoryService->duplicate($id);
+        $item = $this->financeTransactionCategoryService->duplicate($id);
 
         return Inertia::render('finance-transaction-category/Editor', [
             'data' => $item
@@ -94,7 +94,7 @@ class FinanceTransactionCategoryController extends Controller
      */
     public function editor(int $id = 0): Response
     {
-        $item = $this->FinanceTransactionCategoryService->findOrCreate($id);
+        $item = $this->financeTransactionCategoryService->findOrCreate($id);
 
         $this->authorize($id ? 'update' : 'create', $item);
 
@@ -111,11 +111,11 @@ class FinanceTransactionCategoryController extends Controller
      */
     public function save(SaveRequest $request): RedirectResponse
     {
-        $item = $this->FinanceTransactionCategoryService->findOrCreate($request->id);
+        $item = $this->financeTransactionCategoryService->findOrCreate($request->id);
 
         $this->authorize($request->id ? 'update' : 'create', $item);
 
-        $item = $this->FinanceTransactionCategoryService->save($item, $request->validated());
+        $item = $this->financeTransactionCategoryService->save($item, $request->validated());
 
         return redirect(route('admin.finance-transaction-category.index'))
             ->with('success', "Kategori $item->name telah disimpan.");
@@ -129,11 +129,11 @@ class FinanceTransactionCategoryController extends Controller
      */
     public function delete(int $id): JsonResponse
     {
-        $item = $this->FinanceTransactionCategoryService->find($id);
+        $item = $this->financeTransactionCategoryService->find($id);
 
         $this->authorize('delete', $item);
 
-        $this->FinanceTransactionCategoryService->delete($item);
+        $this->financeTransactionCategoryService->delete($item);
 
         return JsonResponseHelper::success(null, "Kategori $item->name telah dihapus");
     }
