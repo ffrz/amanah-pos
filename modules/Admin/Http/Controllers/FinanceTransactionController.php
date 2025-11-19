@@ -78,11 +78,9 @@ class FinanceTransactionController extends Controller
 
     public function save(SaveRequest $request)
     {
-
-        $this->authorize('create', FinanceTransaction::class);
-
-        $item = $this->financeTransactionService->save($request->validated(), $request->file('image'));
-
+        $item = $this->financeTransactionService->findOrCreate($request->id);
+        $this->authorize(!$request->id ? 'create' : 'update', FinanceTransaction::class);
+        $item = $this->financeTransactionService->save($item, $request->validated(), $request->file('image'));
         return redirect(route('admin.finance-transaction.index'))
             ->with('success', "Transaksi $item->code telah disimpan.");
     }

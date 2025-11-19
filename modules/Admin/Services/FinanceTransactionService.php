@@ -25,6 +25,7 @@ use Carbon\Carbon;
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
+use Nette\NotImplementedException;
 
 class FinanceTransactionService
 {
@@ -239,9 +240,8 @@ class FinanceTransactionService
         ImageUploaderHelper::deleteImage($trx->image_path);
     }
 
-    public function save(array $validated, $imageFile)
+    public function save(FinanceTransaction $item, array $validated, $imageFile)
     {
-        $item = null;
         $newlyUploadedImagePath = null;
 
         try {
@@ -257,7 +257,7 @@ class FinanceTransactionService
             }
 
             if ($validated['type'] === FinanceTransaction::Type_Transfer && !empty($validated['to_account_id'])) {
-                $items = $this->createTransferTransactions($validated); // pair
+                $items = $this->createTransferTransactions($item, $validated); // pair
 
                 foreach ($items as $item) {
                     $this->documentVersionService->createVersion($item);
@@ -275,19 +275,29 @@ class FinanceTransactionService
                     );
                 }
             } else {
-                $item = $this->createSingleTransaction($validated);
-
+                $item = $this->saveTransaction($item, $validated);
+                if (!$validated['id']) {
+                    $this->userActivityLogService->log(
+                        UserActivityLog::Category_FinanceTransaction,
+                        UserActivityLog::Name_FinanceTransaction_Create,
+                        "Transaksi $item->code telah dibuat",
+                        [
+                            "data" => $item->toArray(),
+                            "formatter" => "finance-transaction",
+                        ]
+                    );
+                } else {
+                    $this->userActivityLogService->log(
+                        UserActivityLog::Category_FinanceTransaction,
+                        UserActivityLog::Name_FinanceTransaction_Update,
+                        "Transaksi $item->code telah diperbarui",
+                        [
+                            "data" => $item->toArray(),
+                            "formatter" => "finance-transaction",
+                        ]
+                    );
+                }
                 $this->documentVersionService->createVersion($item);
-
-                $this->userActivityLogService->log(
-                    UserActivityLog::Category_FinanceTransaction,
-                    UserActivityLog::Name_FinanceTransaction_Create,
-                    "Transaksi $item->code telah dibuat",
-                    [
-                        "data" => $item->toArray(),
-                        "formatter" => "finance-transaction",
-                    ]
-                );
             }
 
             DB::commit();
@@ -304,16 +314,17 @@ class FinanceTransactionService
         }
     }
 
-    private function createSingleTransaction(array $validated): FinanceTransaction
+    private function saveTransaction(FinanceTransaction $item, array $validated): FinanceTransaction
     {
+        // FIXME: Edit belum ditangani
+
         // Handle transaksi biasa (income / expense)
         $amount = $validated['amount'];
         if ($validated['type'] === FinanceTransaction::Type_Expense) {
             $amount = -$amount;
         }
 
-        $transaction = new FinanceTransaction();
-        $transaction->fill([
+        $item->fill([
             'account_id'  => $validated['account_id'],
             'category_id' => $validated['category_id'] ?? null,
             'datetime'    => $validated['datetime'],
@@ -322,20 +333,21 @@ class FinanceTransactionService
             'notes'       => $validated['notes'],
             'image_path'  => $validated['image_path'],
         ]);
-        $transaction->save();
+        $item->save();
 
-        $this->addToBalance($transaction->account, $transaction->amount);
+        $this->addToBalance($item->account, $item->amount);
 
         if (!empty($validated['tags'])) {
-            $this->syncTags($transaction, $validated['tags']);
+            $this->syncTags($item, $validated['tags']);
         }
 
-        return $transaction;
+        return $item;
     }
 
-    private function createTransferTransactions(array $validated): array
+    private function createTransferTransactions($fromTransaction, array $validated): array
     {
-        $fromTransaction = new FinanceTransaction();
+        // FIXME: Edit belum ditangani
+
         $fromTransaction->fill([
             'account_id'  => $validated['account_id'],
             'category_id' => $validated['category_id'] ?? null,
@@ -367,6 +379,7 @@ class FinanceTransactionService
         $this->addToBalance($toTransaction->account, $toTransaction->amount);
 
         // Link untuk keperluan delete
+
         $fromTransaction->ref_type = FinanceTransaction::RefType_FinanceTransaction;
         $fromTransaction->ref_id = $toTransaction->id;
         $fromTransaction->save();
@@ -374,6 +387,7 @@ class FinanceTransactionService
         $toTransaction->ref_type = FinanceTransaction::RefType_FinanceTransaction;
         $toTransaction->ref_id = $fromTransaction->id;
         $toTransaction->save();
+
 
         // tag
 
