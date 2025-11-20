@@ -255,6 +255,7 @@ const updateItem = () => {
         form.items[index] = item;
         showInfo("Item telah diperbarui", "top");
       }
+      showItemEditorDialog.value = false;
     })
     .catch((error) => {
       showError(
