@@ -282,23 +282,29 @@ const computedColumns = computed(() => {
             </q-td>
 
             <q-td key="closing_info" :props="props">
-              <div>
-                <q-icon class="inline-icon" name="calendar_clock" />
-                {{
-                  props.row.closed_at
-                    ? formatDateTime(props.row.closed_at)
-                    : "-"
-                }}
+              <div v-if="props.row.closed_at">
+                <div>
+                  <q-icon class="inline-icon" name="calendar_clock" />
+                  {{ formatDateTime(props.row.closed_at) }}
+                </div>
+                <div>
+                  <q-icon class="inline-icon" name="money" />
+                  {{ formatMoney(props.row.closing_balance) }}
+                </div>
+                <LongTextView
+                  v-if="props.row.closing_notes"
+                  :text="props.row.closing_notes"
+                  icon="notes"
+                />
               </div>
-              <div>
-                <q-icon class="inline-icon" name="money" />
-                {{ formatMoney(props.row.closing_balance) }}
+              <div v-else>
+                Sesi masih aktif.
+                <br />
+                <div>
+                  <q-icon class="inline-icon" name="balance" />
+                  Saldo Aktual: {{ formatMoney(props.row.actual_balance) }}
+                </div>
               </div>
-              <LongTextView
-                v-if="props.row.closing_notes"
-                :text="props.row.closing_notes"
-                icon="notes"
-              />
             </q-td>
             <q-td key="action" :props="props">
               <div class="flex justify-end">
