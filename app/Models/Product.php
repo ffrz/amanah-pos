@@ -193,6 +193,16 @@ class Product extends BaseModel
     }
 
     /**
+     * Relasi ke product images.
+     *
+     * @return HasMany
+     */
+    public function productImages(): HasMany
+    {
+        return $this->hasMany(ProductImage::class);
+    }
+
+    /**
      * Get the category for the product.
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
