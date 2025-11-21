@@ -14,7 +14,7 @@ const props = defineProps({
   },
 });
 
-const LEFT_DRAWER_STORAGE_KEY = "amanah-pos.customer-layout.left-drawer-open";
+const LEFT_DRAWER_STORAGE_KEY = "shiftech-pos.customer-layout.left-drawer-open";
 const $q = useQuasar();
 const page = usePage();
 const leftDrawerOpen = ref(

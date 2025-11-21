@@ -16,7 +16,6 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\CashierSession;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -77,7 +76,7 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'company' => [
-                'name' => Setting::value('company.name', env('APP_NAME', 'Amanah Mart')),
+                'name' => Setting::value('company.name', config('app.name')),
                 'address' => Setting::value('company.address', ''),
                 'phone' => Setting::value('company.phone', ''),
             ],

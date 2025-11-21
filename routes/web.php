@@ -23,7 +23,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('homepage', [
-        'company_name' => Setting::value('company.name', env('APP_NAME', 'Amanah POS')),
+        'company_name' => Setting::value('company.name', config('app.name')),
         'company_headline' => Setting::value('company.headline', 'Headline'),
         'company_phone' => Setting::value('company.phone', '081xxxxxxxxx'),
         'company_address' => Setting::value('company.address', 'Indonesia'),

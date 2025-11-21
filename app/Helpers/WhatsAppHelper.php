@@ -24,8 +24,8 @@ class WhatsAppHelper
 {
     public static function sendMessage(string $receiver, string $message): array
     {
-        $apiKey = config('services.whatsapp.api_key', env('WHATSAPP_API_KEY'));
-        $endpoint = rtrim(config('services.whatsapp.endpoint', env('WHATSAPP_API_ENDPOINT')));
+        $apiKey = config('services.whatsapp.api_key');
+        $endpoint = rtrim(config('services.whatsapp.endpoint'));
 
         if (empty($endpoint)) {
             throw new Exception("Invalid WhatsApp endpoint");

@@ -49,4 +49,9 @@ return [
         ],
     ],
 
+    'whatsapp' => [
+        'api_key' => env('WHATSAPP_API_KEY'),
+        'endpoint' => env('WHATSAPP_API_ENDPOINT'),
+    ]
+
 ];

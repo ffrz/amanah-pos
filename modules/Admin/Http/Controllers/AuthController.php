@@ -78,11 +78,11 @@ class AuthController extends Controller
         if ($request->isMethod('GET')) {
             return inertia('auth/Login', [
                 'data' => [
-                    'username' => env('APP_DEMO') ? 'admin' : '',
-                    'password' => env('APP_DEMO') ? '12345' : '',
+                    'username' => config('app.demo_mode') ? 'admin' : '',
+                    'password' => config('app.demo_mode') ? '12345' : '',
                 ],
                 'company' => [
-                    'name' => Setting::value('company.name', 'Amanah Mart'),
+                    'name' => Setting::value('company.name', 'Toko Saya'),
                 ]
             ]);
         }

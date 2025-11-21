@@ -108,7 +108,7 @@ class BaseController extends Controller
         }
 
         if ($format == 'pdf') {
-            $filename = env('APP_NAME') . ' - ' . $data['title'];
+            $filename = config('app.name') . ' - ' . $data['title'];
             $invalidChars = ['/', '\\', ':', '*', '?', '"', '<', '>', '|'];
             $filename = str_replace($invalidChars, '_', $filename);
             $filename = trim(preg_replace('/\s+/', ' ', $filename));

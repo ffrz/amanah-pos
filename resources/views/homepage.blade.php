@@ -153,8 +153,8 @@
         <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <p class="mb-2 text-sm text-gray-400">
                 Tentang <a href="{{ route('landing-page') }}"
-                    class="hover:text-primary-blue transition duration-200">{{ env('APP_NAME') }}
-                    {{ env('APP_VERSION_STR') }}</a>
+                    class="hover:text-primary-blue transition duration-200">{{ config('app.name') }}
+                    {{ config('app.version_str') }}</a>
             </p>
             <p class="text-sm">
                 &copy; {{ date('Y') }} <strong class="font-semibold">{{ $company_name }}</strong>. All Rights

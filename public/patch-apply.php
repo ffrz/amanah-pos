@@ -86,6 +86,7 @@ function run_cmd($cmd, $args = [])
 run_cmd('optimize:clear');
 run_cmd('config:clear');
 run_cmd('route:clear');
+run_cmd('view:clear');
 
 // Run commands (migrate harus pakai --force)
 run_cmd('migrate', ['--force' => true]);
@@ -94,6 +95,7 @@ run_cmd('permissions:sync');
 run_cmd('optimize');
 run_cmd('config:cache');   // rebuild config cache
 run_cmd('route:cache');    // rebuild routes cache
+
 // Optional view:cache may not exist on older laravel, handle silently
 try {
     run_cmd('view:cache');

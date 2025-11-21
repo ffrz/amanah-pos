@@ -33,7 +33,7 @@ class CompanyProfileService
     public function getCurrentProfileData(): array
     {
         return [
-            'name'      => Setting::value('company.name', env('APP_NAME', 'Amanah POS')),
+            'name'      => Setting::value('company.name', config('app.name')),
             'headline'  => Setting::value('company.headline', ''),
             'phone'     => Setting::value('company.phone', ''),
             'address'   => Setting::value('company.address', ''),

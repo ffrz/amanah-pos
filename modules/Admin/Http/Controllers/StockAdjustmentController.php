@@ -153,7 +153,7 @@ class StockAdjustmentController extends Controller
                 ->setPaper('a4', 'portrait')
                 ->setOption('isHtml5ParserEnabled', true)
                 ->setOption('isPhpEnabled', true);
-            return $pdf->download(env('APP_NAME') . ' - KARTU STOK - ' . $item->code . '.pdf');
+            return $pdf->download(config('app.name') . ' - KARTU STOK - ' . $item->code . '.pdf');
         }
 
         return view($template, [
@@ -181,7 +181,7 @@ class StockAdjustmentController extends Controller
                 ->setPaper('a4', 'portrait')
                 ->setOption('isHtml5ParserEnabled', true)
                 ->setOption('isPhpEnabled', true);
-            return $pdf->download(env('APP_NAME') . ' - PENYESUAIAN STOK - ' . $item->code . '.pdf');
+            return $pdf->download(config('app.name') . ' - PENYESUAIAN STOK - ' . $item->code . '.pdf');
         }
 
         return view($template, [

@@ -182,7 +182,7 @@ class PurchaseOrderReturnController extends Controller
                 ->setPaper($size, 'portrait')
                 ->setOption('isHtml5ParserEnabled', true)
                 ->setOption('isPhpEnabled', true);
-            return $pdf->download(env('APP_NAME') . '_' . $item->code . '.pdf');
+            return $pdf->download(config('app.name') . '_' . $item->code . '.pdf');
         }
 
         return view('modules.admin.pages.purchase-order-return.print-' . $size, [

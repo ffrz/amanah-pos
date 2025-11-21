@@ -23,7 +23,7 @@
         </section>
     </div>
     <script>
-        @if (env('APP_ENV') == 'production')
+        @if (config('app.env') == 'production')
             window.addEventListener("load", window.print());
         @endif
     </script>

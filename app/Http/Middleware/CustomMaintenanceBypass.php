@@ -8,6 +8,7 @@ class CustomMaintenanceBypass
 {
     public function handle($request, Closure $next)
     {
+        // FIXME: nyimpen di env ini salah
         $maintenance_mode = env('APP_MAINTENANCE_STATUS', 'up');
 
         if ($maintenance_mode === 'down') {
