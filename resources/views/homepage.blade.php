@@ -52,16 +52,21 @@
 
             <!-- Navigation and CTA (Hidden for simplicity, focus on main CTA) -->
             <div class="hidden sm:flex space-x-6 items-center">
-                <a href="#features" class="text-gray-600 hover:text-primary-blue transition duration-200">Tentang
+                <a href="#about" class="text-gray-600 hover:text-primary-blue transition duration-200">Tentang
                     Kami</a>
                 <a href="#contact" class="text-gray-600 hover:text-primary-blue transition duration-200">Hubungi
                     Kami</a>
 
+                <a href="{{ route('admin.auth.login') }}"
+                    class="bg-primary-blue hover:bg-blue-600 text-white font-semibold py-2 px-5 rounded-lg shadow-lg transition duration-300 transform hover:scale-105">
+                    Staff Area
+                </a>
+
                 <!-- Call to Action (CTA) - LOGIN -->
-                <a href="{{ route('customer.auth.login') }}"
+                {{-- <a href="{{ route('customer.auth.login') }}"
                     class="bg-primary-blue hover:bg-blue-600 text-white font-semibold py-2 px-5 rounded-lg shadow-lg transition duration-300 transform hover:scale-105">
                     Login Member Area
-                </a>
+                </a> --}}
             </div>
 
             <!-- Mobile Menu Button (Hamburger) - Basic functionality shown -->
@@ -76,13 +81,13 @@
     </header>
 
     <!-- Main Content -->
-    <main class="main flex-grow">
+    <main id="about" class="main flex-grow">
 
         <!-- Hero Section: POS Landing & Member Focus -->
         <section class="py-20 md:py-32 bg-white text-center">
             <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
                 <h1 class="text-4xl md:text-6xl font-extrabold text-primary-dark leading-tight mb-4 tracking-tighter">
-                    Selamat Datang di Member Area <span class="text-primary-blue">{{ $company_name }}</span>
+                    Selamat Datang di <span class="text-primary-blue">{{ $company_name }}</span>
                 </h1>
 
                 <p class="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
@@ -93,7 +98,7 @@
                 <div class="space-y-4 sm:space-y-0 sm:space-x-4 flex flex-col sm:flex-row justify-center">
                     <a href="{{ route('customer.auth.login') }}"
                         class="inline-block px-10 py-3 text-lg font-bold text-white bg-primary-blue rounded-xl shadow-2xl shadow-blue-400/50 hover:bg-blue-600 transition duration-300 transform hover:scale-[1.03] focus:outline-none focus:ring-4 focus:ring-primary-blue/50">
-                        Masuk ke Akun Saya
+                        Masuk ke Member Area Pelanggan
                     </a>
                 </div>
 
