@@ -14,7 +14,7 @@ const period_options = ref([
   { value: "today", label: "Hari Ini" },
   { value: "yesterday", label: "Kemarin" },
   { value: "this_week", label: "Minggu Ini" },
-  { value: "last_week", label: "Minggu Lalu" },
+  { value: "prev_week", label: "Minggu Lalu" },
   { value: "this_month", label: "Bulan Ini" },
   { value: "prev_month", label: "Bulan Lalu" },
   { value: "prev_2month", label: "2 Bulan Sebelumnya" },

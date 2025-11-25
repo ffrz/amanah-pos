@@ -6,6 +6,9 @@ import { useQuasar } from "quasar";
 import { computed, onMounted, reactive, ref } from "vue";
 import { formatDateTime, formatNumber } from "@/helpers/formatter";
 import LongTextView from "@/components/LongTextView.vue";
+import SalesOrderStatusChip from "@/components/SalesOrderStatusChip.vue";
+import SalesOrderPaymentStatusChip from "@/components/SalesOrderPaymentStatusChip.vue";
+import SalesOrderDeliveryStatusChip from "@/components/SalesOrderDeliveryStatusChip.vue";
 
 const page = usePage();
 const rows = ref([]);
@@ -144,17 +147,14 @@ const computedColumns = computed(() => {
             </div>
           </template>
           <div>
-            <q-badge :color="props.row.status == 'closed' ? 'green' : 'red'">
-              {{ props.row.status_label }}
-            </q-badge>
-            <q-badge
-              class="q-ml-xs"
-              :color="
-                props.row.payment_status == 'fully_paid' ? 'green' : 'red'
-              "
-            >
-              {{ props.row.payment_status_label }}
-            </q-badge>
+            <SalesOrderStatusChip :status="props.row.status" />
+            <template v-if="props.row.status == 'closed'">
+              <SalesOrderPaymentStatusChip :status="props.row.payment_status" />
+              <SalesOrderDeliveryStatusChip
+                v-if="false"
+                :status="props.row.delivery_status"
+              />
+            </template>
           </div>
         </q-td>
         <q-td key="grand_total" :props="props">
