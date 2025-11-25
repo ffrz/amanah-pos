@@ -71,7 +71,7 @@ const page = usePage();
         <td>Tampilkan di Pembelian</td>
         <td>:</td>
         <td>
-          {{ page.props.data.show_in_purchasing ? "Ya" : "Tidak" }}
+          {{ page.props.data.show_in_purchasing_payment ? "Ya" : "Tidak" }}
         </td>
       </tr>
       <tr>

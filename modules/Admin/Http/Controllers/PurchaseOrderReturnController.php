@@ -102,7 +102,7 @@ class PurchaseOrderReturnController extends Controller
         $order = $this->service->editOrder($order);
         return inertia('purchase-order-return/Editor', [
             'data' => $order,
-            'accounts' => $this->financeAccountService->getFinanceAccounts(),
+            'accounts' => $this->financeAccountService->getPurchasingFinanceAccounts(),
             'settings' => [
                 'default_payment_mode' => Setting::value('pos.default_payment_mode', 'cash'),
                 'default_print_size'   => Setting::value('pos.default_print_size', '58mm'),
@@ -159,7 +159,7 @@ class PurchaseOrderReturnController extends Controller
         $this->authorize('view', $order);
         return inertia('purchase-order-return/Detail', [
             'data' => $order,
-            'accounts' => $this->financeAccountService->getFinanceAccounts()
+            'accounts' => $this->financeAccountService->getPurchasingFinanceAccounts()
         ]);
     }
 
