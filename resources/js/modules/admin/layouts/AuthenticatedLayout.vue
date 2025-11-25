@@ -760,7 +760,10 @@ defineExpose({
           <q-expansion-item
             icon="settings"
             label="Pengaturan"
-            :default-opened="$page.url.startsWith('/admin/settings')"
+            :default-opened="
+              $page.url.startsWith('/admin/settings') &&
+              !$page.url.startsWith('/admin/settings/profile')
+            "
           >
             <q-item
               v-if="$can('admin.user.index')"

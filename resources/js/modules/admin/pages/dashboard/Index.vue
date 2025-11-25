@@ -24,11 +24,10 @@ const period_options = ref([
 ]);
 
 const selectedPeriodLabel = computed(() => {
-  const selectedOption = period_options.value.find(
-    (option) => option.value === selected_period.value
-  );
-  
-  return selectedOption ? selectedOption.label : selected_period.value;
+  const selectedOption = period_options.value.find(
+    (option) => option.value === selected_period.value
+  );
+  return selectedOption ? selectedOption.label : selected_period.value;
 });
 
 const onFilterChange = () => {
@@ -37,8 +36,9 @@ const onFilterChange = () => {
 };
 
 const isDailiyPeriod = computed(() => {
-  if (selected_period.value == 'today' ||
-    selected_period.value == 'yesterday'
+  if (
+    selected_period.value == "today" ||
+    selected_period.value == "yesterday"
   ) {
     return false;
   }
@@ -46,9 +46,9 @@ const isDailiyPeriod = computed(() => {
 });
 
 onMounted(() => {
-    router.on('finish', () => {
-        isLoading.value = false;
-    });
+  router.on("finish", () => {
+    isLoading.value = false;
+  });
 });
 </script>
 
@@ -88,34 +88,32 @@ onMounted(() => {
     </template>
 
     <div
-        v-if="isLoading"
-        class="fixed-full flex flex-center"
-        style="background-color: rgba(255, 255, 255, 0.7); z-index: 1000;"
+      v-if="isLoading"
+      class="fixed-full flex flex-center"
+      style="background-color: rgba(255, 255, 255, 0.7); z-index: 1000"
     >
-        <q-circular-progress
-          indeterminate
-          show-value
-          size="100px"
-          :thickness="0.1"
-          color="primary"
-          center-color="white"
-          track-color="white"
-          class="q-ma-md"
-        >
-        <div class="text-grey-8 text-sm" style="font-size:13px;">
-        Memuat...
-        </div>
-        </q-circular-progress>
+      <q-circular-progress
+        indeterminate
+        show-value
+        size="100px"
+        :thickness="0.1"
+        color="primary"
+        center-color="white"
+        track-color="white"
+        class="q-ma-md"
+      >
+        <div class="text-grey-8 text-sm" style="font-size: 13px">Memuat...</div>
+      </q-circular-progress>
     </div>
 
     <div class="q-pa-xs">
       <div class="q-pa-none">
         <ActualSummaryCard :selectedPeriodLabel="selectedPeriodLabel" />
       </div>
-      <template v-if="isDailiyPeriod" >
-      <ChartCard/>
-      <TopCard />
-      </template v-if>
+      <template v-if="isDailiyPeriod">
+        <ChartCard />
+        <TopCard />
+      </template>
     </div>
   </authenticated-layout>
 </template>
