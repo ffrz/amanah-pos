@@ -62,7 +62,7 @@ class PurchaseOrderController extends Controller
         $this->authorize('update', $order);
         return inertia('purchase-order/Editor', [
             'data' => $order,
-            'accounts' => $this->financeAccountService->getFinanceAccounts(),
+            'accounts' => $this->financeAccountService->getPurchasingFinanceAccounts(),
         ]);
     }
 
@@ -100,7 +100,7 @@ class PurchaseOrderController extends Controller
         $this->authorize('view', $order);
         return inertia('purchase-order/Detail', [
             'data' => $order,
-            'accounts' => $this->financeAccountService->getFinanceAccounts()
+            'accounts' => $this->financeAccountService->getPurchasingFinanceAccounts()
         ]);
     }
 

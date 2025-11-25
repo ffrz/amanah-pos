@@ -3,13 +3,13 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
+ *
  * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
+ *
  * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
+ *
  * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
@@ -198,15 +198,18 @@ class FinanceAccountService
         return $q->paginate($perPage)->withQueryString();
     }
 
-    public function getFinanceAccounts(): Collection
+    public function getSalesFinanceAccounts(): Collection
     {
         return FinanceAccount::where('active', '=', true)
-            ->where(function ($query) {
-                $query->where('type', '=', FinanceAccount::Type_Cash)
-                    ->orWhere('type', '=', FinanceAccount::Type_Bank)
-                    ->orWhere('type', '=', FinanceAccount::Type_PettyCash);
-            })
             ->where('show_in_pos_payment', '=', true)
+            ->orderBy('name')
+            ->get();
+    }
+
+    public function getPurchasingFinanceAccounts(): Collection
+    {
+        return FinanceAccount::where('active', '=', true)
+            ->where('show_in_purchasing_payment', '=', true)
             ->orderBy('name')
             ->get();
     }
