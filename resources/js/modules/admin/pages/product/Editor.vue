@@ -22,6 +22,8 @@ const tab = ref("general");
 // Flag untuk mencegah loop tak terbatas (infinite loop) saat sinkronisasi
 const isSyncing = ref(false);
 const selectedSupplier = ref(page.props.data.supplier);
+const uoms = ref(usePage().props.uoms);
+
 const form = useForm({
   id: page.props.data.id,
   category_id: page.props.data.category_id,
@@ -53,6 +55,8 @@ const form = useForm({
   active: !!page.props.data.active,
   price_editable: !!page.props.data.price_editable,
   notes: page.props.data.notes || "",
+
+  uoms: [], // Ini untuk multi satuan
 });
 
 const submit = () => {
@@ -153,6 +157,21 @@ onMounted(() => {
     form[`price_${i}_markup`] = calculateMargin(form[`price_${i}`], form.cost);
   }
 });
+
+const addUom = () => {
+  form.uoms.push({
+    id: null, // Baru, belum ada di DB
+    uom_id: null, // ID satuan konversi
+    name: null, // Nama UOM (dari Autocomplete)
+    conversion_rate: 1, // Default 1
+    barcode: "",
+  });
+};
+
+const removeUom = (index) => {
+  // Menghapus elemen dari array form.uoms berdasarkan indeks
+  form.uoms.splice(index, 1);
+};
 </script>
 
 <template>
@@ -292,13 +311,16 @@ onMounted(() => {
               </q-tab-panel>
 
               <q-tab-panel name="inventory">
-                <div class="column q-gutter-y-md">
+                <div class="column q-gutter-y-xs">
+                  <div class="text-grey-8 text-subtitle1">Satuan Utama</div>
                   <div class="row q-gutter-md">
                     <div class="col">
                       <UomAutocomplete
+                        dense
                         v-model:modelValue="form.uom"
+                        v-model:items="uoms"
                         :items="page.props.uoms"
-                        label="Satuan"
+                        label="Satuan Dasar"
                         :error="!!form.errors.uom"
                         :disable="form.processing"
                         :error-message="form.errors.uom"
@@ -306,16 +328,86 @@ onMounted(() => {
                     </div>
                     <div class="col">
                       <BarcodeInput
+                        dense
                         v-model.trim="form.barcode"
                         label="Barcode / SKU"
                       />
                     </div>
                   </div>
+                  <div class="text-grey-8 q-pt-sm text-subtitle1">
+                    Pengaturan Multi Satuan
+                  </div>
+                  <div
+                    class="row q-gutter-sm q-pt-none"
+                    v-for="(uom, index) in form.uoms"
+                    :key="index"
+                  >
+                    <div class="col">
+                      <UomAutocomplete
+                        dense
+                        v-model:modelValue="uom.name"
+                        v-model:items="uoms"
+                        label="Satuan Konversi"
+                        :error="!!form.errors[`uoms.${index}.name`]"
+                        :disable="form.processing"
+                        :error-message="form.errors[`uoms.${index}.name`]"
+                        hide-bottom-space
+                      />
+                    </div>
+
+                    <div class="col">
+                      <LocaleNumberInput
+                        dense
+                        v-model:modelValue="uom.conversion_rate"
+                        label="Rasio Konversi"
+                        :error="!!form.errors[`uoms.${index}.conversion_rate`]"
+                        :disable="form.processing"
+                        :error-message="
+                          form.errors[`uoms.${index}.conversion_rate`]
+                        "
+                        hide-bottom-space
+                      />
+                      <div class="q-pt-xs text-grey-8">
+                        1 {{ uom.name }} = {{ uom.conversion_rate }}
+                        {{ form.uom }}
+                      </div>
+                    </div>
+
+                    <div class="col">
+                      <BarcodeInput
+                        dense
+                        v-model.trim="uom.barcode"
+                        label="Barcode (Opsional)"
+                        hide-bottom-space
+                      />
+                    </div>
+
+                    <div class="col-auto">
+                      <q-btn
+                        size="sm"
+                        class="q-mt-sm"
+                        icon="delete"
+                        dense
+                        flat
+                        color="red"
+                        @click="removeUom(index)"
+                        title="Hapus Satuan"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <q-btn dense flat @click="addUom()">+ Tambah satuan</q-btn>
+                  </div>
+
+                  <div class="text-grey-8 q-pt-sm text-subtitle1">
+                    Informasi Stok
+                  </div>
 
                   <div class="row q-gutter-md">
                     <LocaleNumberInput
                       v-model:modelValue="form.stock"
-                      label="Stok Aktual"
+                      :label="`Stok Aktual (${form.uom})`"
                       lazyRules
                       :disable="form.processing"
                       :error="!!form.errors.stock"
@@ -325,7 +417,7 @@ onMounted(() => {
                     />
                     <LocaleNumberInput
                       v-model:modelValue="form.min_stock"
-                      label="Stok Minimum (Alert)"
+                      :label="`Stok Minimum (${form.uom})`"
                       lazyRules
                       :disable="form.processing"
                       :error="!!form.errors.min_stock"
@@ -342,13 +434,20 @@ onMounted(() => {
                   <LocaleNumberInput
                     v-if="$can('admin.product:view-cost')"
                     v-model:modelValue="form.cost"
-                    label="Modal / Harga Beli (Rp)"
+                    label="Modal / Harga Beli / HPP Satuan Dasar (Rp)"
                     lazyRules
                     :disable="form.processing"
                     :error="!!form.errors.cost"
                     :errorMessage="form.errors.cost"
                     hide-bottom-space
                     bg-color="yellow-1"
+                  />
+
+                  <CheckBox
+                    class="q-mt-sm"
+                    v-model="form.price_editable"
+                    :disable="form.processing"
+                    label="Izinkan kasir mengubah harga manual saat penjualan"
                   />
 
                   <q-banner dense class="bg-blue-1 text-blue-9 rounded-borders">
@@ -511,13 +610,6 @@ onMounted(() => {
                       </tr>
                     </tbody>
                   </table>
-
-                  <CheckBox
-                    class="q-mt-sm"
-                    v-model="form.price_editable"
-                    :disable="form.processing"
-                    label="Izinkan kasir mengubah harga manual saat penjualan"
-                  />
                 </div>
               </q-tab-panel>
             </q-tab-panels>
