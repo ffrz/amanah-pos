@@ -22,30 +22,25 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["update:modelValue"]);
+// ⭐ Perubahan 1: Tambahkan 'update:items' untuk memperbarui array items di parent
+const emit = defineEmits(["update:modelValue", "update:items"]);
 
 const editorRef = ref(null);
-const localItems = ref([...props.items]);
 
-watch(
-  () => props.items,
-  (newItems) => {
-    if (JSON.stringify(newItems) !== JSON.stringify(localItems.value)) {
-      localItems.value = [...newItems];
-      filteredOptions.value = uomOptions.value;
-    }
-  },
-  { immediate: true }
-);
+// Hapus: const localItems = ref([...props.items]);
+// Hapus: watch(() => props.items, ...)
 
+// ⭐ Perubahan 2: Gunakan props.items secara langsung
 const uomOptions = computed(() => {
-  return localItems.value.map((c) => ({
+  return props.items.map((c) => ({
     label: c.name,
-    value: c.name,
+    value: c.name, // Diasumsikan nilai yang disimpan adalah nama/label UOM
   }));
 });
 
+// ⭐ Perubahan 3: Inisialisasi filteredOptions dengan menggunakan uomOptions
 const filteredOptions = ref(uomOptions.value);
+
 const internalValue = ref(props.modelValue);
 
 watch(
@@ -62,17 +57,31 @@ watch(internalValue, (newValue) => {
   emit("update:modelValue", newValue);
 });
 
-// ⭐ Perbaikan 2: Pastikan kita memanggil fungsi `show` yang ada di UomEditorDialog
 const showNewCategoryDialog = () => {
   // Diasumsikan UomEditorDialog memiliki fungsi `show()`
   editorRef.value?.show();
 };
 
-// ⭐ Perbaikan 3: Modifikasi localItems, bukan props.items DAN menutup editor
+// ⭐ Perubahan 4: Perbarui props.items di parent melalui event 'update:items'
 const handleUomCreated = (item) => {
-  localItems.value.push(item);
+  // 1. Buat array items baru dengan item baru di dalamnya
+  const newItems = [...props.items, item];
+
+  // 2. Kirim event untuk memberitahu parent agar mengupdate prop 'items'
+  emit("update:items", newItems);
+
+  // 3. Atur nilai terpilih ke item yang baru dibuat
   internalValue.value = item.name;
-  filteredOptions.value = uomOptions.value;
+  // 4. Update filteredOptions agar list dropdown menampilkan UOM baru
+  // Note: Karena uomOptions adalah computed dari props.items,
+  // filteredOptions perlu diupdate setelah parent menerima update:items (walaupun ini akan terjadi di next tick)
+  // Untuk kepastian, kita bisa update list-nya secara lokal sebelum ditutup
+  filteredOptions.value = newItems.map((c) => ({
+    label: c.name,
+    value: c.name,
+  }));
+
+  // 5. Tutup dialog
   editorRef.value?.hide();
 };
 
@@ -85,7 +94,7 @@ const filterFn = (val, update) => {
   }
 
   update(() => {
-    const needle = val.toLowerCase();
+    const needle = val.toLowerCase(); // ⭐ Perubahan 5: Gunakan uomOptions.value untuk filtering
     filteredOptions.value = uomOptions.value.filter(
       (v) => v.label.toLowerCase().indexOf(needle) > -1
     );
@@ -96,6 +105,7 @@ const filterFn = (val, update) => {
 <template>
   <div>
     <q-select
+      v-bind="$attrs"
       v-model="internalValue"
       :label="label"
       :options="filteredOptions"
