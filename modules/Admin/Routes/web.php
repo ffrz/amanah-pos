@@ -41,6 +41,8 @@ use Modules\Admin\Http\Controllers\ReportController;
 use Modules\Admin\Http\Controllers\Reports\CustomerReportController;
 use Modules\Admin\Http\Controllers\Reports\FinanceAccountReportController;
 use Modules\Admin\Http\Controllers\Reports\FinanceTransactionReportController;
+use Modules\Admin\Http\Controllers\Reports\OperationalCostDetailReport;
+use Modules\Admin\Http\Controllers\Reports\OperationalCostDetailReportController;
 use Modules\Admin\Http\Controllers\Reports\ProductReportController;
 use Modules\Admin\Http\Controllers\Reports\SalesOrderReportController;
 use Modules\Admin\Http\Controllers\Reports\SupplierReportController;
@@ -99,6 +101,9 @@ Route::middleware([Auth::class])
 
             Route::get('finance-transaction', [FinanceTransactionReportController::class, 'index'])->name('admin.report.finance-transaction.index');
             Route::get('finance-transaction/generate', [FinanceTransactionReportController::class, 'generate'])->name('admin.report.finance-transaction.generate');
+
+            Route::get('operational-cost-detail', [OperationalCostDetailReportController::class, 'index'])->name('admin.report.operational-cost-detail.index');
+            Route::get('operational-cost-detail/generate', [OperationalCostDetailReportController::class, 'generate'])->name('admin.report.operational-cost-detail.generate');
         });
 
         Route::prefix('settings')->group(function () {
