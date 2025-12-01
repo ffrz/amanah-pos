@@ -388,14 +388,9 @@ const openCreatePage = () => {
                   {{ props.row.cashier?.name }}
                 </div>
                 <div>
-                  <q-icon name="outbound" class="inline-icon text-negative" />
+                  <q-icon name="send_money" class="inline-icon" />
                   {{ props.row.source_finance_account?.name }}
-                </div>
-                <div>
-                  <q-icon
-                    name="move_to_inbox"
-                    class="inline-icon text-positive"
-                  />
+                  &rarr;
                   {{ props.row.target_finance_account?.name }}
                 </div>
                 <div class="text-bold">
@@ -435,20 +430,9 @@ const openCreatePage = () => {
 
             <!-- Kolom ALUR KAS -->
             <q-td key="flow" :props="props">
-              <div class="column" style="font-size: 0.9em">
-                <div>
-                  <q-icon name="outbound" color="negative" class="q-mr-xs" />
-                  <span>{{ props.row.source_finance_account?.name }}</span>
-                </div>
-                <div>
-                  <q-icon
-                    name="move_to_inbox"
-                    color="positive"
-                    class="q-mr-xs"
-                  />
-                  <span>{{ props.row.target_finance_account?.name }}</span>
-                </div>
-              </div>
+              {{ props.row.source_finance_account?.name }}
+              &rarr;
+              {{ props.row.target_finance_account?.name }}
             </q-td>
 
             <!-- Kolom JUMLAH -->

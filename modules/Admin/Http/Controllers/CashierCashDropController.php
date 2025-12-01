@@ -79,7 +79,7 @@ class CashierCashDropController extends Controller
                 'cashier_session_id' => $session ? $session->id : null,
                 'source_finance_account_id' => $session ? $session->cashierTerminal->financeAccount->id : null,
             ],
-            'finance_accounts' => $this->commonDataService->getFinanceAccounts(),
+            'finance_accounts' => $this->commonDataService->getCashDropFinanceAccounts(),
         ]);
     }
 

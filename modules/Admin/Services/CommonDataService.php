@@ -195,4 +195,14 @@ class CommonDataService
 
         return $query->get($fields);
     }
+
+    public function getCashDropFinanceAccounts($fields = ['id', 'name', 'type', 'bank', 'number', 'holder', 'balance'])
+    {
+        $query = FinanceAccount::query()
+            ->where('active', true)
+            ->where('show_in_cashier_cash_drop', true)
+            ->orderBy('name');
+
+        return $query->get($fields);
+    }
 }

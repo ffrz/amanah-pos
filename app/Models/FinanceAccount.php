@@ -37,6 +37,7 @@ class FinanceAccount extends BaseModel
         'has_wallet_access',
         'show_in_pos_payment',
         'show_in_purchasing_payment',
+        'show_in_cashier_cash_drop',
         'balance',
         'notes',
     ];
@@ -68,6 +69,7 @@ class FinanceAccount extends BaseModel
             'has_wallet_access' => 'boolean',
             'show_in_pos_payment' => 'boolean',
             'show_in_purchasing_payment' => 'boolean',
+            'show_in_cashier_cash_drop' => 'boolean',
             'balance' => 'decimal:2',
             'notes' => 'string',
             'created_by' => 'integer',

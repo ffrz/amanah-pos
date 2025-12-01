@@ -10,7 +10,7 @@ const page = usePage();
   <table class="detail">
     <tbody>
       <tr>
-        <td style="width: 170px">Nama</td>
+        <td style="width: 180px">Nama</td>
         <td style="width: 1px">:</td>
         <td>{{ page.props.data.name }}</td>
       </tr>
@@ -61,7 +61,7 @@ const page = usePage();
   <table class="detail">
     <tbody>
       <tr>
-        <td style="width: 170px">Tampilkan di Penjualan</td>
+        <td style="width: 180px">Tampilkan di Penjualan</td>
         <td style="width: 1px">:</td>
         <td>
           {{ page.props.data.show_in_pos_payment ? "Ya" : "Tidak" }}
@@ -79,6 +79,13 @@ const page = usePage();
         <td>:</td>
         <td>
           {{ page.props.data.has_wallet_access ? "Ya" : "Tidak" }}
+        </td>
+      </tr>
+      <tr>
+        <td>Tampilkan di Setoran Kasir</td>
+        <td>:</td>
+        <td>
+          {{ page.props.data.show_in_cashier_cash_drop ? "Ya" : "Tidak" }}
         </td>
       </tr>
     </tbody>
