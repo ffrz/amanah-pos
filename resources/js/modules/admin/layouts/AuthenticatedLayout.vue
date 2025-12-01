@@ -489,7 +489,7 @@ defineExpose({
                 <q-icon name="moving" />
               </q-item-section>
               <q-item-section>
-                <q-item-label>Transaksi Deposit</q-item-label>
+                <q-item-label>Deposit</q-item-label>
               </q-item-section>
             </q-item>
           </q-expansion-item>

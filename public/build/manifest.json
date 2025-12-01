@@ -97,7 +97,7 @@
     "isEntry": true
   },
   "resources/js/modules/admin/app.js": {
-    "file": "assets/app-BI9i24Pr.js",
+    "file": "assets/app-ZLaE4yYs.js",
     "name": "app",
     "src": "resources/js/modules/admin/app.js",
     "isEntry": true,
@@ -105,7 +105,7 @@
       "_virtual_pwa-register-qgVkSo5v.js"
     ],
     "css": [
-      "assets/app-CLxk0-aI.css"
+      "assets/app-B5MXGywB.css"
     ]
   },
   "resources/js/modules/customer/app.js": {
