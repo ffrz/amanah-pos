@@ -48,7 +48,7 @@ class OperationalCostDetailReportController extends BaseController
         $service = app(CommonDataService::class);
 
         // Mengambil data untuk dropdown filter di Vue
-        return $this->generateIndexResponse('reports/operational-cost/Index', [
+        return $this->generateIndexResponse('reports/operational-cost-detail/Index', [
             'accounts' => $service->getFinanceAccounts(),
             // Mengambil kategori khusus Operational Cost
             'categories' => OperationalCostCategory::orderBy('name')->get(['id', 'name']),
