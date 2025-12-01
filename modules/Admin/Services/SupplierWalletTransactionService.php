@@ -18,15 +18,15 @@ namespace Modules\Admin\Services;
 
 use App\Exceptions\BusinessRuleViolationException;
 use App\Helpers\ImageUploaderHelper;
-use App\Models\Customer;
-use App\Models\CustomerWalletTransaction;
+use App\Models\Supplier;
+use App\Models\SupplierWalletTransaction;
 use App\Models\FinanceTransaction;
 use App\Models\UserActivityLog;
 use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
-class CustomerWalletTransactionService
+class SupplierWalletTransactionService
 {
 
     public function __construct(
@@ -35,14 +35,14 @@ class CustomerWalletTransactionService
         protected DocumentVersionService $documentVersionService,
     ) {}
 
-    public function find(int $id): CustomerWalletTransaction
+    public function find(int $id, $rels = ['supplier', 'financeAccount']): SupplierWalletTransaction
     {
-        return CustomerWalletTransaction::with(['customer'])->findOrFail($id);
+        return SupplierWalletTransaction::with($rels)->findOrFail($id);
     }
 
-    public function findOrCreate($id): CustomerWalletTransaction
+    public function findOrCreate($id): SupplierWalletTransaction
     {
-        return $id ? $this->find($id) : new CustomerWalletTransaction([
+        return $id ? $this->find($id) : new SupplierWalletTransaction([
             'datetime' => now()
         ]);
     }
@@ -51,8 +51,8 @@ class CustomerWalletTransactionService
     {
         $filter = $options['filter'];
 
-        $q = CustomerWalletTransaction::with([
-            'customer' => function ($query) {
+        $q = SupplierWalletTransaction::with([
+            'supplier' => function ($query) {
                 $query->select('id', 'code', 'name');
             },
             'financeAccount' => function ($query) {
@@ -76,8 +76,8 @@ class CustomerWalletTransactionService
         }
 
 
-        if (!empty($filter['customer_id']) && $filter['customer_id'] != 'all') {
-            $q->where('customer_id', '=', $filter['customer_id']);
+        if (!empty($filter['supplier_id']) && $filter['supplier_id'] != 'all') {
+            $q->where('supplier_id', '=', $filter['supplier_id']);
         }
 
         $q->orderBy($options['order_by'], $options['order_type']);
@@ -85,57 +85,70 @@ class CustomerWalletTransactionService
         return $q->paginate($options['per_page']);
     }
 
-    public function save(CustomerWalletTransaction $item, array $validated, $imageFile = null): CustomerWalletTransaction
+    public function save(SupplierWalletTransaction $item, array $validated, $imageFile = null): SupplierWalletTransaction
     {
-        // tetapkan jumlah (negatif / positif) berdasakran jenis transaksi
+        // 1. Tetapkan jumlah (negatif / positif) berdasarkan jenis transaksi wallet
+        // Pembayaran PO dan Penarikan akan mengurangi saldo wallet supplier
         if (
             in_array($validated['type'], [
-                CustomerWalletTransaction::Type_SalesOrderPayment,
-                CustomerWalletTransaction::Type_Withdrawal,
+                SupplierWalletTransaction::Type_PurchaseOrderPayment,
+                SupplierWalletTransaction::Type_Withdrawal,
             ])
         ) {
             $validated['amount'] *= -1;
         }
 
         return DB::transaction(function () use ($item, $validated, $imageFile) {
-            // upload image jika ada
+            // 2. Upload image jika ada
             if ($imageFile) {
                 $validated['image_path'] = ImageUploaderHelper::uploadAndResize(
                     $imageFile,
-                    'customer-wallet-transactions'
+                    'supplier-wallet-transactions'
                 );
             }
             unset($validated['image']);
 
-            // tangani transaksi
+            // 3. Simpan Transaksi Wallet & Update Saldo Supplier
             $item = $this->handleTransaction($validated);
 
-            // hanya digunakan ketika mempengaruhi akun kas
+            // 4. Integrasi Keuangan (Finance)
+            // Hanya dijalankan untuk Deposit/Withdrawal yang melibatkan akun kas
             if (
                 in_array($validated['type'], [
-                    CustomerWalletTransaction::Type_Deposit,
-                    CustomerWalletTransaction::Type_Withdrawal,
-                ]) && $validated['finance_account_id']
+                    SupplierWalletTransaction::Type_Deposit,
+                    SupplierWalletTransaction::Type_Withdrawal,
+                ]) && !empty($validated['finance_account_id'])
             ) {
+                // [LOGIC FIX]:
+                // Deposit ke Supplier (Amount +) = Uang Keluar dari Kas (Expense)
+                // Penarikan dari Supplier (Amount -) = Uang Masuk ke Kas (Income)
+
+                $isExpense = $validated['amount'] >= 0;
+
                 $this->financeTransactionService->handleTransaction([
-                    'datetime' => $validated['datetime'],
+                    'datetime'   => $validated['datetime'],
                     'account_id' => $validated['finance_account_id'],
-                    'amount' => $validated['amount'],
-                    'type' => $validated['amount'] >= 0 ? FinanceTransaction::Type_Income : FinanceTransaction::Type_Expense,
-                    'notes' => 'Transaksi wallet customer ' . $item->customer->code . ' Ref: ' . $item->code,
-                    'ref_type' => FinanceTransaction::RefType_CustomerWalletTransaction,
-                    'ref_id' => $item->id,
+                    // Kita balik nilai amount-nya untuk finance:
+                    // Jika Deposit (+), kirim (-) agar mengurangi kas.
+                    // Jika Withdrawal (-), kirim (+) agar menambah kas.
+                    'amount'     => -$validated['amount'],
+                    'type'       => $isExpense ? FinanceTransaction::Type_Expense : FinanceTransaction::Type_Income,
+                    'notes'      => 'Transaksi wallet supplier ' . $item->supplier->code . ' Ref: ' . $item->code,
+                    'ref_type'   => FinanceTransaction::RefType_SupplierWalletTransaction,
+                    'ref_id'     => $item->id,
                 ]);
             }
 
+            // 5. Versioning
             $this->documentVersionService->createVersion($item);
 
+            // 6. Logging
             $this->userActivityLogService->log(
-                UserActivityLog::Category_CustomerWallet,
-                UserActivityLog::Name_CustomerWalletTransaction_Create,
-                "Transaksi wallet pelanggan $item->code telah dibuat.",
+                UserActivityLog::Category_SupplierWallet,
+                UserActivityLog::Name_SupplierWalletTransaction_Create,
+                "Transaksi deposit supplier $item->code telah dibuat.",
                 [
-                    'formatter' => 'customer-wallet-transaction',
+                    'formatter' => 'supplier-wallet-transaction',
                     'data' => $item->toArray(),
                 ]
             );
@@ -144,22 +157,22 @@ class CustomerWalletTransactionService
         });
     }
 
-    public function delete(CustomerWalletTransaction $item): CustomerWalletTransaction
+    public function delete(SupplierWalletTransaction $item): SupplierWalletTransaction
     {
         if ($item->ref_type) {
             throw new BusinessRuleViolationException('Rekaman tidak dapat dihapus karena berrelasi dengan transaksi lain.');
         }
 
         return DB::transaction(function () use ($item) {
-            // restore customer wallet_balance
-            $this->addToWalletBalance($item->customer, -$item->amount);
+            // restore supplier wallet_balance
+            $this->addToWalletBalance($item->supplier, -$item->amount);
 
             // Jika transaksi menyentuh kas, kembalikan saldo kas
             if (in_array($item->type, [
-                CustomerWalletTransaction::Type_Deposit,
-                CustomerWalletTransaction::Type_Withdrawal
+                SupplierWalletTransaction::Type_Deposit,
+                SupplierWalletTransaction::Type_Withdrawal
             ]) && $item->finance_account_id) {
-                $this->financeTransactionService->reverseTransaction($item->id, FinanceTransaction::RefType_CustomerWalletTransaction);
+                $this->financeTransactionService->reverseTransaction($item->id, FinanceTransaction::RefType_SupplierWalletTransaction);
             }
 
             ImageUploaderHelper::deleteImage($item->image_path);
@@ -169,11 +182,11 @@ class CustomerWalletTransactionService
             $this->documentVersionService->createVersion($item);
 
             $this->userActivityLogService->log(
-                UserActivityLog::Category_CustomerWallet,
-                UserActivityLog::Name_CustomerWalletTransaction_Delete,
-                "Transaksi wallet pelanggan $item->code telah dihapus.",
+                UserActivityLog::Category_SupplierWallet,
+                UserActivityLog::Name_SupplierWalletTransaction_Delete,
+                "Transaksi deposit supplier $item->code telah dihapus.",
                 [
-                    'formatter' => 'customer-wallet-transaction',
+                    'formatter' => 'supplier-wallet-transaction',
                     'data' => $item->toArray(),
                 ]
             );
@@ -184,25 +197,25 @@ class CustomerWalletTransactionService
 
     public function adjustBalance(array $data)
     {
-        $customer = Customer::findOrFail($data['customer_id']);
+        $supplier = Supplier::findOrFail($data['supplier_id']);
 
-        return DB::transaction(function () use ($customer, $data) {
+        return DB::transaction(function () use ($supplier, $data) {
             $item = $this->handleTransaction([
-                'customer_id' => $customer->id,
+                'supplier_id' => $supplier->id,
                 'datetime'    => Carbon::now(),
-                'type'        => CustomerWalletTransaction::Type_Adjustment,
-                'amount'      => $data['new_wallet_balance'] - $customer->wallet_balance,
+                'type'        => SupplierWalletTransaction::Type_Adjustment,
+                'amount'      => $data['new_wallet_balance'] - $supplier->wallet_balance,
                 'notes'       => $data['notes'],
             ]);
 
             $this->documentVersionService->createVersion($item);
 
             $this->userActivityLogService->log(
-                UserActivityLog::Category_CustomerWallet,
-                UserActivityLog::Name_CustomerWalletTransaction_Create,
-                "Transaksi penyesuaian saldo wallet pelanggan $item->code telah dibuat.",
+                UserActivityLog::Category_SupplierWallet,
+                UserActivityLog::Name_SupplierWalletTransaction_Create,
+                "Transaksi penyesuaian saldo deposit supplier $item->code telah dibuat.",
                 [
-                    'formatter' => 'customer-wallet-transaction',
+                    'formatter' => 'supplier-wallet-transaction',
                     'data' => $item->toArray(),
                 ]
             );
@@ -213,18 +226,18 @@ class CustomerWalletTransactionService
 
     // Helper functions
 
-    protected function addToWalletBalance(Customer $customer, $amount): void
+    protected function addToWalletBalance(Supplier $supplier, $amount): void
     {
-        $lockedCustomer = Customer::where('id', $customer->id)->lockForUpdate()->firstOrFail();
-        $lockedCustomer->wallet_balance += $amount;
-        $lockedCustomer->save();
+        $lockedSupplier = Supplier::where('id', $supplier->id)->lockForUpdate()->firstOrFail();
+        $lockedSupplier->wallet_balance += $amount;
+        $lockedSupplier->save();
     }
 
     // WARNING: Tidak mendukung pengeditan transaksi!!
     public function handleTransaction(array $newData)
     {
         // Perbarui saldo akun baru
-        $account = Customer::findOrFail($newData['customer_id']);
+        $account = Supplier::findOrFail($newData['supplier_id']);
 
         // jika negatif dan jumlah melebihi saldo, tolak
         if ($newData['amount'] < 0 && abs($newData['amount']) > $account->wallet_balance) {
@@ -234,11 +247,11 @@ class CustomerWalletTransactionService
         $this->addToWalletBalance($account, $newData['amount']);
 
         // Buat transaksi baru
-        return CustomerWalletTransaction::create(
+        return SupplierWalletTransaction::create(
             [
                 'ref_id' => $newData['ref_id'] ?? null,
                 'ref_type' => $newData['ref_type'] ?? null,
-                'customer_id' => $newData['customer_id'],
+                'supplier_id' => $newData['supplier_id'],
                 'finance_account_id' => $newData['finance_account_id'] ?? null,
                 'datetime' => $newData['datetime'],
                 'amount' => $newData['amount'],
@@ -251,12 +264,12 @@ class CustomerWalletTransactionService
 
     public function reverseTransaction($ref_id, $ref_type)
     {
-        $trx = CustomerWalletTransaction::where('ref_id', $ref_id)
+        $trx = SupplierWalletTransaction::where('ref_id', $ref_id)
             ->where('ref_type', $ref_type)
             ->first();
 
         if ($trx) {
-            $this->addToWalletBalance($trx->customer, -$trx->amount);
+            $this->addToWalletBalance($trx->supplier, -$trx->amount);
             $trx->delete();
         }
 

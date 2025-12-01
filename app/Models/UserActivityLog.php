@@ -54,6 +54,7 @@ class UserActivityLog extends Model
     public const Category_CashierTerminal = 'cashier-terminal';
     public const Category_CashierSession = 'cashier-session';
     public const Category_CustomerWallet = 'customer-wallet';
+    public const Category_SupplierWallet = 'supplier-wallet';
     public const Category_StockAdjustment = 'stock-adjustment';
     public const Category_TaxScheme = 'tax-scheme';
     public const Category_Uom = 'uom';
@@ -85,7 +86,8 @@ class UserActivityLog extends Model
         self::Category_OperationalCostCategory => 'Manajemen Kategori Biaya Operasional',
         self::Category_CashierTerminal => 'Manajemen Terminal Kasir',
         self::Category_CashierSession => 'Manajemen Sesi Kasir',
-        self::Category_CustomerWallet => 'Manajemen Walet Pelanggan',
+        self::Category_CustomerWallet => 'Manajemen Deposit Pelanggan',
+        self::Category_SupplierWallet => 'Manajemen Deposit Supplier',
         self::Category_StockAdjustment => 'Manajemen Penyesuaian Stok',
         self::Category_TaxScheme => 'Manajemen Skema Pajak',
         self::Category_Uom => 'Manajemen Satuan',
@@ -184,7 +186,7 @@ class UserActivityLog extends Model
     public const Name_FinanceTransactionTag_Update = 'finance-transaction-tag.update';
     public const Name_FinanceTransactionTag_Delete = 'finance-transaction-tag.delete';
 
-    // Customer Wallet
+    // Customer Deposit
     public const Name_CustomerWalletTopupConfirmation_Approve = 'customer-wallet-topup-confirmation.approve';
     public const Name_CustomerWalletTopupConfirmation_Reject  = 'customer-wallet-topup-confirmation.reject';
     public const Name_CustomerWalletTopupConfirmation_Delete  = 'customer-wallet-topup-confirmation.delete';
@@ -192,6 +194,11 @@ class UserActivityLog extends Model
     public const Name_CustomerWalletTransaction_Create = 'customer-wallet-transaction.create';
     public const Name_CustomerWalletTransaction_Update = 'customer-wallet-transaction.update';
     public const Name_CustomerWalletTransaction_Delete = 'customer-wallet-transaction.delete';
+
+    // Supplier Desposit
+    public const Name_SupplierWalletTransaction_Create = 'supplier-wallet-transaction.create';
+    public const Name_SupplierWalletTransaction_Update = 'supplier-wallet-transaction.update';
+    public const Name_SupplierWalletTransaction_Delete = 'supplier-wallet-transaction.delete';
 
     // Operational Cost
     public const Name_OperationalCost_Create = 'operational-cost.create';
@@ -315,6 +322,14 @@ class UserActivityLog extends Model
         self::Name_Uom_Create => 'Membuat Satuan',
         self::Name_Uom_Update => 'Memperbarui Satuan',
         self::Name_Uom_Delete => 'Menghapus Satuan',
+
+        self::Name_CustomerWalletTransaction_Create => 'Membuat Transaksi Deposit Pelanggan',
+        self::Name_CustomerWalletTransaction_Update => 'Memperbarui Transaksi Deposit Pelanggan',
+        self::Name_CustomerWalletTransaction_Delete => 'Menghapus Transaksi Deposit Pelanggan',
+
+        self::Name_SupplierWalletTransaction_Create => 'Membuat Transaksi Deposit Supplier',
+        self::Name_SupplierWalletTransaction_Update => 'Memperbarui Transaksi Deposit Supplier',
+        self::Name_SupplierWalletTransaction_Delete => 'Menghapus Transaksi Deposit Supplier',
     ];
 
     // Kolom yang dapat diisi massal

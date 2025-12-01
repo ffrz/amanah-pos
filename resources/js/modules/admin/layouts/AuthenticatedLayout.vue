@@ -424,7 +424,8 @@ defineExpose({
             :default-opened="
               $page.url.startsWith('/admin/purchase-orders') ||
               $page.url.startsWith('/admin/purchase-order-returns') ||
-              $page.url.startsWith('/admin/suppliers')
+              $page.url.startsWith('/admin/suppliers') ||
+              $page.url.startsWith('/admin/supplier-wallet-transactions')
             "
           >
             <q-item
@@ -470,6 +471,25 @@ defineExpose({
               </q-item-section>
               <q-item-section>
                 <q-item-label>Supplier</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item
+              v-if="$can('admin.supplier-wallet-transaction.index')"
+              class="subnav"
+              clickable
+              v-ripple
+              :active="
+                $page.url.startsWith('/admin/supplier-wallet-transactions')
+              "
+              @click="
+                router.get(route('admin.supplier-wallet-transaction.index'))
+              "
+            >
+              <q-item-section avatar>
+                <q-icon name="moving" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Transaksi Deposit</q-item-label>
               </q-item-section>
             </q-item>
           </q-expansion-item>

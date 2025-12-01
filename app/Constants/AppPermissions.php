@@ -68,13 +68,13 @@ class AppPermissions
                 // 'admin.customer.balance' => 'Saldo Pelanggan',
                 // 'admin.customer.data' => 'Data Pelanggan',
             ],
-            'Manajemen Wallet Pelanggan' => [
+            'Manajemen Deposit Pelanggan' => [
                 'admin.customer-wallet-transaction.index' => 'Lihat Daftar Transaksi Deposit',
                 'admin.customer-wallet-transaction.detail' => 'Lihat Detail Transaksi Deposit',
                 'admin.customer-wallet-transaction.add' => 'Tambah Transaksi Deposit',
                 'admin.customer-wallet-transaction.delete' => 'Hapus Transaksi Deposit',
             ],
-            'Manajemen Konfirmasi Wallet Pelanggan' => [
+            'Manajemen Konfirmasi Deposit Pelanggan' => [
                 'admin.customer-wallet-transaction-confirmation.index' => 'Lihat Daftar Konfirmasi Deposit',
                 'admin.customer-wallet-transaction-confirmation.detail' => 'Lihat Detail Konfirmasi Deposit',
                 'admin.customer-wallet-transaction-confirmation:accept' => 'Setujui Konfirmasi Deposit',
@@ -83,6 +83,12 @@ class AppPermissions
 
                 // 'admin.customer-wallet-transaction-confirmation.save' => 'Simpan Konfirmasi Deposit',
                 // 'admin.customer-wallet-transaction-confirmation.data' => 'Data Konfirmasi Deposit',
+            ],
+            'Manajemen Deposit Supplier' => [
+                'admin.supplier-wallet-transaction.index' => 'Lihat Daftar Transaksi Deposit',
+                'admin.supplier-wallet-transaction.detail' => 'Lihat Detail Transaksi Deposit',
+                'admin.supplier-wallet-transaction.add' => 'Tambah Transaksi Deposit',
+                'admin.supplier-wallet-transaction.delete' => 'Hapus Transaksi Deposit',
             ],
             'Manajemen Produk' => [
                 'admin.product.index' => 'Lihat Daftar Produk',

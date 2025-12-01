@@ -70,6 +70,7 @@ class FinanceTransaction extends BaseModel
 
     const RefType_FinanceTransaction = 'finance_transaction';
     const RefType_CustomerWalletTransaction = 'customer_wallet_transaction';
+    const RefType_SupplierWalletTransaction = 'supplier_wallet_transaction';
     const RefType_SalesOrderPayment = 'sales_order_payment';
     const RefType_SalesOrderReturnRefund = 'sales_order_return_refund';
     const RefType_PurchaseOrderPayment = 'sales_order_payment';
@@ -78,7 +79,8 @@ class FinanceTransaction extends BaseModel
 
     const RefTypes = [
         self::RefType_FinanceTransaction => 'Transaksi Keuangan',
-        self::RefType_CustomerWalletTransaction => 'Transaksi Dompet Pelanggan',
+        self::RefType_CustomerWalletTransaction => 'Transaksi Deposit Pelanggan',
+        self::RefType_SupplierWalletTransaction => 'Transaksi Deposit Suppiler',
         self::RefType_SalesOrderPayment => 'Transaksi Pembayaran Penjualan',
         self::RefType_SalesOrderReturnRefund => 'Transaksi Refund Pembayaran Penjualan',
         self::RefType_PurchaseOrderPayment => 'Transaksi Pembayaran Pembelian',
@@ -89,6 +91,7 @@ class FinanceTransaction extends BaseModel
     const RefTypeModels = [
         self::RefType_FinanceTransaction => \App\Models\FinanceTransaction::class,
         self::RefType_CustomerWalletTransaction => \App\Models\CustomerWalletTransaction::class,
+        self::RefType_SupplierWalletTransaction => \App\Models\SupplierWalletTransaction::class,
         self::RefType_SalesOrderPayment => \App\Models\SalesOrderPayment::class,
         self::RefType_PurchaseOrderPayment => \App\Models\PurchaseOrderPayment::class,
         self::RefType_OperationalCost => \App\Models\OperationalCost::class,

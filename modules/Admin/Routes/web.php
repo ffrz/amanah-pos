@@ -58,6 +58,7 @@ use Modules\Admin\Http\Controllers\Settings\UserRoleController;
 use Modules\Admin\Http\Controllers\Settings\DatabaseSettingsController;
 use Modules\Admin\Http\Controllers\Settings\PosSettingsController;
 use Modules\Admin\Http\Controllers\Settings\UserActivityLogController;
+use Modules\Admin\Http\Controllers\SupplierWalletTransactionController;
 use Modules\Admin\Http\Controllers\TaxSchemeController;
 use Modules\Admin\Http\Controllers\UomController;
 
@@ -259,6 +260,17 @@ Route::middleware([Auth::class])
                 Route::get('detail/{id}', [CustomerWalletTransactionConfirmationController::class, 'detail'])->name('admin.customer-wallet-transaction-confirmation.detail');
                 Route::post('save', [CustomerWalletTransactionConfirmationController::class, 'save'])->name('admin.customer-wallet-transaction-confirmation.save');
                 Route::post('delete/{id}', [CustomerWalletTransactionConfirmationController::class, 'delete'])->name('admin.customer-wallet-transaction-confirmation.delete');
+            });
+
+            Route::prefix('supplier-wallet-transactions')->group(function () {
+                Route::get('', [SupplierWalletTransactionController::class, 'index'])->name('admin.supplier-wallet-transaction.index');
+                Route::get('data', [SupplierWalletTransactionController::class, 'data'])->name('admin.supplier-wallet-transaction.data');
+                Route::get('add', [SupplierWalletTransactionController::class, 'editor'])->name('admin.supplier-wallet-transaction.add');
+                Route::get('edit/{id}', [SupplierWalletTransactionController::class, 'editor'])->name('admin.supplier-wallet-transaction.edit');
+                Route::get('detail/{id}', [SupplierWalletTransactionController::class, 'detail'])->name('admin.supplier-wallet-transaction.detail');
+                Route::post('save', [SupplierWalletTransactionController::class, 'save'])->name('admin.supplier-wallet-transaction.save');
+                Route::match(['get', 'post'], 'adjustment', [SupplierWalletTransactionController::class, 'adjustment'])->name('admin.supplier-wallet-transaction.adjustment');
+                Route::post('delete/{id}', [SupplierWalletTransactionController::class, 'delete'])->name('admin.supplier-wallet-transaction.delete');
             });
 
             Route::prefix('suppliers')->group(function () {
