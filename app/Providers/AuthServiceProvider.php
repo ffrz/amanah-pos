@@ -16,6 +16,7 @@
 
 namespace App\Providers;
 
+use App\Models\CashierCashDrop;
 use App\Models\CashierSession;
 use App\Models\CashierTerminal;
 use App\Models\Customer;
@@ -43,6 +44,7 @@ use App\Models\Supplier;
 use App\Models\SupplierWalletTransaction;
 use App\Models\TaxScheme;
 use App\Models\User;
+use Modules\Admin\Policies\CashierCashDropPolicy;
 use Modules\Admin\Policies\DefaultPolicy;
 use Modules\Admin\Policies\OnlyAuthorPolicy;
 use Modules\Admin\Policies\OperationalCostCategoryPolicy;
@@ -89,6 +91,7 @@ class AuthServiceProvider extends ServiceProvider
         TaxScheme::class => DefaultPolicy::class,
         FinanceTransactionCategory::class => DefaultPolicy::class,
         FinanceTransactionTag::class => DefaultPolicy::class,
+        CashierCashDrop::class => CashierCashDropPolicy::class,
     ];
 
     /**

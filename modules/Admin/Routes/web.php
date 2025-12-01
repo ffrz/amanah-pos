@@ -19,6 +19,7 @@ use App\Http\Middleware\CheckAdminRoutePermission;
 use App\Http\Middleware\NonAuthenticated;
 use Illuminate\Support\Facades\Route;
 use Modules\Admin\Http\Controllers\AuthController;
+use Modules\Admin\Http\Controllers\CashierCashDropController;
 use Modules\Admin\Http\Controllers\CashierSessionController;
 use Modules\Admin\Http\Controllers\CashierTerminalController;
 use Modules\Admin\Http\Controllers\CustomerController;
@@ -228,6 +229,18 @@ Route::middleware([Auth::class])
                 Route::match(['get', 'post'], 'close/{id}', [CashierSessionController::class, 'close'])->name('admin.cashier-session.close');
                 Route::get('detail/{id}', [CashierSessionController::class, 'detail'])->name('admin.cashier-session.detail');
                 Route::post('delete/{id}', [CashierSessionController::class, 'delete'])->name('admin.cashier-session.delete');
+            });
+
+            Route::prefix('cashier-cash-drops')->group(function () {
+                Route::get('', [CashierCashDropController::class, 'index'])->name('admin.cashier-cash-drop.index');
+                Route::get('data', [CashierCashDropController::class, 'data'])->name('admin.cashier-cash-drop.data');
+
+                Route::get('add', [CashierCashDropController::class, 'create'])->name('admin.cashier-cash-drop.add');
+                Route::post('save', [CashierCashDropController::class, 'store'])->name('admin.cashier-cash-drop.save');
+
+                Route::get('detail/{id}', [CashierCashDropController::class, 'detail'])->name('admin.cashier-cash-drop.detail');
+                Route::post('confirm', [CashierCashDropController::class, 'confirm'])->name('admin.cashier-cash-drop.confirm');
+                Route::post('delete/{id}', [CashierCashDropController::class, 'delete'])->name('admin.cashier-cash-drop.delete');
             });
 
             Route::prefix('customers')->group(function () {

@@ -13,6 +13,7 @@
 
 namespace Modules\Admin\Services;
 
+use App\Models\CashierTerminal;
 use App\Models\Customer;
 use App\Models\FinanceAccount;
 use App\Models\FinanceTransactionCategory;
@@ -155,16 +156,36 @@ class CommonDataService
         return Role::orderBy('name', 'asc')->get();
     }
 
-    public function getAllUsers($cols = ['*'])
+    public function getAllUsers($cols = ['*'], $activeOnly = true)
     {
+        $q = User::query();
         // TODO: Pertimbangkan caching di sini.
-        return User::query()->select($cols)->orderBy('name', 'asc')->get();
+        if ($activeOnly) {
+            $q->where('active', true);
+        }
+
+        return $q->select($cols)
+            ->orderBy('name', 'asc')
+            ->get();
     }
 
     public function getProducts($fields = ['id', 'name', 'description'], $activeOnly = true)
     {
         // TODO: Refactor ini dengan ProductRepositoryInterface dan implementasi caching.
         $query = Product::query();
+
+        if ($activeOnly) {
+            $query->where('active', true);
+        }
+
+        $query->orderBy('name');
+
+        return $query->get($fields);
+    }
+
+    public function getAllCashierTerminals($fields = ['id', 'name'], $activeOnly = true)
+    {
+        $query = CashierTerminal::query();
 
         if ($activeOnly) {
             $query->where('active', true);

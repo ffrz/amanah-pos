@@ -29,6 +29,8 @@ class AppPermissions
             'admin.purchase-order.save' => 'admin.purchase-order.edit',
             'admin.purchase-order-return.add'  => 'admin.purchase-order-return.edit',
             'admin.purchase-order-return.save' => 'admin.purchase-order-return.edit',
+
+            'admin.cashier-cash-drop.save'  => 'admin.cashier-cash-drop.add',
         ];
     }
     /**
@@ -56,6 +58,14 @@ class AppPermissions
                 // 'admin.cashier-terminal.save' => 'Simpan Terminal Kasir',
                 // 'admin.cashier-terminal.data' => 'Data Terminal Kasir',
             ],
+            'Manajemen Setoran Kas' => [
+                'admin.cashier-cash-drop.index' => 'Lihat Daftar Setoran Kas',
+                'admin.cashier-cash-drop.detail' => 'Lihat Detail Setoran Kas',
+                'admin.cashier-cash-drop.add' => 'Buat Pengajuan Setoran Kas', // Untuk Kasir
+                'admin.cashier-cash-drop.confirm' => 'Konfirmasi Setoran Kas', // Untuk Supervisor/Owner
+                'admin.cashier-cash-drop.delete' => 'Hapus Setoran Kas',
+            ],
+
             'Manajemen Pelanggan' => [
                 'admin.customer.index' => 'Lihat Daftar Pelanggan',
                 'admin.customer.detail' => 'Lihat Detail Pelanggan',

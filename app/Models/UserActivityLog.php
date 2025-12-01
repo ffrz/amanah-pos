@@ -53,6 +53,7 @@ class UserActivityLog extends Model
     public const Category_OperationalCostCategory = 'operational-cost-category';
     public const Category_CashierTerminal = 'cashier-terminal';
     public const Category_CashierSession = 'cashier-session';
+    public const Category_CashierCashDrop = 'cashier-cash-drop';
     public const Category_CustomerWallet = 'customer-wallet';
     public const Category_SupplierWallet = 'supplier-wallet';
     public const Category_StockAdjustment = 'stock-adjustment';
@@ -86,6 +87,7 @@ class UserActivityLog extends Model
         self::Category_OperationalCostCategory => 'Manajemen Kategori Biaya Operasional',
         self::Category_CashierTerminal => 'Manajemen Terminal Kasir',
         self::Category_CashierSession => 'Manajemen Sesi Kasir',
+        self::Category_CashierCashDrop => 'Manajemen Setoran Kasir',
         self::Category_CustomerWallet => 'Manajemen Deposit Pelanggan',
         self::Category_SupplierWallet => 'Manajemen Deposit Supplier',
         self::Category_StockAdjustment => 'Manajemen Penyesuaian Stok',
@@ -168,6 +170,11 @@ class UserActivityLog extends Model
     public const Name_CashierSession_Open   = 'cashier-session.open';
     public const Name_CashierSession_Close  = 'cashier-session.close';
     public const Name_CashierSession_Delete = 'cashier-session.delete';
+
+    public const Name_CashierCashDrop_Create = 'cashier-cash-drop.approve';
+    public const Name_CashierCashDrop_Approve = 'cashier-cash-drop.approve';
+    public const Name_CashierCashDrop_Reject  = 'cashier-cash-drop.reject';
+    public const Name_CashierCashDrop_Delete  = 'cashier-cash-drop.delete';
 
     // Finance
     public const Name_FinanceAccount_Create = 'finance-account.create';
@@ -309,6 +316,11 @@ class UserActivityLog extends Model
         self::Name_CashierTerminal_Create => 'Membuat Terminal Kasir',
         self::Name_CashierTerminal_Update => 'Memperbarui Terminal Kasir',
         self::Name_CashierTerminal_Delete => 'Menghapus Terminal Kasir',
+
+        self::Name_CashierCashDrop_Create  => 'Membuat Setoran Kasir',
+        self::Name_CashierCashDrop_Approve => 'Menyetujui Setoran Kasir',
+        self::Name_CashierCashDrop_Reject  => 'Menolak Setoran Kasir',
+        self::Name_CashierCashDrop_Delete  => 'Menghapus Setoran Kasir',
 
         self::Name_StockAdjustment_Create => 'Membuat Penyesuaian Stok',
         self::Name_StockAdjustment_Close  => 'Menutup Penyesuaian Stok',

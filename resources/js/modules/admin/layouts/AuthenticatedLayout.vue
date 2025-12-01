@@ -591,7 +591,8 @@ defineExpose({
           <q-expansion-item
             v-if="
               $can('admin.cashier-session.index') ||
-              $can('admin.cashier-terminal.index')
+              $can('admin.cashier-terminal.index') ||
+              $can('admin.cashier-cash-drop.index')
             "
             icon="point_of_sale"
             label="Kasir"
@@ -600,6 +601,21 @@ defineExpose({
               $page.url.startsWith('/admin/cashier-session')
             "
           >
+            <q-item
+              v-if="$can('admin.cashier-cash-drop.index')"
+              class="subnav"
+              clickable
+              v-ripple
+              :active="$page.url.startsWith('/admin/cashier-cash-drops')"
+              @click="router.get(route('admin.cashier-cash-drop.index'))"
+            >
+              <q-item-section avatar>
+                <q-icon name="tv_signin" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Setoran</q-item-label>
+              </q-item-section>
+            </q-item>
             <q-item
               v-if="$can('admin.cashier-session.index')"
               class="subnav"
