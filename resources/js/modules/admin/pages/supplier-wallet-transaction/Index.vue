@@ -48,7 +48,6 @@ const columns = [
     label: "Kode",
     field: "code",
     align: "left",
-    sortable: true,
   },
   {
     name: "datetime",
@@ -62,21 +61,18 @@ const columns = [
     label: "Suppllier",
     field: "supplier_id",
     align: "left",
-    sortable: true,
   },
   {
     name: "finance_account_id",
     label: "Akun",
     field: "finance_account_id",
     align: "left",
-    sortable: true,
   },
   {
     name: "amount",
     label: "Jumlah (Rp.)",
     field: "amount",
     align: "right",
-    sortable: true,
   },
   {
     name: "notes",
