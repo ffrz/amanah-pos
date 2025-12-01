@@ -598,6 +598,7 @@ defineExpose({
             label="Kasir"
             :default-opened="
               $page.url.startsWith('/admin/cashier-terminals') ||
+              $page.url.startsWith('/admin/cashier-cash-drops') ||
               $page.url.startsWith('/admin/cashier-session')
             "
           >
@@ -610,7 +611,7 @@ defineExpose({
               @click="router.get(route('admin.cashier-cash-drop.index'))"
             >
               <q-item-section avatar>
-                <q-icon name="tv_signin" />
+                <q-icon name="send_money" />
               </q-item-section>
               <q-item-section>
                 <q-item-label>Setoran</q-item-label>
