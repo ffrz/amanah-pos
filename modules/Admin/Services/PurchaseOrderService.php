@@ -216,6 +216,7 @@ class PurchaseOrderService
             $this->paymentService->addPayments($order, $data['payments'] ?? [], false);
 
             // simpan order
+            $order->datetime = now(); // hard coded ke waktu sekarang
             $order->due_date = $data['due_date'] ?? null;
             $order->delivery_status = PurchaseOrder::DeliveryStatus_PickedUp;
             $order->status = PurchaseOrder::Status_Closed;

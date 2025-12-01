@@ -248,6 +248,7 @@ class SalesOrderService
 
             $this->updateTotalAndValidateClientTotal($order, $data['total'] ?? 0);
 
+            $order->datetime = now(); // hard coded ke waktu sekarang
             $order->status = SalesOrder::Status_Closed;
             $order->delivery_status = SalesOrder::DeliveryStatus_PickedUp;
             $order->due_date = $data['due_date'] ?? null;

@@ -214,6 +214,7 @@ class SalesOrderReturnService
 
         DB::transaction(function () use ($salesOrderReturn, $data) {
             $salesOrderReturn->status = SalesOrderReturn::Status_Closed;
+            $salesOrderReturn->datetime = now(); // hard coded ke waktu sekarang
             $salesOrderReturn->updateGrandTotal();
             $salesOrderReturn->updateBalanceAndStatus();
             $salesOrderReturn->save();

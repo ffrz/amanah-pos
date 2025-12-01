@@ -189,6 +189,7 @@ class PurchaseOrderReturnService
 
         DB::transaction(function () use ($return, $data) {
             $return->status = PurchaseOrderReturn::Status_Closed;
+            $return->datetime = now(); // hard coded ke waktu sekarang
             $return->updateGrandTotal();
             $return->updateBalanceAndStatus();
             $return->save();
