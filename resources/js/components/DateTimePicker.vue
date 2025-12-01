@@ -168,7 +168,7 @@ const $q = getCurrentInstance()?.appContext.config.globalProperties.$q;
 
 const props = defineProps({
   modelValue: {
-    type: [Date, null],
+    type: [Date, String, null],
     required: false,
     default: null,
   },
@@ -256,21 +256,27 @@ const combinedDatetime = computed(() => {
 
 // Fungsi untuk membuka dialog
 const openDialog = () => {
-  // BARU: Simpan nilai awal untuk direset jika dibatalkan
-  if (props.modelValue instanceof Date) {
+  // BARU: Simpan nilai awal menggunakan Day.js agar support String maupun Date
+  if (props.modelValue) {
     initialStagingValue.value = dayjs(props.modelValue);
   } else {
     initialStagingValue.value = null;
-  } // Saat dialog dibuka, pastikan nilai-nilai internal sesuai dengan modelValue saat ini
+  }
 
-  if (props.modelValue instanceof Date) {
-    const dayjsObj = initialStagingValue.value;
-    dateValue.value = dayjsObj.format("YYYY-MM-DD");
-    hourValue.value = dayjsObj.hour();
-    minuteValue.value = dayjsObj.minute();
-    secondValue.value = dayjsObj.second();
+  // Saat dialog dibuka, pastikan nilai-nilai internal sesuai dengan modelValue saat ini
+  if (props.modelValue) {
+    // GANTI LOGIKA: Jangan pakai instanceof Date, tapi langsung parse dayjs
+    const dayjsObj = dayjs(props.modelValue);
+
+    // Pastikan valid sebelum di-assign
+    if (dayjsObj.isValid()) {
+      dateValue.value = dayjsObj.format("YYYY-MM-DD");
+      hourValue.value = dayjsObj.hour();
+      minuteValue.value = dayjsObj.minute();
+      secondValue.value = dayjsObj.second();
+    }
   } else {
-    // Jika modelValue null, set ke hari ini (hanya untuk staging/default)
+    // Jika modelValue null, set ke hari ini (staging/default)
     const now = dayjs();
     dateValue.value = now.format("YYYY-MM-DD");
     hourValue.value = now.hour();
@@ -286,8 +292,10 @@ const updateModelValue = () => {
   if (combinedDatetime.value && combinedDatetime.value.isValid()) {
     // Nilai baru yang akan di-commit
     const newDate = combinedDatetime.value.toDate(); // Timestamp saat ini
-    const currentTimestamp = props.modelValue ? props.modelValue.getTime() : -1; // Timestamp baru
-    const newTimestamp = newDate.getTime(); // 1. Update display input (TANPA cek redundansi, karena sudah dipastikan akan di-commit)
+    const currentTimestamp = props.modelValue
+      ? dayjs(props.modelValue).valueOf()
+      : -1;
+    const newTimestamp = newDate.getTime();
 
     displayDatetime.value = combinedDatetime.value.format(props.displayFormat); // 2. Emit Date object ke modelValue (DENGAN cek redundansi)
     if (currentTimestamp !== newTimestamp) {
