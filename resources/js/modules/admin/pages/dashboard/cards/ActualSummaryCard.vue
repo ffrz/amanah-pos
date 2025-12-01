@@ -18,7 +18,10 @@ const showActualData = [
   "this_month",
   "this_year",
 ].includes(selectedPeriod);
+
 const summaryItems = [];
+
+// 1. GRUP PENJUALAN (Existing)
 summaryItems.push({
   title: "Penjualan " + props.selectedPeriodLabel,
   items: [
@@ -42,6 +45,36 @@ summaryItems.push({
     },
   ],
 });
+
+// 2. [BARU] GRUP BIAYA OPERASIONAL
+// Disisipkan di sini agar terlihat bersandingan dengan Penjualan
+summaryItems.push({
+  title: "Biaya Operasional " + props.selectedPeriodLabel,
+  items: [
+    {
+      label: "Total Biaya",
+      value: formatMoney(page.props.data.total_operational_cost),
+      icon: "money_off", // Icon uang keluar
+      color: "red-5", // Warna merah untuk pengeluaran
+    },
+    {
+      label: "Frekuensi Transaksi",
+      value: formatNumber(page.props.data.total_operational_cost_count),
+      icon: "receipt_long",
+      color: "deep-orange-4",
+    },
+    {
+      label: "Frekuensi Kategori",
+      value: formatNumber(
+        page.props.data.total_operational_cost_category_count
+      ),
+      icon: "category", // Icon kategori/folder
+      color: "amber-6", // Warna pembeda (kuning emas/orange)
+    },
+  ],
+});
+
+// 3. GRUP DATA AKTUAL (Pelanggan, Inventori, Supplier)
 if (showActualData) {
   summaryItems.push(
     {
@@ -121,6 +154,7 @@ if (showActualData) {
   );
 }
 
+// 4. GRUP KEUANGAN (Existing)
 const financeItems = [];
 if (showActualData) {
   financeItems.push({

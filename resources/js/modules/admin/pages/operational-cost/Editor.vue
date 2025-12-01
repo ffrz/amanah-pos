@@ -77,6 +77,13 @@ const onImageCleared = () => {
           <q-card square flat bordered class="col">
             <q-card-section class="q-pt-none">
               <input type="hidden" name="id" v-model="form.id" />
+              <date-picker
+                v-model="form.date"
+                label="Tanggal"
+                :error="!!form.errors.date"
+                :disable="form.processing"
+                hide-bottom-space
+              />
               <q-select
                 autofocus
                 v-model="form.category_id"
@@ -89,6 +96,8 @@ const onImageCleared = () => {
                 emit-value
                 @filter="filterCategories"
                 :error="!!form.errors.category_id"
+                :error-message="form.errors.category_id"
+                :rules="[(val) => !!val || 'Kategori wajib dipilih.']"
                 :disable="form.processing"
                 hide-bottom-space
               >
@@ -98,13 +107,6 @@ const onImageCleared = () => {
                   </q-item>
                 </template>
               </q-select>
-              <date-picker
-                v-model="form.date"
-                label="Tanggal"
-                :error="!!form.errors.date"
-                :disable="form.processing"
-                hide-bottom-space
-              />
               <q-input
                 v-model.trim="form.description"
                 label="Deskripsi"
@@ -130,7 +132,7 @@ const onImageCleared = () => {
               <q-select
                 class="custom-select"
                 v-model="form.finance_account_id"
-                label="Sumber Dana"
+                label="Sumber Dana (Opsional)"
                 :options="accounts"
                 map-options
                 emit-value
