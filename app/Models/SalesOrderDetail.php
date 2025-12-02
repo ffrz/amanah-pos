@@ -34,6 +34,9 @@ class SalesOrderDetail extends BaseModel
         'subtotal_cost',
         'price',
         'subtotal_price',
+        'discount_amount',
+        'discount_percent',
+        'subtotal_discount',
         'notes',
     ];
 
@@ -52,6 +55,10 @@ class SalesOrderDetail extends BaseModel
             'subtotal_cost'   => 'decimal:2',
             'subtotal_price'  => 'decimal:2',
             'notes'           => 'string',
+
+            'discount_amount'   => 'decimal:2',
+            'discount_percent'  => 'decimal:2',
+            'subtotal_discount' => 'decimal:2',
         ];
     }
 
