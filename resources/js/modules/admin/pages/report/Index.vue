@@ -87,7 +87,7 @@ const reportCategories = {
       },
     ],
   },
-  finance: {
+  cost: {
     label: "Operasional",
     icon: "paid",
     reports: [
