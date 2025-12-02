@@ -65,6 +65,13 @@ let columns = [
     align: "right",
   },
   {
+    name: "party",
+    label: "Pihak",
+    field: "party",
+    align: "left",
+    sortable: true,
+  },
+  {
     name: "notes",
     label: "Catatan",
     field: "notes",
@@ -136,12 +143,15 @@ const openDetail = useOpenStockMovementSource;
           <div>
             <q-icon class="inline-icon" name="tag" />
             {{ props.row.code }}
-          </div>
-          <div>
-            <q-icon name="calendar_clock" class="inline-icon" />
+            -
             {{ formatDateTime(props.row.created_at) }}
           </div>
           <div>
+            <template v-if="props.row.parent_id">
+              <q-icon class="inline-icon" name="tag" />
+              {{ props.row.document_code }}
+              -
+            </template>
             <q-badge>
               {{ $CONSTANTS.STOCK_MOVEMENT_REF_TYPES[props.row.ref_type] }}
             </q-badge>
@@ -191,6 +201,13 @@ const openDetail = useOpenStockMovementSource;
         </q-td>
         <q-td key="uom" :props="props">
           {{ props.row.uom }}
+        </q-td>
+        <q-td key="party" :props="props">
+          {{
+            props.row.party_id
+              ? props.row.party_code + " - " + props.row.party_name
+              : ""
+          }}
         </q-td>
         <q-td key="notes" :props="props">
           <LongTextView :text="props.row.notes" />

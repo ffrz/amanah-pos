@@ -40,34 +40,4 @@ Route::middleware(['auth:web', 'web'])->prefix('web-api')->group(function () {
         Route::get('/', [SupplierController::class, 'index'])
             ->name('web-api.supplier.index');
     });
-
-    Route::get('/so-id-from-detail-id/{id}', function ($id) {
-        return JsonResponseHelper::success(
-            SalesOrderDetail::find($id)->order_id,
-        );
-    });
-
-    Route::get('/sor-id-from-detail-id/{id}', function ($id) {
-        return JsonResponseHelper::success(
-            SalesOrderDetail::find($id)->return_id,
-        );
-    });
-
-    Route::get('/po-id-from-detail-id/{id}', function ($id) {
-        return JsonResponseHelper::success(
-            PurchaseOrderDetail::find($id)->order_id,
-        );
-    });
-
-    Route::get('/por-id-from-detail-id/{id}', function ($id) {
-        return JsonResponseHelper::success(
-            PurchaseOrderDetail::find($id)->return_id,
-        );
-    });
-
-    Route::get('/sa-id-from-detail-id/{id}', function ($id) {
-        return JsonResponseHelper::success(
-            StockAdjustmentDetail::find($id)->parent_id,
-        );
-    });
 });

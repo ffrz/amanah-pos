@@ -40,9 +40,15 @@ class StockMovementService
                 'quantity',
                 'quantity_after',
                 'quantity_before',
+                'uom',
                 'ref_id',
                 'ref_type',
-                'uom',
+                'parent_id',
+                'parent_ref_type',
+                'document_code',
+                'party_id',
+                'party_code',
+                'party_name',
             ]);
 
         if (!empty($filter['product_id'])) {
@@ -53,6 +59,9 @@ class StockMovementService
             $q->where(function (Builder $query) use ($filter) {
                 $query->where('notes', 'like', '%' . $filter['search'] . '%');
                 $query->orWhere('product_name', 'like', '%' . $filter['search'] . '%');
+                $query->orWhere('party_name', 'like', '%' . $filter['search'] . '%');
+                $query->orWhere('document_code', 'like', '%' . $filter['search'] . '%');
+                $query->orWhere('code', 'like', '%' . $filter['search'] . '%');
             });
         }
 

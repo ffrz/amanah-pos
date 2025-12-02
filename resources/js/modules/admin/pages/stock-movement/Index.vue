@@ -65,6 +65,12 @@ let columns = [
     align: "left",
   },
   {
+    name: "party",
+    label: "Pihak",
+    field: "party",
+    align: "left",
+  },
+  {
     name: "quantity_before",
     label: "Awal",
     field: "quantity_before",
@@ -238,19 +244,32 @@ const openDetail = useOpenStockMovementSource;
           >
             <q-td key="id" :props="props">
               <div>
-                <q-icon class="inline-icon" name="tag" />
-                {{ props.row.code }}
+                <span>
+                  <q-icon class="inline-icon" name="tag" />
+                  {{ props.row.code }}
+                </span>
+                -
+                <span>
+                  {{ formatDateTime(props.row.created_at) }}
+                </span>
               </div>
+
               <div>
-                <q-icon name="calendar_clock" class="inline-icon" />
-                {{ formatDateTime(props.row.created_at) }}
-              </div>
-              <div>
+                <span v-if="props.row.parent_id">
+                  <q-icon class="inline-icon" name="tag" />
+                  {{ props.row.document_code }}
+                  -
+                </span>
                 <q-badge>
                   {{ $CONSTANTS.STOCK_MOVEMENT_REF_TYPES[props.row.ref_type] }}
                 </q-badge>
               </div>
+
               <template v-if="$q.screen.lt.sm">
+                <div v-if="props.row.party_id">
+                  <q-icon class="inline-icon" name="person" />
+                  {{ props.row.party_code + " - " + props.row.party_name }}
+                </div>
                 <div>
                   <q-icon name="token" class="inline-icon" />
                   {{ props.row.product_name }}
@@ -276,6 +295,13 @@ const openDetail = useOpenStockMovementSource;
             </q-td>
             <q-td key="product" :props="props">
               {{ props.row.product_name }}
+            </q-td>
+            <q-td key="party" :props="props">
+              {{
+                props.row.party_id
+                  ? props.row.party_code + " - " + props.row.party_name
+                  : ""
+              }}
             </q-td>
             <q-td key="quantity_before" :props="props">
               {{ formatNumber(props.row.quantity_before) }}
