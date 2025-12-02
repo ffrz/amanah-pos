@@ -51,11 +51,29 @@ class StockMovement extends BaseModel
         'parent_id',
         'parent_ref_type',
         'party_id',
+        'party_code',
         'party_name',
         'party_type',
         'document_code',
         'document_datetime',
 
+    ];
+
+    /**
+     * Parent Reference types.
+     */
+    const ParentRefType_SalesOrder          = 'sales_order';
+    const ParentRefType_SalesOrderReturn    = 'sales_order_return';
+    const ParentRefType_PurchaseOrder       = 'purchase_order';
+    const ParentRefType_PurchaseOrderReturn = 'purchase_order_return';
+    const ParentRefType_StockAdjustment     = 'stock_adjustment';
+
+    const ParentRefTypes = [
+        self::ParentRefType_StockAdjustment     => 'Penyesuaian Manual',
+        self::ParentRefType_SalesOrder          => 'Penjualan',
+        self::ParentRefType_SalesOrderReturn    => 'Retur Penjualan',
+        self::ParentRefType_PurchaseOrder       => 'Pembelian',
+        self::ParentRefType_StockAdjustment     => 'Retur Pembelian',
     ];
 
     /**
@@ -73,10 +91,10 @@ class StockMovement extends BaseModel
         self::RefType_InitialStock              => 'Stok Awal',
         self::RefType_ManualAdjustment          => 'Penyesuaian Manual',
         self::RefType_StockAdjustmentDetail     => 'Penyesuaian Stok',
-        self::RefType_SalesOrderDetail          => 'Order Penjualan',
+        self::RefType_SalesOrderDetail          => 'Penjualan',
         self::RefType_SalesOrderReturnDetail    => 'Retur Penjualan',
-        self::RefType_PurchaseOrderDetail       => 'Order Pembelian',
-        self::RefType_PurchaseOrderReturnDetail => 'Retur Order Pembelian',
+        self::RefType_PurchaseOrderDetail       => 'Pembelian',
+        self::RefType_PurchaseOrderReturnDetail => 'Retur Pembelian',
     ];
 
     protected $appends = [];
@@ -96,12 +114,13 @@ class StockMovement extends BaseModel
             'created_by'       => 'integer',
             'updated_at'       => 'datetime',
             'updated_by'       => 'integer',
-            'parent_id'      => 'integer',
-            'party_id'       => 'integer',
-            'party_name'     => 'string',
-            'party_type'     => 'string',
-            'parent_ref_type' => 'string',
-            'document_code'   => 'string',
+            'parent_id'        => 'integer',
+            'party_id'         => 'integer',
+            'party_code'       => 'string',
+            'party_name'       => 'string',
+            'party_type'       => 'string',
+            'parent_ref_type'  => 'string',
+            'document_code'    => 'string',
             'document_datetime' => 'datetime',
         ];
     }
@@ -109,13 +128,5 @@ class StockMovement extends BaseModel
     public function product()
     {
         return $this->belongsTo(Product::class);
-    }
-
-    public static function deleteByRef($ref_id, $ref_type)
-    {
-        return DB::delete(
-            'DELETE FROM stock_movements WHERE ref_type = ? AND ref_id = ?',
-            [StockMovement::RefType_PurchaseOrderDetail, $ref_id]
-        );
     }
 }

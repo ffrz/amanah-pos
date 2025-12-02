@@ -12,6 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('stock_movements', function (Blueprint $table) {
+            // seharusnya parent_ref_id
             if (!Schema::hasColumn('stock_movements', 'parent_id')) {
                 $table->unsignedBigInteger('parent_id')
                     ->nullable()

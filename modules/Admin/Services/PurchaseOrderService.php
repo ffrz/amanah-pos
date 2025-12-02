@@ -182,6 +182,15 @@ class PurchaseOrderService
             $product = $detail->product;
 
             $this->stockMovementService->processStockIn([
+                'parent_id'         => $order->id,
+                'parent_ref_type'   => StockMovement::ParentRefType_PurchaseOrder,
+                'document_code'     => $order->code,
+                'document_datetime' => $order->datetime,
+                'party_id'          => $order->supplier_id,
+                'party_type'        => 'supplier',
+                'party_code'        => $order->supplier_code,
+                'party_name'        => $order->supplier_name,
+
                 'product_id'      => $detail->product_id,
                 'product_name'    => $detail->product_name,
                 'uom'             => $detail->product_uom,
