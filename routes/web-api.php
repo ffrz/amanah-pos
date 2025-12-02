@@ -3,20 +3,24 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
+ *
  * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
+ *
  * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
+ *
  * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
 
+use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\SupplierController;
+use App\Models\PurchaseOrderDetail;
+use App\Models\SalesOrderDetail;
+use App\Models\StockAdjustmentDetail;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth:web', 'web'])->prefix('web-api')->group(function () {
@@ -35,5 +39,35 @@ Route::middleware(['auth:web', 'web'])->prefix('web-api')->group(function () {
     Route::prefix('/suppliers')->group(function () {
         Route::get('/', [SupplierController::class, 'index'])
             ->name('web-api.supplier.index');
+    });
+
+    Route::get('/so-id-from-detail-id/{id}', function ($id) {
+        return JsonResponseHelper::success(
+            SalesOrderDetail::find($id)->order_id,
+        );
+    });
+
+    Route::get('/sor-id-from-detail-id/{id}', function ($id) {
+        return JsonResponseHelper::success(
+            SalesOrderDetail::find($id)->return_id,
+        );
+    });
+
+    Route::get('/po-id-from-detail-id/{id}', function ($id) {
+        return JsonResponseHelper::success(
+            PurchaseOrderDetail::find($id)->order_id,
+        );
+    });
+
+    Route::get('/por-id-from-detail-id/{id}', function ($id) {
+        return JsonResponseHelper::success(
+            PurchaseOrderDetail::find($id)->return_id,
+        );
+    });
+
+    Route::get('/sa-id-from-detail-id/{id}', function ($id) {
+        return JsonResponseHelper::success(
+            StockAdjustmentDetail::find($id)->parent_id,
+        );
     });
 });

@@ -9,6 +9,7 @@ import {
   formatNumberWithSymbol,
 } from "@/helpers/formatter";
 import LongTextView from "@/components/LongTextView.vue";
+import useOpenStockMovementSource from "@/composables/useOpenStockMovementSource";
 
 const props = defineProps({
   productId: {
@@ -91,6 +92,8 @@ const computedColumns = computed(() => {
   if (!$q.screen.lt.sm) return columns;
   return columns.filter((col) => col.name === "id" || col.name === "quantity");
 });
+
+const openDetail = useOpenStockMovementSource;
 </script>
 
 <template>
@@ -124,7 +127,11 @@ const computedColumns = computed(() => {
     </template>
 
     <template v-slot:body="props">
-      <q-tr :props="props">
+      <q-tr
+        :props="props"
+        class="cursor-pointer"
+        @click="openDetail(props.row)"
+      >
         <q-td key="id" :props="props">
           <div>
             <q-icon class="inline-icon" name="tag" />

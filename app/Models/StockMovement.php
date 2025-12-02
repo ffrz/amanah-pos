@@ -47,6 +47,15 @@ class StockMovement extends BaseModel
         'created_at',
         'created_by',
         'notes',
+
+        'parent_id',
+        'parent_ref_type',
+        'party_id',
+        'party_name',
+        'party_type',
+        'document_code',
+        'document_datetime',
+
     ];
 
     /**
@@ -87,6 +96,13 @@ class StockMovement extends BaseModel
             'created_by'       => 'integer',
             'updated_at'       => 'datetime',
             'updated_by'       => 'integer',
+            'parent_id'      => 'integer',
+            'party_id'       => 'integer',
+            'party_name'     => 'string',
+            'party_type'     => 'string',
+            'parent_ref_type' => 'string',
+            'document_code'   => 'string',
+            'document_datetime' => 'datetime',
         ];
     }
 

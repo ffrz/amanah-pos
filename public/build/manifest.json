@@ -1,10 +1,6 @@
 {
-  "_virtual_pwa-register-Dzmvzty5.css": {
-    "file": "assets/virtual_pwa-register-Dzmvzty5.css",
-    "src": "_virtual_pwa-register-Dzmvzty5.css"
-  },
-  "_virtual_pwa-register-nor-9sUw.js": {
-    "file": "assets/virtual_pwa-register-nor-9sUw.js",
+  "_virtual_pwa-register-BCfY2NcF.js": {
+    "file": "assets/virtual_pwa-register-BCfY2NcF.js",
     "name": "virtual_pwa-register",
     "dynamicImports": [
       "node_modules/workbox-window/build/workbox-window.prod.es5.mjs"
@@ -28,6 +24,10 @@
       "assets/fa-v4compatibility-C9RhG_FT.woff2",
       "assets/fa-v4compatibility-CCth-dXg.ttf"
     ]
+  },
+  "_virtual_pwa-register-Dzmvzty5.css": {
+    "file": "assets/virtual_pwa-register-Dzmvzty5.css",
+    "src": "_virtual_pwa-register-Dzmvzty5.css"
   },
   "node_modules/@quasar/extras/fontawesome-v6/fa-brands-400.ttf": {
     "file": "assets/fa-brands-400-D1LuMI3I.ttf",
@@ -97,24 +97,24 @@
     "isEntry": true
   },
   "resources/js/modules/admin/app.js": {
-    "file": "assets/app-B-WMeM6a.js",
+    "file": "assets/app-CRf30ubp.js",
     "name": "app",
     "src": "resources/js/modules/admin/app.js",
     "isEntry": true,
     "imports": [
-      "_virtual_pwa-register-nor-9sUw.js"
+      "_virtual_pwa-register-BCfY2NcF.js"
     ],
     "css": [
       "assets/app-BJUyUZoC.css"
     ]
   },
   "resources/js/modules/customer/app.js": {
-    "file": "assets/app-DA0wt6CX.js",
+    "file": "assets/app-Bxl3D-Kr.js",
     "name": "app",
     "src": "resources/js/modules/customer/app.js",
     "isEntry": true,
     "imports": [
-      "_virtual_pwa-register-nor-9sUw.js"
+      "_virtual_pwa-register-BCfY2NcF.js"
     ],
     "css": [
       "assets/app-DvqnLUHr.css"

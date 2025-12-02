@@ -14,6 +14,7 @@ import LongTextView from "@/components/LongTextView.vue";
 import { createOptions } from "@/helpers/options";
 import dayjs from "dayjs";
 import DateTimePicker from "@/components/DateTimePicker.vue";
+import useOpenStockMovementSource from "@/composables/useOpenStockMovementSource";
 
 const page = usePage();
 const tableRef = ref(null);
@@ -131,6 +132,8 @@ const computedColumns = computed(() => {
   if (!$q.screen.lt.sm) return columns;
   return columns.filter((col) => col.name === "id" || col.name === "quantity");
 });
+
+const openDetail = useOpenStockMovementSource;
 </script>
 
 <template>
@@ -228,7 +231,11 @@ const computedColumns = computed(() => {
         </template>
 
         <template v-slot:body="props">
-          <q-tr :props="props">
+          <q-tr
+            :props="props"
+            @click="openDetail(props.row)"
+            class="cursor-pointer"
+          >
             <q-td key="id" :props="props">
               <div>
                 <q-icon class="inline-icon" name="tag" />
