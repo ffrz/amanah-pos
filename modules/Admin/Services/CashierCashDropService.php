@@ -139,12 +139,13 @@ class CashierCashDropService
             $item->save();
 
             if ($item->status === CashierCashDrop::Status_Approved) {
+
                 // 1. Transaksi KELUAR dari Akun Sumber (Source) -> Expense
                 $this->financeTransactionService->handleTransaction([
                     'datetime' => $item->datetime,
                     'account_id' => $item->source_finance_account_id,
                     'amount' => -$item->amount, // Negatif karena keluar
-                    'type' => FinanceTransaction::Type_Expense,
+                    'type' => FinanceTransaction::Type_Transfer,
                     'notes' => 'Setoran kas keluar ke ' . $item->targetFinanceAccount->name . ' Ref: #' . $item->code,
                     'ref_type' => FinanceTransaction::RefType_CashierCashDrop,
                     'ref_id' => $item->id,
@@ -155,7 +156,7 @@ class CashierCashDropService
                     'datetime' => $item->datetime,
                     'account_id' => $item->target_finance_account_id,
                     'amount' => $item->amount, // Positif karena masuk
-                    'type' => FinanceTransaction::Type_Income,
+                    'type' => FinanceTransaction::Type_Transfer,
                     'notes' => 'Terima setoran kas dari ' . $item->sourceFinanceAccount->name . ' Ref: #' . $item->code,
                     'ref_type' => FinanceTransaction::RefType_CashierCashDrop,
                     'ref_id' => $item->id,
@@ -195,10 +196,21 @@ class CashierCashDropService
         return DB::transaction(function () use ($item) {
             // Reversal Jurnal Keuangan jika sudah Approved
             if ($item->status === CashierCashDrop::Status_Approved) {
-                $this->financeTransactionService->reverseTransaction(
-                    $item->id,
-                    FinanceTransaction::RefType_CashierCashDrop
-                );
+                // 1. Ambil SEMUA transaksi keuangan terkait setoran ini
+                $transactions = FinanceTransaction::where('ref_id', $item->id)
+                    ->where('ref_type', FinanceTransaction::RefType_CashierCashDrop)
+                    ->get();
+
+                foreach ($transactions as $trx) {
+                    // 2. Kembalikan saldo ke akun masing-masing
+                    // addToBalance menambahkan nilai.
+                    // Jika trx->amount -100 (Keluar), dikali -1 jadi +100 (Masuk/Refund ke asal).
+                    // Jika trx->amount +100 (Masuk), dikali -1 jadi -100 (Tarik dari tujuan).
+                    $this->financeTransactionService->addToBalance($trx->account, -1 * $trx->amount);
+
+                    // 3. Hapus jurnal
+                    $trx->delete();
+                }
             }
 
             $item->delete();
