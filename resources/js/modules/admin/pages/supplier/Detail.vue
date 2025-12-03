@@ -4,6 +4,7 @@ import { useQuasar } from "quasar";
 import { ref } from "vue";
 import MainInfoTab from "./detail/MainInfoTab.vue";
 import OrderHistoryTab from "./detail/OrderHistoryTab.vue";
+import WalletHistoryTab from "./detail/WalletHistoryTab.vue";
 // import DocumentVersionHistoryList from "@/components/DocumentVersionHistoryList.vue";
 
 const page = usePage();
@@ -84,12 +85,16 @@ const $q = useQuasar();
               switch-indicator
             >
               <q-tab name="main" label="Info Utama" />
+              <q-tab name="wallet-history" label="Riwayat Deposit" />
               <q-tab name="order-history" label="Riwayat Order" />
               <!-- <q-tab name="version-history" label="Riwayat Dokumen" /> -->
             </q-tabs>
             <q-tab-panels v-model="tab" animated>
               <q-tab-panel name="main">
                 <MainInfoTab />
+              </q-tab-panel>
+              <q-tab-panel name="wallet-history" class="q-pa-xs">
+                <WalletHistoryTab />
               </q-tab-panel>
               <q-tab-panel name="order-history" class="q-pa-xs">
                 <OrderHistoryTab />

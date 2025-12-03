@@ -22,7 +22,7 @@ const page = usePage();
 const isProcessing = ref(false);
 
 const paymentForm = ref({
-  method: null,
+  method: "cash",
   amount: props.total,
   notes: null,
 });
@@ -30,8 +30,11 @@ const paymentForm = ref({
 const supplier = page.props.data.supplier;
 
 const paymentOptions = computed(() => [
+  { label: "Tunai (Laci Kasir)", value: "cash" },
+  // Opsi wallet hanya tersedia jika ada data supplier
+  ...(supplier ? [{ label: "Wallet", value: "wallet" }] : []),
   ...page.props.accounts.map((a) => ({
-    label: a.type == "bank" ? a.name + " - " + a.number : a.name,
+    label: a.name,
     value: a.id,
   })),
 ]);
@@ -40,32 +43,33 @@ const remainingTotal = computed(() => {
   return props.total - (paymentForm.value.amount || 0);
 });
 
-const arePaymentsValid = computed(() => {
-  return (
-    paymentForm.value.method &&
-    typeof paymentForm.value.amount === "number" &&
-    paymentForm.value.amount > 0
-  );
-});
-
 // Menghitung pesan error berdasarkan validasi
 const errorMessage = computed(() => {
-  if (!paymentForm.value.method) {
-    return "Metode pembayaran harus dipilih.";
-  }
-
   const amount = paymentForm.value.amount || 0;
+  const total = props.total;
 
   if (amount <= 0) {
     return "Jumlah pembayaran harus lebih dari 0.";
   }
 
+  // boleh dicicil
+  // if (amount < total) {
+  //   return "Jumlah pembayaran tidak boleh kurang dari total tagihan.";
+  // }
+
+  if (
+    paymentForm.value.method === "wallet" &&
+    supplier &&
+    amount > supplier.wallet_balance
+  ) {
+    return "Saldo wallet tidak mencukupi.";
+  }
   return null;
 });
 
 // Mengecek apakah form valid
 const isValid = computed(() => {
-  return arePaymentsValid.value && errorMessage.value === null;
+  return errorMessage.value === null;
 });
 
 const handleFinalizePayment = () => {
@@ -85,6 +89,7 @@ const handleFinalizePayment = () => {
       },
     ],
     notes: paymentForm.value.notes,
+    change: Math.max(0, (paymentForm.value.amount || 0) - props.total),
     remaining_debt: Math.max(0, props.total - (paymentForm.value.amount || 0)),
   };
 
@@ -94,7 +99,7 @@ const handleFinalizePayment = () => {
 
 const onBeforeShow = () => {
   paymentForm.value.amount = props.total;
-  paymentForm.value.method = null;
+  paymentForm.value.method = "cash";
   paymentForm.value.notes = null;
 };
 </script>
@@ -114,8 +119,23 @@ const onBeforeShow = () => {
       <q-card-section class="q-pt-none">
         <div v-if="supplier" class="text-center q-mb-md text-grey-8">
           <div class="text-subtitle2 text-weight-medium">
-            {{ supplier.name }} <br />
-            Saldo: Rp. {{ formatNumber(supplier.balance) }}
+            <div>
+              <my-link
+                :href="route('admin.supplier.detail', { id: supplier.id })"
+                target="_blank"
+              >
+                {{ supplier.code }} - {{ supplier.name }}
+              </my-link>
+            </div>
+            <div
+              :class="supplier.wallet_balance > 0 ? 'text-green' : 'text-red'"
+            >
+              Saldo Wallet: Rp. {{ formatNumber(supplier.wallet_balance) }}
+            </div>
+            <div :class="supplier.balance > 0 ? 'text-green' : 'text-red'">
+              {{ supplier.balance > 0 ? "Piutang" : "Utang" }}:
+              {{ formatNumber(supplier.balance) }}
+            </div>
           </div>
         </div>
         <div class="text-h5 text-center text-primary q-pb-md">
@@ -131,7 +151,6 @@ const onBeforeShow = () => {
           dense
           class="q-mb-md"
           :disable="isProcessing"
-          :rules="[(val) => !!val || 'Pilih metode pembayaran.']"
         />
         <LocaleNumberInput
           v-model="paymentForm.amount"

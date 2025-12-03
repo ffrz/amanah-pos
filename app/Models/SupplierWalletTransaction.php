@@ -55,7 +55,7 @@ class SupplierWalletTransaction extends BaseModel
     const Type_Refund = 'refund';
     const Type_Deposit = 'deposit';
     const Type_PurchaseOrderPayment = 'purchase_order_payment';
-    const Type_PurchaseOrderRefund = 'purchase_order_refund';
+    const Type_PurchaseOrderReturnRefund = 'purchase_order_return_refund';
     const Type_Withdrawal = 'withdrawal';
 
     const Types = [
@@ -64,7 +64,7 @@ class SupplierWalletTransaction extends BaseModel
         self::Type_Refund => 'Refund',
         self::Type_Withdrawal => 'Penarikan',
         self::Type_PurchaseOrderPayment => 'Pembelian',
-        self::Type_PurchaseOrderRefund => 'Refund Pembelian',
+        self::Type_PurchaseOrderReturnRefund => 'Refund Pembelian',
     ];
 
     const RefType_PurchaseOrderPayment = 'purchase_order_payment';

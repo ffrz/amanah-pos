@@ -32,6 +32,10 @@ class PurchaseOrderDetail extends BaseModel
         'cost',
         'subtotal_cost',
         'notes',
+
+        'discount_amount',
+        'discount_percent',
+        'subtotal_discount',
     ];
 
     protected function casts(): array
@@ -46,6 +50,10 @@ class PurchaseOrderDetail extends BaseModel
             'cost'          => 'decimal:2',
             'subtotal_cost' => 'decimal:2',
             'notes'         => 'string',
+
+            'discount_amount'   => 'decimal:2',
+            'discount_percent'  => 'decimal:2',
+            'subtotal_discount' => 'decimal:2',
         ];
     }
 

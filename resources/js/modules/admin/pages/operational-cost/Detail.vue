@@ -50,7 +50,7 @@ const title = "Rincian Biaya Operasional";
                   </tr>
 
                   <tr v-if="page.props.data.finance_account">
-                    <td>Akun</td>
+                    <td>Sumber Dana</td>
                     <td>:</td>
                     <td>
                       <i-link

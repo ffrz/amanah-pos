@@ -14,6 +14,7 @@
  * Email: fahmifauzirahman@gmail.com
  */
 
+// KELAS INI SUDAH TIDAK DIPAKAI, Kita gunakan SalesOrderDetail
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

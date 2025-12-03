@@ -1,7 +1,7 @@
 <script setup>
 import { router, usePage } from "@inertiajs/vue3";
 import { ref, computed } from "vue";
-import { useQuasar } from "quasar"; // Import useQuasar untuk deteksi breakpoint
+import { useQuasar } from "quasar";
 
 const $q = useQuasar();
 const title = "Laporan";
@@ -87,6 +87,24 @@ const reportCategories = {
       },
     ],
   },
+  cost: {
+    label: "Operasional",
+    icon: "paid",
+    reports: [
+      {
+        title: "Laporan Rincian Biaya Operasional",
+        subtitle: "Laporan Rincian Transaksi Biaya Operasional",
+        icon: "receipt",
+        route: "admin.report.operational-cost-detail.index",
+      },
+      {
+        title: "Laporan Rekapitulasi Biaya Operasional",
+        subtitle: "Laporan Rekapitulasi Transaksi Biaya Operasional",
+        icon: "receipt",
+        route: "admin.report.operational-cost-recap.index",
+      },
+    ],
+  },
 };
 
 const sortedReportCategories = [
@@ -96,6 +114,7 @@ const sortedReportCategories = [
   { id: "customer", ...reportCategories.customer },
   { id: "supplier", ...reportCategories.supplier },
   { id: "finance", ...reportCategories.finance },
+  { id: "cost", ...reportCategories.cost },
 ];
 </script>
 

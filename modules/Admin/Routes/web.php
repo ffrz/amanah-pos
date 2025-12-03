@@ -19,9 +19,11 @@ use App\Http\Middleware\CheckAdminRoutePermission;
 use App\Http\Middleware\NonAuthenticated;
 use Illuminate\Support\Facades\Route;
 use Modules\Admin\Http\Controllers\AuthController;
+use Modules\Admin\Http\Controllers\CashierCashDropController;
 use Modules\Admin\Http\Controllers\CashierSessionController;
 use Modules\Admin\Http\Controllers\CashierTerminalController;
 use Modules\Admin\Http\Controllers\CustomerController;
+use Modules\Admin\Http\Controllers\CustomerLedgerController;
 use Modules\Admin\Http\Controllers\CustomerWalletTransactionConfirmationController;
 use Modules\Admin\Http\Controllers\CustomerWalletTransactionController;
 use Modules\Admin\Http\Controllers\DashboardController;
@@ -41,6 +43,8 @@ use Modules\Admin\Http\Controllers\ReportController;
 use Modules\Admin\Http\Controllers\Reports\CustomerReportController;
 use Modules\Admin\Http\Controllers\Reports\FinanceAccountReportController;
 use Modules\Admin\Http\Controllers\Reports\FinanceTransactionReportController;
+use Modules\Admin\Http\Controllers\Reports\OperationalCostDetailReportController;
+use Modules\Admin\Http\Controllers\Reports\OperationalCostRecapReportController;
 use Modules\Admin\Http\Controllers\Reports\ProductReportController;
 use Modules\Admin\Http\Controllers\Reports\SalesOrderReportController;
 use Modules\Admin\Http\Controllers\Reports\SupplierReportController;
@@ -56,6 +60,8 @@ use Modules\Admin\Http\Controllers\Settings\UserRoleController;
 use Modules\Admin\Http\Controllers\Settings\DatabaseSettingsController;
 use Modules\Admin\Http\Controllers\Settings\PosSettingsController;
 use Modules\Admin\Http\Controllers\Settings\UserActivityLogController;
+use Modules\Admin\Http\Controllers\SupplierLedgerController;
+use Modules\Admin\Http\Controllers\SupplierWalletTransactionController;
 use Modules\Admin\Http\Controllers\TaxSchemeController;
 use Modules\Admin\Http\Controllers\UomController;
 
@@ -99,6 +105,12 @@ Route::middleware([Auth::class])
 
             Route::get('finance-transaction', [FinanceTransactionReportController::class, 'index'])->name('admin.report.finance-transaction.index');
             Route::get('finance-transaction/generate', [FinanceTransactionReportController::class, 'generate'])->name('admin.report.finance-transaction.generate');
+
+            Route::get('operational-cost-detail', [OperationalCostDetailReportController::class, 'index'])->name('admin.report.operational-cost-detail.index');
+            Route::get('operational-cost-detail/generate', [OperationalCostDetailReportController::class, 'generate'])->name('admin.report.operational-cost-detail.generate');
+
+            Route::get('operational-cost-recap', [OperationalCostRecapReportController::class, 'index'])->name('admin.report.operational-cost-recap.index');
+            Route::get('operational-cost-recap/generate', [OperationalCostRecapReportController::class, 'generate'])->name('admin.report.operational-cost-recap.generate');
         });
 
         Route::prefix('settings')->group(function () {
@@ -221,6 +233,18 @@ Route::middleware([Auth::class])
                 Route::post('delete/{id}', [CashierSessionController::class, 'delete'])->name('admin.cashier-session.delete');
             });
 
+            Route::prefix('cashier-cash-drops')->group(function () {
+                Route::get('', [CashierCashDropController::class, 'index'])->name('admin.cashier-cash-drop.index');
+                Route::get('data', [CashierCashDropController::class, 'data'])->name('admin.cashier-cash-drop.data');
+
+                Route::get('add', [CashierCashDropController::class, 'create'])->name('admin.cashier-cash-drop.add');
+                Route::post('save', [CashierCashDropController::class, 'store'])->name('admin.cashier-cash-drop.save');
+
+                Route::get('detail/{id}', [CashierCashDropController::class, 'detail'])->name('admin.cashier-cash-drop.detail');
+                Route::post('confirm', [CashierCashDropController::class, 'confirm'])->name('admin.cashier-cash-drop.confirm');
+                Route::post('delete/{id}', [CashierCashDropController::class, 'delete'])->name('admin.cashier-cash-drop.delete');
+            });
+
             Route::prefix('customers')->group(function () {
                 Route::get('', [CustomerController::class, 'index'])->name('admin.customer.index');
                 Route::get('data', [CustomerController::class, 'data'])->name('admin.customer.data');
@@ -245,12 +269,34 @@ Route::middleware([Auth::class])
                 Route::post('delete/{id}', [CustomerWalletTransactionController::class, 'delete'])->name('admin.customer-wallet-transaction.delete');
             });
 
+            Route::prefix('customer-ledgers')->group(function () {
+                Route::get('', [CustomerLedgerController::class, 'index'])->name('admin.customer-ledger.index');
+                Route::get('data', [CustomerLedgerController::class, 'data'])->name('admin.customer-ledger.data');
+                Route::get('add', [CustomerLedgerController::class, 'editor'])->name('admin.customer-ledger.add');
+                // Route::get('edit/{id}', [CustomerLedgerController::class, 'editor'])->name('admin.customer-ledger.edit');
+                Route::get('detail/{id}', [CustomerLedgerController::class, 'detail'])->name('admin.customer-ledger.detail');
+                Route::post('save', [CustomerLedgerController::class, 'save'])->name('admin.customer-ledger.save');
+                Route::match(['get', 'post'], 'adjustment', [CustomerLedgerController::class, 'adjustment'])->name('admin.customer-ledger.adjustment');
+                Route::post('delete/{id}', [CustomerLedgerController::class, 'delete'])->name('admin.customer-ledger.delete');
+            });
+
             Route::prefix('customer-wallet-transaction-confirmations')->group(function () {
                 Route::get('', [CustomerWalletTransactionConfirmationController::class, 'index'])->name('admin.customer-wallet-transaction-confirmation.index');
                 Route::get('data', [CustomerWalletTransactionConfirmationController::class, 'data'])->name('admin.customer-wallet-transaction-confirmation.data');
                 Route::get('detail/{id}', [CustomerWalletTransactionConfirmationController::class, 'detail'])->name('admin.customer-wallet-transaction-confirmation.detail');
                 Route::post('save', [CustomerWalletTransactionConfirmationController::class, 'save'])->name('admin.customer-wallet-transaction-confirmation.save');
                 Route::post('delete/{id}', [CustomerWalletTransactionConfirmationController::class, 'delete'])->name('admin.customer-wallet-transaction-confirmation.delete');
+            });
+
+            Route::prefix('supplier-wallet-transactions')->group(function () {
+                Route::get('', [SupplierWalletTransactionController::class, 'index'])->name('admin.supplier-wallet-transaction.index');
+                Route::get('data', [SupplierWalletTransactionController::class, 'data'])->name('admin.supplier-wallet-transaction.data');
+                Route::get('add', [SupplierWalletTransactionController::class, 'editor'])->name('admin.supplier-wallet-transaction.add');
+                Route::get('edit/{id}', [SupplierWalletTransactionController::class, 'editor'])->name('admin.supplier-wallet-transaction.edit');
+                Route::get('detail/{id}', [SupplierWalletTransactionController::class, 'detail'])->name('admin.supplier-wallet-transaction.detail');
+                Route::post('save', [SupplierWalletTransactionController::class, 'save'])->name('admin.supplier-wallet-transaction.save');
+                Route::match(['get', 'post'], 'adjustment', [SupplierWalletTransactionController::class, 'adjustment'])->name('admin.supplier-wallet-transaction.adjustment');
+                Route::post('delete/{id}', [SupplierWalletTransactionController::class, 'delete'])->name('admin.supplier-wallet-transaction.delete');
             });
 
             Route::prefix('suppliers')->group(function () {
@@ -262,6 +308,17 @@ Route::middleware([Auth::class])
                 Route::get('detail/{id}', [SupplierController::class, 'detail'])->name('admin.supplier.detail');
                 Route::post('save', [SupplierController::class, 'save'])->name('admin.supplier.save');
                 Route::post('delete/{id}', [SupplierController::class, 'delete'])->name('admin.supplier.delete');
+            });
+
+            Route::prefix('supplier-ledgers')->group(function () {
+                Route::get('', [SupplierLedgerController::class, 'index'])->name('admin.supplier-ledger.index');
+                Route::get('data', [SupplierLedgerController::class, 'data'])->name('admin.supplier-ledger.data');
+                Route::get('add', [SupplierLedgerController::class, 'editor'])->name('admin.supplier-ledger.add');
+                // Route::get('edit/{id}', [SupplierLedgerController::class, 'editor'])->name('admin.supplier-ledger.edit');
+                Route::get('detail/{id}', [SupplierLedgerController::class, 'detail'])->name('admin.supplier-ledger.detail');
+                Route::post('save', [SupplierLedgerController::class, 'save'])->name('admin.supplier-ledger.save');
+                Route::match(['get', 'post'], 'adjustment', [SupplierLedgerController::class, 'adjustment'])->name('admin.supplier-ledger.adjustment');
+                Route::post('delete/{id}', [SupplierLedgerController::class, 'delete'])->name('admin.supplier-ledger.delete');
             });
 
             Route::prefix('operational-cost-categories')->group(function () {

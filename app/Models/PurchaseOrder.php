@@ -204,8 +204,8 @@ class PurchaseOrder extends BaseModel
             ->where('status', PurchaseOrderReturn::Status_Closed)
             ->sum('grand_total');
 
-        $this->total_paid = -PurchaseOrderPayment::where('order_id', $this->id)
-            ->sum('amount'); // payment sudah negatif, jadi harus dibalik agar nilai total paid positif
+        $this->total_paid = PurchaseOrderPayment::where('order_id', $this->id)
+            ->sum('amount'); // payment harus positif
 
         $this->balance = - ($this->grand_total - $this->total_paid - $this->total_return);
 

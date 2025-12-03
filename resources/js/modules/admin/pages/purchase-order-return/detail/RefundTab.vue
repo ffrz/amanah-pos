@@ -193,7 +193,7 @@ const deletePayment = (payment) => {
               class="text-right q-pa-sm"
               style="border-bottom: 1px solid #eee"
             >
-              {{ formatNumber(item.amount) }}
+              {{ formatNumber(Math.abs(item.amount)) }}
             </td>
             <td
               class="text-right q-pa-sm"

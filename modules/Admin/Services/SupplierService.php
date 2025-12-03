@@ -139,7 +139,7 @@ class SupplierService
             'id',
             'code',
             'name',
-            // 'wallet_balance',
+            'wallet_balance',
             'balance',
             'phone_1',
             'address',

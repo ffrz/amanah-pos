@@ -189,6 +189,7 @@ class PurchaseOrderReturnService
 
         DB::transaction(function () use ($return, $data) {
             $return->status = PurchaseOrderReturn::Status_Closed;
+            $return->datetime = now(); // hard coded ke waktu sekarang
             $return->updateGrandTotal();
             $return->updateBalanceAndStatus();
             $return->save();
@@ -277,6 +278,15 @@ class PurchaseOrderReturnService
             $quantity = $detail->quantity;
 
             StockMovement::create([
+                'parent_id'         => $return->id,
+                'parent_ref_type'   => StockMovement::ParentRefType_PurchaseOrderReturn,
+                'document_code'     => $return->code,
+                'document_datetime' => $return->datetime,
+                'party_id'          => $return->supplier_id,
+                'party_type'        => 'supplier',
+                'party_code'        => $return->supplier_code,
+                'party_name'        => $return->supplier_name,
+
                 'product_id'      => $detail->product_id,
                 'product_name'    => $detail->product_name,
                 'uom'             => $detail->product_uom,

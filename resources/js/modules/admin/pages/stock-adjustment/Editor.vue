@@ -8,6 +8,7 @@ import { createOptions } from "@/helpers/options";
 import DateTimePicker from "@/components/DateTimePicker.vue";
 import { formatNumber } from "@/helpers/formatter";
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
+import LongTextView from "@/components/LongTextView.vue";
 
 const $q = useQuasar();
 const page = usePage();
@@ -257,7 +258,10 @@ const printStockCard = () => {
               >
                 <template v-slot:body-cell-product_name="props">
                   <q-td :props="props">
-                    <div class="text-bold">{{ props.row.product_name }}</div>
+                    <LongTextView
+                      :text="props.row.product_name"
+                      :max-length="100"
+                    />
                     <div v-if="$q.screen.lt.md">
                       <div class="text-caption text-grey-8">
                         Tercatat: {{ formatNumber(props.row.old_quantity) }}

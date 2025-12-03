@@ -20,6 +20,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Models\FinanceAccount;
 use App\Models\FinanceTransaction;
+use App\Models\OperationalCost; // [TAMBAHAN] Import Model
 use App\Models\Product;
 use App\Models\SalesOrder;
 use App\Models\Supplier;
@@ -39,11 +40,15 @@ class DashboardController extends Controller
         $revenueByCategory = SalesOrder::aggregateRevenueByCategory($start_date, $end_date);
         $topCustomerRevenue = SalesOrder::getTopCustomersByRevenue($start_date, $end_date, 5);
         $topCustomerWallet = Customer::getTopCustomersByWalletBalance(5);
+
         return inertia('dashboard/Index', [
             'data' => [
                 'total_finance_balance' => FinanceAccount::totalActiveBalance(),
                 'total_finance_income' => FinanceTransaction::totalIncome($start_date, $end_date),
                 'total_finance_expense' => FinanceTransaction::totalExpense($start_date, $end_date),
+                'total_operational_cost' => OperationalCost::totalAmountByPeriod($start_date, $end_date),
+                'total_operational_cost_count' => OperationalCost::totalCountByPeriod($start_date, $end_date),
+                'total_operational_cost_category_count' => OperationalCost::totalCategoryCountByPeriod($start_date, $end_date),
                 'total_product_item' => Product::totalItem(),
                 'total_product_cost' => Product::totalCost(),
                 'total_product_price' => Product::totalPrice(),

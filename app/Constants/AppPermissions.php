@@ -29,6 +29,7 @@ class AppPermissions
             'admin.purchase-order.save' => 'admin.purchase-order.edit',
             'admin.purchase-order-return.add'  => 'admin.purchase-order-return.edit',
             'admin.purchase-order-return.save' => 'admin.purchase-order-return.edit',
+            'admin.cashier-cash-drop.save'  => 'admin.cashier-cash-drop.add', /// ?????
         ];
     }
     /**
@@ -56,6 +57,14 @@ class AppPermissions
                 // 'admin.cashier-terminal.save' => 'Simpan Terminal Kasir',
                 // 'admin.cashier-terminal.data' => 'Data Terminal Kasir',
             ],
+            'Manajemen Setoran Kas' => [
+                'admin.cashier-cash-drop.index' => 'Lihat Daftar Setoran Kas',
+                'admin.cashier-cash-drop.detail' => 'Lihat Detail Setoran Kas',
+                'admin.cashier-cash-drop.add' => 'Buat Pengajuan Setoran Kas', // Untuk Kasir
+                'admin.cashier-cash-drop.confirm' => 'Konfirmasi Setoran Kas', // Untuk Supervisor/Owner
+                'admin.cashier-cash-drop.delete' => 'Hapus Setoran Kas',
+            ],
+
             'Manajemen Pelanggan' => [
                 'admin.customer.index' => 'Lihat Daftar Pelanggan',
                 'admin.customer.detail' => 'Lihat Detail Pelanggan',
@@ -68,13 +77,23 @@ class AppPermissions
                 // 'admin.customer.balance' => 'Saldo Pelanggan',
                 // 'admin.customer.data' => 'Data Pelanggan',
             ],
-            'Manajemen Wallet Pelanggan' => [
+
+            'Manajemen Utang / Piutang Pelanggan' => [
+                'admin.customer-ledger.index'  => 'Lihat Daftar Transaksi',
+                'admin.customer-ledger.detail' => 'Lihat Detail Transaksi',
+                'admin.customer-ledger.add'    => 'Tambah Transaksi',
+                'admin.customer-ledger.adjust' => 'Menyesuaikan Transaksi',
+                'admin.customer-ledger.delete' => 'Hapus Transaksi',
+            ],
+
+            'Manajemen Deposit Pelanggan' => [
                 'admin.customer-wallet-transaction.index' => 'Lihat Daftar Transaksi Deposit',
                 'admin.customer-wallet-transaction.detail' => 'Lihat Detail Transaksi Deposit',
                 'admin.customer-wallet-transaction.add' => 'Tambah Transaksi Deposit',
                 'admin.customer-wallet-transaction.delete' => 'Hapus Transaksi Deposit',
             ],
-            'Manajemen Konfirmasi Wallet Pelanggan' => [
+
+            'Manajemen Konfirmasi Deposit Pelanggan' => [
                 'admin.customer-wallet-transaction-confirmation.index' => 'Lihat Daftar Konfirmasi Deposit',
                 'admin.customer-wallet-transaction-confirmation.detail' => 'Lihat Detail Konfirmasi Deposit',
                 'admin.customer-wallet-transaction-confirmation:accept' => 'Setujui Konfirmasi Deposit',
@@ -84,6 +103,21 @@ class AppPermissions
                 // 'admin.customer-wallet-transaction-confirmation.save' => 'Simpan Konfirmasi Deposit',
                 // 'admin.customer-wallet-transaction-confirmation.data' => 'Data Konfirmasi Deposit',
             ],
+            'Manajemen Deposit Supplier' => [
+                'admin.supplier-wallet-transaction.index' => 'Lihat Daftar Transaksi Deposit',
+                'admin.supplier-wallet-transaction.detail' => 'Lihat Detail Transaksi Deposit',
+                'admin.supplier-wallet-transaction.add' => 'Tambah Transaksi Deposit',
+                'admin.supplier-wallet-transaction.delete' => 'Hapus Transaksi Deposit',
+            ],
+
+            'Manajemen Utang / Piutang Supplier' => [
+                'admin.supplier-ledger.index'  => 'Lihat Daftar Transaksi',
+                'admin.supplier-ledger.detail' => 'Lihat Detail Transaksi',
+                'admin.supplier-ledger.add'    => 'Tambah Transaksi',
+                'admin.supplier-ledger.adjust' => 'Menyesuaikan Transaksi',
+                'admin.supplier-ledger.delete' => 'Hapus Transaksi',
+            ],
+
             'Manajemen Produk' => [
                 'admin.product.index' => 'Lihat Daftar Produk',
                 'admin.product.detail' => 'Lihat Detail Produk',

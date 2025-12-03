@@ -248,6 +248,7 @@ class SalesOrderService
 
             $this->updateTotalAndValidateClientTotal($order, $data['total'] ?? 0);
 
+            $order->datetime = now(); // hard coded ke waktu sekarang
             $order->status = SalesOrder::Status_Closed;
             $order->delivery_status = SalesOrder::DeliveryStatus_PickedUp;
             $order->due_date = $data['due_date'] ?? null;
@@ -392,6 +393,15 @@ class SalesOrderService
             $product = $detail->product;
 
             StockMovement::create([
+                'parent_id'         => $order->id,
+                'parent_ref_type'   => StockMovement::ParentRefType_SalesOrder,
+                'document_code'     => $order->code,
+                'document_datetime' => $order->datetime,
+                'party_id'          => $order->customer_id,
+                'party_type'        => 'customer',
+                'party_code'        => $order->customer_code,
+                'party_name'        => $order->customer_name,
+
                 'product_id'      => $detail->product_id,
                 'product_name'    => $detail->product_name,
                 'uom'             => $detail->product_uom,

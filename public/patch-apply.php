@@ -91,6 +91,7 @@ run_cmd('view:clear');
 // Run commands (migrate harus pakai --force)
 run_cmd('migrate', ['--force' => true]);
 run_cmd('permissions:sync');
+// run_cmd('patch:stock-movement-parent');
 
 run_cmd('optimize');
 run_cmd('config:cache');   // rebuild config cache

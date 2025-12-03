@@ -214,6 +214,7 @@ class SalesOrderReturnService
 
         DB::transaction(function () use ($salesOrderReturn, $data) {
             $salesOrderReturn->status = SalesOrderReturn::Status_Closed;
+            $salesOrderReturn->datetime = now(); // hard coded ke waktu sekarang
             $salesOrderReturn->updateGrandTotal();
             $salesOrderReturn->updateBalanceAndStatus();
             $salesOrderReturn->save();
@@ -299,6 +300,15 @@ class SalesOrderReturnService
             $quantity = $detail->quantity;
 
             StockMovement::create([
+                'parent_id'         => $order->id,
+                'parent_ref_type'   => StockMovement::ParentRefType_SalesOrderReturn,
+                'document_code'     => $order->code,
+                'document_datetime' => $order->datetime,
+                'party_id'          => $order->customer_id,
+                'party_type'        => 'customer',
+                'party_code'        => $order->customer_code,
+                'party_name'        => $order->customer_name,
+
                 'product_id'      => $detail->product_id,
                 'product_name'    => $detail->product_name,
                 'uom'             => $detail->product_uom,

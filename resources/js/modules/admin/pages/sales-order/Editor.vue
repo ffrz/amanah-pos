@@ -179,16 +179,17 @@ const addItem = async () => {
     .catch((error) => {
       showError(error.response?.data?.message, "top");
       console.error("Gagal mengambil data produk:", error);
+    })
+    .finally(() => {
+      isProcessing.value = false;
+      nextTick(() => {
+        userInputRef.value?.focus();
+      });
     });
-
-  isProcessing.value = false;
-  nextTick(() => {
-    userInputRef.value?.focus();
-  });
 };
 
 const showItemEditor = (item) => {
-  itemToEdit.value = Object.create(item);
+  itemToEdit.value = { ...item };
   showItemEditorDialog.value = true;
 };
 

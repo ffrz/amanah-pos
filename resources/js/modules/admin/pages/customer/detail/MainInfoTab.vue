@@ -66,7 +66,7 @@ const confirmDelete = () => {
         <td>:</td>
         <td
           :class="
-            page.props.data.wallet_balance < 0 ? 'text-red' : 'text-green'
+            page.props.data.wallet_balance < 0 ? 'text-red' : 'text-grey-8'
           "
         >
           Rp. {{ formatNumberWithSymbol(page.props.data.wallet_balance) }}
@@ -75,7 +75,7 @@ const confirmDelete = () => {
       <tr>
         <td>{{ page.props.data.balance > 0 ? "Piutang" : "Utang" }}</td>
         <td>:</td>
-        <td :class="page.props.data.balance < 0 ? 'text-red' : 'text-green'">
+        <td :class="page.props.data.balance < 0 ? 'text-red' : 'text-grey-8'">
           Rp. {{ formatNumberWithSymbol(page.props.data.balance) }}
         </td>
       </tr>

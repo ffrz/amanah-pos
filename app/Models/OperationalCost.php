@@ -3,13 +3,13 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
+ *
  * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
+ *
  * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
+ *
  * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
@@ -66,5 +66,40 @@ class OperationalCost extends BaseModel
     public function financeAccount()
     {
         return $this->belongsTo(FinanceAccount::class);
+    }
+
+    /**
+     * Scope a query to only include operational costs within a specific period.
+     */
+    public function scopeByPeriod($query, $startDate, $endDate)
+    {
+        return $query->where('date', '>=', $startDate)
+            ->where('date', '<=', $endDate);
+    }
+
+    /**
+     * Hitung total nominal biaya dalam periode tertentu.
+     */
+    public static function totalAmountByPeriod($startDate, $endDate)
+    {
+        return self::byPeriod($startDate, $endDate)->sum('amount');
+    }
+
+    /**
+     * Hitung total frekuensi transaksi dalam periode tertentu.
+     */
+    public static function totalCountByPeriod($startDate, $endDate)
+    {
+        return self::byPeriod($startDate, $endDate)->count();
+    }
+
+    /**
+     * Hitung jumlah kategori unik yang digunakan dalam periode tertentu.
+     */
+    public static function totalCategoryCountByPeriod($startDate, $endDate)
+    {
+        return self::byPeriod($startDate, $endDate)
+            ->distinct('category_id')
+            ->count('category_id');
     }
 }

@@ -246,7 +246,7 @@ export async function handleLoadForm(data) {
     if (onSuccess) onSuccess(response);
   } catch (error) {
     console.error("Quick Create Failed:", error);
-    $q.notify({
+    Notify.create({
       type: "negative",
       message: "Gagal mengambil data awal pelanggan.",
     });

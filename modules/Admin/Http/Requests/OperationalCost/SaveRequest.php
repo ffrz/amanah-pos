@@ -3,13 +3,13 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
+ *
  * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
+ *
  * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
+ *
  * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
@@ -38,7 +38,7 @@ class SaveRequest extends FormRequest
             'id'                 => 'nullable|integer|exists:operational_costs,id',
             'finance_account_id' => 'nullable|exists:finance_accounts,id',
             'date'               => 'required|date',
-            'category_id'        => 'nullable',
+            'category_id'        => 'required|exists:operational_cost_categories,id',
             'description'        => 'required|max:255',
             'amount'             => 'required|numeric|gt:0',
             'notes'              => 'nullable|max:200',

@@ -189,8 +189,8 @@ const deletePayment = (payment) => {
                   class="q-py-xs"
                 />
                 <q-badge
-                  :label="item.amount < 0 ? 'Pembayaran' : 'Refund'"
-                  :color="item.amount < 0 ? 'green' : 'red'"
+                  :label="item.amount > 0 ? 'Pembayaran' : 'Refund'"
+                  :color="item.amount > 0 ? 'green' : 'red'"
                   class="q-py-xs q-ml-sm"
                 />
               </div>
@@ -209,7 +209,7 @@ const deletePayment = (payment) => {
                 v-if="
                   $can('admin.purchase-order.delete-payment') &&
                   props.data.supplier_id &&
-                  item.amount < 0
+                  item.amount > 0
                 "
                 icon="delete"
                 color="negative"

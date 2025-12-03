@@ -39,7 +39,9 @@ class UserActivityLog extends Model
     public const Category_Product = 'product';
     public const Category_ProductCategory = 'product-category';
     public const Category_Supplier = 'supplier';
+    public const Category_SupplierLedger = 'supplier-ledger';
     public const Category_Customer = 'customer';
+    public const Category_CustomerLedger = 'customer-ledger';
     public const Category_UserActivityLog = 'user-activity-log';
     public const Category_FinanceAccount = 'finance-account';
     public const Category_FinanceTransaction = 'finance-transaction';
@@ -53,7 +55,9 @@ class UserActivityLog extends Model
     public const Category_OperationalCostCategory = 'operational-cost-category';
     public const Category_CashierTerminal = 'cashier-terminal';
     public const Category_CashierSession = 'cashier-session';
+    public const Category_CashierCashDrop = 'cashier-cash-drop';
     public const Category_CustomerWallet = 'customer-wallet';
+    public const Category_SupplierWallet = 'supplier-wallet';
     public const Category_StockAdjustment = 'stock-adjustment';
     public const Category_TaxScheme = 'tax-scheme';
     public const Category_Uom = 'uom';
@@ -75,7 +79,9 @@ class UserActivityLog extends Model
         self::Category_Product => 'Manajemen Produk',
         self::Category_ProductCategory => 'Manajemen Kategori Produk',
         self::Category_Supplier => 'Manajemen Pemasok',
+        self::Category_SupplierLedger => 'Manajemen Utang/Piutang Supplier',
         self::Category_Customer => 'Manajemen Pelanggan',
+        self::Category_CustomerLedger => 'Manajemen Utang/Piutang Pelanggan',
         self::Category_UserActivityLog => 'Manajemen Log Aktifitas Pengguna',
         self::Category_SalesOrder => 'Manajemen Order Penjualan',
         self::Category_SalesOrderReturn => 'Manajemen Retur Penjualan',
@@ -85,7 +91,9 @@ class UserActivityLog extends Model
         self::Category_OperationalCostCategory => 'Manajemen Kategori Biaya Operasional',
         self::Category_CashierTerminal => 'Manajemen Terminal Kasir',
         self::Category_CashierSession => 'Manajemen Sesi Kasir',
-        self::Category_CustomerWallet => 'Manajemen Walet Pelanggan',
+        self::Category_CashierCashDrop => 'Manajemen Setoran Kasir',
+        self::Category_CustomerWallet => 'Manajemen Deposit Pelanggan',
+        self::Category_SupplierWallet => 'Manajemen Deposit Supplier',
         self::Category_StockAdjustment => 'Manajemen Penyesuaian Stok',
         self::Category_TaxScheme => 'Manajemen Skema Pajak',
         self::Category_Uom => 'Manajemen Satuan',
@@ -127,6 +135,10 @@ class UserActivityLog extends Model
     public const Name_Supplier_Update = 'supplier.update';
     public const Name_Supplier_Delete = 'supplier.delete';
     public const Name_Supplier_Import = 'supplier.import';
+    public const Name_SupplierLedger_Create = 'supplier-ledger.create';
+    public const Name_SupplierLedger_Adjust = 'supplier-ledger.adjust';
+    public const Name_SupplierLedger_Delete = 'supplier-ledger.delete';
+
     public const Name_PurchaseOrder_Create = 'purchase-order.create';
     public const Name_PurchaseOrder_Close  = 'purchase-order.close';
     public const Name_PurchaseOrder_Delete = 'purchase-order.delete';
@@ -145,6 +157,11 @@ class UserActivityLog extends Model
     public const Name_Customer_Update = 'customer.update';
     public const Name_Customer_Delete = 'customer.delete';
     public const Name_Customer_Import = 'customer.import';
+
+    public const Name_CustomerLedger_Create = 'customer-ledger.create';
+    public const Name_CustomerLedger_Adjust = 'customer-ledger.adjust';
+    public const Name_CustomerLedger_Delete = 'customer-ledger.delete';
+
     public const Name_SalesOrder_Create = 'sales-order.create';
     public const Name_SalesOrder_Close  = 'sales-order.close';
     public const Name_SalesOrder_Delete = 'sales-order.delete';
@@ -167,6 +184,11 @@ class UserActivityLog extends Model
     public const Name_CashierSession_Close  = 'cashier-session.close';
     public const Name_CashierSession_Delete = 'cashier-session.delete';
 
+    public const Name_CashierCashDrop_Create = 'cashier-cash-drop.approve';
+    public const Name_CashierCashDrop_Approve = 'cashier-cash-drop.approve';
+    public const Name_CashierCashDrop_Reject  = 'cashier-cash-drop.reject';
+    public const Name_CashierCashDrop_Delete  = 'cashier-cash-drop.delete';
+
     // Finance
     public const Name_FinanceAccount_Create = 'finance-account.create';
     public const Name_FinanceAccount_Update = 'finance-account.update';
@@ -184,7 +206,7 @@ class UserActivityLog extends Model
     public const Name_FinanceTransactionTag_Update = 'finance-transaction-tag.update';
     public const Name_FinanceTransactionTag_Delete = 'finance-transaction-tag.delete';
 
-    // Customer Wallet
+    // Customer Deposit
     public const Name_CustomerWalletTopupConfirmation_Approve = 'customer-wallet-topup-confirmation.approve';
     public const Name_CustomerWalletTopupConfirmation_Reject  = 'customer-wallet-topup-confirmation.reject';
     public const Name_CustomerWalletTopupConfirmation_Delete  = 'customer-wallet-topup-confirmation.delete';
@@ -192,6 +214,11 @@ class UserActivityLog extends Model
     public const Name_CustomerWalletTransaction_Create = 'customer-wallet-transaction.create';
     public const Name_CustomerWalletTransaction_Update = 'customer-wallet-transaction.update';
     public const Name_CustomerWalletTransaction_Delete = 'customer-wallet-transaction.delete';
+
+    // Supplier Desposit
+    public const Name_SupplierWalletTransaction_Create = 'supplier-wallet-transaction.create';
+    public const Name_SupplierWalletTransaction_Update = 'supplier-wallet-transaction.update';
+    public const Name_SupplierWalletTransaction_Delete = 'supplier-wallet-transaction.delete';
 
     // Operational Cost
     public const Name_OperationalCost_Create = 'operational-cost.create';
@@ -250,6 +277,11 @@ class UserActivityLog extends Model
         self::Name_Supplier_Update => 'Memperbarui Pemasok',
         self::Name_Supplier_Delete => 'Menghapus Pemasok',
         self::Name_Supplier_Import => 'Mengimpor Pemasok',
+
+        self::Name_SupplierLedger_Create => 'Membuat Utang/Piutang Pemasok',
+        self::Name_SupplierLedger_Adjust => 'Penyesuaian Utang/Piutang Pemasok',
+        self::Name_SupplierLedger_Delete => 'Menghapus Utang/Piutang Pemasok',
+
         self::Name_PurchaseOrder_Create => 'Membuat Order Pembelian',
         self::Name_PurchaseOrder_Close  => 'Menutup Order Pembelian',
         self::Name_PurchaseOrder_Delete => 'Menghapus Order Pembelian',
@@ -262,6 +294,11 @@ class UserActivityLog extends Model
         self::Name_Customer_Update => 'Memperbarui Pelanggan',
         self::Name_Customer_Delete => 'Menghapus Pelanggan',
         self::Name_Customer_Import => 'Mengimpor Pelanggan',
+
+        self::Name_CustomerLedger_Create => 'Membuat Utang/Piutang Pelanggan',
+        self::Name_CustomerLedger_Adjust => 'Penyesuaian Utang/Piutang Pelanggan',
+        self::Name_CustomerLedger_Delete => 'Menghapus Utang/Piutang Pelanggan',
+
         self::Name_SalesOrder_Create => 'Membuat Order Penjualan',
         self::Name_SalesOrder_Close  => 'Menutup Order Penjualan',
         self::Name_SalesOrder_Delete => 'Menghapus Order Penjualan',
@@ -303,6 +340,11 @@ class UserActivityLog extends Model
         self::Name_CashierTerminal_Update => 'Memperbarui Terminal Kasir',
         self::Name_CashierTerminal_Delete => 'Menghapus Terminal Kasir',
 
+        self::Name_CashierCashDrop_Create  => 'Membuat Setoran Kasir',
+        self::Name_CashierCashDrop_Approve => 'Menyetujui Setoran Kasir',
+        self::Name_CashierCashDrop_Reject  => 'Menolak Setoran Kasir',
+        self::Name_CashierCashDrop_Delete  => 'Menghapus Setoran Kasir',
+
         self::Name_StockAdjustment_Create => 'Membuat Penyesuaian Stok',
         self::Name_StockAdjustment_Close  => 'Menutup Penyesuaian Stok',
         self::Name_StockAdjustment_Cancel => 'Membatalkan Penyesuaian Stok',
@@ -315,6 +357,14 @@ class UserActivityLog extends Model
         self::Name_Uom_Create => 'Membuat Satuan',
         self::Name_Uom_Update => 'Memperbarui Satuan',
         self::Name_Uom_Delete => 'Menghapus Satuan',
+
+        self::Name_CustomerWalletTransaction_Create => 'Membuat Transaksi Deposit Pelanggan',
+        self::Name_CustomerWalletTransaction_Update => 'Memperbarui Transaksi Deposit Pelanggan',
+        self::Name_CustomerWalletTransaction_Delete => 'Menghapus Transaksi Deposit Pelanggan',
+
+        self::Name_SupplierWalletTransaction_Create => 'Membuat Transaksi Deposit Supplier',
+        self::Name_SupplierWalletTransaction_Update => 'Memperbarui Transaksi Deposit Supplier',
+        self::Name_SupplierWalletTransaction_Delete => 'Menghapus Transaksi Deposit Supplier',
     ];
 
     // Kolom yang dapat diisi massal

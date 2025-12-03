@@ -9,6 +9,7 @@ import {
   formatNumberWithSymbol,
 } from "@/helpers/formatter";
 import LongTextView from "@/components/LongTextView.vue";
+import useOpenStockMovementSource from "@/composables/useOpenStockMovementSource";
 
 const props = defineProps({
   productId: {
@@ -64,6 +65,13 @@ let columns = [
     align: "right",
   },
   {
+    name: "party",
+    label: "Pihak",
+    field: "party",
+    align: "left",
+    sortable: true,
+  },
+  {
     name: "notes",
     label: "Catatan",
     field: "notes",
@@ -91,6 +99,8 @@ const computedColumns = computed(() => {
   if (!$q.screen.lt.sm) return columns;
   return columns.filter((col) => col.name === "id" || col.name === "quantity");
 });
+
+const openDetail = useOpenStockMovementSource;
 </script>
 
 <template>
@@ -124,17 +134,24 @@ const computedColumns = computed(() => {
     </template>
 
     <template v-slot:body="props">
-      <q-tr :props="props">
+      <q-tr
+        :props="props"
+        class="cursor-pointer"
+        @click="openDetail(props.row)"
+      >
         <q-td key="id" :props="props">
           <div>
             <q-icon class="inline-icon" name="tag" />
             {{ props.row.code }}
-          </div>
-          <div>
-            <q-icon name="calendar_clock" class="inline-icon" />
+            -
             {{ formatDateTime(props.row.created_at) }}
           </div>
           <div>
+            <template v-if="props.row.parent_id">
+              <q-icon class="inline-icon" name="tag" />
+              {{ props.row.document_code }}
+              -
+            </template>
             <q-badge>
               {{ $CONSTANTS.STOCK_MOVEMENT_REF_TYPES[props.row.ref_type] }}
             </q-badge>
@@ -184,6 +201,13 @@ const computedColumns = computed(() => {
         </q-td>
         <q-td key="uom" :props="props">
           {{ props.row.uom }}
+        </q-td>
+        <q-td key="party" :props="props">
+          {{
+            props.row.party_id
+              ? props.row.party_code + " - " + props.row.party_name
+              : ""
+          }}
         </q-td>
         <q-td key="notes" :props="props">
           <LongTextView :text="props.row.notes" />

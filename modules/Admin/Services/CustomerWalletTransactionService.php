@@ -200,7 +200,7 @@ class CustomerWalletTransactionService
             $this->userActivityLogService->log(
                 UserActivityLog::Category_CustomerWallet,
                 UserActivityLog::Name_CustomerWalletTransaction_Create,
-                "Transaksi penyesuaian salldo wallet pelanggan $item->code telah dibuat.",
+                "Transaksi penyesuaian saldo wallet pelanggan $item->code telah dibuat.",
                 [
                     'formatter' => 'customer-wallet-transaction',
                     'data' => $item->toArray(),

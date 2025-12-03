@@ -16,9 +16,11 @@
 
 namespace App\Providers;
 
+use App\Models\CashierCashDrop;
 use App\Models\CashierSession;
 use App\Models\CashierTerminal;
 use App\Models\Customer;
+use App\Models\CustomerLedger;
 use App\Models\CustomerWalletTransaction;
 use App\Models\CustomerWalletTransactionConfirmation;
 use App\Models\FinanceAccount;
@@ -40,8 +42,11 @@ use App\Models\SalesOrderReturn;
 use App\Models\StockAdjustment;
 use App\Models\StockMovement;
 use App\Models\Supplier;
+use App\Models\SupplierLedger;
+use App\Models\SupplierWalletTransaction;
 use App\Models\TaxScheme;
 use App\Models\User;
+use Modules\Admin\Policies\CashierCashDropPolicy;
 use Modules\Admin\Policies\DefaultPolicy;
 use Modules\Admin\Policies\OnlyAuthorPolicy;
 use Modules\Admin\Policies\OperationalCostCategoryPolicy;
@@ -84,9 +89,13 @@ class AuthServiceProvider extends ServiceProvider
         PurchaseOrderReturn::class => PurchaseOrderReturnPolicy::class,
         CustomerWalletTransactionConfirmation::class => DefaultPolicy::class,
         CustomerWalletTransaction::class => DefaultPolicy::class,
+        SupplierWalletTransaction::class => DefaultPolicy::class,
         TaxScheme::class => DefaultPolicy::class,
         FinanceTransactionCategory::class => DefaultPolicy::class,
         FinanceTransactionTag::class => DefaultPolicy::class,
+        CashierCashDrop::class => CashierCashDropPolicy::class,
+        CustomerLedger::class => DefaultPolicy::class,
+        SupplierLedger::class => DefaultPolicy::class,
     ];
 
     /**

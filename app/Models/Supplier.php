@@ -51,6 +51,7 @@ class Supplier extends BaseModel
 
         'active',
         'balance',
+        'wallet_balance',
 
         'notes',
     ];
@@ -69,7 +70,8 @@ class Supplier extends BaseModel
             'address' => 'string',
             'active'  => 'boolean',
             'balance' => 'decimal:2',
-            'actual_balance' => 'decimal:2',
+            'wallet_balance' => 'decimal:2',
+            'actual_balance' => 'decimal:2', // TODO: remove this unused field!
             'bank_account_number' => 'string',
             'return_address' => 'string',
             'created_by' => 'integer',
@@ -110,5 +112,14 @@ class Supplier extends BaseModel
     {
         // Menggunakan sum() untuk menghitung total saldo
         return static::where('active', 1)->sum('balance');
+    }
+
+    /**
+     * Menghitung total saldo wallet supplier aktif.
+     */
+    public static function totalActiveWalletBalance(): float
+    {
+        // Menggunakan sum() untuk menghitung total saldo
+        return static::where('active', 1)->sum('wallet_balance');
     }
 }

@@ -47,6 +47,13 @@ const columns = [
     sortable: true,
   },
   {
+    name: "wallet_balance",
+    label: "Wallet (Rp)",
+    field: "wallet_balance",
+    align: "right",
+    sortable: true,
+  },
+  {
     name: "balance",
     label: "Utang / Piutang (Rp)",
     field: "balance",
@@ -221,11 +228,21 @@ const computedColumns = computed(() => {
               <template v-if="$q.screen.lt.md">
                 <div
                   :class="
-                    props.row.balance < 0 ? 'text-negative' : 'text-positive'
+                    props.row.balance < 0 ? 'text-negative' : 'text-grey-8'
                   "
                 >
                   <q-icon name="wallet" />
+                  Saldo Utang / Piutang: Rp.
                   {{ formatNumber(props.row.balance) }}
+                </div>
+                <div
+                  :class="
+                    props.row.balance < 0 ? 'text-negative' : 'text-grey-8'
+                  "
+                >
+                  <q-icon name="wallet" />
+                  Saldo Deposit: Rp.
+                  {{ formatNumber(props.row.wallet_balance) }}
                 </div>
                 <div v-if="props.row.phone_1">
                   <q-icon name="phone" /> {{ props.row.phone_1 }}
@@ -237,6 +254,17 @@ const computedColumns = computed(() => {
             </q-td>
             <q-td key="name" :props="props" class="wrap-column">
               {{ props.row.name }}
+            </q-td>
+            <q-td key="wallet_balance" :props="props" class="wrap-column">
+              <div
+                :class="
+                  props.row.wallet_balance < 0
+                    ? 'text-negative'
+                    : 'text-positive'
+                "
+              >
+                {{ formatNumber(props.row.wallet_balance) }}
+              </div>
             </q-td>
             <q-td key="balance" :props="props" class="wrap-column">
               <div

@@ -59,6 +59,18 @@ class FinanceTransactionService
             // Kembalikan saldo akun lama
             $oldAccount = FinanceAccount::findOrFail($oldData['account_id']);
             $this->addToBalance($oldAccount, -$oldData['amount']);
+
+            // TODO: REVIEW THIS AI GENERATED CODE!!
+            if (
+                isset($newData['account_id']) &&
+                $oldData['account_id'] != $newData['account_id'] &&
+                isset($oldData['ref_id'])
+            ) {
+                FinanceTransaction::where('ref_id', $oldData['ref_id'])
+                    ->where('ref_type', $oldData['ref_type'])
+                    ->where('account_id', $oldData['account_id']) // Hapus spesifik yang lama
+                    ->delete();
+            }
         }
 
         // Jika tidak ada akun finansial baru, hapus transaksi lama dan berhenti
@@ -80,6 +92,7 @@ class FinanceTransactionService
             [
                 'ref_id' => $newData['ref_id'],
                 'ref_type' => $newData['ref_type'],
+                'account_id' => $newData['account_id'],
             ],
             [
                 'account_id' => $newData['account_id'],

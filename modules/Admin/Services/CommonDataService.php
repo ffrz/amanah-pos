@@ -13,6 +13,7 @@
 
 namespace Modules\Admin\Services;
 
+use App\Models\CashierTerminal;
 use App\Models\Customer;
 use App\Models\FinanceAccount;
 use App\Models\FinanceTransactionCategory;
@@ -156,10 +157,17 @@ class CommonDataService
         return Role::orderBy('name', 'asc')->get();
     }
 
-    public function getAllUsers($cols = ['*'])
+    public function getAllUsers($cols = ['*'], $activeOnly = true)
     {
+        $q = User::query();
         // TODO: Pertimbangkan caching di sini.
-        return User::query()->select($cols)->orderBy('name', 'asc')->get();
+        if ($activeOnly) {
+            $q->where('active', true);
+        }
+
+        return $q->select($cols)
+            ->orderBy('name', 'asc')
+            ->get();
     }
 
     public function getProducts($fields = ['id', 'name', 'description'], $activeOnly = true)
@@ -181,5 +189,28 @@ class CommonDataService
         $query = Uom::query();
         $query->orderBy('name');
         return $query->get();
+    }
+  
+    public function getAllCashierTerminals($fields = ['id', 'name'], $activeOnly = true)
+    {
+        $query = CashierTerminal::query();
+
+        if ($activeOnly) {
+            $query->where('active', true);
+        }
+
+        $query->orderBy('name');
+
+        return $query->get($fields);
+    }
+
+    public function getCashDropFinanceAccounts($fields = ['id', 'name', 'type', 'bank', 'number', 'holder', 'balance'])
+    {
+        $query = FinanceAccount::query()
+            ->where('active', true)
+            ->where('show_in_cashier_cash_drop', true)
+            ->orderBy('name');
+
+        return $query->get($fields);
     }
 }

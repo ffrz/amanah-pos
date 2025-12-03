@@ -3,13 +3,13 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
+ *
  * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
+ *
  * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
+ *
  * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
@@ -178,6 +178,8 @@ class StockAdjustmentService
 
                     // simpan riwayat perubahan stok
                     $stockMovement = new StockMovement([
+                        'parent_id' => $item->id,
+                        'parent_ref_type' => StockMovement::ParentRefType_StockAdjustment,
                         'product_id' => $detail->product_id,
                         'product_name' => $detail->product_name,
                         'uom' => $detail->uom,
@@ -187,6 +189,8 @@ class StockAdjustmentService
                         'quantity_before' => $detail->old_quantity,
                         'quantity_after' => $detail->new_quantity,
                         'notes' => "Penyesuaian stok #$item->code",
+                        'document_code' => $item->code,
+                        'document_datetime' => $item->datetime,
                     ]);
                     $stockMovement->save();
                 }

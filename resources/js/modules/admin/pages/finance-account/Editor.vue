@@ -21,6 +21,7 @@ const form = useForm({
   has_wallet_access: !!page.props.data.has_wallet_access,
   show_in_pos_payment: !!page.props.data.show_in_pos_payment,
   show_in_purchasing_payment: !!page.props.data.show_in_purchasing_payment,
+  show_in_cashier_cash_drop: !!page.props.data.show_in_cashier_cash_drop,
   notes: page.props.data.notes,
 });
 
@@ -172,6 +173,11 @@ watch(
                 v-model="form.has_wallet_access"
                 :disable="form.processing"
                 label="Tampilkan di Konfirmasi Topup Wallet"
+              />
+              <CheckBox
+                v-model="form.show_in_cashier_cash_drop"
+                :disable="form.processing"
+                label="Tampilkan di Setoran Kasir"
               />
             </q-card-section>
             <q-card-section class="q-gutter-sm">

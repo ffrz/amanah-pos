@@ -70,7 +70,7 @@ const tab = ref("main");
     </template>
 
     <div class="row justify-center">
-      <div class="col col-lg-6 q-pa-xs">
+      <div class="col col-lg-8 q-pa-xs">
         <div class="row">
           <q-card square flat bordered class="col">
             <q-tabs

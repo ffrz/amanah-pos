@@ -70,25 +70,34 @@ class FinanceTransaction extends BaseModel
 
     const RefType_FinanceTransaction = 'finance_transaction';
     const RefType_CustomerWalletTransaction = 'customer_wallet_transaction';
+    const RefType_SupplierWalletTransaction = 'supplier_wallet_transaction';
     const RefType_SalesOrderPayment = 'sales_order_payment';
     const RefType_SalesOrderReturnRefund = 'sales_order_return_refund';
     const RefType_PurchaseOrderPayment = 'sales_order_payment';
     const RefType_PurchaseOrderReturnRefund = 'sales_order_return_refund';
     const RefType_OperationalCost = 'operational_cost';
+    const RefType_CashierCashDrop = 'cashier_cash_drop';
+    const RefType_CustomerLedger = 'customer_ledger';
+    const RefType_SupplierLedger = 'customer_ledger';
 
     const RefTypes = [
         self::RefType_FinanceTransaction => 'Transaksi Keuangan',
-        self::RefType_CustomerWalletTransaction => 'Transaksi Dompet Pelanggan',
+        self::RefType_CustomerWalletTransaction => 'Transaksi Deposit Pelanggan',
+        self::RefType_SupplierWalletTransaction => 'Transaksi Deposit Suppiler',
         self::RefType_SalesOrderPayment => 'Transaksi Pembayaran Penjualan',
         self::RefType_SalesOrderReturnRefund => 'Transaksi Refund Pembayaran Penjualan',
         self::RefType_PurchaseOrderPayment => 'Transaksi Pembayaran Pembelian',
         self::RefType_PurchaseOrderReturnRefund => 'Transaksi Refund Pembayaran Pembelian',
         self::RefType_OperationalCost => 'Transaksi Biaya Operasional',
+        self::RefType_CashierCashDrop => 'Transaksi Setoran Kasir',
+        self::RefType_CustomerLedger => 'Transaksi Utang/Piutang Pelanggan',
+        self::RefType_SupplierLedger => 'Transaksi Utang/Piutang Supplier',
     ];
 
     const RefTypeModels = [
         self::RefType_FinanceTransaction => \App\Models\FinanceTransaction::class,
         self::RefType_CustomerWalletTransaction => \App\Models\CustomerWalletTransaction::class,
+        self::RefType_SupplierWalletTransaction => \App\Models\SupplierWalletTransaction::class,
         self::RefType_SalesOrderPayment => \App\Models\SalesOrderPayment::class,
         self::RefType_PurchaseOrderPayment => \App\Models\PurchaseOrderPayment::class,
         self::RefType_OperationalCost => \App\Models\OperationalCost::class,
@@ -172,11 +181,6 @@ class FinanceTransaction extends BaseModel
     public function cashierSessions(): BelongsToMany
     {
         return $this->belongsToMany(CashierSession::class, 'cashier_session_transactions');
-    }
-
-    public static function deleteByRef($id, $type)
-    {
-        static::where('ref_id', $id)->where('ref_type', $type)->delete();
     }
 
     public static function totalIncome($start_date, $end_date)

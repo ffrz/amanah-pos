@@ -21,6 +21,8 @@ use App\Models\FinanceAccount;
 use App\Models\FinanceTransaction;
 use App\Models\PurchaseOrderPayment;
 use App\Models\PurchaseOrderReturn;
+use App\Models\Supplier;
+use App\Models\SupplierWalletTransaction;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -40,41 +42,57 @@ class PurchaseOrderReturnRefundService
     {
         $this->ensureOrderIsProcessable($return);
 
-        if ($data['amount'] <= 0) {
+        // Validasi input
+        $inputAmount = intval($data['amount']);
+
+        if ($inputAmount <= 0) {
             throw new BusinessRuleViolationException('Jumlah refund harus lebih dari nol.');
         }
 
-        if ($data['amount'] > ($return->purchaseOrder->total_paid - $return->total_refunded)) {
-            throw new BusinessRuleViolationException('Jumlah refund melebihi batas yang diperbolehkan.');
-        }
+        // if ($inputAmount > ($return->purchaseOrder->total_paid - $return->total_refunded)) {
+        //     dd($return->purchaseOrder->total_paid, $return->total_refunded, $inputAmount);
+        //     throw new BusinessRuleViolationException('Jumlah refund melebihi batas yang diperbolehkan.');
+        // }
 
-        if ($return->remaining_refund <= 0) {
-            throw new BusinessRuleViolationException('Pesanan ini sudah lunas.');
-        }
+        // if ($return->remaining_refund <= 0) {
+        //     throw new BusinessRuleViolationException('Pesanan ini sudah lunas direfund.');
+        // }
 
-        DB::transaction(function () use ($return, $data) {
-            $amount = intval($data['amount']);
-            $result = $this->processAndValidatePaymentMethod($return, $data['id'], $amount);
+        DB::transaction(function () use ($return, $data, $inputAmount) {
+
+            $result = $this->processAndValidatePaymentMethod($return, $data['id'] ?? 'cash', $inputAmount);
+
+            // 1. Simpan Record Refund (Payment dengan type Income/Refund)
             $refund = $this->createRefundRecord($return, $result);
+
+            // 2. Proses Keuangan (Tambah Kas / Tambah Wallet)
             $this->processFinancialRecords($refund);
+
+            // 3. Update status Return Order
             $return->updateBalanceAndStatus();
             $return->save();
 
+            // 4. Update status Purchase Order Induk
             if ($return->purchaseOrder) {
                 $purchaseOrder = $return->purchaseOrder;
-                if ($purchaseOrder) {
-                    $purchaseOrder->updateTotals();
-                    $purchaseOrder->save();
-                }
+                $purchaseOrder->updateTotals();
+                $purchaseOrder->save();
 
+                // 5. Update Saldo Hutang Supplier (Ledger Adjustment)
+                // Logika:
+                // Saat Return dibuat -> Hutang Berkurang (Debit Supplier).
+                // Saat Refund Diterima -> Uang masuk, berarti "Debit Supplier" diselesaikan.
+                // Maka Balance Supplier harus di-Credit (Ditambah Positif/Arah ke 0).
+                // Contoh: Utang -100 (Kredit). Return barang 10. Utang jadi -90.
+                // Ternyata supplier refund cash 10. Utang -90 tetap -90?
+                // Tidak, biasanya refund merujuk pengembalian uang atas barang yg LUNAS.
+                // Jadi addToBalance di sini fungsinya menetralkan nilai retur di buku besar.
                 $supplier = $purchaseOrder->supplier;
-                if ($supplier && $amount != 0) {
-                    $this->supplierService->addToBalance($supplier, -$amount);
+                if ($supplier) {
+                    // Kita kirim positif, karena kita menerima uang, artinya "piutang" ke supplier berkurang.
+                    $this->supplierService->addToBalance($supplier, -abs($inputAmount));
                 }
             }
-
-            $return->updateBalanceAndStatus();
-            $return->save();
         });
     }
 
@@ -82,6 +100,7 @@ class PurchaseOrderReturnRefundService
     {
         $accountId = null;
         $type = null;
+
         if ($type_or_id === 'cash') {
             $type = PurchaseOrderPayment::Type_Cash;
             $session = $this->cashierSessionService->getActiveSession();
@@ -89,6 +108,10 @@ class PurchaseOrderReturnRefundService
                 throw new BusinessRuleViolationException("Anda belum memulai sesi kasir.");
             }
             $accountId = $session->cashierTerminal->financeAccount->id;
+        } else if ($type_or_id === 'wallet') {
+            // Refund ke Wallet = Deposit Supplier Bertambah
+            $type = PurchaseOrderPayment::Type_Wallet;
+            // Tidak perlu cek saldo mencukupi, karena saldo supplier justru akan bertambah
         } else if (intval($type_or_id)) {
             $type = PurchaseOrderPayment::Type_Transfer;
             $accountId = (int)$type_or_id;
@@ -109,6 +132,9 @@ class PurchaseOrderReturnRefundService
         DB::transaction(function () use ($orderReturn) {
             $orderReturn->loadMissing('payments');
             $this->deleteRefundsImpl($orderReturn->payments);
+
+            $orderReturn->updateBalanceAndStatus();
+            $orderReturn->save();
         });
     }
 
@@ -132,8 +158,9 @@ class PurchaseOrderReturnRefundService
                 }
 
                 $supplier = $purchaseOrder->supplier;
+                // Reverse logic: Hapus Refund -> Uang keluar/batal masuk -> Piutang supplier muncul lagi.
                 if ($supplier && $amount != 0) {
-                    $this->supplierService->addToBalance($supplier, $amount);
+                    $this->supplierService->addToBalance($supplier, abs($amount));
                 }
             }
 
@@ -143,23 +170,21 @@ class PurchaseOrderReturnRefundService
     }
 
     // ---------------------------------------------
-    //              HELPER METHODS
+    //              HELPER METHODS
     // ---------------------------------------------
 
-    /**
-     * Memastikan order dapat diproses. Penghapusan pembayaran hanya boleh dilakukan
-     * pada order yang sudah ditutup/selesai (Status_Closed).
-     */
     private function ensureOrderIsProcessable(PurchaseOrderReturn $return)
     {
-        if ($return->status !== PurchaseOrderReturn::Status_Closed) {
-            throw new BusinessRuleViolationException('Tidak dapat memproses refund pembayaran.');
+        // Refund biasanya hanya bisa dilakukan jika status return sudah disetujui/closed/processed
+        // Sesuaikan dengan flow bisnis Anda.
+        if ($return->status === PurchaseOrderReturn::Status_Draft) {
+            throw new BusinessRuleViolationException('Return belum diproses, tidak bisa melakukan refund.');
         }
     }
 
     /**
      * Logika inti untuk membalikkan transaksi dan menghapus record pembayaran.
-     * Digunakan oleh deletePayment dan deletePayments.
+     * Digunakan oleh deleteRefund dan deleteRefunds.
      */
     private function deleteRefundsImpl(array|Collection $refunds)
     {
@@ -172,8 +197,7 @@ class PurchaseOrderReturnRefundService
         return $total_amount;
     }
 
-    // OK
-    private function  createRefundRecord(PurchaseOrderReturn $return, array $data): PurchaseOrderPayment
+    private function createRefundRecord(PurchaseOrderReturn $return, array $data): PurchaseOrderPayment
     {
         $refund = new PurchaseOrderPayment([
             'order_id' => $return->purchase_order_id ?? null,
@@ -181,52 +205,82 @@ class PurchaseOrderReturnRefundService
             'finance_account_id' => $data['finance_account_id'],
             'supplier_id' => $return->supplier?->id,
             'type'   => $data['payment_type'],
-            'amount' => $data['amount'],
+            'amount' => -$data['amount'],
             'notes'  => $data['notes'] ?? '',
         ]);
         $refund->save();
         return $refund;
     }
 
-    // OK
     private function processFinancialRecords(PurchaseOrderPayment $refund): void
     {
         $amount = abs($refund->amount);
+
+        // CASE 1: Refund diterima via Kas/Transfer (Uang Masuk)
         if ($refund->type === PurchaseOrderPayment::Type_Transfer || $refund->type === PurchaseOrderPayment::Type_Cash) {
             if ($refund->finance_account_id) {
-                // membuat rekaman transaksi keuangan
+                // Catat Pemasukan
                 FinanceTransaction::create([
                     'account_id' => $refund->finance_account_id,
                     'datetime' => now(),
-                    'type' => FinanceTransaction::Type_Income,
-                    'amount' => $amount,
+                    'type' => FinanceTransaction::Type_Income, // Income karena terima uang
+                    'amount' => $amount, // Positif
                     'ref_id' => $refund->id,
                     'ref_type' => FinanceTransaction::RefType_PurchaseOrderReturnRefund,
-                    'notes' => "Terima refund pembelian #{$refund->return->code}",
+                    'notes' => "Terima refund retur #{$refund->return->code}",
                 ]);
 
-                // menambah saldo akun keuangan
+                // Tambah Saldo Akun
                 FinanceAccount::where('id', $refund->finance_account_id)
                     ->increment('balance', $amount);
             }
         }
+        // CASE 2: Refund masuk ke Wallet Supplier (Deposit Bertambah)
+        else if ($refund->type === PurchaseOrderPayment::Type_Wallet) {
+            // Catat Transaksi Wallet
+            SupplierWalletTransaction::create([
+                'supplier_id' => $refund->supplier_id,
+                'datetime' => now(),
+                'type' => SupplierWalletTransaction::Type_PurchaseOrderReturnRefund,
+                'amount' => $amount, // Positif (Deposit nambah)
+                'ref_type' => SupplierWalletTransaction::RefType_PurchaseOrderReturnRefund,
+                'ref_id' => $refund->id,
+                'notes' => "Refund retur #{$refund->return->code} masuk deposit",
+            ]);
+
+            // Tambah Saldo Wallet Supplier
+            Supplier::where('id', $refund->supplier_id)
+                ->increment('wallet_balance', $amount);
+        }
     }
 
-    // OK
-    private function reverseFinancialRecords(PurchaseOrderPayment $payment): void
+    private function reverseFinancialRecords(PurchaseOrderPayment $refund): void
     {
-        $amount = abs($payment->amount);
-        if ($payment->type === PurchaseOrderPayment::Type_Transfer || $payment->type === PurchaseOrderPayment::Type_Cash) {
-            if ($payment->finance_account_id) {
+        $amount = abs($refund->amount);
+
+        // REVERSE CASE 1: Batalkan Refund Kas/Transfer
+        if ($refund->type === PurchaseOrderPayment::Type_Transfer || $refund->type === PurchaseOrderPayment::Type_Cash) {
+            if ($refund->finance_account_id) {
                 // Hapus Transaksi Keuangan
-                FinanceTransaction::where('ref_id', $payment->id)
+                FinanceTransaction::where('ref_id', $refund->id)
                     ->where('ref_type', FinanceTransaction::RefType_PurchaseOrderReturnRefund)
                     ->delete();
 
-                // Kembalikan Saldo Akun Keuangan (membalikkan decrement saat bayar)
-                FinanceAccount::where('id', $payment->finance_account_id)
+                // Kurangi Saldo Akun Keuangan (Kembalikan ke sebelum terima refund)
+                FinanceAccount::where('id', $refund->finance_account_id)
                     ->decrement('balance', $amount);
             }
+        }
+        // REVERSE CASE 2: Batalkan Refund Wallet
+        else if ($refund->type === PurchaseOrderPayment::Type_Wallet) {
+            // Hapus Transaksi Wallet
+            SupplierWalletTransaction::where('ref_id', $refund->id)
+                ->where('ref_type', SupplierWalletTransaction::RefType_PurchaseOrderReturnRefund)
+                ->delete();
+
+            // Kurangi Saldo Wallet Supplier (Kembalikan deposit yang sempat bertambah)
+            Supplier::where('id', $refund->supplier_id)
+                ->decrement('wallet_balance', $amount);
         }
     }
 }

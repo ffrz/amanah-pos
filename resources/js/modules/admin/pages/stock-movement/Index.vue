@@ -14,6 +14,7 @@ import LongTextView from "@/components/LongTextView.vue";
 import { createOptions } from "@/helpers/options";
 import dayjs from "dayjs";
 import DateTimePicker from "@/components/DateTimePicker.vue";
+import useOpenStockMovementSource from "@/composables/useOpenStockMovementSource";
 
 const page = usePage();
 const tableRef = ref(null);
@@ -61,6 +62,12 @@ let columns = [
     name: "product",
     label: "Produk",
     field: "product",
+    align: "left",
+  },
+  {
+    name: "party",
+    label: "Pihak",
+    field: "party",
     align: "left",
   },
   {
@@ -131,6 +138,8 @@ const computedColumns = computed(() => {
   if (!$q.screen.lt.sm) return columns;
   return columns.filter((col) => col.name === "id" || col.name === "quantity");
 });
+
+const openDetail = useOpenStockMovementSource;
 </script>
 
 <template>
@@ -228,22 +237,39 @@ const computedColumns = computed(() => {
         </template>
 
         <template v-slot:body="props">
-          <q-tr :props="props">
+          <q-tr
+            :props="props"
+            @click="openDetail(props.row)"
+            class="cursor-pointer"
+          >
             <q-td key="id" :props="props">
               <div>
-                <q-icon class="inline-icon" name="tag" />
-                {{ props.row.code }}
+                <span>
+                  <q-icon class="inline-icon" name="tag" />
+                  {{ props.row.code }}
+                </span>
+                -
+                <span>
+                  {{ formatDateTime(props.row.created_at) }}
+                </span>
               </div>
+
               <div>
-                <q-icon name="calendar_clock" class="inline-icon" />
-                {{ formatDateTime(props.row.created_at) }}
-              </div>
-              <div>
+                <span v-if="props.row.parent_id">
+                  <q-icon class="inline-icon" name="tag" />
+                  {{ props.row.document_code }}
+                  -
+                </span>
                 <q-badge>
                   {{ $CONSTANTS.STOCK_MOVEMENT_REF_TYPES[props.row.ref_type] }}
                 </q-badge>
               </div>
+
               <template v-if="$q.screen.lt.sm">
+                <div v-if="props.row.party_id">
+                  <q-icon class="inline-icon" name="person" />
+                  {{ props.row.party_code + " - " + props.row.party_name }}
+                </div>
                 <div>
                   <q-icon name="token" class="inline-icon" />
                   {{ props.row.product_name }}
@@ -269,6 +295,13 @@ const computedColumns = computed(() => {
             </q-td>
             <q-td key="product" :props="props">
               {{ props.row.product_name }}
+            </q-td>
+            <q-td key="party" :props="props">
+              {{
+                props.row.party_id
+                  ? props.row.party_code + " - " + props.row.party_name
+                  : ""
+              }}
             </q-td>
             <q-td key="quantity_before" :props="props">
               {{ formatNumber(props.row.quantity_before) }}
