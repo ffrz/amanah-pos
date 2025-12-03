@@ -21,6 +21,7 @@ use App\Models\FinanceTransactionTag;
 use App\Models\OperationalCostCategory;
 use App\Models\Product;
 use App\Models\Supplier;
+use App\Models\Uom;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -183,6 +184,13 @@ class CommonDataService
         return $query->get($fields);
     }
 
+    public function getUoms()
+    {
+        $query = Uom::query();
+        $query->orderBy('name');
+        return $query->get();
+    }
+  
     public function getAllCashierTerminals($fields = ['id', 'name'], $activeOnly = true)
     {
         $query = CashierTerminal::query();

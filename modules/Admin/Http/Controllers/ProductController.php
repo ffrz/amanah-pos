@@ -114,6 +114,7 @@ class ProductController extends Controller
             'data' => $item,
             'categories' => $this->commonDataService->getProductCategories(),
             'suppliers' => $this->commonDataService->getSuppliers(),
+            'uoms' => $this->commonDataService->getUoms(),
         ]);
     }
 

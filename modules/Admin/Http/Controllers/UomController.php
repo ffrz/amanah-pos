@@ -28,6 +28,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class UomController extends Controller
 {
@@ -86,7 +87,7 @@ class UomController extends Controller
      * @param int $id
      * @return Response
      */
-    public function editor(int $id = 0): Response
+    public function editor(Request $request, int $id = 0)
     {
         $item = $this->uomService->findOrCreate($id);
 
@@ -101,11 +102,15 @@ class UomController extends Controller
      * @param SaveRequest $request
      * @return RedirectResponse
      */
-    public function save(SaveRequest $request): RedirectResponse
+    public function save(SaveRequest $request)
     {
         $item = $this->uomService->findOrCreate($request->id);
 
         $item = $this->uomService->save($item, $request->validated());
+
+        if ($request->expectsJson()) {
+            return JsonResponseHelper::success($item);
+        }
 
         return redirect(route('admin.uom.index'))
             ->with('success', "Satuan $item->name telah disimpan.");

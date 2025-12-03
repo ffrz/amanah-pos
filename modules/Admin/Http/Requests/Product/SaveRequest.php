@@ -49,14 +49,6 @@ class SaveRequest extends FormRequest
             'uom'       => ['sometimes', 'nullable', 'string', 'max:255'],
             'barcode'   => ['sometimes', 'nullable', 'string', 'max:255'],
 
-            // 'uom_2' => 'nullable|string|max:40',
-            // 'uom_2_barcode'  => 'nullable|string|max:40',
-            // 'uom_2_quantity' => 'nullable|numeric',
-
-            // 'uom_3' => 'nullable|string|max:40',
-            // 'uom_3_barcode'  => 'nullable|string|max:40',
-            // 'uom_3_quantity' => 'nullable|numeric',
-
             'stock'     => ['sometimes', 'numeric'],
             'min_stock' => ['sometimes', 'numeric'],
             'max_stock' => ['sometimes', 'numeric'],
