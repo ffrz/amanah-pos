@@ -1,6 +1,6 @@
 <script setup>
 import { formatNumber } from "@/helpers/formatter";
-import { ref, computed, nextTick, reactive } from "vue";
+import { ref, computed, nextTick, reactive, onMounted, onUnmounted } from "vue";
 import { usePage } from "@inertiajs/vue3";
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
 import { QSelect, QBtnToggle } from "quasar";
@@ -30,25 +30,37 @@ const emit = defineEmits(["update:modelValue", "accepted"]);
 
 const page = usePage();
 const isProcessing = ref(false);
-const paymentMode = ref("payment");
+const paymentMode = ref("cash");
 const debtDueDate = ref(new Date());
-const firstPaymentInputRef = ref(null);
-const payments = reactive([]);
+const nextAction = ref("detail");
+const selectRefs = ref([]);
+const paymentInputRefs = ref([]);
 
-const arePaymentsValid = computed(() => {
-  // Memastikan setiap pembayaran memiliki akun dan jumlah yang valid
-  return payments.every(
-    (payment) =>
-      payment.id && typeof payment.amount === "number" && payment.amount > 0
-  );
-});
+const payments = reactive([{ id: "cash", amount: 0.0 }]);
+const default_payment_mode = "cash";
+const nextActionOptions = [
+  {
+    value: "print",
+    label: "Cetak",
+  },
+  {
+    value: "detail",
+    label: "Rincian",
+  },
+  {
+    value: "new-order",
+    label: "Penjualan Baru",
+  },
+];
 
-const paymentOptions = computed(() =>
-  page.props.accounts.map((a) => ({
+const paymentOptions = computed(() => [
+  { label: "Laci Kasir", value: "cash" },
+  ...(props.supplier ? [{ label: "Wallet", value: "wallet" }] : []),
+  ...page.props.accounts.map((a) => ({
     label: a.name,
     value: a.id,
-  }))
-);
+  })),
+]);
 
 const totalPayment = computed(() => {
   return payments.reduce((sum, p) => sum + (p.amount || 0.0), 0.0);
@@ -58,11 +70,11 @@ const remainingTotal = computed(() => {
   return props.total - totalPayment.value;
 });
 
-const isAmountValid = computed(() => {
+const isWalletAmountValid = computed(() => {
   if (!props.supplier) return true;
   const walletPayment = payments.find((p) => p.id === "wallet");
-  if (!walletPayment) return true;
-  return walletPayment.amount <= props.supplier.balance;
+  const amount = walletPayment ? walletPayment.amount : 0.0;
+  return amount <= props.supplier.wallet_balance;
 });
 
 const today = new Date();
@@ -91,22 +103,28 @@ const isValid = computed(() => {
     );
   }
 
+  const walletValid = isWalletAmountValid.value;
   const hasPaymentAmount = payments.some((p) => (p.amount || 0) > 0);
   const noNegativePayment = payments.every((p) => (p.amount || 0) >= 0);
   const isFullyPaid = remainingTotal.value <= 0;
 
-  // Validasi pembayaran: setiap item harus punya akun & jumlah valid
-  return (
-    arePaymentsValid.value &&
-    hasPaymentAmount &&
-    noNegativePayment &&
-    isFullyPaid
-  );
+  return walletValid && hasPaymentAmount && noNegativePayment && isFullyPaid;
 });
 
 const addPayment = () => {
   if (payments.length < 3) {
-    payments.push({ id: null, amount: 0.0 });
+    const newIndex = payments.length; // Index dari item yang baru akan ditambahkan
+    payments.push({ id: "cash", amount: 0.0 });
+
+    nextTick(() => {
+      const newSelect = selectRefs.value[newIndex];
+      if (newSelect) {
+        // 1. Fokuskan ke QSelect yang baru
+        newSelect.focus();
+        // 2. Tampilkan popup pilihannya (showPopup adalah metode Quasar QSelect)
+        newSelect.showPopup();
+      }
+    });
   }
 };
 
@@ -119,27 +137,23 @@ const removePayment = (id) => {
   }
 };
 
-const changePaymentMode = (mode) => {
+const changePaymentMode = (mode, default_payment_mode = "cash") => {
   paymentMode.value = mode;
   debtDueDate.value = new Date();
   payments.splice(0, payments.length);
 
-  if (mode === "payment") {
-    if (paymentOptions.value.length > 0) {
-      payments.splice(0, payments.length, {
-        id: paymentOptions.value[0].value,
-        amount: props.total,
-      });
-      nextTick(() => {
-        if (
-          firstPaymentInputRef.value &&
-          firstPaymentInputRef.value.length > 0
-        ) {
-          firstPaymentInputRef.value[0].focus();
-          firstPaymentInputRef.value[0].select();
-        }
-      });
-    }
+  if (mode === "cash") {
+    payments.splice(0, payments.length, {
+      id: default_payment_mode,
+      amount: props.total,
+    });
+    nextTick(() => {
+      // Fokuskan ke input jumlah pembayaran pertama
+      if (paymentInputRefs.value.length > 0 && paymentInputRefs.value[0]) {
+        paymentInputRefs.value[0].focus();
+        paymentInputRefs.value[0].select();
+      }
+    });
   }
 };
 
@@ -152,6 +166,7 @@ const handleFinalizePayment = () => {
   let payload = {
     total: props.total,
     is_debt: paymentMode.value === "debt",
+    after_payment_action: nextAction.value,
   };
 
   if (paymentMode.value === "debt") {
@@ -171,12 +186,39 @@ const handleFinalizePayment = () => {
 };
 
 const onBeforeShow = () => {
-  if (paymentOptions.value.length === 0) {
-    // Menggunakan konsol.log sebagai pengganti alert, karena alert tidak muncul di lingkungan tertentu
-    console.log("Tidak ada akun yang dapat digunakan untuk pembayaran!");
-    return;
-  }
-  changePaymentMode("payment");
+  changePaymentMode("cash", props.supplier ? default_payment_mode : "cash");
+};
+
+onMounted(() => {
+  const handler = (e) => {
+    if (!props.modelValue) {
+      // abaikan kalau dialog tidak sedang tampil
+      return;
+    }
+
+    if (e.ctrlKey && e.key === "Enter") {
+      e.preventDefault();
+      handleFinalizePayment();
+    }
+  };
+
+  document.addEventListener("keydown", handler);
+  onUnmounted(() => {
+    document.removeEventListener("keydown", handler);
+  });
+});
+
+/**
+ * Memfokuskan ke LocaleNumberInput yang sesuai setelah QSelect diubah.
+ */
+const handlePaymentMethodSelected = (newId, index) => {
+  // Gunakan nextTick untuk memastikan input sudah ada di DOM
+  nextTick(() => {
+    if (paymentInputRefs.value[index]) {
+      paymentInputRefs.value[index].focus();
+      paymentInputRefs.value[index].select(); // Pilih semua teks agar mudah ditimpa
+    }
+  });
 };
 </script>
 
@@ -195,8 +237,23 @@ const onBeforeShow = () => {
       <q-card-section class="q-pt-none">
         <div v-if="supplier" class="text-center q-mb-md text-grey-8">
           <div class="text-subtitle2 text-weight-medium">
-            Nama: {{ supplier.name }}<br />
-            Utang / Piutang: Rp. {{ formatNumber(supplier.balance) }}
+            <div>
+              <my-link
+                :href="route('admin.supplier.detail', { id: supplier.id })"
+                target="_blank"
+              >
+                {{ supplier.code }} - {{ supplier.name }}
+              </my-link>
+            </div>
+            <div
+              :class="supplier.wallet_balance > 0 ? 'text-green' : 'text-red'"
+            >
+              Saldo Wallet: Rp. {{ formatNumber(supplier.wallet_balance) }}
+            </div>
+            <div :class="supplier.balance > 0 ? 'text-green' : 'text-red'">
+              {{ supplier.balance > 0 ? "Piutang" : "Utang" }}:
+              {{ formatNumber(supplier.balance) }}
+            </div>
           </div>
         </div>
         <div class="text-h5 text-center text-primary q-pb-md">
@@ -207,12 +264,7 @@ const onBeforeShow = () => {
             v-model="paymentMode"
             @update:model-value="changePaymentMode"
             :options="[
-              {
-                label: 'Pembayaran',
-                value: 'payment',
-                slot: 'payment',
-                color: 'green',
-              },
+              { label: 'Tunai', value: 'cash', slot: 'cash', color: 'green' },
               {
                 label: 'Tempo',
                 value: 'debt',
@@ -226,7 +278,7 @@ const onBeforeShow = () => {
             class="bg-grey-2"
           />
         </div>
-        <div v-if="paymentMode === 'payment'">
+        <div v-if="paymentMode === 'cash'">
           <div
             v-for="(payment, index) in payments"
             :key="index"
@@ -236,17 +288,18 @@ const onBeforeShow = () => {
               <q-select
                 v-model="payment.id"
                 :options="paymentOptions"
-                label="Akun"
+                label="Metode Pembayaran"
                 :outlined="true"
                 emit-value
                 map-options
                 dense
+                class="custom-select"
                 :disable="isProcessing"
                 hide-bottom-space
-                :rules="[(val) => !!val || 'Akun harus dipilih']"
-                :error="!payment.id"
-                error-message="Akun tidak valid"
-                class="custom-select"
+                @update:model-value="
+                  (newId) => handlePaymentMethodSelected(newId, index)
+                "
+                :ref="(el) => (selectRefs[index] = el)"
               />
             </div>
             <div class="col-6">
@@ -256,17 +309,21 @@ const onBeforeShow = () => {
                 :outlined="true"
                 dense
                 :disable="isProcessing"
-                :error="!isAmountValid"
-                :error-message="!isAmountValid ? 'Jumlah Tidak valid!' : ''"
+                :error="payment.id === 'wallet' && !isWalletAmountValid"
+                :error-message="
+                  payment.id === 'wallet' && !isWalletAmountValid
+                    ? 'Saldo tidak cukup!'
+                    : ''
+                "
                 hide-bottom-space
-                :ref="index === 0 ? 'firstPaymentInputRef' : null"
+                :ref="(el) => (paymentInputRefs[index] = el)"
               >
                 <template v-slot:append v-if="payments.length > 1">
                   <q-icon
                     size="xs"
                     name="close"
                     class="cursor-pointer"
-                    @click="removePayment(index)"
+                    @click="removePayment(payment.id)"
                   />
                 </template>
               </LocaleNumberInput>
@@ -322,12 +379,25 @@ const onBeforeShow = () => {
           </div>
         </div>
       </q-card-section>
-      <q-card-actions align="center" class="q-mb-sm">
+      <q-card-actions align="center" class="q-mb-sm row q-gutter-xs q-pa-md">
+        <q-select
+          v-model="nextAction"
+          :options="nextActionOptions"
+          label="Aksi setelah bayar"
+          :outlined="true"
+          emit-value
+          map-options
+          dense
+          class="custom-select col"
+          :disable="isProcessing"
+          hide-bottom-space
+        />
         <q-btn
           flat
           label="Batal"
           color="grey"
           @click="$emit('update:modelValue', false)"
+          class="col"
         />
         <q-btn
           :label="paymentMode === 'debt' ? 'Catat Utang' : 'Bayar'"
@@ -335,6 +405,7 @@ const onBeforeShow = () => {
           @click="handleFinalizePayment"
           :disable="isProcessing || !isValid"
           :loading="isProcessing"
+          class="col"
         />
       </q-card-actions>
     </q-card>

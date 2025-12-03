@@ -179,11 +179,6 @@ class FinanceTransaction extends BaseModel
         return $this->belongsToMany(CashierSession::class, 'cashier_session_transactions');
     }
 
-    public static function deleteByRef($id, $type)
-    {
-        static::where('ref_id', $id)->where('ref_type', $type)->delete();
-    }
-
     public static function totalIncome($start_date, $end_date)
     {
         return static::where('type', static::Type_Income)

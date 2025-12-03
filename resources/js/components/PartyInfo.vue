@@ -57,7 +57,7 @@ const balanceClass = (balance) => {
     return "text-grey-9";
   }
 
-  return balance > 0 ? "text-red" : "text-green";
+  return balance > 0 ? "text-green" : "text-red";
 };
 
 const formatCurrency = (value) => {
