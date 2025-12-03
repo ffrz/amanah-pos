@@ -3,26 +3,33 @@ import { router, useForm, usePage } from "@inertiajs/vue3";
 import { handleSubmit } from "@/helpers/client-req-handler";
 import { scrollToFirstErrorField } from "@/helpers/utils";
 import { createOptions } from "@/helpers/options";
+import { onMounted, ref, watch } from "vue";
+
+// Components
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
 import CheckBox from "@/components/CheckBox.vue";
-import PercentInput from "@/components/PercentInput.vue";
-import { onMounted, ref, watch } from "vue";
 import BarcodeInput from "@/components/BarcodeInput.vue";
 import SupplierAutocomplete from "@/components/SupplierAutocomplete.vue";
 import ProductCategoryAutocomplete from "@/components/ProductCategoryAutocomplete.vue";
 import UomAutocomplete from "@/components/UomAutocomplete.vue";
+// Import komponen baru (sesuaikan path-nya)
+import PricingLevelRow from "./editor/PricingLevelRow.vue";
+import PricingUnitCard from "./editor/PricingUnitCard.vue";
 
 const page = usePage();
 const title = (!!page.props.data.id ? "Edit" : "Tambah") + " Produk";
 const types = createOptions(window.CONSTANTS.PRODUCT_TYPES);
 
-// State untuk Tab
 const tab = ref("general");
-
-// Flag untuk mencegah loop tak terbatas (infinite loop) saat sinkronisasi
-const isSyncing = ref(false);
 const selectedSupplier = ref(page.props.data.supplier);
 const uoms = ref(usePage().props.uoms);
+
+// Definisi Level Harga Global
+const priceLevels = [
+  { key: 1, label: "Harga Eceran" },
+  { key: 2, label: "Harga Partai" },
+  { key: 3, label: "Harga Grosir" },
+];
 
 const form = useForm({
   id: page.props.data.id,
@@ -33,145 +40,87 @@ const form = useForm({
   description: page.props.data.description || "",
   stock: parseFloat(page.props.data.stock) || 0,
   min_stock: parseFloat(page.props.data.min_stock) || 0,
-  max_stock: parseFloat(page.props.data.max_stock) || 0,
 
   uom: page.props.data.uom || "",
   barcode: page.props.data.barcode || "",
-
   cost: parseFloat(page.props.data.cost) || 0,
+
+  // Harga Dasar (Satuan Utama)
   price_1: parseFloat(page.props.data.price_1) || 0,
   price_2: parseFloat(page.props.data.price_2) || 0,
   price_3: parseFloat(page.props.data.price_3) || 0,
 
-  // Set nilai awal margin berdasarkan perhitungan di atas
-  price_1_markup: parseFloat(page.props.data.price_1_markup),
-  price_2_markup: parseFloat(page.props.data.price_2_markup),
-  price_3_markup: parseFloat(page.props.data.price_3_markup),
+  price_1_markup: parseFloat(page.props.data.price_1_markup) || 0,
+  price_2_markup: parseFloat(page.props.data.price_2_markup) || 0,
+  price_3_markup: parseFloat(page.props.data.price_3_markup) || 0,
 
-  price_1_option: page.props.data.price_1_option ?? "price",
-  price_2_option: page.props.data.price_2_option ?? "price",
-  price_3_option: page.props.data.price_3_option ?? "price",
+  // Tiers Satuan Utama
+  price_1_tiers: page.props.data.price_1_tiers || [],
+  price_2_tiers: page.props.data.price_2_tiers || [],
+  price_3_tiers: page.props.data.price_3_tiers || [],
+
+  // Options (default 'price' agar inputan tidak readonly di logika lama,
+  // tapi logika baru di component PricingLevelRow menghandle keduanya)
+  price_1_option: "price",
+  price_2_option: "price",
+  price_3_option: "price",
 
   active: !!page.props.data.active,
   price_editable: !!page.props.data.price_editable,
   notes: page.props.data.notes || "",
 
-  uoms: [], // Ini untuk multi satuan
+  uoms: page.props.data.uoms || [],
 });
 
 const submit = () => {
   handleSubmit({ form, url: route("admin.product.save") });
 };
 
-// Hitung Margin Persen (Harga Jual -> Margin)
-const calculateMargin = (price, cost) => {
-  price = parseFloat(price) || 0;
-  cost = parseFloat(cost) || 0;
+watch(selectedSupplier, (val) => (form.supplier_id = val ? val.id : null));
 
-  if (cost <= 0) {
-    return price > 0 ? 100 : 0;
-  }
-  return ((price - cost) / cost) * 100;
-};
+// --- LOGIC MULTI SATUAN ---
 
-// Hitung Harga Jual (Margin -> Harga Jual)
-const calculatePrice = (cost, margin) => {
-  cost = parseFloat(cost) || 0;
-  margin = parseFloat(margin) || 0;
-  const newPrice = cost * (1 + margin / 100);
-  return Math.round(newPrice);
-};
-
-watch(selectedSupplier, (newSupplierValue) => {
-  form.supplier_id = newSupplierValue ? newSupplierValue.id : null;
-});
-
-watch(
-  () => form.cost,
-  (newCost) => {
-    if (isSyncing.value) return;
-    isSyncing.value = true;
-
-    if (form.price_1_option == "markup") {
-      form.price_1 = calculatePrice(newCost, form.price_1_markup);
-    } else {
-      form.price_1_markup = calculateMargin(form.price_1, newCost);
+const initUomPrices = (uom) => {
+  if (!uom.prices) uom.prices = {};
+  priceLevels.forEach((level) => {
+    if (!uom.prices[level.key]) {
+      uom.prices[level.key] = { price: 0, markup: 0, tiers: [] };
     }
-
-    if (form.price_2_option == "markup") {
-      form.price_2 = calculatePrice(newCost, form.price_2_markup);
-    } else {
-      form.price_2_markup = calculateMargin(form.price_2, newCost);
-    }
-
-    if (form.price_3_option == "markup") {
-      form.price_3 = calculatePrice(newCost, form.price_3_markup);
-    } else {
-      form.price_3_markup = calculateMargin(form.price_3, newCost);
-    }
-
-    isSyncing.value = false;
-  },
-  { immediate: false }
-);
-
-// Setup Sync untuk setiap level harga
-const setupPriceMarginSync = (priceIndex) => {
-  const priceKey = `price_${priceIndex}`;
-  const marginKey = `price_${priceIndex}_markup`;
-  const optionKey = `price_${priceIndex}_option`;
-
-  watch(
-    () => form[priceKey],
-    (newPrice) => {
-      if (form[optionKey] == "markup") return;
-      if (isSyncing.value) return;
-
-      isSyncing.value = true;
-      const newMargin = calculateMargin(newPrice, form.cost);
-      form[marginKey] = parseFloat(newMargin.toFixed(2));
-      isSyncing.value = false;
-    },
-    { deep: false }
-  );
-
-  watch(
-    () => form[marginKey],
-    (newMargin) => {
-      if (form[optionKey] == "price") return;
-      if (isSyncing.value) return;
-      isSyncing.value = true;
-      form[priceKey] = calculatePrice(form.cost, newMargin);
-      isSyncing.value = false;
-    },
-    { deep: false }
-  );
-};
-
-for (let i = 1; i <= 3; i++) {
-  setupPriceMarginSync(i);
-}
-
-onMounted(() => {
-  for (let i = 1; i <= 3; i++) {
-    form[`price_${i}_markup`] = calculateMargin(form[`price_${i}`], form.cost);
-  }
-});
-
-const addUom = () => {
-  form.uoms.push({
-    id: null, // Baru, belum ada di DB
-    uom_id: null, // ID satuan konversi
-    name: null, // Nama UOM (dari Autocomplete)
-    conversion_rate: 1, // Default 1
-    barcode: "",
   });
 };
 
-const removeUom = (index) => {
-  // Menghapus elemen dari array form.uoms berdasarkan indeks
-  form.uoms.splice(index, 1);
+const addUom = () => {
+  const newUom = {
+    id: null,
+    name: null,
+    conversion_rate: 1,
+    barcode: "",
+    prices: {},
+  };
+  initUomPrices(newUom);
+  form.uoms.push(newUom);
 };
+
+const removeUom = (index) => form.uoms.splice(index, 1);
+
+// Helper hitung HPP Konversi
+const getConvertedCost = (rate) => {
+  const baseCost = parseFloat(form.cost) || 0;
+  const conversion = parseFloat(rate) || 1;
+  return baseCost * conversion;
+};
+
+// --- LIFECYCLE ---
+onMounted(() => {
+  // Init array tier satuan utama jika belum ada
+  [1, 2, 3].forEach((i) => {
+    if (!form[`price_${i}_tiers`]) form[`price_${i}_tiers`] = [];
+  });
+  // Init struktur harga multi satuan
+  if (form.uoms && form.uoms.length > 0) {
+    form.uoms.forEach((uom) => initUomPrices(uom));
+  }
+});
 </script>
 
 <template>
@@ -179,16 +128,14 @@ const removeUom = (index) => {
   <authenticated-layout :show-drawer-button="true">
     <template #title>{{ title }}</template>
     <template #left-button>
-      <div class="q-gutter-sm">
-        <q-btn
-          icon="arrow_back"
-          dense
-          color="grey-7"
-          flat
-          rounded
-          @click="router.get(route('admin.product.index'))"
-        />
-      </div>
+      <q-btn
+        icon="arrow_back"
+        dense
+        color="grey-7"
+        flat
+        rounded
+        @click="router.get(route('admin.product.index'))"
+      />
     </template>
     <template #right-button>
       <q-btn
@@ -200,9 +147,9 @@ const removeUom = (index) => {
         color="primary"
         :disable="form.processing"
         @click="submit()"
-        title="Simpan"
       />
     </template>
+
     <q-page class="row justify-center">
       <div class="col col-md-8 q-pa-xs">
         <q-form
@@ -234,7 +181,6 @@ const removeUom = (index) => {
                   <q-select
                     autofocus
                     v-model="form.type"
-                    class="custom-select"
                     :options="types"
                     label="Jenis Produk"
                     map-options
@@ -247,12 +193,8 @@ const removeUom = (index) => {
                     label="Kode / Nama Produk"
                     lazy-rules
                     :error="!!form.errors.name"
-                    :disable="form.processing"
                     :error-message="form.errors.name"
-                    :rules="[
-                      (val) => (val && val.length > 0) || 'Nama harus diisi.',
-                    ]"
-                    hide-bottom-space
+                    :rules="[(val) => (val && val.length > 0) || 'Wajib diisi']"
                   />
 
                   <q-input
@@ -261,52 +203,19 @@ const removeUom = (index) => {
                     autogrow
                     counter
                     maxlength="200"
-                    label="Deskripsi (Opsional)"
-                    lazy-rules
-                    :disable="form.processing"
-                    :error="!!form.errors.description"
-                    :error-message="form.errors.description"
-                    hide-bottom-space
+                    label="Deskripsi"
                   />
 
                   <ProductCategoryAutocomplete
                     v-model:modelValue="form.category_id"
                     :categories="page.props.categories"
-                    label="Kategori (Opsional)"
-                    :error="!!form.errors.category_id"
-                    :disable="form.processing"
-                    :error-message="form.errors.category_id"
+                    label="Kategori"
                   />
-
                   <SupplierAutocomplete
                     v-model="selectedSupplier"
-                    label="Supplier Default (Opsional)"
-                    :error="!!form.errors.supplier_id"
-                    :error-message="form.errors.supplier_id"
-                    :disable="form.processing"
-                    option-label="label"
-                    option-value="value"
+                    label="Supplier Default"
                   />
-
-                  <q-input
-                    v-model.trim="form.notes"
-                    type="textarea"
-                    autogrow
-                    counter
-                    maxlength="200"
-                    label="Catatan Internal"
-                    lazy-rules
-                    :disable="form.processing"
-                    :error="!!form.errors.notes"
-                    :error-message="form.errors.notes"
-                    hide-bottom-space
-                  />
-
-                  <CheckBox
-                    v-model="form.active"
-                    :disable="form.processing"
-                    label="Produk Aktif (Ditampilkan)"
-                  />
+                  <CheckBox v-model="form.active" label="Produk Aktif" />
                 </div>
               </q-tab-panel>
 
@@ -320,9 +229,8 @@ const removeUom = (index) => {
                         v-model:modelValue="form.uom"
                         v-model:items="uoms"
                         :items="page.props.uoms"
-                        label="Satuan Dasar"
+                        label="Satuan Dasar (Stok)"
                         :error="!!form.errors.uom"
-                        :disable="form.processing"
                         :error-message="form.errors.uom"
                       />
                     </div>
@@ -330,15 +238,19 @@ const removeUom = (index) => {
                       <BarcodeInput
                         dense
                         v-model.trim="form.barcode"
-                        label="Barcode / SKU"
+                        label="Barcode (Utama)"
+                        placeholder="Opsional"
                       />
                     </div>
                   </div>
-                  <div class="text-grey-8 q-pt-sm text-subtitle1">
+
+                  <q-separator class="q-my-md" />
+
+                  <div class="text-grey-8 text-subtitle1">
                     Pengaturan Multi Satuan
                   </div>
                   <div
-                    class="row q-gutter-sm q-pt-none"
+                    class="row q-gutter-sm q-pt-none items-start"
                     v-for="(uom, index) in form.uoms"
                     :key="index"
                   >
@@ -349,39 +261,34 @@ const removeUom = (index) => {
                         v-model:items="uoms"
                         label="Satuan Konversi"
                         :error="!!form.errors[`uoms.${index}.name`]"
-                        :disable="form.processing"
                         :error-message="form.errors[`uoms.${index}.name`]"
                         hide-bottom-space
                       />
                     </div>
-
                     <div class="col">
                       <LocaleNumberInput
                         dense
                         v-model:modelValue="uom.conversion_rate"
-                        label="Rasio Konversi"
+                        label="Jumlah Isi"
                         :error="!!form.errors[`uoms.${index}.conversion_rate`]"
-                        :disable="form.processing"
                         :error-message="
                           form.errors[`uoms.${index}.conversion_rate`]
                         "
                         hide-bottom-space
                       />
-                      <div class="q-pt-xs text-grey-8">
-                        1 {{ uom.name }} = {{ uom.conversion_rate }}
-                        {{ form.uom }}
+                      <div class="q-pt-xs text-grey-6 text-caption">
+                        1 {{ uom.name || "..." }} =
+                        {{ uom.conversion_rate || 0 }} {{ form.uom || "..." }}
                       </div>
                     </div>
-
                     <div class="col">
                       <BarcodeInput
                         dense
                         v-model.trim="uom.barcode"
-                        label="Barcode (Opsional)"
+                        label="Barcode"
                         hide-bottom-space
                       />
                     </div>
-
                     <div class="col-auto">
                       <q-btn
                         size="sm"
@@ -391,225 +298,115 @@ const removeUom = (index) => {
                         flat
                         color="red"
                         @click="removeUom(index)"
-                        title="Hapus Satuan"
                       />
                     </div>
                   </div>
 
                   <div class="row">
-                    <q-btn dense flat @click="addUom()">+ Tambah satuan</q-btn>
+                    <q-btn
+                      dense
+                      flat
+                      color="primary"
+                      @click="addUom()"
+                      icon="add"
+                      >Tambah satuan</q-btn
+                    >
                   </div>
 
-                  <div class="text-grey-8 q-pt-sm text-subtitle1">
-                    Informasi Stok
-                  </div>
-
+                  <q-separator class="q-my-md" />
+                  <div class="text-grey-8 text-subtitle1">Informasi Stok</div>
                   <div class="row q-gutter-md">
                     <LocaleNumberInput
                       v-model:modelValue="form.stock"
-                      :label="`Stok Aktual (${form.uom})`"
-                      lazyRules
-                      :disable="form.processing"
-                      :error="!!form.errors.stock"
-                      :errorMessage="form.errors.stock"
-                      hide-bottom-space
+                      :label="`Stok Aktual (${form.uom || 'Unit'})`"
                       class="col"
                     />
                     <LocaleNumberInput
                       v-model:modelValue="form.min_stock"
-                      :label="`Stok Minimum (${form.uom})`"
-                      lazyRules
-                      :disable="form.processing"
-                      :error="!!form.errors.min_stock"
-                      :errorMessage="form.errors.min_stock"
-                      hide-bottom-space
+                      :label="`Stok Minimum (${form.uom || 'Unit'})`"
                       class="col"
                     />
                   </div>
                 </div>
               </q-tab-panel>
 
-              <q-tab-panel name="pricing">
+              <q-tab-panel name="pricing" class="q-px-none">
                 <div class="column q-gutter-y-md">
-                  <LocaleNumberInput
-                    v-if="$can('admin.product:view-cost')"
-                    v-model:modelValue="form.cost"
-                    label="Modal / Harga Beli / HPP Satuan Dasar (Rp)"
-                    lazyRules
-                    :disable="form.processing"
-                    :error="!!form.errors.cost"
-                    :errorMessage="form.errors.cost"
-                    hide-bottom-space
-                    bg-color="yellow-1"
-                  />
+                  <div class="q-px-md">
+                    <LocaleNumberInput
+                      v-if="$can('admin.product:view-cost')"
+                      v-model:modelValue="form.cost"
+                      label="Modal / HPP Satuan Dasar (Rp)"
+                      bg-color="yellow-1"
+                    />
+                    <CheckBox
+                      class="q-mt-sm"
+                      v-model="form.price_editable"
+                      label="Izinkan kasir mengubah harga manual"
+                    />
+                  </div>
 
-                  <CheckBox
-                    class="q-mt-sm"
-                    v-model="form.price_editable"
-                    :disable="form.processing"
-                    label="Izinkan kasir mengubah harga manual saat penjualan"
-                  />
+                  <q-separator />
 
-                  <q-banner dense class="bg-blue-1 text-blue-9 rounded-borders">
-                    Atur skema harga jual berdasarkan Markup (%) atau Nominal
-                    Rupiah.
-                  </q-banner>
+                  <div
+                    v-for="(unitContext, idx) in [-1, ...form.uoms.keys()]"
+                    :key="idx"
+                  >
+                    <template v-if="unitContext === -1">
+                      <PricingUnitCard
+                        title="Satuan Utama"
+                        :label="form.uom || '...'"
+                        :badge-label="`1 ${form.uom || 'Unit'}`"
+                        badge-color="blue"
+                        icon="inventory_2"
+                        :cost="form.cost"
+                      >
+                        <div
+                          v-for="(level, lIdx) in priceLevels"
+                          :key="level.key"
+                          :class="lIdx % 2 !== 0 ? 'bg-white' : ''"
+                        >
+                          <PricingLevelRow
+                            :label="level.label"
+                            :cost="form.cost"
+                            v-model:price="form[`price_${level.key}`]"
+                            v-model:markup="form[`price_${level.key}_markup`]"
+                            v-model:tiers="form[`price_${level.key}_tiers`]"
+                          />
+                        </div>
+                      </PricingUnitCard>
+                    </template>
 
-                  <table class="q-mt-sm full-width">
-                    <thead class="text-grey-7 text-left">
-                      <tr>
-                        <th style="width: 25%">Level Harga</th>
-                        <th style="width: 25%">Markup (%)</th>
-                        <th>Opsi</th>
-                        <th style="width: 25%">Harga Jual (Rp)</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td class="text-weight-bold">Harga Eceran</td>
-                        <td>
-                          <PercentInput
-                            filled
-                            dense
-                            v-model:modelValue="form.price_1_markup"
-                            lazyRules
-                            :readonly="form.price_1_option != 'markup'"
-                            :disable="form.processing"
-                            :error="!!form.errors.price_1_markup"
-                            :errorMessage="form.errors.price_1_markup"
-                            hide-bottom-space
-                            :max-decimals="2"
-                          />
-                        </td>
-                        <td class="q-px-sm">
-                          <q-btn-toggle
-                            v-model="form.price_1_option"
-                            dense
-                            spread
-                            no-caps
-                            rounded
-                            unelevated
-                            toggle-color="primary"
-                            color="grey-3"
-                            text-color="grey-9"
-                            :options="[
-                              { label: '%', value: 'markup' },
-                              { label: 'Rp', value: 'price' },
-                            ]"
-                          />
-                        </td>
-                        <td>
-                          <LocaleNumberInput
-                            filled
-                            dense
-                            v-model:modelValue="form.price_1"
-                            lazyRules
-                            :disable="form.processing"
-                            :readonly="form.price_1_option == 'markup'"
-                            :error="!!form.errors.price_1"
-                            :errorMessage="form.errors.price_1"
-                            hide-bottom-space
-                          />
-                        </td>
-                      </tr>
+                    <template v-else>
+                      <div class="hidden">
+                        {{ (uomData = form.uoms[unitContext]) }}
+                      </div>
 
-                      <tr>
-                        <td class="text-weight-bold">Harga Partai</td>
-                        <td>
-                          <PercentInput
-                            filled
-                            dense
-                            v-model:modelValue="form.price_2_markup"
-                            lazyRules
-                            :readonly="form.price_2_option != 'markup'"
-                            :disable="form.processing"
-                            :error="!!form.errors.price_2_markup"
-                            :errorMessage="form.errors.price_2_markup"
-                            hide-bottom-space
-                            :max-decimals="2"
+                      <PricingUnitCard
+                        title="Satuan Konversi"
+                        :label="uomData.name || 'Baru'"
+                        :badge-label="`Isi ${uomData.conversion_rate}`"
+                        badge-color="orange"
+                        icon="layers"
+                        :cost="getConvertedCost(uomData.conversion_rate)"
+                      >
+                        <div
+                          v-for="(level, lIdx) in priceLevels"
+                          :key="level.key"
+                          :class="lIdx % 2 !== 0 ? 'bg-grey-1' : ''"
+                        >
+                          <PricingLevelRow
+                            v-if="uomData.prices && uomData.prices[level.key]"
+                            :label="level.label"
+                            :cost="getConvertedCost(uomData.conversion_rate)"
+                            v-model:price="uomData.prices[level.key].price"
+                            v-model:markup="uomData.prices[level.key].markup"
+                            v-model:tiers="uomData.prices[level.key].tiers"
                           />
-                        </td>
-                        <td class="q-px-sm">
-                          <q-btn-toggle
-                            v-model="form.price_2_option"
-                            dense
-                            spread
-                            no-caps
-                            rounded
-                            unelevated
-                            toggle-color="primary"
-                            color="grey-3"
-                            text-color="grey-9"
-                            :options="[
-                              { label: '%', value: 'markup' },
-                              { label: 'Rp', value: 'price' },
-                            ]"
-                          />
-                        </td>
-                        <td>
-                          <LocaleNumberInput
-                            filled
-                            dense
-                            v-model:modelValue="form.price_2"
-                            lazyRules
-                            :disable="form.processing"
-                            :readonly="form.price_2_option == 'markup'"
-                            :error="!!form.errors.price_2"
-                            :errorMessage="form.errors.price_2"
-                            hide-bottom-space
-                          />
-                        </td>
-                      </tr>
-
-                      <tr>
-                        <td class="text-weight-bold">Harga Grosir</td>
-                        <td>
-                          <PercentInput
-                            filled
-                            dense
-                            v-model:modelValue="form.price_3_markup"
-                            lazyRules
-                            :disable="form.processing"
-                            :readonly="form.price_3_option != 'markup'"
-                            :error="!!form.errors.price_3_markup"
-                            :errorMessage="form.errors.price_3_markup"
-                            hide-bottom-space
-                            :max-decimals="2"
-                          />
-                        </td>
-                        <td class="q-px-sm">
-                          <q-btn-toggle
-                            v-model="form.price_3_option"
-                            dense
-                            spread
-                            no-caps
-                            rounded
-                            unelevated
-                            toggle-color="primary"
-                            color="grey-3"
-                            text-color="grey-9"
-                            :options="[
-                              { label: '%', value: 'markup' },
-                              { label: 'Rp', value: 'price' },
-                            ]"
-                          />
-                        </td>
-                        <td>
-                          <LocaleNumberInput
-                            filled
-                            dense
-                            v-model:modelValue="form.price_3"
-                            lazyRules
-                            :disable="form.processing"
-                            :readonly="form.price_3_option == 'markup'"
-                            :error="!!form.errors.price_3"
-                            :errorMessage="form.errors.price_3"
-                            hide-bottom-space
-                          />
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+                        </div>
+                      </PricingUnitCard>
+                    </template>
+                  </div>
                 </div>
               </q-tab-panel>
             </q-tab-panels>
