@@ -77,6 +77,8 @@ class FinanceTransaction extends BaseModel
     const RefType_PurchaseOrderReturnRefund = 'sales_order_return_refund';
     const RefType_OperationalCost = 'operational_cost';
     const RefType_CashierCashDrop = 'cashier_cash_drop';
+    const RefType_CustomerLedger = 'customer_ledger';
+    const RefType_SupplierLedger = 'customer_ledger';
 
     const RefTypes = [
         self::RefType_FinanceTransaction => 'Transaksi Keuangan',
@@ -88,6 +90,8 @@ class FinanceTransaction extends BaseModel
         self::RefType_PurchaseOrderReturnRefund => 'Transaksi Refund Pembayaran Pembelian',
         self::RefType_OperationalCost => 'Transaksi Biaya Operasional',
         self::RefType_CashierCashDrop => 'Transaksi Setoran Kasir',
+        self::RefType_CustomerLedger => 'Transaksi Utang/Piutang Pelanggan',
+        self::RefType_SupplierLedger => 'Transaksi Utang/Piutang Supplier',
     ];
 
     const RefTypeModels = [

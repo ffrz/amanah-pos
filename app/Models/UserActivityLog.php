@@ -39,7 +39,9 @@ class UserActivityLog extends Model
     public const Category_Product = 'product';
     public const Category_ProductCategory = 'product-category';
     public const Category_Supplier = 'supplier';
+    public const Category_SupplierLedger = 'supplier-ledger';
     public const Category_Customer = 'customer';
+    public const Category_CustomerLedger = 'customer-ledger';
     public const Category_UserActivityLog = 'user-activity-log';
     public const Category_FinanceAccount = 'finance-account';
     public const Category_FinanceTransaction = 'finance-transaction';
@@ -77,7 +79,9 @@ class UserActivityLog extends Model
         self::Category_Product => 'Manajemen Produk',
         self::Category_ProductCategory => 'Manajemen Kategori Produk',
         self::Category_Supplier => 'Manajemen Pemasok',
+        self::Category_SupplierLedger => 'Manajemen Utang/Piutang Supplier',
         self::Category_Customer => 'Manajemen Pelanggan',
+        self::Category_CustomerLedger => 'Manajemen Utang/Piutang Pelanggan',
         self::Category_UserActivityLog => 'Manajemen Log Aktifitas Pengguna',
         self::Category_SalesOrder => 'Manajemen Order Penjualan',
         self::Category_SalesOrderReturn => 'Manajemen Retur Penjualan',
@@ -131,6 +135,10 @@ class UserActivityLog extends Model
     public const Name_Supplier_Update = 'supplier.update';
     public const Name_Supplier_Delete = 'supplier.delete';
     public const Name_Supplier_Import = 'supplier.import';
+    public const Name_SupplierLedger_Create = 'supplier-ledger.create';
+    public const Name_SupplierLedger_Adjust = 'supplier-ledger.adjust';
+    public const Name_SupplierLedger_Delete = 'supplier-ledger.delete';
+
     public const Name_PurchaseOrder_Create = 'purchase-order.create';
     public const Name_PurchaseOrder_Close  = 'purchase-order.close';
     public const Name_PurchaseOrder_Delete = 'purchase-order.delete';
@@ -149,6 +157,11 @@ class UserActivityLog extends Model
     public const Name_Customer_Update = 'customer.update';
     public const Name_Customer_Delete = 'customer.delete';
     public const Name_Customer_Import = 'customer.import';
+
+    public const Name_CustomerLedger_Create = 'customer-ledger.create';
+    public const Name_CustomerLedger_Adjust = 'customer-ledger.adjust';
+    public const Name_CustomerLedger_Delete = 'customer-ledger.delete';
+
     public const Name_SalesOrder_Create = 'sales-order.create';
     public const Name_SalesOrder_Close  = 'sales-order.close';
     public const Name_SalesOrder_Delete = 'sales-order.delete';
@@ -264,6 +277,11 @@ class UserActivityLog extends Model
         self::Name_Supplier_Update => 'Memperbarui Pemasok',
         self::Name_Supplier_Delete => 'Menghapus Pemasok',
         self::Name_Supplier_Import => 'Mengimpor Pemasok',
+
+        self::Name_SupplierLedger_Create => 'Membuat Utang/Piutang Pemasok',
+        self::Name_SupplierLedger_Adjust => 'Penyesuaian Utang/Piutang Pemasok',
+        self::Name_SupplierLedger_Delete => 'Menghapus Utang/Piutang Pemasok',
+
         self::Name_PurchaseOrder_Create => 'Membuat Order Pembelian',
         self::Name_PurchaseOrder_Close  => 'Menutup Order Pembelian',
         self::Name_PurchaseOrder_Delete => 'Menghapus Order Pembelian',
@@ -276,6 +294,11 @@ class UserActivityLog extends Model
         self::Name_Customer_Update => 'Memperbarui Pelanggan',
         self::Name_Customer_Delete => 'Menghapus Pelanggan',
         self::Name_Customer_Import => 'Mengimpor Pelanggan',
+
+        self::Name_CustomerLedger_Create => 'Membuat Utang/Piutang Pelanggan',
+        self::Name_CustomerLedger_Adjust => 'Penyesuaian Utang/Piutang Pelanggan',
+        self::Name_CustomerLedger_Delete => 'Menghapus Utang/Piutang Pelanggan',
+
         self::Name_SalesOrder_Create => 'Membuat Order Penjualan',
         self::Name_SalesOrder_Close  => 'Menutup Order Penjualan',
         self::Name_SalesOrder_Delete => 'Menghapus Order Penjualan',

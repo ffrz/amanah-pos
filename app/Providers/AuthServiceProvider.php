@@ -20,6 +20,7 @@ use App\Models\CashierCashDrop;
 use App\Models\CashierSession;
 use App\Models\CashierTerminal;
 use App\Models\Customer;
+use App\Models\CustomerLedger;
 use App\Models\CustomerWalletTransaction;
 use App\Models\CustomerWalletTransactionConfirmation;
 use App\Models\FinanceAccount;
@@ -41,6 +42,7 @@ use App\Models\SalesOrderReturn;
 use App\Models\StockAdjustment;
 use App\Models\StockMovement;
 use App\Models\Supplier;
+use App\Models\SupplierLedger;
 use App\Models\SupplierWalletTransaction;
 use App\Models\TaxScheme;
 use App\Models\User;
@@ -92,6 +94,8 @@ class AuthServiceProvider extends ServiceProvider
         FinanceTransactionCategory::class => DefaultPolicy::class,
         FinanceTransactionTag::class => DefaultPolicy::class,
         CashierCashDrop::class => CashierCashDropPolicy::class,
+        CustomerLedger::class => DefaultPolicy::class,
+        SupplierLedger::class => DefaultPolicy::class,
     ];
 
     /**

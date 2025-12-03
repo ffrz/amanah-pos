@@ -298,6 +298,7 @@ defineExpose({
               $page.url.startsWith('/admin/sales-orders') ||
               $page.url.startsWith('/admin/sales-order-returns') ||
               $page.url.startsWith('/admin/customers') ||
+              $page.url.startsWith('/admin/customer-ledgers') ||
               $page.url.startsWith('/admin/customer-wallet-transactions') ||
               $page.url.startsWith(
                 '/admin/customer-wallet-transaction-confirmations'
@@ -411,6 +412,21 @@ defineExpose({
                 </q-item-section>
               </q-item>
             </q-expansion-item>
+            <q-item
+              v-if="$can('admin.customer-ledger.index')"
+              class="subnav"
+              clickable
+              v-ripple
+              :active="$page.url.startsWith('/admin/customer-ledgers')"
+              @click="router.get(route('admin.customer-ledger.index'))"
+            >
+              <q-item-section avatar>
+                <q-icon name="moving" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Utang / Piutang</q-item-label>
+              </q-item-section>
+            </q-item>
           </q-expansion-item>
 
           <q-expansion-item
@@ -425,6 +441,7 @@ defineExpose({
               $page.url.startsWith('/admin/purchase-orders') ||
               $page.url.startsWith('/admin/purchase-order-returns') ||
               $page.url.startsWith('/admin/suppliers') ||
+              $page.url.startsWith('/admin/supplier-ledgers') ||
               $page.url.startsWith('/admin/supplier-wallet-transactions')
             "
           >
@@ -490,6 +507,22 @@ defineExpose({
               </q-item-section>
               <q-item-section>
                 <q-item-label>Deposit</q-item-label>
+              </q-item-section>
+            </q-item>
+
+            <q-item
+              v-if="$can('admin.supplier-ledger.index')"
+              class="subnav"
+              clickable
+              v-ripple
+              :active="$page.url.startsWith('/admin/supplier-ledgers')"
+              @click="router.get(route('admin.supplier-ledger.index'))"
+            >
+              <q-item-section avatar>
+                <q-icon name="moving" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Utang / Piutang</q-item-label>
               </q-item-section>
             </q-item>
           </q-expansion-item>

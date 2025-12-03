@@ -23,6 +23,7 @@ use Modules\Admin\Http\Controllers\CashierCashDropController;
 use Modules\Admin\Http\Controllers\CashierSessionController;
 use Modules\Admin\Http\Controllers\CashierTerminalController;
 use Modules\Admin\Http\Controllers\CustomerController;
+use Modules\Admin\Http\Controllers\CustomerLedgerController;
 use Modules\Admin\Http\Controllers\CustomerWalletTransactionConfirmationController;
 use Modules\Admin\Http\Controllers\CustomerWalletTransactionController;
 use Modules\Admin\Http\Controllers\DashboardController;
@@ -59,6 +60,7 @@ use Modules\Admin\Http\Controllers\Settings\UserRoleController;
 use Modules\Admin\Http\Controllers\Settings\DatabaseSettingsController;
 use Modules\Admin\Http\Controllers\Settings\PosSettingsController;
 use Modules\Admin\Http\Controllers\Settings\UserActivityLogController;
+use Modules\Admin\Http\Controllers\SupplierLedgerController;
 use Modules\Admin\Http\Controllers\SupplierWalletTransactionController;
 use Modules\Admin\Http\Controllers\TaxSchemeController;
 use Modules\Admin\Http\Controllers\UomController;
@@ -267,6 +269,17 @@ Route::middleware([Auth::class])
                 Route::post('delete/{id}', [CustomerWalletTransactionController::class, 'delete'])->name('admin.customer-wallet-transaction.delete');
             });
 
+            Route::prefix('customer-ledgers')->group(function () {
+                Route::get('', [CustomerLedgerController::class, 'index'])->name('admin.customer-ledger.index');
+                Route::get('data', [CustomerLedgerController::class, 'data'])->name('admin.customer-ledger.data');
+                Route::get('add', [CustomerLedgerController::class, 'editor'])->name('admin.customer-ledger.add');
+                // Route::get('edit/{id}', [CustomerLedgerController::class, 'editor'])->name('admin.customer-ledger.edit');
+                Route::get('detail/{id}', [CustomerLedgerController::class, 'detail'])->name('admin.customer-ledger.detail');
+                Route::post('save', [CustomerLedgerController::class, 'save'])->name('admin.customer-ledger.save');
+                Route::match(['get', 'post'], 'adjustment', [CustomerLedgerController::class, 'adjustment'])->name('admin.customer-ledger.adjustment');
+                Route::post('delete/{id}', [CustomerLedgerController::class, 'delete'])->name('admin.customer-ledger.delete');
+            });
+
             Route::prefix('customer-wallet-transaction-confirmations')->group(function () {
                 Route::get('', [CustomerWalletTransactionConfirmationController::class, 'index'])->name('admin.customer-wallet-transaction-confirmation.index');
                 Route::get('data', [CustomerWalletTransactionConfirmationController::class, 'data'])->name('admin.customer-wallet-transaction-confirmation.data');
@@ -295,6 +308,17 @@ Route::middleware([Auth::class])
                 Route::get('detail/{id}', [SupplierController::class, 'detail'])->name('admin.supplier.detail');
                 Route::post('save', [SupplierController::class, 'save'])->name('admin.supplier.save');
                 Route::post('delete/{id}', [SupplierController::class, 'delete'])->name('admin.supplier.delete');
+            });
+
+            Route::prefix('supplier-ledgers')->group(function () {
+                Route::get('', [SupplierLedgerController::class, 'index'])->name('admin.supplier-ledger.index');
+                Route::get('data', [SupplierLedgerController::class, 'data'])->name('admin.supplier-ledger.data');
+                Route::get('add', [SupplierLedgerController::class, 'editor'])->name('admin.supplier-ledger.add');
+                // Route::get('edit/{id}', [SupplierLedgerController::class, 'editor'])->name('admin.supplier-ledger.edit');
+                Route::get('detail/{id}', [SupplierLedgerController::class, 'detail'])->name('admin.supplier-ledger.detail');
+                Route::post('save', [SupplierLedgerController::class, 'save'])->name('admin.supplier-ledger.save');
+                Route::match(['get', 'post'], 'adjustment', [SupplierLedgerController::class, 'adjustment'])->name('admin.supplier-ledger.adjustment');
+                Route::post('delete/{id}', [SupplierLedgerController::class, 'delete'])->name('admin.supplier-ledger.delete');
             });
 
             Route::prefix('operational-cost-categories')->group(function () {

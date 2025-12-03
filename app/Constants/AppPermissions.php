@@ -29,8 +29,7 @@ class AppPermissions
             'admin.purchase-order.save' => 'admin.purchase-order.edit',
             'admin.purchase-order-return.add'  => 'admin.purchase-order-return.edit',
             'admin.purchase-order-return.save' => 'admin.purchase-order-return.edit',
-
-            'admin.cashier-cash-drop.save'  => 'admin.cashier-cash-drop.add',
+            'admin.cashier-cash-drop.save'  => 'admin.cashier-cash-drop.add', /// ?????
         ];
     }
     /**
@@ -78,12 +77,22 @@ class AppPermissions
                 // 'admin.customer.balance' => 'Saldo Pelanggan',
                 // 'admin.customer.data' => 'Data Pelanggan',
             ],
+
+            'Manajemen Utang / Piutang Pelanggan' => [
+                'admin.customer-ledger.index'  => 'Lihat Daftar Transaksi',
+                'admin.customer-ledger.detail' => 'Lihat Detail Transaksi',
+                'admin.customer-ledger.add'    => 'Tambah Transaksi',
+                'admin.customer-ledger.adjust' => 'Menyesuaikan Transaksi',
+                'admin.customer-ledger.delete' => 'Hapus Transaksi',
+            ],
+
             'Manajemen Deposit Pelanggan' => [
                 'admin.customer-wallet-transaction.index' => 'Lihat Daftar Transaksi Deposit',
                 'admin.customer-wallet-transaction.detail' => 'Lihat Detail Transaksi Deposit',
                 'admin.customer-wallet-transaction.add' => 'Tambah Transaksi Deposit',
                 'admin.customer-wallet-transaction.delete' => 'Hapus Transaksi Deposit',
             ],
+
             'Manajemen Konfirmasi Deposit Pelanggan' => [
                 'admin.customer-wallet-transaction-confirmation.index' => 'Lihat Daftar Konfirmasi Deposit',
                 'admin.customer-wallet-transaction-confirmation.detail' => 'Lihat Detail Konfirmasi Deposit',
@@ -100,6 +109,15 @@ class AppPermissions
                 'admin.supplier-wallet-transaction.add' => 'Tambah Transaksi Deposit',
                 'admin.supplier-wallet-transaction.delete' => 'Hapus Transaksi Deposit',
             ],
+
+            'Manajemen Utang / Piutang Supplier' => [
+                'admin.supplier-ledger.index'  => 'Lihat Daftar Transaksi',
+                'admin.supplier-ledger.detail' => 'Lihat Detail Transaksi',
+                'admin.supplier-ledger.add'    => 'Tambah Transaksi',
+                'admin.supplier-ledger.adjust' => 'Menyesuaikan Transaksi',
+                'admin.supplier-ledger.delete' => 'Hapus Transaksi',
+            ],
+
             'Manajemen Produk' => [
                 'admin.product.index' => 'Lihat Daftar Produk',
                 'admin.product.detail' => 'Lihat Detail Produk',
