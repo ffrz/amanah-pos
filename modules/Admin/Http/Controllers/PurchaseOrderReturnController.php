@@ -226,7 +226,7 @@ class PurchaseOrderReturnController extends Controller
     {
         $order = $this->service->findOrderOrFail($request->post('order_id'));
         $this->authorize('update', $order);
-        $this->refundService->addRefund($order, $request->all());
+        $this->refundService->addRefund($order, $request->post('payments', [])[0]);
         return JsonResponseHelper::success($order, "Pengembalian dana berhasil dicatat.");
     }
 

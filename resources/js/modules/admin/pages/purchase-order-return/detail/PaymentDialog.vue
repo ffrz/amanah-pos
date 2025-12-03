@@ -22,7 +22,7 @@ const page = usePage();
 const isProcessing = ref(false);
 
 const paymentForm = ref({
-  method: "transfer",
+  method: "cash",
   amount: props.total,
   notes: null,
 });
@@ -31,6 +31,8 @@ const supplier = page.props.data.supplier;
 
 const paymentOptions = computed(() => [
   { label: "Tunai (Laci Kasir)", value: "cash" },
+  // Opsi wallet hanya tersedia jika ada data supplier
+  ...(supplier ? [{ label: "Wallet", value: "wallet" }] : []),
   ...page.props.accounts.map((a) => ({
     label: a.name,
     value: a.id,
@@ -38,21 +40,30 @@ const paymentOptions = computed(() => [
 ]);
 
 const remainingTotal = computed(() => {
-  return props.remaining_refund;
+  return props.total - (paymentForm.value.amount || 0);
 });
 
 // Menghitung pesan error berdasarkan validasi
 const errorMessage = computed(() => {
   const amount = paymentForm.value.amount || 0;
+  const total = props.total;
 
   if (amount <= 0) {
     return "Jumlah pembayaran harus lebih dari 0.";
   }
 
-  if (amount > props.total) {
-    return "Jumlah pembayaran melebihi jumlah transaksi";
-  }
+  // boleh dicicil
+  // if (amount < total) {
+  //   return "Jumlah pembayaran tidak boleh kurang dari total tagihan.";
+  // }
 
+  if (
+    paymentForm.value.method === "wallet" &&
+    supplier &&
+    amount > supplier.wallet_balance
+  ) {
+    return "Saldo wallet tidak mencukupi.";
+  }
   return null;
 });
 
@@ -70,9 +81,16 @@ const handleFinalizePayment = () => {
 
   // Asumsikan kita hanya memiliki satu pembayaran tunggal
   const payload = {
-    id: paymentForm.value.method,
-    amount: paymentForm.value.amount,
+    total_paid: paymentForm.value.amount,
+    payments: [
+      {
+        id: paymentForm.value.method,
+        amount: paymentForm.value.amount,
+      },
+    ],
     notes: paymentForm.value.notes,
+    change: Math.max(0, (paymentForm.value.amount || 0) - props.total),
+    remaining_debt: Math.max(0, props.total - (paymentForm.value.amount || 0)),
   };
 
   emit("accepted", payload);
@@ -95,15 +113,29 @@ const onBeforeShow = () => {
     <q-card style="min-width: 300px">
       <q-card-section>
         <div class="text-subtitle1 text-bold text-center">
-          Pengembalian Dana
+          Refund Pembayaran
         </div>
       </q-card-section>
       <q-card-section class="q-pt-none">
         <div v-if="supplier" class="text-center q-mb-md text-grey-8">
           <div class="text-subtitle2 text-weight-medium">
-            {{ supplier.code }} <br />
-            {{ supplier.name }} <br />
-            <!-- Saldo: Rp. {{ formatNumber(supplier.balance) }} -->
+            <div>
+              <my-link
+                :href="route('admin.supplier.detail', { id: supplier.id })"
+                target="_blank"
+              >
+                {{ supplier.code }} - {{ supplier.name }}
+              </my-link>
+            </div>
+            <div
+              :class="supplier.wallet_balance > 0 ? 'text-green' : 'text-red'"
+            >
+              Saldo Wallet: Rp. {{ formatNumber(supplier.wallet_balance) }}
+            </div>
+            <div :class="supplier.balance > 0 ? 'text-green' : 'text-red'">
+              {{ supplier.balance > 0 ? "Piutang" : "Utang" }}:
+              {{ formatNumber(supplier.balance) }}
+            </div>
           </div>
         </div>
         <div class="text-h5 text-center text-primary q-pb-md">
@@ -112,7 +144,7 @@ const onBeforeShow = () => {
         <q-select
           v-model="paymentForm.method"
           :options="paymentOptions"
-          label="Kas Tujuan"
+          label="Akun / Kas Tujuan"
           :outlined="true"
           emit-value
           map-options
@@ -146,8 +178,14 @@ const onBeforeShow = () => {
           >
             Sisa Refund: Rp. {{ formatNumber(remainingTotal) }}
           </div>
+          <div
+            v-else-if="remainingTotal < 0"
+            class="text-h6 text-green-8 text-weight-bold"
+          >
+            Kembalian: Rp. {{ formatNumber(Math.abs(remainingTotal)) }}
+          </div>
           <div v-else class="text-h6 text-positive text-weight-bold">
-            Refund Lunas
+            Tagihan Terbayar
           </div>
         </div>
       </q-card-section>
@@ -159,8 +197,8 @@ const onBeforeShow = () => {
           @click="$emit('update:modelValue', false)"
         />
         <q-btn
-          label="Bayar"
-          color="positive"
+          label="Simpan"
+          color="primary"
           @click="handleFinalizePayment"
           :disable="isProcessing || !isValid"
           :loading="isProcessing"
