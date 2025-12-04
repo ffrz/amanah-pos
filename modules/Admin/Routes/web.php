@@ -434,9 +434,6 @@ Route::middleware([Auth::class])
 
                 Route::prefix('database')->group(function () {
                     Route::get('', [DatabaseSettingsController::class, 'index'])->name('admin.database-settings.index');
-                    Route::get('logs', [DatabaseSettingsController::class, 'logs'])->name('admin.database-settings.logs');
-                    Route::get('detail', [DatabaseSettingsController::class, 'logDetail'])->name('admin.database-settings.log-detail');
-                    Route::get('log-data', [DatabaseSettingsController::class, 'logData'])->name('admin.database-settings.log-data');
                     Route::match(['get', 'post'], 'backup', [DatabaseSettingsController::class, 'backup'])->name('admin.database-settings.backup');
                     Route::match(['get', 'post'], 'restore', [DatabaseSettingsController::class, 'restore'])->name('admin.database-settings.restore');
                     Route::match(['get', 'post'], 'reset', [DatabaseSettingsController::class, 'reset'])->name('admin.database-settings.reset');

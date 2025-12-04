@@ -932,7 +932,7 @@ defineExpose({
             </q-item>
 
             <q-item
-              v-if="false && $can('admin.database-settings.index')"
+              v-if="$can('admin.database-settings.index')"
               class="subnav"
               clickable
               v-ripple
