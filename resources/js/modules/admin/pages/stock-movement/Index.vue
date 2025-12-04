@@ -253,6 +253,11 @@ const openDetail = useOpenStockMovementSource;
                   {{ formatDateTime(props.row.created_at) }}
                 </span>
               </div>
+              <div>
+                <q-icon class="inline-icon" name="person" />
+                {{ props.row.creator.username }} |
+                {{ props.row.creator.name }}
+              </div>
 
               <div>
                 <span v-if="props.row.parent_id">

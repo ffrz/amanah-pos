@@ -147,6 +147,11 @@ const openDetail = useOpenStockMovementSource;
             {{ formatDateTime(props.row.created_at) }}
           </div>
           <div>
+            <q-icon class="inline-icon" name="person" />
+            {{ props.row.creator.username }} |
+            {{ props.row.creator.name }}
+          </div>
+          <div>
             <template v-if="props.row.parent_id">
               <q-icon class="inline-icon" name="tag" />
               {{ props.row.document_code }}
