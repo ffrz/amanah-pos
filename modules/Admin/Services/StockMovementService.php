@@ -30,7 +30,7 @@ class StockMovementService
     {
         $filter = $options['filter'];
 
-        $q = StockMovement::query()
+        $q = StockMovement::with(['creator:id,name,username'])
             ->select([
                 'id',
                 'code',
@@ -49,6 +49,7 @@ class StockMovementService
                 'party_id',
                 'party_code',
                 'party_name',
+                'created_by'
             ]);
 
         if (!empty($filter['product_id'])) {
