@@ -6,7 +6,8 @@ import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
 import DateTimePicker from "@/components/DateTimePicker.vue";
 import ImageUpload from "@/components/ImageUpload.vue";
 import { formatMoney } from "@/helpers/formatter";
-import { computed } from "vue";
+import { computed, ref } from "vue";
+
 const page = usePage();
 const title = (!!page.props.data.id ? "Edit" : "Catat") + " Transaksi Keuangan";
 
@@ -20,10 +21,31 @@ const categories = page.props.categories.map((category) => ({
   value: category.id,
 }));
 
-const tags = page.props.tags.map((tag) => ({
+const masterTags = page.props.tags.map((tag) => ({
   label: tag.name,
   value: tag.id,
 }));
+
+const tagOptions = ref(masterTags);
+
+const filterTags = (val, update) => {
+  update(() => {
+    const needle = val.toLowerCase();
+
+    tagOptions.value = masterTags.filter((v) => {
+      // Filter berdasarkan teks pencarian
+      const isTextMatch = v.label.toLowerCase().indexOf(needle) > -1;
+      // Filter agar tag yang sudah dipilih TIDAK muncul lagi
+      const isAlreadySelected = form.tags.some((selected) => {
+        const selectedId =
+          typeof selected === "object" ? selected.id : selected;
+        return selectedId === v.value;
+      });
+
+      return isTextMatch && !isAlreadySelected;
+    });
+  });
+};
 
 const types = [
   { label: "Pemasukan (+)", value: "income" },
@@ -35,7 +57,7 @@ const form = useForm({
   id: page.props.data.id,
   account_id: page.props.data.account_id,
   category_id: page.props.data.category_id,
-  tags: page.props.data.tags,
+  tags: page.props.data.tags ?? [],
   to_account_id: page.props.data.to_account_id ?? null,
   type: page.props.data.type,
   datetime: new Date(page.props.data.datetime),
@@ -202,11 +224,13 @@ const finalDestinationBalance = computed(() => {
                 class="custom-select"
                 v-model="form.tags"
                 :label="'Label'"
-                :options="tags"
+                :options="tagOptions"
                 multiple
                 use-chips
                 map-options
                 emit-value
+                use-input
+                @filter="filterTags"
                 :errorMessage="form.errors.tags"
                 :error="!!form.errors.tags"
                 :disable="form.processing"
