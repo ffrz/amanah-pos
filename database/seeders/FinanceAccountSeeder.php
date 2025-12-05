@@ -32,6 +32,7 @@ class FinanceAccountSeeder extends Seeder
                 'name' => 'Kas Tunai 1',
                 'type' => FinanceAccount::Type_PettyCash,
                 'balance' => 0,
+                'has_wallet_access' => true,
                 'show_in_pos_payment' => true,
                 'show_in_purchasing_payment' => true,
             ],
@@ -43,19 +44,19 @@ class FinanceAccountSeeder extends Seeder
             //     'show_in_purchasing_payment' => true,
             // ],
         ]);
-        DB::table('finance_accounts')->insert([
-            [
-                'name' => 'Rek BCA 1',
-                'type' => FinanceAccount::Type_Bank,
-                'bank' => 'BCA',
-                'number' => '12345678',
-                'holder' => 'Shiftech POS',
-                'balance' => 0,
-                'has_wallet_access' => true,
-                'show_in_pos_payment' => true,
-                'show_in_purchasing_payment' => true,
-            ],
-        ]);
+        // DB::table('finance_accounts')->insert([
+        //     [
+        //         'name' => 'Rek BCA 1',
+        //         'type' => FinanceAccount::Type_Bank,
+        //         'bank' => 'BCA',
+        //         'number' => '12345678',
+        //         'holder' => 'Shiftech POS',
+        //         'balance' => 0,
+        //         'has_wallet_access' => true,
+        //         'show_in_pos_payment' => true,
+        //         'show_in_purchasing_payment' => true,
+        //     ],
+        // ]);
         // DB::table('finance_accounts')->insert([
         //     [
         //         'name' => 'Rek Mandiri',

@@ -41,12 +41,12 @@ class UserSeeder extends Seeder
             'type' => User::Type_StandardUser,
             'active' => 1,
         ]);
-        User::factory()->create([
-            'username' => 'kasir2',
-            'name' => 'Kasir 2',
-            'type' => User::Type_StandardUser,
-            'active' => 1,
-        ]);
+        // User::factory()->create([
+        //     'username' => 'kasir2',
+        //     'name' => 'Kasir 2',
+        //     'type' => User::Type_StandardUser,
+        //     'active' => 1,
+        // ]);
         // User::factory(5)->create();
     }
 }

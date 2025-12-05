@@ -23,7 +23,8 @@ use Modules\Admin\Services\UserActivityLogService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Artisan;
-use ZipArchive;
+use ZipArchive; // Belum dipakai, tapi mau di zip nantinya agar user gak bisa baca isi file
+use Ifsnop\Mysqldump\Mysqldump;
 
 class DatabaseSettingsController extends Controller
 {
@@ -32,15 +33,103 @@ class DatabaseSettingsController extends Controller
      */
     protected $userActivityLogService;
 
+    // --- DAFTAR TABEL KONSTANTA ---
+
+    // 1. Tabel yang berisi data master dan konfigurasi.
+    protected const MASTER_TABLES = [
+        // Master User & ACL
+        'users',
+        'acl_roles',
+        'acl_permissions',
+        'acl_model_has_roles',
+        'acl_role_has_permissions',
+        'acl_model_has_permissions',
+
+        // Master Produk
+        'products',
+        'product_categories',
+        'product_units',
+        'product_images',
+        'product_quantity_prices',
+        'uoms',
+
+        // Master Pihak Ketiga
+        'customers',
+        'suppliers',
+
+        // Master Keuangan & Config
+        'finance_accounts',
+        'finance_transaction_categories',
+        'finance_transaction_tags',
+        'operational_cost_categories',
+        'tax_schemes',
+        'settings',
+
+        // Master Kasir
+        'cashier_terminals',
+    ];
+
+    // 2. Tabel yang berisi data transaksi, log, dan pergerakan stok.
+    protected const TRANSACTION_TABLES = [
+        // Transaksi Penjualan & Pembelian
+        'sales_orders',
+        'sales_order_details',
+        'sales_order_payments',
+        'sales_order_returns',
+        'purchase_orders',
+        'purchase_order_details',
+        'purchase_order_payments',
+        'purchase_order_returns',
+
+        // Transaksi Stok
+        'stock_movements',
+        'stock_adjustments',
+        'stock_adjustment_details',
+
+        // Transaksi Keuangan & Biaya
+        'finance_transactions',
+        'finance_transactions_has_tags',
+        'operational_costs',
+
+        // Transaksi Kasir
+        'cashier_sessions',
+        'cashier_session_transactions',
+        'cashier_cash_drops',
+
+        // Buku Besar & Wallet
+        'customer_ledgers',
+        'customer_wallet_transactions',
+        'customer_wallet_trx_confirmations',
+        'supplier_ledgers',
+        'supplier_wallet_transactions',
+
+        // Log & Sistem Non-Master
+        'user_activity_logs',
+        'document_versions',
+    ];
+
+    // Tabel Sistem yang WAJIB TIDAK DIHAPUS (bahkan di resetAll)
+    protected const SYSTEM_TABLES = [
+        'migrations',
+        'sessions',
+        'cache',
+        'cache_locks',
+        'password_reset_tokens',
+        'personal_access_tokens',
+        'failed_jobs',
+        'jobs',
+        'job_batches',
+    ];
+
+    // -------------------------------------------------------------------------
+    // KODE CONSTRUCTOR, INDEX, BACKUP (dengan perbaikan namespace)
+    // -------------------------------------------------------------------------
+
     public function __construct(UserActivityLogService $userActivityLogService)
     {
         $this->userActivityLogService = $userActivityLogService;
     }
-    /**
-     * Tampilkan halaman indeks pengguna.
-     *
-     * @return \Inertia\Response
-     */
+
     public function index()
     {
         return inertia('settings/database/Index');
@@ -48,46 +137,35 @@ class DatabaseSettingsController extends Controller
 
     public function backup(Request $request)
     {
-        // Opsi dari UI (Default: Full Backup)
-        // mode: 'full', 'structure_only', 'data_only'
-        // safe_mode: true (pakai INSERT IGNORE biar pas restore gak error duplicate), false (INSERT biasa)
         $mode = $request->input('mode', 'full');
         $safeMode = $request->boolean('safe_mode', false);
 
         $filename = 'backup_' . $mode . '_' . date('Y-m-d_H-i-s') . '.sql';
         $path = storage_path('app/backups/' . $filename);
 
-        // Pastikan folder ada
         if (!file_exists(dirname($path))) mkdir(dirname($path), 0755, true);
 
         try {
-            // Konfigurasi Database
             $db = config('database.connections.mysql');
             $dsn = "mysql:host={$db['host']};dbname={$db['database']};port={$db['port']}";
 
-            // --- SETTINGAN SAKTI (Memenuhi request Anda) ---
             $dumpSettings = [
-                'compress' => IMysqldump\Mysqldump::NONE,
-                'default-character-set' => IMysqldump\Mysqldump::UTF8,
+                // Perbaikan: menggunakan Mysqldump::NONE karena sudah di-use di atas
+                'compress' => Mysqldump::NONE,
+                'default-character-set' => Mysqldump::UTF8,
 
-                // Fitur Chunking (Parsial) bawaan library agar hemat RAM
                 'net_buffer_length' => 1000000,
 
-                // Logika Structure vs Data
-                'no-data' => ($mode === 'structure_only'), // Jika true, cuma create table
-                'no-create-info' => ($mode === 'data_only'), // Jika true, cuma insert data
-
-                // Logika "Skip Insert jika ada" (Restore aman)
-                // Jika safe_mode aktif, ganti INSERT jadi INSERT IGNORE
+                'no-data' => ($mode === 'structure_only'),
+                'no-create-info' => ($mode === 'data_only'),
                 'insert-ignore' => $safeMode,
 
-                // Pastikan trigger/procedure ikut (opsional)
                 'add-drop-table' => true,
-                'databases' => false, // Jangan sertakan 'CREATE DATABASE'
+                'databases' => false,
             ];
 
-            // Eksekusi (Murni PHP, tanpa mysqldump.exe)
-            $dump = new IMysqldump\Mysqldump($dsn, $db['username'], $db['password'], $dumpSettings);
+            // Perbaikan: menggunakan new Mysqldump() karena sudah di-use di atas
+            $dump = new Mysqldump($dsn, $db['username'], $db['password'], $dumpSettings);
             $dump->start($path);
 
             return response()->download($path)->deleteFileAfterSend(true);
@@ -96,21 +174,11 @@ class DatabaseSettingsController extends Controller
         }
     }
 
-    /**
-     * RESTORE (Pure PHP Fallback)
-     * Karena file SQL sudah kita atur saat backup (Insert Ignore dsb),
-     * restore-nya cukup eksekusi raw query saja.
-     */
     public function restore(Request $request)
     {
-        $request->validate(['file' => 'required|file|max:102400']); // 100MB Limit
+        $request->validate(['file' => 'required|file|max:102400']);
 
         $file = $request->file('file');
-        // Jika file zip, extract dulu (gunakan kode zip sebelumnya jika perlu)
-        // Untuk contoh ini kita asumsi .sql langsung biar ringkas
-
-        // Membaca file stream (Hemat Memori untuk file besar)
-        // Kita tidak pakai file_get_contents agar server tidak crash
         $stream = fopen($file->getRealPath(), 'r');
 
         if (!$stream) return back()->with('error', 'Gagal membuka file.');
@@ -119,22 +187,18 @@ class DatabaseSettingsController extends Controller
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
 
         try {
-            // Teknik Chunking Restore Manual
-            // Membaca per baris dan mengumpulkan query sampai titik koma (;)
             $queryBuffer = '';
 
             while (($line = fgets($stream)) !== false) {
-                // Skip komentar
                 if (str_starts_with($line, '--') || str_starts_with($line, '/*') || trim($line) === '') {
                     continue;
                 }
 
                 $queryBuffer .= $line;
 
-                // Jika baris diakhiri titik koma, eksekusi query
                 if (trim($line) !== '' && str_ends_with(trim($line), ';')) {
                     DB::unprepared($queryBuffer);
-                    $queryBuffer = ''; // Reset buffer
+                    $queryBuffer = '';
                 }
             }
 
@@ -147,32 +211,21 @@ class DatabaseSettingsController extends Controller
             return back()->with('error', 'Restore Error: ' . $e->getMessage());
         }
     }
+    
+    // -------------------------------------------------------------------------
+    // KODE RESET YANG DIUBAH (Sesuai permintaan Anda)
+    // -------------------------------------------------------------------------
 
     /**
      * RESET TRANSAKSI SAJA
-     * Menghapus data penjualan, stok, log, dll.
-     * Tapi membiarkan User, Produk, Pelanggan tetap ada.
+     * Menggunakan attribute TRANSACTION_TABLES.
      */
     public function resetTransaction()
     {
-        // 1. DAFTAR TABEL YANG AKAN DIKOSONGKAN (WAJIB DISESUAIKAN)
-        // Masukkan nama-nama tabel transaksi Anda di sini.
-        $tablesToTruncate = [
-            'sales',
-            'sale_items',
-            'purchases',
-            'purchase_items',
-            'inventory_logs',       // Riwayat keluar masuk barang
-            'cash_flows',           // Arus kas
-            'expenses',             // Pengeluaran
-            'activity_log',         // Log aktivitas user (Spatie)
-            'notifications',        // Notifikasi sistem
-            // 'failed_jobs',       // Opsional
-            // 'jobs',              // Opsional
-        ];
+        // Menggunakan array konstan yang sudah didefinisikan
+        $tablesToTruncate = self::TRANSACTION_TABLES;
 
         try {
-            // Matikan pengecekan Foreign Key agar tidak error urutan penghapusan
             Schema::disableForeignKeyConstraints();
 
             foreach ($tablesToTruncate as $table) {
@@ -181,10 +234,10 @@ class DatabaseSettingsController extends Controller
                 }
             }
 
-            // Nyalakan kembali
-            Schema::enableForeignKeyConstraints();
+            // Tambahan: Reset quantity/stock di tabel master jika ada
+            // DB::table('products')->update(['stock_quantity' => 0]); 
 
-            // Bersihkan cache jika perlu
+            Schema::enableForeignKeyConstraints();
             Artisan::call('cache:clear');
 
             return back()->with('success', 'Data transaksional berhasil di-reset. Data master aman.');
@@ -196,41 +249,28 @@ class DatabaseSettingsController extends Controller
 
     /**
      * RESET TOTAL (FACTORY RESET)
-     * Mengembalikan aplikasi seperti baru diinstall.
-     * Semua data hilang, lalu User Admin default dibuat ulang via Seeder.
+     * Menggabungkan MASTER_TABLES dan TRANSACTION_TABLES.
+     * Mengabaikan SYSTEM_TABLES.
      */
     public function resetAll()
     {
-        // Tabel-tabel sistem yang JANGAN dihapus
-        $excludedTables = [
-            'migrations',           // Wajib ada biar Laravel tau status migrasi
-            'password_resets',      // Opsional
-            'sessions',             // Agar user tidak langsung ter-logout paksa error
-            'cache',                // Jika pakai driver database
-            'personal_access_tokens' // Opsional
-        ];
+        // Gabungkan semua tabel Master dan Transaksi
+        $allApplicationTables = array_merge(self::MASTER_TABLES, self::TRANSACTION_TABLES);
 
         try {
             Schema::disableForeignKeyConstraints();
 
-            // 1. Ambil semua nama tabel di database
-            $allTables = DB::connection()->getDoctrineSchemaManager()->listTableNames();
-
-            foreach ($allTables as $table) {
-                // Skip tabel yang dikecualikan
-                if (in_array($table, $excludedTables)) {
-                    continue;
+            foreach ($allApplicationTables as $table) {
+                // Tidak perlu ambil semua tabel di DB, cukup list manual ini.
+                // Logika ini lebih aman karena hanya membersihkan tabel yang kita kenal.
+                if (Schema::hasTable($table)) {
+                    DB::table($table)->truncate();
                 }
-
-                // Kosongkan tabel (TRUNCATE lebih cepat dari DELETE dan mereset ID ke 1)
-                DB::table($table)->truncate();
             }
 
             // 2. SEEDING ULANG (PENTING!)
-            // Karena tabel 'users' dan 'roles' sudah kosong, kita harus isi ulang
-            // agar Anda bisa login kembali. Pastikan Anda punya DatabaseSeeder.
             Artisan::call('db:seed', [
-                '--class' => 'DatabaseSeeder',
+                '--class' => 'InitialDatabaseSeeder',
                 '--force' => true
             ]);
 

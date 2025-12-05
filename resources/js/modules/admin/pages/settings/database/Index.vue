@@ -130,8 +130,8 @@ const confirmReset = (type) => {
 
   $q.dialog(dialogConfig).onOk(() => {
     const routeName = isTotal
-      ? "admin.database-settings.reset-total"
-      : "admin.database-settings.reset-transactional";
+      ? "admin.database-settings.reset-all"
+      : "admin.database-settings.reset-transaction";
 
     submitDatabaseAction(
       routeName,

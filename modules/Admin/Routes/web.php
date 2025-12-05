@@ -436,7 +436,8 @@ Route::middleware([Auth::class])
                     Route::get('', [DatabaseSettingsController::class, 'index'])->name('admin.database-settings.index');
                     Route::match(['get', 'post'], 'backup', [DatabaseSettingsController::class, 'backup'])->name('admin.database-settings.backup');
                     Route::match(['get', 'post'], 'restore', [DatabaseSettingsController::class, 'restore'])->name('admin.database-settings.restore');
-                    Route::match(['get', 'post'], 'reset', [DatabaseSettingsController::class, 'reset'])->name('admin.database-settings.reset');
+                    Route::match(['get', 'post'], 'reset-transaction', [DatabaseSettingsController::class, 'resetTransaction'])->name('admin.database-settings.reset-transaction');
+                    Route::match(['get', 'post'], 'reset-all', [DatabaseSettingsController::class, 'resetAll'])->name('admin.database-settings.reset-all');
                 });
 
                 Route::match(['get', 'post'], 'pos', [PosSettingsController::class, 'edit'])->name('admin.pos-settings.edit');

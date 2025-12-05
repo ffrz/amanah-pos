@@ -115,18 +115,5 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // Tetapkan peran 'kasir' ke user.
         $kasirUser->assignRole($role);
-
-        $kasirUser = User::firstOrCreate(
-            ['username' => 'kasir2'],
-            [
-                'name' => 'Kasir 2',
-                'password' => Hash::make('password'),
-                'type' => User::Type_StandardUser,
-                'active' => true
-            ]
-        );
-
-        // Tetapkan peran 'kasir' ke user.
-        $kasirUser->assignRole($role);
     }
 }
