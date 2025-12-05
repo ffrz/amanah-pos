@@ -61,6 +61,7 @@ class UserActivityLog extends Model
     public const Category_StockAdjustment = 'stock-adjustment';
     public const Category_TaxScheme = 'tax-scheme';
     public const Category_Uom = 'uom';
+    public const Category_Database = 'database'; // <-- BARU
 
     /**
      * Array pemetaan Kategori untuk tampilan (Opsional, tapi konsisten)
@@ -97,6 +98,7 @@ class UserActivityLog extends Model
         self::Category_StockAdjustment => 'Manajemen Penyesuaian Stok',
         self::Category_TaxScheme => 'Manajemen Skema Pajak',
         self::Category_Uom => 'Manajemen Satuan',
+        self::Category_Database => 'Pengelolaan Database', // <-- BARU
     ];
 
     /**
@@ -107,11 +109,17 @@ class UserActivityLog extends Model
     public const Name_Auth_Login = 'auth.login';
     public const Name_Auth_Logout = 'auth.logout';
 
+    // Database Management <-- BARU
+    public const Name_Database_Backup = 'database.backup';
+    public const Name_Database_Restore = 'database.restore';
+    public const Name_Database_ResetTransaction = 'database.reset-transaction';
+    public const Name_Database_ResetAll = 'database.reset-all';
+
     // Settings: User, user profile, user role
     public const Name_User_Create = 'user.create';
     public const Name_User_Update = 'user.update';
     public const Name_User_Delete = 'user.delete';
-    public const Name_UserProfile_UpdateProfile  = 'user-profile.update';
+    public const Name_UserProfile_UpdateProfile = 'user-profile.update';
     public const Name_UserProfile_ChangePassword = 'user-profile.change-password';
     public const Name_UserRole_Create = 'user-role.create';
     public const Name_UserRole_Update = 'user-role.update';
@@ -140,16 +148,16 @@ class UserActivityLog extends Model
     public const Name_SupplierLedger_Delete = 'supplier-ledger.delete';
 
     public const Name_PurchaseOrder_Create = 'purchase-order.create';
-    public const Name_PurchaseOrder_Close  = 'purchase-order.close';
+    public const Name_PurchaseOrder_Close = 'purchase-order.close';
     public const Name_PurchaseOrder_Delete = 'purchase-order.delete';
     public const Name_PurchaseOrder_Cancel = 'purchase-order.cancel';
-    public const Name_PurchaseOrder_AddPayment    = 'sales-purchase.add-payment';
+    public const Name_PurchaseOrder_AddPayment  = 'sales-purchase.add-payment';
     public const Name_PurchaseOrder_DeletePayment = 'sales-purchase.delete-payment';
     public const Name_PurchaseOrderReturn_Create = 'purchase-order-return.create';
-    public const Name_PurchaseOrderReturn_Close  = 'purchase-order-return.close';
+    public const Name_PurchaseOrderReturn_Close = 'purchase-order-return.close';
     public const Name_PurchaseOrderReturn_Delete = 'purchase-order-return.delete';
     public const Name_PurchaseOrderReturn_Cancel = 'purchase-order-return.cancel';
-    public const Name_PurchaseOrderReturn_AddRefund    = 'purchase-order-return.add-refund';
+    public const Name_PurchaseOrderReturn_AddRefund  = 'purchase-order-return.add-refund';
     public const Name_PurchaseOrderReturn_DeleteRefund = 'purchase-order-return.delete-refund';
 
     // Sales Order
@@ -163,16 +171,16 @@ class UserActivityLog extends Model
     public const Name_CustomerLedger_Delete = 'customer-ledger.delete';
 
     public const Name_SalesOrder_Create = 'sales-order.create';
-    public const Name_SalesOrder_Close  = 'sales-order.close';
+    public const Name_SalesOrder_Close = 'sales-order.close';
     public const Name_SalesOrder_Delete = 'sales-order.delete';
     public const Name_SalesOrder_Cancel = 'sales-order.cancel';
-    public const Name_SalesOrder_AddPayment    = 'sales-order.add-payment';
+    public const Name_SalesOrder_AddPayment  = 'sales-order.add-payment';
     public const Name_SalesOrder_DeletePayment = 'sales-order.delete-payment';
     public const Name_SalesOrderReturn_Create = 'sales-order-return.create';
-    public const Name_SalesOrderReturn_Close  = 'sales-order-return.close';
+    public const Name_SalesOrderReturn_Close = 'sales-order-return.close';
     public const Name_SalesOrderReturn_Delete = 'sales-order-return.delete';
     public const Name_SalesOrderReturn_Cancel = 'sales-order-return.cancel';
-    public const Name_SalesOrderReturn_AddRefund    = 'sales-order-return.add-refund';
+    public const Name_SalesOrderReturn_AddRefund  = 'sales-order-return.add-refund';
     public const Name_SalesOrderReturn_DeleteRefund = 'sales-order-return.delete-refund';
 
     // Cashier
@@ -180,14 +188,14 @@ class UserActivityLog extends Model
     public const Name_CashierTerminal_Update = 'cashier-terminal.update';
     public const Name_CashierTerminal_Delete = 'cashier-terminal.delete';
 
-    public const Name_CashierSession_Open   = 'cashier-session.open';
-    public const Name_CashierSession_Close  = 'cashier-session.close';
+    public const Name_CashierSession_Open  = 'cashier-session.open';
+    public const Name_CashierSession_Close = 'cashier-session.close';
     public const Name_CashierSession_Delete = 'cashier-session.delete';
 
     public const Name_CashierCashDrop_Create = 'cashier-cash-drop.approve';
     public const Name_CashierCashDrop_Approve = 'cashier-cash-drop.approve';
-    public const Name_CashierCashDrop_Reject  = 'cashier-cash-drop.reject';
-    public const Name_CashierCashDrop_Delete  = 'cashier-cash-drop.delete';
+    public const Name_CashierCashDrop_Reject = 'cashier-cash-drop.reject';
+    public const Name_CashierCashDrop_Delete = 'cashier-cash-drop.delete';
 
     // Finance
     public const Name_FinanceAccount_Create = 'finance-account.create';
@@ -208,8 +216,8 @@ class UserActivityLog extends Model
 
     // Customer Deposit
     public const Name_CustomerWalletTopupConfirmation_Approve = 'customer-wallet-topup-confirmation.approve';
-    public const Name_CustomerWalletTopupConfirmation_Reject  = 'customer-wallet-topup-confirmation.reject';
-    public const Name_CustomerWalletTopupConfirmation_Delete  = 'customer-wallet-topup-confirmation.delete';
+    public const Name_CustomerWalletTopupConfirmation_Reject = 'customer-wallet-topup-confirmation.reject';
+    public const Name_CustomerWalletTopupConfirmation_Delete = 'customer-wallet-topup-confirmation.delete';
 
     public const Name_CustomerWalletTransaction_Create = 'customer-wallet-transaction.create';
     public const Name_CustomerWalletTransaction_Update = 'customer-wallet-transaction.update';
@@ -247,8 +255,14 @@ class UserActivityLog extends Model
      * Array pemetaan Nama Aktivitas
      */
     public const Names = [
-        self::Name_Auth_Login     => 'Login',
-        self::Name_Auth_Logout    => 'Logout',
+        self::Name_Auth_Login   => 'Login',
+        self::Name_Auth_Logout  => 'Logout',
+
+        // Database Management <-- BARU
+        self::Name_Database_Backup => 'Membuat Salinan Cadangan (Backup)',
+        self::Name_Database_Restore => 'Memulihkan Database (Restore)',
+        self::Name_Database_ResetTransaction => 'Melakukan Reset Transaksional',
+        self::Name_Database_ResetAll => 'Melakukan Reset Total (Factory Reset)',
 
         self::Name_UserProfile_UpdateProfile => 'Memperbarui Profile',
         self::Name_UserProfile_ChangePassword => 'Mengganti Kata Sandi',
@@ -283,10 +297,10 @@ class UserActivityLog extends Model
         self::Name_SupplierLedger_Delete => 'Menghapus Utang/Piutang Pemasok',
 
         self::Name_PurchaseOrder_Create => 'Membuat Order Pembelian',
-        self::Name_PurchaseOrder_Close  => 'Menutup Order Pembelian',
+        self::Name_PurchaseOrder_Close => 'Menutup Order Pembelian',
         self::Name_PurchaseOrder_Delete => 'Menghapus Order Pembelian',
         self::Name_PurchaseOrder_Cancel => 'Membatalkan Order Pembelian',
-        self::Name_PurchaseOrder_AddPayment    => 'Menamabah Pembayaran Order Pembelian',
+        self::Name_PurchaseOrder_AddPayment  => 'Menamabah Pembayaran Order Pembelian',
         self::Name_PurchaseOrder_DeletePayment => 'Menghapus Pembayaran Order Pembelian',
 
         // Sales Order
@@ -300,16 +314,16 @@ class UserActivityLog extends Model
         self::Name_CustomerLedger_Delete => 'Menghapus Utang/Piutang Pelanggan',
 
         self::Name_SalesOrder_Create => 'Membuat Order Penjualan',
-        self::Name_SalesOrder_Close  => 'Menutup Order Penjualan',
+        self::Name_SalesOrder_Close => 'Menutup Order Penjualan',
         self::Name_SalesOrder_Delete => 'Menghapus Order Penjualan',
         self::Name_SalesOrder_Cancel => 'Membatalkan Order Penjualan',
-        self::Name_SalesOrder_AddPayment    => 'Menamabah Pembayaran Order Penjualan',
+        self::Name_SalesOrder_AddPayment  => 'Menamabah Pembayaran Order Penjualan',
         self::Name_SalesOrder_DeletePayment => 'Menghapus Pembayaran Order Penjualan',
         self::Name_SalesOrderReturn_Create => 'Membuat Retur Penjualan',
-        self::Name_SalesOrderReturn_Close  => 'Menutup Retur Penjualan',
+        self::Name_SalesOrderReturn_Close => 'Menutup Retur Penjualan',
         self::Name_SalesOrderReturn_Delete => 'Menghapus Retur Penjualan',
         self::Name_SalesOrderReturn_Cancel => 'Membatalkan Retur Penjualan',
-        self::Name_SalesOrderReturn_AddRefund    => 'Menamabah Refund Order Penjualan',
+        self::Name_SalesOrderReturn_AddRefund  => 'Menamabah Refund Order Penjualan',
         self::Name_SalesOrderReturn_DeleteRefund => 'Menghapus Refund Order Penjualan',
 
         self::Name_OperationalCost_Create => 'Menambah Biaya Operasional',
@@ -340,13 +354,13 @@ class UserActivityLog extends Model
         self::Name_CashierTerminal_Update => 'Memperbarui Terminal Kasir',
         self::Name_CashierTerminal_Delete => 'Menghapus Terminal Kasir',
 
-        self::Name_CashierCashDrop_Create  => 'Membuat Setoran Kasir',
+        self::Name_CashierCashDrop_Create => 'Membuat Setoran Kasir',
         self::Name_CashierCashDrop_Approve => 'Menyetujui Setoran Kasir',
-        self::Name_CashierCashDrop_Reject  => 'Menolak Setoran Kasir',
-        self::Name_CashierCashDrop_Delete  => 'Menghapus Setoran Kasir',
+        self::Name_CashierCashDrop_Reject => 'Menolak Setoran Kasir',
+        self::Name_CashierCashDrop_Delete => 'Menghapus Setoran Kasir',
 
         self::Name_StockAdjustment_Create => 'Membuat Penyesuaian Stok',
-        self::Name_StockAdjustment_Close  => 'Menutup Penyesuaian Stok',
+        self::Name_StockAdjustment_Close => 'Menutup Penyesuaian Stok',
         self::Name_StockAdjustment_Cancel => 'Membatalkan Penyesuaian Stok',
         self::Name_StockAdjustment_Delete => 'Menghapus Penyesuaian Stok',
 
@@ -506,6 +520,7 @@ class UserActivityLog extends Model
         } catch (InvalidArgumentException $e) {
             return [
                 ['type' => 'plain', 'label' => 'Data Mentah (JSON)', 'value' => json_encode($metaData, JSON_PRETTY_PRINT)],
+                ['type' => 'simple', 'label' => 'Kategori Log', 'value' => $this->activity_category],
             ];
         } catch (\Throwable $e) {
             return [
