@@ -159,4 +159,72 @@ class CustomerLedger extends BaseModel
         // Panggil fungsi statis di atas, lempar $this->type ke sana
         return self::getMultiplier($this->type);
     }
+
+    public static function snapshotFromCustomer(Customer $c, float $balance): array
+    {
+        return [
+            'customer_id'        => $c->id,
+            'finance_account_id' => null,
+
+            'datetime'           => now(),
+            'type'               => self::Type_OpeningBalance,
+
+            'amount'             => $balance,
+            'running_balance'    => $balance,
+
+            'ref_type'           => null,
+            'ref_id'             => null,
+
+            'notes'              => 'Saldo awal setelah reset',
+
+            'created_at'         => now(),
+            'updated_at'         => now(),
+        ];
+    }
+
+    /**
+     * Generate snapshot data from Customer master data.
+     * Uses bulk insert with manual transaction code generation.
+     */
+    public static function generateOpeningSnapshot()
+    {
+        // 1. Dapatkan konfigurasi Prefix & Padding dari Model
+        $dummy = new static;
+        $prefix = method_exists($dummy, 'getTransactionPrefix')
+            ? $dummy->getTransactionPrefix()
+            : ($dummy->transactionPrefix ?? 'CLTX');
+
+        $padSize = method_exists($dummy, 'getTransactionNumberPadSize')
+            ? $dummy->getTransactionNumberPadSize()
+            : 5;
+        if ($padSize == 0) $padSize = 5;
+
+        $dateCode = now()->format('ymd');
+
+        // Karena tabel baru di-truncate (resetTransaction), ID pasti mulai dari 1
+        $startSequence = 1;
+
+        // 2. Query Data Master & Bulk Insert per Chunk
+        \App\Models\Customer::where('balance', '!=', 0)->chunk(500, function ($customers) use ($prefix, $dateCode, $padSize, &$startSequence) {
+            $rows = [];
+
+            foreach ($customers as $customer) {
+                // Generate Code Manual: Prefix-ymd-Sequence
+                $code = $prefix . '-' . $dateCode . '-' . str_pad($startSequence++, $padSize, '0', STR_PAD_LEFT);
+
+                // Ambil mapping data standar dari Model
+                $data = self::snapshotFromCustomer($customer, $customer->balance);
+
+                // Tambahkan kode transaksi unik ke array
+                $data['code'] = $code;
+
+                $rows[] = $data;
+            }
+
+            // Lakukan Insert Sekaligus
+            if (!empty($rows)) {
+                static::insert($rows);
+            }
+        });
+    }
 }

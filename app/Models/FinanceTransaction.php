@@ -22,8 +22,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
-use Mockery\Matcher\Type;
-use Tighten\Ziggy\Output\Types;
 
 class FinanceTransaction extends BaseModel
 {
@@ -197,5 +195,64 @@ class FinanceTransaction extends BaseModel
             ->where('datetime', '>=', $start_date)
             ->where('datetime', '<=', $end_date)
             ->sum(DB::raw('ABS(amount)'));
+    }
+
+    public static function snapshotFromAccount(FinanceAccount $a, float $balance): array
+    {
+        return [
+            'account_id' => $a->id,
+            'category_id' => null,
+            'datetime' => now(),
+            'type' => self::Type_Adjustment,
+            'amount' => $balance,
+            'ref_id' => null,
+            'ref_type' => null,
+            'notes' => 'Saldo awal setelah reset',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ];
+    }
+
+    public static function generateOpeningSnapshot()
+    {
+        // 1. Dapatkan Prefix dan Pad Size dari Model Dummy
+        $dummy = new static;
+        $prefix = method_exists($dummy, 'getTransactionPrefix')
+            ? $dummy->getTransactionPrefix()
+            : ($dummy->transactionPrefix ?? 'FTX');
+
+        $padSize = method_exists($dummy, 'getTransactionNumberPadSize')
+            ? $dummy->getTransactionNumberPadSize()
+            : 5; // Default 5 jika trait return 0 atau method tidak ada, atau sesuaikan dengan 0 jika anda yakin.
+        // Berdasarkan kode trait Anda: jika properti tidak ada, return 0.
+        // Jika 0, str_pad tidak akan melakukan padding. 
+        // Jika Anda ingin padding default, ganti 0 dengan 5 di sini.
+        if ($padSize == 0) $padSize = 5; // Fallback safety
+
+        $dateCode = now()->format('ymd');
+
+        // Karena tabel baru di-truncate, ID pasti mulai dari 1
+        $startSequence = 1;
+
+        FinanceAccount::where('balance', '!=', 0)->chunk(500, function ($accounts) use ($prefix, $dateCode, $padSize, &$startSequence) {
+            $rows = [];
+
+            foreach ($accounts as $account) {
+                // Manual Code Generation: Prefix-ymd-Sequence
+                $code = $prefix . '-' . $dateCode . '-' . str_pad($startSequence++, $padSize, '0', STR_PAD_LEFT);
+
+                // Ambil data mapping standar dari Model
+                $data = self::snapshotFromAccount($account, $account->balance);
+
+                // Tambahkan kode transaksi ke array data
+                $data['code'] = $code;
+
+                $rows[] = $data;
+            }
+
+            if (!empty($rows)) {
+                static::insert($rows);
+            }
+        });
     }
 }
