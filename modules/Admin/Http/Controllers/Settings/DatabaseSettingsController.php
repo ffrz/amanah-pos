@@ -4,7 +4,7 @@
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
  *
- * EN: Unauthorized use, copying, modification, or distribution is prohibited.
+ * EN: Unauthorized use, copying, modification, atau distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
  *
  * See the LICENSE file in the project root for full license information.
@@ -26,9 +26,11 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\File; // <-- Tambah File facade untuk hapus folder
 use App\Helpers\JsonResponseHelper;
 use Ifsnop\Mysqldump\Mysqldump;
-use App\Models\UserActivityLog; // Tambahkan ini
+use App\Models\UserActivityLog;
+use ZipArchive; // <-- Tambah ZipArchive
 
 class DatabaseSettingsController extends Controller
 {
@@ -125,12 +127,24 @@ class DatabaseSettingsController extends Controller
     {
         $mode = $request->input('mode', 'full');
         $safeMode = $request->boolean('safe_mode', false);
-        $filename = 'backup_' . $mode . '_' . date('Y-m-d_H-i-s') . '.sql';
-        $path = storage_path('app/backups/' . $filename);
 
-        if (!file_exists(dirname($path))) mkdir(dirname($path), 0755, true);
+        $filenameBase = 'backup_' . $mode . '_' . date('Y-m-d_H-i-s');
+        $sqlFilename = $filenameBase . '.sql';
+        $zipFilename = $filenameBase . '.posdb'; // Ekstensi baru (.posdb)
+
+        // Path temporary untuk file SQL dump
+        $tempDir = storage_path('app/backups/temp/' . $filenameBase);
+        $sqlPath = $tempDir . '/' . $sqlFilename;
+
+        // Path final untuk file ZIP
+        $zipPath = storage_path('app/backups/' . $zipFilename);
+
+        // Pastikan folder ada
+        if (!File::exists($tempDir)) File::makeDirectory($tempDir, 0755, true);
+        if (!File::exists(dirname($zipPath))) File::makeDirectory(dirname($zipPath), 0755, true);
 
         try {
+            // 1. DUMP SQL ke temporary file
             $db = config('database.connections.mysql');
             $dsn = "mysql:host={$db['host']};dbname={$db['database']};port={$db['port']}";
 
@@ -146,18 +160,27 @@ class DatabaseSettingsController extends Controller
             ];
 
             $dump = new Mysqldump($dsn, $db['username'], $db['password'], $dumpSettings);
-            $dump->start($path);
+            $dump->start($sqlPath);
+
+            // 2. ZIP file SQL ke .posdb
+            $zip = new ZipArchive;
+            if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== TRUE) {
+                throw new \Exception('Gagal membuat file ZIP/POSDB.');
+            }
+            // Tambahkan file SQL ke dalam ZIP dengan nama yang benar
+            $zip->addFile($sqlPath, $sqlFilename);
+            $zip->close();
 
             // Log Sukses
             $this->userActivityLogService->log(
                 UserActivityLog::Category_Database,
                 UserActivityLog::Name_Database_Backup,
-                "Melakukan backup database mode '$mode' ke file '$filename'.",
-                ['mode' => $mode, 'safe_mode' => $safeMode, 'filename' => $filename]
+                "Melakukan backup database mode '$mode' ke file '$zipFilename'.",
+                ['mode' => $mode, 'safe_mode' => $safeMode, 'filename' => $zipFilename]
             );
 
-            // Karena ini adalah download file, kita tetap menggunakan response download.
-            return response()->download($path)->deleteFileAfterSend(true);
+            // 3. Download ZIP file
+            return response()->download($zipPath)->deleteFileAfterSend(true);
         } catch (\Exception $e) {
             // Log Gagal
             $this->userActivityLogService->log(
@@ -167,6 +190,11 @@ class DatabaseSettingsController extends Controller
                 ['mode' => $mode, 'error' => $e->getMessage()]
             );
             return JsonResponseHelper::error('Backup Gagal: ' . $e->getMessage(), 500);
+        } finally {
+            // Cleanup: Hapus file SQL dump dan folder temp
+            if (File::exists($tempDir)) {
+                File::deleteDirectory($tempDir);
+            }
         }
     }
 
@@ -187,7 +215,6 @@ class DatabaseSettingsController extends Controller
         // Simpan data dalam bentuk array, termasuk hash password saat ini
         $userDataToPreserve = (array)$userModel;
 
-
         // 2. Validasi Password dan File
         try {
             $this->validatePassword($request);
@@ -206,17 +233,53 @@ class DatabaseSettingsController extends Controller
 
         $file = $request->file('file');
         $filename = $file->getClientOriginalName();
-        $stream = fopen($file->getRealPath(), 'r');
-
-        if (!$stream) {
-            return JsonResponseHelper::error('Gagal membuka file backup.');
-        }
+        $fileExtension = $file->getClientOriginalExtension();
+        $tempRestoreDir = storage_path('app/temp_restore_' . time()); // Direktori ekstrak sementara
+        $sqlPath = null; // Path akhir ke file SQL yang akan dieksekusi
 
         DB::disableQueryLog();
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
 
         try {
-            // --- Proses Restore SQL ---
+            // Logika Unzip/Penanganan File
+            if (in_array(strtolower($fileExtension), ['posdb', 'zip'])) {
+                // Proses Unzip
+                $zip = new ZipArchive;
+                if ($zip->open($file->getRealPath()) !== TRUE) {
+                    throw new \Exception('Gagal membuka file ZIP/POSDB.');
+                }
+
+                // Buat folder temp
+                if (!File::exists($tempRestoreDir)) File::makeDirectory($tempRestoreDir, 0755, true);
+
+                // Ekstrak semua file
+                $zip->extractTo($tempRestoreDir);
+                $zip->close();
+
+                // Cari file .sql di dalam folder ekstrak (asumsi hanya ada 1 file SQL)
+                $files = File::glob($tempRestoreDir . '/*.sql');
+                if (empty($files)) {
+                    throw new \Exception('Tidak ditemukan file .sql di dalam arsip yang diunggah.');
+                }
+                $sqlPath = $files[0]; // Ambil file SQL pertama
+
+            } elseif (strtolower($fileExtension) === 'sql') {
+                // Jika file .sql langsung, gunakan path aslinya
+                $sqlPath = $file->getRealPath();
+            } else {
+                throw new \Exception('Format file tidak didukung. Harap gunakan .posdb, .zip, atau .sql.');
+            }
+
+            // Lanjutkan dengan proses restore SQL dari $sqlPath
+            $stream = fopen($sqlPath, 'r');
+            if (!$stream) throw new \Exception("Gagal membaca konten SQL dari file yang diekstrak.");
+
+            // --- PERBAIKAN KRITIS: Kosongkan tabel users sebelum restore SQL ---
+            // Ini mencegah bentrokan ID (Duplicate Entry) jika baris ID 1 sudah ada 
+            // di database dan file restore juga mencoba INSERT ID 1.
+            DB::table('users')->truncate();
+
+            // --- Proses Eksekusi SQL ---
             $queryBuffer = '';
             while (($line = fgets($stream)) !== false) {
                 if (str_starts_with($line, '--') || str_starts_with($line, '/*') || trim($line) === '') {
@@ -232,6 +295,9 @@ class DatabaseSettingsController extends Controller
             fclose($stream);
 
             // 3. Injeksi ulang / Update data user yang sedang login
+            // Setelah TRUNCATE dan restore, user ID 1 dari backup sudah ada. 
+            // Kita hanya perlu UPDATE hash password-nya.
+
             $updatedRows = DB::table('users')
                 ->where('id', $userDataToPreserve['id'])
                 ->update([
@@ -240,10 +306,24 @@ class DatabaseSettingsController extends Controller
                 ]);
 
             if ($updatedRows === 0) {
-                // KASUS KRITIS: User tidak ditemukan di data backup
+                // KASUS KRITIS: User tidak ditemukan di data backup, kita INSERt kembali
+                // Ini terjadi jika user ini dibuat SETELAH backup.
                 unset($userDataToPreserve['created_at']);
                 unset($userDataToPreserve['updated_at']);
-                DB::table('users')->insert($userDataToPreserve);
+                // Hapus primary key/timestamp yang mungkin tidak valid lagi
+
+                // Pastikan kita tidak mencoba insert null value untuk kolom yang tidak ada di array
+                if (isset($userDataToPreserve['id'])) {
+                    // Kita harus secara eksplisit unset ID agar tidak ada konflik PK saat INSERT, 
+                    // terutama jika tabel `users` memiliki auto-increment.
+                    // Namun, karena kita tahu ID harus dipertahankan untuk sesi, kita pertahankan ID.
+                    DB::table('users')->insert($userDataToPreserve);
+                } else {
+                    // Jika ID tidak ada, ini kasus yang sangat jarang. Kita INSERT tanpa ID
+                    $tempUserData = $userDataToPreserve;
+                    unset($tempUserData['id']);
+                    DB::table('users')->insert($tempUserData);
+                }
             }
 
             DB::statement('SET FOREIGN_KEY_CHECKS=1;');
@@ -267,6 +347,11 @@ class DatabaseSettingsController extends Controller
                 ['filename' => $filename, 'error' => $e->getMessage()]
             );
             return JsonResponseHelper::error('Restore Error: Terjadi kesalahan saat eksekusi SQL. ' . $e->getMessage(), 500);
+        } finally {
+            // Cleanup: Hapus file dan folder temp jika ada (untuk file ZIP/POSDB)
+            if ($tempRestoreDir && File::exists($tempRestoreDir)) {
+                File::deleteDirectory($tempRestoreDir);
+            }
         }
     }
 
@@ -341,7 +426,7 @@ class DatabaseSettingsController extends Controller
         }
 
         // Validasi Konfirmasi Teks (tambahan dari frontend)
-        $request->validate(['confirm_text' => 'required|in:CONFIRM']);
+        $request->validate(['confirm_text' => 'required|in:KONFIRMASI']);
 
         $allApplicationTables = array_merge(self::MASTER_TABLES, self::TRANSACTION_TABLES);
 
@@ -356,7 +441,7 @@ class DatabaseSettingsController extends Controller
 
             // 2. SEEDING ULANG
             Artisan::call('db:seed', [
-                '--class' => 'DatabaseSeeder', // Menggunakan DatabaseSeeder default
+                '--class' => 'InitialDatabaseSeeder', // DIPERBAIKI: Menggunakan InitialDatabaseSeeder
                 '--force' => true
             ]);
 

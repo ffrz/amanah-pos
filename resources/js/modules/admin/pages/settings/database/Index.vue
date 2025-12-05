@@ -358,15 +358,17 @@ const dbActions = [
           </q-card-section>
 
           <q-card-section>
-            <!-- Input CONFIRM (Hanya untuk Total Reset) -->
+            <!-- Input KONFIRMASI (Hanya untuk Total Reset) -->
             <q-input
               v-if="dialogState.isTotalReset"
               v-model="dialogState.confirmText"
-              label="Ketik CONFIRM di sini"
-              dense
-              :rules="[(val) => val === 'CONFIRM' || 'Harus mengetik CONFIRM']"
+              label="Ketik KONFIRMASI di sini"
+              :rules="[
+                (val) => val === 'KONFIRMASI' || 'Harus mengetik KONFIRMASI',
+              ]"
               class="q-mb-md"
               autocomplete="off"
+              autofocus
             />
 
             <!-- Input Password (Wajib untuk semua aksi sensitif) -->
@@ -374,7 +376,6 @@ const dbActions = [
               v-model="dialogState.password"
               type="password"
               label="Masukkan Password Anda"
-              dense
               lazy-rules
               :rules="[
                 (val) => (val && val.length > 0) || 'Password wajib diisi',
