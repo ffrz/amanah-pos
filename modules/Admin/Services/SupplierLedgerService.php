@@ -18,6 +18,7 @@ namespace Modules\Admin\Services;
 
 use App\Exceptions\BusinessRuleViolationException;
 use App\Helpers\ImageUploaderHelper;
+use App\Models\FinanceAccount;
 use App\Models\FinanceTransaction;
 use App\Models\Supplier;
 use App\Models\SupplierLedger;
@@ -72,24 +73,14 @@ class SupplierLedgerService
     public function save(array $validated, $imageFile = null): SupplierLedger
     {
         return DB::transaction(function () use ($validated, $imageFile) {
+            // 1. Hitung Amount untuk Ledger (Sesuai Logika Net Balance)
+            // Bill = Negatif (Nambah Utang), Payment = Positif (Kurang Utang)
+            $rawAmount = abs($validated['amount']);
+            $ledgerAmount = $rawAmount * SupplierLedger::getMultiplier($validated['type']);
 
-            // 1. Standarisasi Input (Positif/Negatif)
-            // Logika Utang Dagang (AP):
-            // Bill/Opening Balance = Positif (Utang Kita Nambah)
-            // Payment/Return = Negatif (Utang Kita Berkurang)
-            $amount = abs($validated['amount']);
+            $validated['amount'] = $ledgerAmount;
 
-            if (in_array($validated['type'], [
-                SupplierLedger::Type_Payment,
-                SupplierLedger::Type_Return
-            ])) {
-                $amount *= -1;
-            }
-
-            // Override amount dengan hasil kalkulasi
-            $validated['amount'] = $amount;
-
-            // 2. Upload Image
+            // Upload Image
             if ($imageFile) {
                 $validated['image_path'] = ImageUploaderHelper::uploadAndResize(
                     $imageFile,
@@ -97,31 +88,55 @@ class SupplierLedgerService
                 );
             }
 
-            // 3. Simpan Transaksi Ledger
+            // 2. Simpan ke Supplier Ledger
             $item = $this->handleTransaction($validated);
 
-            // 4. Integrasi ke Keuangan (Opsional)
-            // Contoh: Kita bayar utang lama ke supplier pakai uang kas kantor
+            // 3. Integrasi ke Keuangan (Cash Flow)
+            // HANYA JIKA ada akun kas yang dipilih
             if (!empty($validated['finance_account_id'])) {
-                // Jika Ledger (-) Utang Berkurang -> Berarti Kita Keluar Uang (-) Expense
-                // Jika Ledger (+) Utang Nambah -> Berarti Kita Terima Uang/Pinjaman (+) Income (Jarang, tapi mungkin)
 
-                // Di FinanceTransactionService, biasanya amount diharapkan signed (+/-) atau
-                // unsigned dengan type explicit. Mari kita asumsikan logic generic:
-                // Kita kirim amount yang merepresentasikan pergerakan KAS.
+                $financeType = null;
+                $cashFlowAmount = 0;
 
-                // Jika Utang Berkurang ($amount negatif), Kas Berkurang (juga negatif).
-                $cashAmount = $amount;
+                // Mapping Logika Ledger -> Logika Kas
+                switch ($validated['type']) {
+                    case SupplierLedger::Type_Payment:
+                        // Kita Bayar Supplier -> Uang Keluar (Expense) -> Negatif
+                        $financeType = FinanceTransaction::Type_Expense;
+                        $cashFlowAmount = -1 * $rawAmount;
+                        break;
 
-                $this->financeTransactionService->handleTransaction([
-                    'datetime'   => $validated['datetime'],
-                    'account_id' => $validated['finance_account_id'],
-                    'amount'     => $cashAmount,
-                    'type'       => $cashAmount >= 0 ? FinanceTransaction::Type_Income : FinanceTransaction::Type_Expense,
-                    'notes'      => 'Transaksi utang / piutang pemasok ' . $item->supplier->name . ' Ref: ' . $item->code,
-                    'ref_type'   => 'supplier_ledger', // Tambahkan ke model FinanceTransaction
-                    'ref_id'     => $item->id,
-                ]);
+                    case SupplierLedger::Type_Refund:
+                        // Supplier Balikin Uang -> Uang Masuk (Income) -> Positif
+                        $financeType = FinanceTransaction::Type_Income;
+                        $cashFlowAmount = $rawAmount;
+                        break;
+
+                    case SupplierLedger::Type_Bill:
+                        // Kasus Jarang: Input Tagihan langsung pilih Kas (Beli Tunai)
+                        // Uang Keluar (Expense) -> Negatif
+                        $financeType = FinanceTransaction::Type_Expense;
+                        $cashFlowAmount = -1 * $rawAmount;
+                        break;
+
+                    // Opening Balance, Adjustment, Debit Note biasanya NON-CASH (bypass)
+                    // Jadi default null agar tidak tercatat di kas
+                    default:
+                        $financeType = null;
+                }
+
+                // Eksekusi jika tipe keuangannya valid
+                if ($financeType) {
+                    $this->financeTransactionService->handleTransaction([
+                        'datetime'   => $validated['datetime'],
+                        'account_id' => $validated['finance_account_id'],
+                        'amount'     => $cashFlowAmount, // Gunakan nilai yang sudah disesuaikan arahnya
+                        'type'       => $financeType,    // Gunakan tipe yang eksplisit
+                        'notes'      => 'Transaksi pemasok ' . $item->supplier->name . ' Ref: ' . $item->code,
+                        'ref_type'   => 'supplier_ledger',
+                        'ref_id'     => $item->id,
+                    ]);
+                }
             }
 
             $this->userActivityLogService->log(
@@ -181,14 +196,31 @@ class SupplierLedgerService
 
         return DB::transaction(function () use ($item) {
             // 1. Reverse Saldo Supplier (Kebalikan dari amount)
+            // Mengembalikan posisi utang ke sebelum transaksi ini ada
             $this->updateSupplierDebtBalance($item->supplier_id, -$item->amount);
 
             // 2. Hapus Image
-            ImageUploaderHelper::deleteImage($item->image_path);
+            if ($item->image_path) {
+                ImageUploaderHelper::deleteImage($item->image_path);
+            }
 
-            // 3. Hapus relasi keuangan jika ada
-            // Logic reverse finance transaction...
+            // 3. Hapus relasi keuangan jika ada (CRITICAL FIX)
+            // Cari transaksi kas yang terhubung dengan ledger ini
+            $financeTx = FinanceTransaction::where('ref_type', 'supplier_ledger')
+                ->where('ref_id', $item->id)
+                ->first();
 
+            // Jika ditemukan, hapus transaksi keuangannya agar saldo kas kembali normal
+            if ($financeTx) {
+                // PENTING: Pastikan Model FinanceTransaction memiliki Observer/Event
+                // yang otomatis mengupdate saldo FinanceAccount saat di-delete.
+                $financeTx->delete();
+
+                // TODO: CEK Barangkali Terbalik
+                FinanceAccount::incrementBalance($financeTx->account_id, -$financeTx->amount);
+            }
+
+            // 4. Hapus Item Ledger
             $item->delete();
 
             $this->userActivityLogService->log(

@@ -11,6 +11,7 @@ use App\Exceptions\BusinessRuleViolationException;
 use App\Helpers\ImageUploaderHelper;
 use App\Models\Customer;
 use App\Models\CustomerLedger;
+use App\Models\FinanceAccount;
 use App\Models\FinanceTransaction;
 use App\Models\UserActivityLog;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -53,21 +54,14 @@ class CustomerLedgerService
     {
         return DB::transaction(function () use ($validated, $imageFile) {
 
-            // 1. Standarisasi Input (Positif/Negatif)
-            // Logika: Invoice/Saldo Awal = Positif (Piutang Nambah)
-            // Payment/Retur/Diskon = Negatif (Piutang Berkurang)
-            $amount = abs($validated['amount']);
-
-            if (in_array($validated['type'], [
-                CustomerLedger::Type_Payment,
-                CustomerLedger::Type_Return,
-                // Jika user memilih tipe adjustment tertentu yang sifatnya mengurangi
-            ])) {
-                $amount *= -1;
-            }
+            // 1. Hitung Amount Ledger (Sesuai Logika Net Balance)
+            // Invoice/Saldo Awal = Negatif (Nambah Utang/Beban)
+            // Payment/Retur     = Positif (Melunasi/Saldo Naik)
+            $rawAmount = abs($validated['amount']);
+            $ledgerAmount = $rawAmount * CustomerLedger::getMultiplier($validated['type']);
 
             // Override amount dengan hasil kalkulasi
-            $validated['amount'] = $amount;
+            $validated['amount'] = $ledgerAmount;
 
             // 2. Upload Image
             if ($imageFile) {
@@ -80,20 +74,46 @@ class CustomerLedgerService
             // 3. Simpan Transaksi Ledger
             $item = $this->handleTransaction($validated);
 
-            // 4. Integrasi ke Keuangan (Opsional, jika user mencentang 'Masuk Kas')
-            // Contoh: Mencatat pembayaran utang lama secara tunai
+            // 4. Integrasi ke Keuangan
+            // HANYA JIKA ada akun kas yang dipilih
             if (!empty($validated['finance_account_id'])) {
-                $this->financeTransactionService->handleTransaction([
-                    'datetime'   => $validated['datetime'],
-                    'account_id' => $validated['finance_account_id'],
-                    // Jika Ledger (-) Piutang Berkurang -> Berarti Uang Masuk (+) Income
-                    // Jika Ledger (+) Piutang Nambah -> Berarti Uang Keluar (Pinjaman) (-) Expense
-                    'amount'     => $amount * -1,
-                    'type'       => ($amount * -1) >= 0 ? FinanceTransaction::Type_Income : FinanceTransaction::Type_Expense,
-                    'notes'      => 'Transaksi Utang / Piutang Pelanggan ' . $item->customer->name . ' Ref: ' . $item->code,
-                    'ref_type'   => 'customer_ledger',
-                    'ref_id'     => $item->id,
-                ]);
+
+                $financeType = null;
+                $cashFlowAmount = 0;
+
+                // Mapping Logika Ledger -> Logika Kas
+                switch ($validated['type']) {
+                    case CustomerLedger::Type_Payment:
+                        // Customer Bayar Utang -> Uang Masuk (Income) -> Positif
+                        $financeType = FinanceTransaction::Type_Income;
+                        $cashFlowAmount = $rawAmount;
+                        break;
+
+                    case CustomerLedger::Type_Refund:
+                        // Kita Balikin Uang ke Customer -> Uang Keluar (Expense) -> Negatif
+                        $financeType = FinanceTransaction::Type_Expense;
+                        $cashFlowAmount = -1 * $rawAmount;
+                        break;
+
+                    // Case Khusus: Jika Anda mencatat "Pemberian Pinjaman Modal" lewat menu ini
+                    // Maka Invoice = Uang Keluar. Tapi defaultnya Invoice Penjualan itu Non-Cash.
+                    // Jadi untuk keamanan, Invoice, OpeningBalance, CreditNote kita skip (null).
+                    default:
+                        $financeType = null;
+                }
+
+                // Eksekusi jika tipe keuangannya valid
+                if ($financeType) {
+                    $this->financeTransactionService->handleTransaction([
+                        'datetime'   => $validated['datetime'],
+                        'account_id' => $validated['finance_account_id'],
+                        'amount'     => $cashFlowAmount, // Gunakan nilai yang arahnya sudah benar
+                        'type'       => $financeType,    // Tipe Income/Expense eksplisit
+                        'notes'      => 'Transaksi pelanggan ' . $item->customer->name . ' Ref: ' . $item->code,
+                        'ref_type'   => 'customer_ledger',
+                        'ref_id'     => $item->id,
+                    ]);
+                }
             }
 
             $this->userActivityLogService->log(
@@ -152,16 +172,33 @@ class CustomerLedgerService
         }
 
         return DB::transaction(function () use ($item) {
-            // 1. Reverse Saldo Customer (Kebalikan dari amount)
+            // 1. Reverse Saldo Customer (Batalkan efek amount)
+            // Jika amount -100 (Invoice), maka dikurang -100 artinya ditambah 100.
+            // Jika amount +100 (Payment), maka dikurang +100 artinya dikurangi 100.
             $this->updateCustomerDebtBalance($item->customer_id, -$item->amount);
 
             // 2. Hapus Image
-            ImageUploaderHelper::deleteImage($item->image_path);
+            if ($item->image_path) {
+                ImageUploaderHelper::deleteImage($item->image_path);
+            }
 
-            // 3. Hapus relasi keuangan jika ada
-            // Logic reverse finance transaction jika diperlukan
-            // ...
+            // 3. Hapus relasi keuangan (CRITICAL FIX)
+            // Cari transaksi kas yang terhubung dengan ledger ini
+            $financeTx = FinanceTransaction::where('ref_type', 'customer_ledger')
+                ->where('ref_id', $item->id)
+                ->first();
 
+            if ($financeTx) {
+                // Hapus transaksi keuangan.
+                // ASUMSI: Anda menggunakan Model Observer pada FinanceTransaction 
+                // yang otomatis mengupdate saldo FinanceAccount saat di-delete.
+                $financeTx->delete();
+
+                // TODO: CEK Barangkali Terbalik
+                FinanceAccount::incrementBalance($financeTx->account_id, -$financeTx->amount);
+            }
+
+            // 4. Hapus Item Ledger
             $item->delete();
 
             $this->userActivityLogService->log(

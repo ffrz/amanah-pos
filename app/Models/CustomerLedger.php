@@ -49,20 +49,31 @@ class CustomerLedger extends BaseModel
     ];
 
     /**
-     * Transaction types (Jenis Mutasi).
+     * DEFINISI JENIS TRANSAKSI
+     * * Logika Saldo (Net Balance):
+     * (-) Negatif : Beban/Utang (Invoice, Saldo Awal Utang)
+     * (+) Positif : Bayar/Simpanan (Payment, Retur)
      */
-    const Type_OpeningBalance = 'opening_balance';
-    const Type_Invoice = 'invoice'; // Sales Order Final
-    const Type_Payment = 'payment'; // Sales Order Payment
-    const Type_Return = 'return';   // Sales Order Return
-    const Type_Adjustment = 'adjustment'; // Koreksi Manual
+
+    // Grup Pengurang Saldo (Menambah Utang / Arah ke Minus)
+    const Type_Invoice        = 'invoice';         // (-) Tagihan Baru
+    const Type_Refund         = 'refund';          // (-) Uang dikembalikan ke customer
+    const Type_OpeningBalance = 'opening_balance'; // (-) Saldo Awal Utang
+
+    // Grup Penambah Saldo (Melunasi Utang / Arah ke Plus)
+    const Type_Payment        = 'payment';         // (+) Pembayaran Masuk
+    const Type_CreditNote     = 'credit_note';     // (+) Retur Barang / Batal Utang
+
+    // Netral / Manual
+    const Type_Adjustment     = 'adjustment';      // (+/-) Penyesuaian Manual
 
     const Types = [
+        self::Type_Invoice        => 'Tagihan Penjualan',
+        self::Type_Refund         => 'Pengembalian Dana',
         self::Type_OpeningBalance => 'Saldo Awal',
-        self::Type_Invoice => 'Tagihan Penjualan',
-        self::Type_Payment => 'Pembayaran',
-        self::Type_Return => 'Retur Penjualan',
-        self::Type_Adjustment => 'Penyesuaian',
+        self::Type_Payment        => 'Pembayaran Masuk',
+        self::Type_CreditNote     => 'Retur Penjualan',
+        self::Type_Adjustment     => 'Penyesuaian',
     ];
 
     /**
@@ -124,5 +135,28 @@ class CustomerLedger extends BaseModel
     public function financeAccount(): BelongsTo
     {
         return $this->belongsTo(FinanceAccount::class, 'finance_account_id');
+    }
+
+    public static function getMultiplier(string $type): int
+    {
+        return match ($type) {
+            // GRUP PENGURANG SALDO (Arah ke Negatif/Utang)
+            self::Type_Invoice,
+            self::Type_Refund,
+            self::Type_OpeningBalance => -1,
+
+            // GRUP PENAMBAH SALDO (Arah ke Positif/Lunas)
+            self::Type_Payment,
+            self::Type_CreditNote => 1,
+
+            // Adjustment dinamis
+            default => 0,
+        };
+    }
+
+    public function getMultiplierAttribute(): int
+    {
+        // Panggil fungsi statis di atas, lempar $this->type ke sana
+        return self::getMultiplier($this->type);
     }
 }

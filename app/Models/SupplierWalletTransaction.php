@@ -51,6 +51,7 @@ class SupplierWalletTransaction extends BaseModel
     /**
      * Transaction types.
      */
+    const Type_OpeningBalance = 'opening_balance';
     const Type_Adjustment = 'adjustment';
     const Type_Refund = 'refund';
     const Type_Deposit = 'deposit';
@@ -59,6 +60,7 @@ class SupplierWalletTransaction extends BaseModel
     const Type_Withdrawal = 'withdrawal';
 
     const Types = [
+        self::Type_OpeningBalance   => 'Saldo Awal (Migrasi)',
         self::Type_Adjustment => 'Penyesuaian',
         self::Type_Deposit => 'Depoist',
         self::Type_Refund => 'Refund',

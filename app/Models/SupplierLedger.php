@@ -49,20 +49,31 @@ class SupplierLedger extends BaseModel
     ];
 
     /**
-     * Transaction types.
+     * DEFINISI JENIS TRANSAKSI
+     * * Logika Saldo (Net Balance):
+     * (-) Negatif : Beban/Utang (Invoice, Saldo Awal Utang)
+     * (+) Positif : Bayar/Simpanan (Payment, Retur)
      */
-    const Type_OpeningBalance = 'opening_balance';
-    const Type_Bill = 'bill';       // Purchase Order Final / Tagihan Masuk
-    const Type_Payment = 'payment'; // Purchase Order Payment / Kita Bayar
-    const Type_Return = 'return';   // Purchase Order Return / Kita Retur
-    const Type_Adjustment = 'adjustment';
+
+    // Grup Pengurang Saldo (Menambah Utang / Arah ke Minus)
+    const Type_Bill           = 'invoice';         // (-) Tagihan Baru
+    const Type_Refund         = 'refund';          // (-) Uang dikembalikan ke customer
+    const Type_OpeningBalance = 'opening_balance'; // (-) Saldo Awal Utang
+
+    // Grup Penambah Saldo (Melunasi Utang / Arah ke Plus)
+    const Type_Payment        = 'payment';         // (+) Pembayaran Masuk
+    const Type_DebitNote      = 'debit_note';      // (+) Retur Barang / Batal Utang
+
+    // Netral / Manual
+    const Type_Adjustment     = 'adjustment';      // (+/-) Penyesuaian Manual
 
     const Types = [
-        self::Type_OpeningBalance => 'Saldo Awal',
-        self::Type_Bill => 'Tagihan Pembelian',
-        self::Type_Payment => 'Pembayaran',
-        self::Type_Return => 'Retur Pembelian',
-        self::Type_Adjustment => 'Penyesuaian',
+        self::Type_Bill           => 'Tagihan Pembelian',   // Beda Istilah dengan Customer (Invoice vs Bill)
+        self::Type_Refund         => 'Terima Refund Dana',  // Beda Arah Uang
+        self::Type_OpeningBalance => 'Saldo Awal Utang',
+        self::Type_Payment        => 'Pembayaran Keluar',   // Beda Arah Uang
+        self::Type_DebitNote      => 'Retur Pembelian',     // Istilah Debit Note (Lawan dari Credit Note)
+        self::Type_Adjustment     => 'Penyesuaian',
     ];
 
     /**
@@ -122,5 +133,28 @@ class SupplierLedger extends BaseModel
     public function financeAccount(): BelongsTo
     {
         return $this->belongsTo(FinanceAccount::class, 'finance_account_id');
+    }
+
+    public static function getMultiplier(string $type): int
+    {
+        return match ($type) {
+            // GRUP PENGURANG SALDO (Arah ke Negatif/Utang)
+            self::Type_Bill,
+            self::Type_Refund,
+            self::Type_OpeningBalance => -1,
+
+            // GRUP PENAMBAH SALDO (Arah ke Positif/Lunas)
+            self::Type_Payment,
+            self::Type_DebitNote => 1,
+
+            // Adjustment dinamis
+            default => 0,
+        };
+    }
+
+    public function getMultiplierAttribute(): int
+    {
+        // Panggil fungsi statis di atas, lempar $this->type ke sana
+        return self::getMultiplier($this->type);
     }
 }

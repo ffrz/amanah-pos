@@ -52,6 +52,7 @@ class CustomerWalletTransaction extends BaseModel
     /**
      * Transaction types.
      */
+    const Type_OpeningBalance = 'opening_balance';
     const Type_Deposit = 'deposit';
     const Type_Refund = 'refund';
     const Type_SalesOrderPayment = 'sales_order_payment';
@@ -60,6 +61,7 @@ class CustomerWalletTransaction extends BaseModel
     const Type_Adjustment = 'adjustment';
 
     const Types = [
+        self::Type_OpeningBalance   => 'Saldo Awal (Migrasi)',
         self::Type_Deposit => 'Top Up',
         self::Type_Refund => 'Refund',
         self::Type_SalesOrderPayment => 'Pembelian',
