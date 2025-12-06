@@ -263,6 +263,10 @@ table.detail tr:nth-child(even) td {
   color: #666;
 }
 
+.q-table td {
+  white-space: break-spaces !important;
+}
+
 .q-table td .q-btn,
 .q-table__bottom * {
   color: #555;
