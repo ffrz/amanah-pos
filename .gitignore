@@ -33,3 +33,4 @@ vendor.zip
 # Deployment configuration
 deploy/config.json
 /public/build/
+public/build/manifest.json

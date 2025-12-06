@@ -23,7 +23,11 @@
         "bootstrap/cache",
         "storage/debugbar",
         "storage/framework/views",
-        "storage/logs"
+        "storage/logs",
+        "storage/app",
+        "resources/css",
+        "resources/js",
+        "resources/lang"
     ],
     "tenants": {
         "shiftcom": {
