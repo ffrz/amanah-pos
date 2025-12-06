@@ -115,6 +115,10 @@ class DatabaseSettingsController extends Controller
 
     public function backup(Request $request)
     {
+        // 1. PERBAIKAN LIMIT PHP
+        set_time_limit(0);
+        ini_set('memory_limit', '1024M'); // Naikkan memory limit untuk buffer
+
         $mode = $request->input('mode', 'full');
         $safeMode = $request->boolean('safe_mode', false);
 
@@ -131,21 +135,52 @@ class DatabaseSettingsController extends Controller
 
         try {
             $db = config('database.connections.mysql');
-            $dsn = "mysql:host={$db['host']};dbname={$db['database']};port={$db['port']}";
+
+            // PERBAIKAN PENTING: Tambahkan charset=utf8mb4 langsung di DSN
+            // Tanpa ini, PDO mungkin gagal membaca data row jika ada karakter khusus
+            $dsn = "mysql:host={$db['host']};dbname={$db['database']};port={$db['port']};charset=utf8mb4";
 
             $dumpSettings = [
                 'compress' => Mysqldump::NONE,
-                'default-character-set' => Mysqldump::UTF8,
-                'net_buffer_length' => 1000000,
+                'default-character-set' => 'utf8mb4', // Gunakan string 'utf8mb4' agar aman untuk emoji
+
+                // Kurangi buffer length jika server memory terbatas, atau gunakan default library
+                // 'net_buffer_length' => 1000000, 
+
                 'no-data' => ($mode === 'structure_only'),
                 'no-create-info' => ($mode === 'data_only'),
                 'insert-ignore' => $safeMode,
                 'add-drop-table' => true,
                 'databases' => false,
+
+                // --- PERBAIKAN ERROR 1100 (LOCK TABLES) ---
+                // Gunakan single-transaction agar tidak mengunci tabel saat backup berjalan.
+                // Ini memungkinkan aplikasi tetap bisa menulis ke tabel sessions/log.
+                'single-transaction' => true,
+                'add-locks' => false,
+                'lock-tables' => false,
+                // ------------------------------------------
+
+                // Tambahan agar lebih robust
+                'skip-definer' => true, // Hindari error permission saat restore
+                'hex-blob' => true,     // Wajib jika ada kolom binary/blob
             ];
 
-            $dump = new Mysqldump($dsn, $db['username'], $db['password'], $dumpSettings);
+            // Tambahkan Opsi PDO Explicit
+            $pdoOptions = [
+                \PDO::ATTR_PERSISTENT => true,
+                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                \PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4" // Paksa koneksi utf8mb4
+            ];
+
+            $dump = new Mysqldump($dsn, $db['username'], $db['password'], $dumpSettings, $pdoOptions);
             $dump->start($sqlPath);
+
+            // Validasi file hasil dump
+            if (!File::exists($sqlPath) || File::size($sqlPath) < 100) {
+                // Jika file terlalu kecil (kurang dari 100 bytes), kemungkinan gagal dump
+                throw new Exception("Hasil dump SQL kosong atau tidak valid.");
+            }
 
             $zip = new ZipArchive;
             if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== TRUE) {
@@ -220,7 +255,13 @@ class DatabaseSettingsController extends Controller
             $stream = fopen($sqlPath, 'r');
             if (!$stream) throw new \Exception("Gagal membaca konten dari file yang diekstrak.");
 
-            DB::table('users')->truncate();
+            $tablesToClean = array_merge(self::MASTER_TABLES, self::TRANSACTION_TABLES);
+
+            foreach ($tablesToClean as $table) {
+                if (Schema::hasTable($table)) {
+                    DB::table($table)->truncate();
+                }
+            }
 
             $queryBuffer = '';
             while (($line = fgets($stream)) !== false) {
@@ -319,7 +360,7 @@ class DatabaseSettingsController extends Controller
     {
         $this->validatePassword($request);
 
-        $request->validate(['confirm_text' => 'required|in:CONFIRM']);
+        $request->validate(['confirm_text' => 'required|in:KONFIRMASI']);
 
         $allApplicationTables = array_merge(self::MASTER_TABLES, self::TRANSACTION_TABLES);
 
