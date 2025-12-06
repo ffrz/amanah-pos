@@ -30,23 +30,20 @@ use Illuminate\Support\Facades\File;
 use App\Helpers\JsonResponseHelper;
 use Ifsnop\Mysqldump\Mysqldump;
 use App\Models\UserActivityLog;
-// Import Model untuk memanggil static method generateOpeningSnapshot
 use App\Models\StockMovement;
 use App\Models\CustomerLedger;
 use App\Models\SupplierLedger;
 use App\Models\CustomerWalletTransaction;
 use App\Models\SupplierWalletTransaction;
 use App\Models\FinanceTransaction;
+use Illuminate\Support\Facades\Log;
 use ZipArchive;
 
 class DatabaseSettingsController extends Controller
 {
-    /**
-     * @var UserActivityLogService
-     */
-    protected $userActivityLogService;
+    const BACKUP_FILE_EXTENSION = 'posdb';
+    const BACKUP_FILE_SQL_EXTENSION = 'data';
 
-    // --- DAFTAR TABEL KONSTANTA ---
     protected const MASTER_TABLES = [
         'users',
         'acl_roles',
@@ -98,10 +95,7 @@ class DatabaseSettingsController extends Controller
         'document_versions',
     ];
 
-    public function __construct(UserActivityLogService $userActivityLogService)
-    {
-        $this->userActivityLogService = $userActivityLogService;
-    }
+    public function __construct(protected UserActivityLogService $userActivityLogService) {}
 
     protected function validatePassword(Request $request)
     {
@@ -124,9 +118,9 @@ class DatabaseSettingsController extends Controller
         $mode = $request->input('mode', 'full');
         $safeMode = $request->boolean('safe_mode', false);
 
-        $filenameBase = 'backup_' . $mode . '_' . date('Y-m-d_H-i-s');
-        $sqlFilename = $filenameBase . '.sql';
-        $zipFilename = $filenameBase . '.posdb';
+        $filenameBase = str_replace(' ', '_', strtolower(config('app.name'))) . '_backup_' . $mode . '_' . date('Y-m-d_H-i-s');
+        $sqlFilename = $filenameBase . '.' . self::BACKUP_FILE_SQL_EXTENSION;
+        $zipFilename = $filenameBase . '.' . self::BACKUP_FILE_EXTENSION;
 
         $tempDir = storage_path('app/backups/temp/' . $filenameBase);
         $sqlPath = $tempDir . '/' . $sqlFilename;
@@ -169,12 +163,7 @@ class DatabaseSettingsController extends Controller
 
             return response()->download($zipPath)->deleteFileAfterSend(true);
         } catch (\Exception $e) {
-            $this->userActivityLogService->log(
-                UserActivityLog::Category_Database,
-                UserActivityLog::Name_Database_Backup,
-                "Gagal melakukan backup database mode '$mode'. Error: " . $e->getMessage(),
-                ['mode' => $mode, 'error' => $e->getMessage()]
-            );
+            Log::error('Database backup error: ' . $e->getMessage(), ['exception' => $e]);
             return JsonResponseHelper::error('Backup Gagal: ' . $e->getMessage(), 500);
         } finally {
             if (File::exists($tempDir)) {
@@ -194,17 +183,7 @@ class DatabaseSettingsController extends Controller
 
         $userDataToPreserve = (array)$userModel;
 
-        try {
-            $this->validatePassword($request);
-        } catch (ValidationException $e) {
-            $this->userActivityLogService->log(
-                UserActivityLog::Category_Database,
-                UserActivityLog::Name_Database_Restore,
-                "Gagal melakukan restore. Password konfirmasi salah.",
-                ['status' => 'Gagal Validasi Password']
-            );
-            throw $e;
-        }
+        $this->validatePassword($request);
 
         $request->validate(['file' => 'required|file|max:102400']);
 
@@ -218,10 +197,10 @@ class DatabaseSettingsController extends Controller
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
 
         try {
-            if (in_array(strtolower($fileExtension), ['posdb', 'zip'])) {
+            if (in_array(strtolower($fileExtension), [self::BACKUP_FILE_EXTENSION])) {
                 $zip = new ZipArchive;
                 if ($zip->open($file->getRealPath()) !== TRUE) {
-                    throw new \Exception('Gagal membuka file ZIP/POSDB.');
+                    throw new \Exception('Gagal membuka file backup database.');
                 }
 
                 if (!File::exists($tempRestoreDir)) File::makeDirectory($tempRestoreDir, 0755, true);
@@ -229,21 +208,18 @@ class DatabaseSettingsController extends Controller
                 $zip->extractTo($tempRestoreDir);
                 $zip->close();
 
-                $files = File::glob($tempRestoreDir . '/*.sql');
+                $files = File::glob($tempRestoreDir . '/*.' . self::BACKUP_FILE_SQL_EXTENSION);
                 if (empty($files)) {
                     throw new \Exception('Tidak ditemukan file .sql di dalam arsip yang diunggah.');
                 }
                 $sqlPath = $files[0];
-            } elseif (strtolower($fileExtension) === 'sql') {
-                $sqlPath = $file->getRealPath();
             } else {
-                throw new \Exception('Format file tidak didukung. Harap gunakan .posdb, .zip, atau .sql.');
+                throw new \Exception('Format file tidak didukung. Harap gunakan format ' . self::BACKUP_FILE_EXTENSION . '.');
             }
 
             $stream = fopen($sqlPath, 'r');
-            if (!$stream) throw new \Exception("Gagal membaca konten SQL dari file yang diekstrak.");
+            if (!$stream) throw new \Exception("Gagal membaca konten dari file yang diekstrak.");
 
-            // KOSONGKAN TABEL USERS SEBELUM RESTORE
             DB::table('users')->truncate();
 
             $queryBuffer = '';
@@ -260,20 +236,21 @@ class DatabaseSettingsController extends Controller
 
             fclose($stream);
 
-            // Injeksi ulang user
-            $updatedRows = DB::table('users')
-                ->where('id', $userDataToPreserve['id'])
-                ->update([
-                    'password' => $userDataToPreserve['password'],
-                    'remember_token' => $userDataToPreserve['remember_token'] ?? null,
-                ]);
+            DB::transaction(function () use ($userDataToPreserve) {
+                $updatedRows = DB::table('users')
+                    ->where('id', $userDataToPreserve['id'])
+                    ->update([
+                        'password' => $userDataToPreserve['password'],
+                        'remember_token' => $userDataToPreserve['remember_token'] ?? null,
+                    ]);
 
-            if ($updatedRows === 0) {
-                unset($userDataToPreserve['created_at']);
-                unset($userDataToPreserve['updated_at']);
-                $dataToInsert = $userDataToPreserve;
-                DB::table('users')->insert($dataToInsert);
-            }
+                if ($updatedRows === 0) {
+                    unset($userDataToPreserve['created_at']);
+                    unset($userDataToPreserve['updated_at']);
+                    $dataToInsert = $userDataToPreserve;
+                    DB::table('users')->upsert($dataToInsert, ['id']);
+                }
+            });
 
             DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
@@ -287,12 +264,7 @@ class DatabaseSettingsController extends Controller
             return JsonResponseHelper::success(null, 'Restore Selesai. Database berhasil dipulihkan.');
         } catch (\Exception $e) {
             DB::statement('SET FOREIGN_KEY_CHECKS=1;');
-            $this->userActivityLogService->log(
-                UserActivityLog::Category_Database,
-                UserActivityLog::Name_Database_Restore,
-                "Restore gagal dari file '$filename'. Error: " . $e->getMessage(),
-                ['filename' => $filename, 'error' => $e->getMessage()]
-            );
+            Log::error('Restore database error: ' . $e->getMessage(), ['exception' => $e]);
             return JsonResponseHelper::error('Restore Error: Terjadi kesalahan saat eksekusi SQL. ' . $e->getMessage(), 500);
         } finally {
             if ($tempRestoreDir && File::exists($tempRestoreDir)) {
@@ -303,19 +275,7 @@ class DatabaseSettingsController extends Controller
 
     public function resetTransaction(Request $request)
     {
-        $currentUser = Auth::user();
-
-        try {
-            $this->validatePassword($request);
-        } catch (ValidationException $e) {
-            $this->userActivityLogService->log(
-                UserActivityLog::Category_Database,
-                UserActivityLog::Name_Database_ResetTransaction,
-                "Gagal melakukan reset transaksional. Password konfirmasi salah.",
-                ['status' => 'Gagal Validasi Password']
-            );
-            throw $e;
-        }
+        $this->validatePassword($request);
 
         $tablesToTruncate = self::TRANSACTION_TABLES;
 
@@ -328,28 +288,14 @@ class DatabaseSettingsController extends Controller
                 }
             }
 
-            // 3. GENERATE OPENING BALANCE SNAPSHOT (Delegasi ke Model)
-            // Pastikan Anda menerapkan method generateOpeningSnapshot() di masing-masing model ini
-            // seperti contoh di FinanceTransaction.
-
-            if (method_exists(StockMovement::class, 'generateOpeningSnapshot')) {
+            DB::transaction(function () {
                 StockMovement::generateOpeningSnapshot();
-            }
-            if (method_exists(CustomerLedger::class, 'generateOpeningSnapshot')) {
                 CustomerLedger::generateOpeningSnapshot();
-            }
-            if (method_exists(SupplierLedger::class, 'generateOpeningSnapshot')) {
                 SupplierLedger::generateOpeningSnapshot();
-            }
-            if (method_exists(CustomerWalletTransaction::class, 'generateOpeningSnapshot')) {
                 CustomerWalletTransaction::generateOpeningSnapshot();
-            }
-            if (method_exists(SupplierWalletTransaction::class, 'generateOpeningSnapshot')) {
                 SupplierWalletTransaction::generateOpeningSnapshot();
-            }
-            if (method_exists(FinanceTransaction::class, 'generateOpeningSnapshot')) {
                 FinanceTransaction::generateOpeningSnapshot();
-            }
+            });
 
             Schema::enableForeignKeyConstraints();
             Artisan::call('cache:clear');
@@ -364,29 +310,14 @@ class DatabaseSettingsController extends Controller
             return JsonResponseHelper::success(null, 'Data transaksional berhasil di-reset. Data master aman dan saldo awal telah dibuat.');
         } catch (\Exception $e) {
             Schema::enableForeignKeyConstraints();
-            $this->userActivityLogService->log(
-                UserActivityLog::Category_Database,
-                UserActivityLog::Name_Database_ResetTransaction,
-                "Gagal melakukan reset transaksional. Error: " . $e->getMessage(),
-                ['error' => $e->getMessage()]
-            );
+            Log::error('Reset transaksi error: ' . $e->getMessage(), ['exception' => $e]);
             return JsonResponseHelper::error('Gagal mereset transaksi: ' . $e->getMessage(), 500);
         }
     }
 
     public function resetAll(Request $request)
     {
-        try {
-            $this->validatePassword($request);
-        } catch (ValidationException $e) {
-            $this->userActivityLogService->log(
-                UserActivityLog::Category_Database,
-                UserActivityLog::Name_Database_ResetAll,
-                "Gagal melakukan factory reset. Password konfirmasi salah.",
-                ['status' => 'Gagal Validasi Password']
-            );
-            throw $e;
-        }
+        $this->validatePassword($request);
 
         $request->validate(['confirm_text' => 'required|in:CONFIRM']);
 
@@ -419,12 +350,7 @@ class DatabaseSettingsController extends Controller
             return JsonResponseHelper::success(null, 'Sistem berhasil di-reset total ke pengaturan pabrik.');
         } catch (\Exception $e) {
             Schema::enableForeignKeyConstraints();
-            $this->userActivityLogService->log(
-                UserActivityLog::Category_Database,
-                UserActivityLog::Name_Database_ResetAll,
-                "Gagal melakukan factory reset. Error: " . $e->getMessage(),
-                ['error' => $e->getMessage()]
-            );
+            Log::error('Factory reset error: ' . $e->getMessage(), ['exception' => $e]);
             return JsonResponseHelper::error('Gagal melakukan factory reset: ' . $e->getMessage(), 500);
         }
     }

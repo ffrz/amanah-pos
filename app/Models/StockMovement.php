@@ -19,6 +19,7 @@ namespace App\Models;
 use App\Models\Traits\HasTransactionCode;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -136,61 +137,35 @@ class StockMovement extends BaseModel
             'product_id'      => $p->id,
             'product_name'    => $p->name,
             'uom'             => $p->uom,
-
             'ref_id'          => $p->id,
             'ref_type'        => self::RefType_InitialStock,
-
             'quantity'        => $p->stock,
             'quantity_before' => 0,
             'quantity_after'  => $p->stock,
-
             'notes'           => 'Stok awal setelah reset',
-
-            'created_at'      => now(),
-            'updated_at'      => now(),
         ];
     }
 
     /**
      * Generate snapshot data from Product master data.
-     * Uses bulk insert with manual transaction code generation.
      */
     public static function generateOpeningSnapshot()
     {
-        // 1. Dapatkan konfigurasi Prefix & Padding dari Model
         $dummy = new static;
-        $prefix = method_exists($dummy, 'getTransactionPrefix')
-            ? $dummy->getTransactionPrefix()
-            : ($dummy->transactionPrefix ?? 'SM');
-
-        $padSize = method_exists($dummy, 'getTransactionNumberPadSize')
-            ? $dummy->getTransactionNumberPadSize()
-            : 5;
-        if ($padSize == 0) $padSize = 5;
-
-        $dateCode = now()->format('ymd');
-
-        // Karena tabel baru di-truncate (resetTransaction), ID pasti mulai dari 1
         $startSequence = 1;
+        $now = Carbon::now();
+        $auth_id = Auth::id();
 
-        // 2. Query Data Master & Bulk Insert per Chunk
-        \App\Models\Product::where('stock', '!=', 0)->chunk(500, function ($products) use ($prefix, $dateCode, $padSize, &$startSequence) {
+        Product::where('stock', '!=', 0)->chunk(500, function ($products) use ($dummy, $now, $auth_id, &$startSequence) {
             $rows = [];
-
             foreach ($products as $product) {
-                // Generate Code Manual: Prefix-ymd-Sequence
-                $code = $prefix . '-' . $dateCode . '-' . str_pad($startSequence++, $padSize, '0', STR_PAD_LEFT);
-
-                // Ambil mapping data standar dari Model
                 $data = self::snapshotFromProduct($product);
-
-                // Tambahkan kode transaksi unik ke array
-                $data['code'] = $code;
-
+                $data['code'] = $dummy->generateTransactionCodeWithDateAndSequence($now, $startSequence++);
+                $data['created_at'] = $now;
+                $data['created_by'] = $auth_id;
                 $rows[] = $data;
             }
 
-            // Lakukan Insert Sekaligus
             if (!empty($rows)) {
                 static::insert($rows);
             }

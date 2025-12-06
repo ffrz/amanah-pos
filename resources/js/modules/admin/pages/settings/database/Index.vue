@@ -119,6 +119,8 @@ const submitDatabaseAction = async (routeName, data, successMessage) => {
       message: errorMessage,
       position: "top",
     });
+
+    $q.loading.hide();
   } finally {
     // Loading hanya disembunyikan di sini jika bukan Total Reset,
     // karena untuk Total Reset, dialog yang akan menahan layar.

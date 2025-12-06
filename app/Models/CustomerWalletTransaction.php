@@ -21,6 +21,7 @@ use App\Models\Traits\HasTransactionCode;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Auth;
 
 class CustomerWalletTransaction extends BaseModel
 {
@@ -122,62 +123,35 @@ class CustomerWalletTransaction extends BaseModel
     {
         return [
             'customer_id'        => $c->id,
-            'finance_account_id' => null,
-
             'datetime'           => now(),
             'type'               => self::Type_OpeningBalance,
             'amount'             => $balance,
-
-            'ref_type'           => null,
-            'ref_id'             => null,
-
             'notes'              => 'Saldo awal wallet setelah reset',
-
-            'created_at'         => now(),
-            'updated_at'         => now(),
         ];
     }
 
     /**
      * Generate snapshot data from Customer master data.
-     * Uses bulk insert with manual transaction code generation.
      */
     public static function generateOpeningSnapshot()
     {
-        // 1. Dapatkan konfigurasi Prefix & Padding dari Model
         $dummy = new static;
-        $prefix = method_exists($dummy, 'getTransactionPrefix')
-            ? $dummy->getTransactionPrefix()
-            : ($dummy->transactionPrefix ?? 'CWTX');
-
-        $padSize = method_exists($dummy, 'getTransactionNumberPadSize')
-            ? $dummy->getTransactionNumberPadSize()
-            : 5;
-        if ($padSize == 0) $padSize = 5;
-
-        $dateCode = now()->format('ymd');
-
-        // Karena tabel baru di-truncate (resetTransaction), ID pasti mulai dari 1
         $startSequence = 1;
+        $now = Carbon::now();
+        $auth_id = Auth::id();
 
-        // 2. Query Data Master & Bulk Insert per Chunk
-        \App\Models\Customer::where('wallet_balance', '!=', 0)->chunk(500, function ($customers) use ($prefix, $dateCode, $padSize, &$startSequence) {
+        Customer::where('wallet_balance', '!=', 0)->chunk(500, function ($customers) use ($dummy, $now, $auth_id, &$startSequence) {
             $rows = [];
 
             foreach ($customers as $customer) {
-                // Generate Code Manual: Prefix-ymd-Sequence
-                $code = $prefix . '-' . $dateCode . '-' . str_pad($startSequence++, $padSize, '0', STR_PAD_LEFT);
-
-                // Ambil mapping data standar dari Model
                 $data = self::snapshotFromCustomer($customer, $customer->wallet_balance);
-
-                // Tambahkan kode transaksi unik ke array
-                $data['code'] = $code;
-
+                $data['code'] = $dummy->generateTransactionCodeWithDateAndSequence($now, $startSequence++);
+                $data['datetime'] = $now;
+                $data['created_at'] = $now;
+                $data['created_by'] = $auth_id;
                 $rows[] = $data;
             }
 
-            // Lakukan Insert Sekaligus
             if (!empty($rows)) {
                 static::insert($rows);
             }

@@ -28,9 +28,6 @@ trait HasTransactionCode
      */
     public function generateTransactionCode(): string
     {
-        $prefix = $this->getTransactionPrefix();
-        $datePart = now()->format('ymd');
-
         // Gunakan transaksi agar atomic jika banyak insert paralel
         $nextNumber = DB::transaction(function () {
             $table = $this->getTable();
@@ -42,8 +39,14 @@ trait HasTransactionCode
             return ($max->max_id ?? 0) + 1;
         });
 
-        $sequence = str_pad($nextNumber, $this->getTransactionNumberPadSize(), '0', STR_PAD_LEFT);
+        return $this->generateTransactionCodeWithDateAndSequence(now(), $nextNumber);
+    }
 
+    public function generateTransactionCodeWithDateAndSequence(\DateTime $date, $nextNumber): string
+    {
+        $prefix = $this->getTransactionPrefix();
+        $datePart = $date->format('ymd');
+        $sequence = str_pad($nextNumber, $this->getTransactionNumberPadSize(), '0', STR_PAD_LEFT);
         return "{$prefix}-{$datePart}-{$sequence}";
     }
 

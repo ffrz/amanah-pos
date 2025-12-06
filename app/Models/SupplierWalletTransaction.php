@@ -18,8 +18,10 @@ namespace App\Models;
 
 use App\Models\Traits\HasDocumentVersions;
 use App\Models\Traits\HasTransactionCode;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Auth;
 
 class SupplierWalletTransaction extends BaseModel
 {
@@ -118,61 +120,36 @@ class SupplierWalletTransaction extends BaseModel
         return [
             'supplier_id'        => $s->id,
             'finance_account_id' => null,
-
-            'datetime'           => now(),
             'type'               => self::Type_OpeningBalance,
             'amount'             => $balance,
-
             'ref_type'           => null,
             'ref_id'             => null,
-
             'notes'              => 'Saldo awal wallet supplier setelah reset',
-
-            'created_at'         => now(),
-            'updated_at'         => now(),
         ];
     }
 
     /**
      * Generate snapshot data from Supplier master data.
-     * Uses bulk insert with manual transaction code generation for high performance.
      */
     public static function generateOpeningSnapshot()
     {
-        // 1. Dapatkan konfigurasi Prefix & Padding dari Model
         $dummy = new static;
-        $prefix = method_exists($dummy, 'getTransactionPrefix')
-            ? $dummy->getTransactionPrefix()
-            : ($dummy->transactionPrefix ?? 'SWTX');
-
-        $padSize = method_exists($dummy, 'getTransactionNumberPadSize')
-            ? $dummy->getTransactionNumberPadSize()
-            : 5;
-        if ($padSize == 0) $padSize = 5; // Default padding jika 0
-
-        $dateCode = now()->format('ymd');
-
-        // Karena tabel baru di-truncate (resetTransaction), ID pasti mulai dari 1
         $startSequence = 1;
+        $now = Carbon::now();
+        $auth_id = Auth::id();
 
-        // 2. Query Data Master & Bulk Insert per Chunk
-        \App\Models\Supplier::where('wallet_balance', '!=', 0)->chunk(500, function ($suppliers) use ($prefix, $dateCode, $padSize, &$startSequence) {
+        Supplier::where('wallet_balance', '!=', 0)->chunk(500, function ($suppliers) use ($dummy, $now, $auth_id, &$startSequence) {
             $rows = [];
 
             foreach ($suppliers as $supplier) {
-                // Generate Code Manual: Prefix-ymd-Sequence (Increment di PHP)
-                $code = $prefix . '-' . $dateCode . '-' . str_pad($startSequence++, $padSize, '0', STR_PAD_LEFT);
-
-                // Ambil mapping data standar dari Model
                 $data = self::snapshotFromSupplier($supplier, $supplier->wallet_balance);
-
-                // Tambahkan kode transaksi unik ke array
-                $data['code'] = $code;
-
+                $data['code'] = $dummy->generateTransactionCodeWithDateAndSequence($now, $startSequence++);
+                $data['datetime'] = $now;
+                $data['created_at'] = $now;
+                $data['created_by'] = $auth_id;
                 $rows[] = $data;
             }
 
-            // Lakukan Insert Sekaligus untuk 500 baris
             if (!empty($rows)) {
                 static::insert($rows);
             }
