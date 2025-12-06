@@ -1,9 +1,5 @@
 <script setup>
-import {
-  formatDateTime,
-  formatNumber,
-  plusMinusSymbol,
-} from "@/helpers/formatter";
+import { formatDateTime, formatMoneyWithSymbol } from "@/helpers/formatter";
 import { usePage, router } from "@inertiajs/vue3";
 
 const page = usePage();
@@ -96,12 +92,9 @@ const data = page.props.data;
                     <td>:</td>
                     <td
                       class="text-bold text-subtitle2"
-                      :class="
-                        data.amount >= 0 ? 'text-orange-9' : 'text-green-8'
-                      "
+                      :class="data.amount < 0 ? 'text-red' : 'text-green-8'"
                     >
-                      {{ plusMinusSymbol(data.amount) }} Rp.
-                      {{ formatNumber(Math.abs(data.amount)) }}
+                      {{ formatMoneyWithSymbol(data.amount) }}
                     </td>
                   </tr>
                   <tr>

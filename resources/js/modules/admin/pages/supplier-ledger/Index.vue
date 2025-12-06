@@ -7,8 +7,8 @@ import { useQuasar } from "quasar";
 import {
   formatDateTime,
   formatNumber,
-  plusMinusSymbol,
   formatNumberWithSymbol,
+  formatMoneyWithSymbol,
 } from "@/helpers/formatter";
 import useTableHeight from "@/composables/useTableHeight";
 import LongTextView from "@/components/LongTextView.vue";
@@ -16,7 +16,7 @@ import ImageViewer from "@/components/ImageViewer.vue";
 import dayjs from "dayjs";
 import DateTimePicker from "@/components/DateTimePicker.vue";
 
-const title = "Utang / Piutang Supplier";
+const title = "Kartu Piutang Supplier";
 const $q = useQuasar();
 const showFilter = ref(false);
 const rows = ref([]);
@@ -45,7 +45,6 @@ const pagination = ref({
 });
 
 const columns = [
-  { name: "code", label: "Kode", field: "code", align: "left" },
   {
     name: "datetime",
     label: "Waktu",
@@ -59,11 +58,10 @@ const columns = [
     field: "supplier_id",
     align: "left",
   },
-  { name: "type", label: "Jenis", field: "type", align: "left" },
   { name: "amount", label: "Mutasi (Rp)", field: "amount", align: "right" },
   {
     name: "running_balance",
-    label: "Saldo Utang (Rp)",
+    label: "Saldo (Rp)",
     field: "running_balance",
     align: "right",
   },
@@ -77,7 +75,7 @@ onMounted(() => {
 
 const deleteItem = (row) =>
   handleDelete({
-    message: `Hapus ledger #${row.code}? Saldo utang pemasok akan dikembalikan.`,
+    message: `Hapus ledger #${row.code}? Saldo supplier akan dikembalikan.`,
     url: route("admin.supplier-ledger.delete", row.id),
     fetchItemsCallback: fetchItems,
     loading,
@@ -111,7 +109,9 @@ const onFilterChange = () => {
 
 const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return columns;
-  return columns.filter((col) => col.name === "code" || col.name === "action");
+  return columns.filter(
+    (col) => col.name === "datetime" || col.name === "action"
+  );
 });
 
 const activeImagePath = ref(null);
@@ -139,21 +139,21 @@ const showAttachment = (url) => {
         <q-tooltip>Filter Data</q-tooltip>
       </q-btn>
 
-      <!-- Tombol Opname -->
+      <!-- Tombol Penyesuaian / Opname -->
       <q-btn
-        v-if="false && $can('admin.supplier-ledger.adjustment')"
+        v-if="false && $can('admin.supplier-ledger.adjust')"
         icon="tune"
         dense
         rounded
         class="q-ml-sm"
         color="secondary"
         text-color="white"
-        @click="router.get(route('admin.supplier-ledger.adjustment'))"
+        @click="router.get(route('admin.supplier-ledger.adjust'))"
       >
         <q-tooltip>Penyesuaian Saldo (Opname)</q-tooltip>
       </q-btn>
 
-      <!-- Tombol Tambah Manual -->
+      <!-- Tombol Transaksi Manual -->
       <q-btn
         v-if="$can('admin.supplier-ledger.add')"
         icon="add"
@@ -196,7 +196,7 @@ const showAttachment = (url) => {
             dense
             debounce="300"
             v-model="filter.search"
-            placeholder="Cari Kode / Supplier"
+            placeholder="Cari Kode / Catatan"
             clearable
           >
             <template v-slot:append>
@@ -242,74 +242,86 @@ const showAttachment = (url) => {
               )
             "
           >
-            <q-td key="code" :props="props" class="wrap-column">
-              <div class="text-bold text-primary">{{ props.row.code }}</div>
+            <!-- Kolom Kode & Info Dasar -->
+            <q-td key="datetime" :props="props" class="wrap-column">
+              <div class="text-bold text-primary">
+                <q-icon class="inline-icon" name="tag" />
+                {{ props.row.code }}
+
+                <q-badge color="primary" class="q-ml-sm">
+                  {{ props.row.type_label }}
+                </q-badge>
+              </div>
+
               <div class="text-caption text-grey-7">
+                <q-icon class="inline-icon" name="calendar_today" />
                 {{ formatDateTime(props.row.datetime) }}
               </div>
 
-              <!-- Mobile View -->
+              <div
+                v-if="props.row.ref"
+                class="text-caption text-grey-8 q-mt-xs"
+              >
+                <q-icon class="inline-icon" name="tag" />
+                Ref: {{ props.row.ref.code || "#" + props.row.ref.id }}
+              </div>
+
               <template v-if="!$q.screen.gt.sm">
-                <div class="q-mt-xs">
-                  <q-badge color="grey-3" text-color="black">{{
-                    props.row.type_label
-                  }}</q-badge>
-                </div>
                 <div class="q-mt-xs text-bold">
+                  <q-icon class="inline-icon" name="person" />
+                  {{ props.row.supplier?.code }} -
                   {{ props.row.supplier?.name }}
                 </div>
-                <div class="row justify-between q-mt-sm">
-                  <!-- Note: Di Supplier Ledger, Positif = Hutang Nambah (Merah bagi kita?), Negatif = Bayar (Hijau?)
-                         Atau konsisten saja: Positif = Nilai nambah, Negatif = Nilai kurang. -->
-                  <span
-                    :class="props.row.amount >= 0 ? 'text-green' : 'text-red'"
+                <div>
+                  <div
+                    :class="
+                      props.row.amount >= 0 ? 'text-green-8' : 'text-red-8'
+                    "
+                    class="row justify-between"
                   >
-                    {{ plusMinusSymbol(props.row.amount) }}
-                    {{ formatNumber(Math.abs(props.row.amount)) }}
-                  </span>
-                  <span class="text-grey-8 text-bold">
-                    Saldo: {{ formatNumber(props.row.running_balance) }}
-                  </span>
+                    <div>
+                      <q-icon class="inline-icon" name="paid" /> Jumlah:
+                    </div>
+                    <div>
+                      {{ formatMoneyWithSymbol(props.row.amount) }}
+                    </div>
+                  </div>
+                  <div
+                    v-if="true"
+                    class="text-grey-8 text-bold row justify-between"
+                  >
+                    <div>
+                      <q-icon class="inline-icon" name="balance" /> Saldo:
+                    </div>
+                    <div>
+                      {{ formatMoneyWithSymbol(props.row.running_balance) }}
+                    </div>
+                  </div>
                 </div>
               </template>
-            </q-td>
-
-            <q-td key="datetime" :props="props">
-              {{ formatDateTime(props.row.datetime) }}
             </q-td>
 
             <q-td key="supplier_id" :props="props">
               <div class="text-bold">{{ props.row.supplier?.name }}</div>
               <div class="text-caption text-grey">
-                {{ props.row.supplier?.company || props.row.supplier?.code }}
+                {{ props.row.supplier?.code }}
               </div>
             </q-td>
 
-            <q-td key="type" :props="props">
-              <q-badge outline color="secondary">
-                {{ props.row.type_label }}
-              </q-badge>
-              <div
-                v-if="props.row.ref"
-                class="text-caption text-grey-8 q-mt-xs"
-              >
-                Ref: {{ props.row.ref.code || "#" + props.row.ref.id }}
-              </div>
-            </q-td>
-
+            <!-- Kolom Mutasi -->
             <q-td key="amount" :props="props" class="text-right">
-              <!-- Positif (Utang Nambah) = Warning, Negatif (Bayar) = Good -->
               <div
                 :class="
-                  props.row.amount < 0
-                    ? 'text-red text-bold'
-                    : 'text-green text-bold'
+                  props.row.amount >= 0
+                    ? 'text-positive text-bold'
+                    : 'text-negative text-bold'
                 "
               >
                 {{ formatNumberWithSymbol(props.row.amount) }}
               </div>
             </q-td>
 
+            <!-- Kolom Saldo Berjalan -->
             <q-td
               key="running_balance"
               :props="props"
@@ -324,6 +336,7 @@ const showAttachment = (url) => {
 
             <q-td key="action" :props="props">
               <div class="flex justify-end no-wrap">
+                <!-- Lihat Bukti -->
                 <q-btn
                   v-if="props.row.image_path"
                   icon="image"
@@ -336,13 +349,14 @@ const showAttachment = (url) => {
                   <q-tooltip>Lihat Bukti</q-tooltip>
                 </q-btn>
 
+                <!-- Hapus (Hanya jika tidak ada ref otomatis dari sistem) -->
                 <q-btn
                   v-if="
                     !props.row.ref_type && $can('admin.supplier-ledger.delete')
                   "
-                  size="sm"
                   icon="delete"
                   color="negative"
+                  size="sm"
                   dense
                   flat
                   rounded
@@ -351,6 +365,7 @@ const showAttachment = (url) => {
                   <q-tooltip>Hapus</q-tooltip>
                 </q-btn>
 
+                <!-- Jika ada ref_type, disable delete & kasih tooltip -->
                 <q-btn
                   v-else
                   icon="lock"
@@ -360,7 +375,9 @@ const showAttachment = (url) => {
                   rounded
                   disable
                 >
-                  <q-tooltip>Transaksi Otomatis</q-tooltip>
+                  <q-tooltip
+                    >Transaksi Otomatis (Tidak bisa dihapus manual)</q-tooltip
+                  >
                 </q-btn>
               </div>
             </q-td>

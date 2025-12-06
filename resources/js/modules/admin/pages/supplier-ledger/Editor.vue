@@ -48,8 +48,8 @@ const form = useForm({
 
 // Helper untuk label dinamis pada Akun Keuangan
 const financeAccountLabel = computed(() => {
-  if (form.type === "payment") return "Masuk ke Kas (Opsional)";
-  if (form.type === "return") return "Keluar dari Kas (Opsional)";
+  if (form.type === "payment") return "Keluar dari Kas (Opsional)";
+  if (form.type === "return") return "Masuk ke Kas (Opsional)";
   return "Akun Keuangan Terkait (Opsional)";
 });
 

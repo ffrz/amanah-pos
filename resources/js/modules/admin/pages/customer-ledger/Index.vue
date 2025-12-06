@@ -8,7 +8,7 @@ import {
   formatDateTime,
   formatNumber,
   formatNumberWithSymbol,
-  plusMinusSymbol,
+  formatMoneyWithSymbol,
 } from "@/helpers/formatter";
 import useTableHeight from "@/composables/useTableHeight";
 import LongTextView from "@/components/LongTextView.vue";
@@ -45,7 +45,6 @@ const pagination = ref({
 });
 
 const columns = [
-  { name: "code", label: "Kode", field: "code", align: "left" },
   {
     name: "datetime",
     label: "Waktu",
@@ -59,7 +58,6 @@ const columns = [
     field: "customer_id",
     align: "left",
   },
-  { name: "type", label: "Jenis", field: "type", align: "left" },
   { name: "amount", label: "Mutasi (Rp)", field: "amount", align: "right" },
   {
     name: "running_balance",
@@ -111,7 +109,9 @@ const onFilterChange = () => {
 
 const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return columns;
-  return columns.filter((col) => col.name === "code" || col.name === "action");
+  return columns.filter(
+    (col) => col.name === "datetime" || col.name === "action"
+  );
 });
 
 const activeImagePath = ref(null);
@@ -243,58 +243,68 @@ const showAttachment = (url) => {
             "
           >
             <!-- Kolom Kode & Info Dasar -->
-            <q-td key="code" :props="props" class="wrap-column">
-              <div class="text-bold text-primary">{{ props.row.code }}</div>
+            <q-td key="datetime" :props="props" class="wrap-column">
+              <div class="text-bold text-primary">
+                <q-icon class="inline-icon" name="tag" />
+                {{ props.row.code }}
+
+                <q-badge color="primary" class="q-ml-sm">
+                  {{ props.row.type_label }}
+                </q-badge>
+              </div>
+
               <div class="text-caption text-grey-7">
+                <q-icon class="inline-icon" name="calendar_today" />
                 {{ formatDateTime(props.row.datetime) }}
               </div>
 
-              <!-- Tampilan Mobile: Detail digabung -->
+              <div
+                v-if="props.row.ref"
+                class="text-caption text-grey-8 q-mt-xs"
+              >
+                <q-icon class="inline-icon" name="tag" />
+                Ref: {{ props.row.ref.code || "#" + props.row.ref.id }}
+              </div>
+
               <template v-if="!$q.screen.gt.sm">
-                <div class="q-mt-xs">
-                  <q-badge color="grey-3" text-color="black">{{
-                    props.row.type_label
-                  }}</q-badge>
-                </div>
                 <div class="q-mt-xs text-bold">
+                  <q-icon class="inline-icon" name="person" />
+                  {{ props.row.customer?.code }} -
                   {{ props.row.customer?.name }}
                 </div>
-                <div class="row justify-between q-mt-sm">
-                  <span
+                <div>
+                  <div
                     :class="
                       props.row.amount >= 0 ? 'text-green-8' : 'text-red-8'
                     "
+                    class="row justify-between"
                   >
-                    {{ plusMinusSymbol(props.row.amount) }}
-                    {{ formatNumber(Math.abs(props.row.amount)) }}
-                  </span>
-                  <span class="text-grey-8 text-bold">
-                    Saldo: {{ formatNumber(props.row.running_balance) }}
-                  </span>
+                    <div>
+                      <q-icon class="inline-icon" name="paid" /> Jumlah:
+                    </div>
+                    <div>
+                      {{ formatMoneyWithSymbol(props.row.amount) }}
+                    </div>
+                  </div>
+                  <div
+                    v-if="true"
+                    class="text-grey-8 text-bold row justify-between"
+                  >
+                    <div>
+                      <q-icon class="inline-icon" name="balance" /> Saldo:
+                    </div>
+                    <div>
+                      {{ formatMoneyWithSymbol(props.row.running_balance) }}
+                    </div>
+                  </div>
                 </div>
               </template>
-            </q-td>
-
-            <q-td key="datetime" :props="props">
-              {{ formatDateTime(props.row.datetime) }}
             </q-td>
 
             <q-td key="customer_id" :props="props">
               <div class="text-bold">{{ props.row.customer?.name }}</div>
               <div class="text-caption text-grey">
                 {{ props.row.customer?.code }}
-              </div>
-            </q-td>
-
-            <q-td key="type" :props="props">
-              <q-badge outline color="primary">
-                {{ props.row.type_label }}
-              </q-badge>
-              <div
-                v-if="props.row.ref"
-                class="text-caption text-grey-8 q-mt-xs"
-              >
-                Ref: {{ props.row.ref.code || "#" + props.row.ref.id }}
               </div>
             </q-td>
 
@@ -307,8 +317,7 @@ const showAttachment = (url) => {
                     : 'text-negative text-bold'
                 "
               >
-                {{ plusMinusSymbol(props.row.amount) }}
-                {{ formatNumber(Math.abs(props.row.amount)) }}
+                {{ formatNumberWithSymbol(props.row.amount) }}
               </div>
             </q-td>
 
@@ -316,7 +325,7 @@ const showAttachment = (url) => {
             <q-td
               key="running_balance"
               :props="props"
-              class="text-right bg-grey-1 text-bold"
+              class="text-right text-bold"
             >
               {{ formatNumber(props.row.running_balance) }}
             </q-td>
@@ -347,12 +356,13 @@ const showAttachment = (url) => {
                   "
                   icon="delete"
                   color="negative"
+                  size="sm"
                   dense
                   flat
                   rounded
                   @click.stop="deleteItem(props.row)"
                 >
-                  <q-tooltip>Hapus (Revisi Saldo)</q-tooltip>
+                  <q-tooltip>Hapus</q-tooltip>
                 </q-btn>
 
                 <!-- Jika ada ref_type, disable delete & kasih tooltip -->
