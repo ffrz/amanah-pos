@@ -8,6 +8,7 @@ import {
   formatDateTime,
   formatNumber,
   plusMinusSymbol,
+  formatNumberWithSymbol,
 } from "@/helpers/formatter";
 import useTableHeight from "@/composables/useTableHeight";
 import LongTextView from "@/components/LongTextView.vue";
@@ -261,9 +262,7 @@ const showAttachment = (url) => {
                   <!-- Note: Di Supplier Ledger, Positif = Hutang Nambah (Merah bagi kita?), Negatif = Bayar (Hijau?)
                          Atau konsisten saja: Positif = Nilai nambah, Negatif = Nilai kurang. -->
                   <span
-                    :class="
-                      props.row.amount >= 0 ? 'text-orange-9' : 'text-green-8'
-                    "
+                    :class="props.row.amount >= 0 ? 'text-green' : 'text-red'"
                   >
                     {{ plusMinusSymbol(props.row.amount) }}
                     {{ formatNumber(Math.abs(props.row.amount)) }}
@@ -302,20 +301,19 @@ const showAttachment = (url) => {
               <!-- Positif (Utang Nambah) = Warning, Negatif (Bayar) = Good -->
               <div
                 :class="
-                  props.row.amount >= 0
-                    ? 'text-orange-9 text-bold'
-                    : 'text-green-8 text-bold'
+                  props.row.amount < 0
+                    ? 'text-red text-bold'
+                    : 'text-green text-bold'
                 "
               >
-                {{ plusMinusSymbol(props.row.amount) }}
-                {{ formatNumber(Math.abs(props.row.amount)) }}
+                {{ formatNumberWithSymbol(props.row.amount) }}
               </div>
             </q-td>
 
             <q-td
               key="running_balance"
               :props="props"
-              class="text-right bg-grey-1 text-bold"
+              class="text-right text-bold"
             >
               {{ formatNumber(props.row.running_balance) }}
             </q-td>
@@ -342,6 +340,7 @@ const showAttachment = (url) => {
                   v-if="
                     !props.row.ref_type && $can('admin.supplier-ledger.delete')
                   "
+                  size="sm"
                   icon="delete"
                   color="negative"
                   dense
@@ -349,7 +348,7 @@ const showAttachment = (url) => {
                   rounded
                   @click.stop="deleteItem(props.row)"
                 >
-                  <q-tooltip>Hapus (Revisi Saldo)</q-tooltip>
+                  <q-tooltip>Hapus</q-tooltip>
                 </q-btn>
 
                 <q-btn
