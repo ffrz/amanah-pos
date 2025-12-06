@@ -10,9 +10,7 @@ import ImageUpload from "@/components/ImageUpload.vue";
 
 const page = usePage();
 // Judul dinamis tergantung apakah edit atau buat baru
-const title =
-  (!!page.props.data.id ? "Edit" : "Catat") +
-  " Transaksi Utang / Piutang Manual";
+const title = (!!page.props.data.id ? "Edit" : "Catat") + " Utang";
 
 // Composable untuk filter dropdown supplier
 const { filteredSuppliers, filterSuppliersFn } = useSupplierFilter(
@@ -90,7 +88,7 @@ const submit = () => {
               <date-time-picker
                 autofocus
                 v-model="form.datetime"
-                label="Tanggal Transaksi"
+                label="Tanggal"
                 :error="!!form.errors.datetime"
                 :disable="form.processing"
                 hide-bottom-space
@@ -138,7 +136,7 @@ const submit = () => {
               <!-- Jumlah (Absolut) -->
               <LocaleNumberInput
                 v-model:modelValue="form.amount"
-                label="Nominal (Rp)"
+                label="Jumlah (Rp)"
                 lazyRules
                 :disable="form.processing"
                 :error="!!form.errors.amount"
@@ -172,7 +170,7 @@ const submit = () => {
                 autogrow
                 counter
                 maxlength="200"
-                label="Catatan / Keterangan"
+                label="Catatan"
                 lazy-rules
                 :disable="form.processing"
                 :error="!!form.errors.notes"

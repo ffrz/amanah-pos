@@ -16,7 +16,7 @@ import ImageViewer from "@/components/ImageViewer.vue";
 import dayjs from "dayjs";
 import DateTimePicker from "@/components/DateTimePicker.vue";
 
-const title = "Kartu Piutang Supplier";
+const title = "Daftar Utang ke Supplier";
 const $q = useQuasar();
 const showFilter = ref(false);
 const rows = ref([]);
@@ -58,7 +58,7 @@ const columns = [
     field: "supplier_id",
     align: "left",
   },
-  { name: "amount", label: "Mutasi (Rp)", field: "amount", align: "right" },
+  { name: "amount", label: "Jumlah (Rp)", field: "amount", align: "right" },
   {
     name: "running_balance",
     label: "Saldo (Rp)",

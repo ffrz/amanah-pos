@@ -71,7 +71,7 @@ class CustomerLedger extends BaseModel
     const Types = [
         self::Type_Invoice        => 'Tagihan Penjualan',
         self::Type_Refund         => 'Pengembalian Dana',
-        self::Type_OpeningBalance => 'Saldo Awal',
+        self::Type_OpeningBalance => 'Saldo Awal Piutang',
         self::Type_Payment        => 'Pembayaran Masuk',
         self::Type_CreditNote     => 'Retur Penjualan',
         self::Type_Adjustment     => 'Penyesuaian',

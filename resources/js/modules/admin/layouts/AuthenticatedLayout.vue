@@ -424,7 +424,7 @@ defineExpose({
                 <q-icon name="moving" />
               </q-item-section>
               <q-item-section>
-                <q-item-label>Utang / Piutang</q-item-label>
+                <q-item-label>Piutang</q-item-label>
               </q-item-section>
             </q-item>
           </q-expansion-item>
@@ -522,7 +522,7 @@ defineExpose({
                 <q-icon name="moving" />
               </q-item-section>
               <q-item-section>
-                <q-item-label>Utang / Piutang</q-item-label>
+                <q-item-label>Utang</q-item-label>
               </q-item-section>
             </q-item>
           </q-expansion-item>

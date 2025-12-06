@@ -5,6 +5,7 @@ import { ref } from "vue";
 import MainInfoTab from "./detail/MainInfoTab.vue";
 import WalletHistoryTab from "./detail/WalletHistoryTab.vue";
 import OrderHistoryTab from "./detail/OrderHistoryTab.vue";
+import LedgerHistoryTab from "./detail/LedgerHistoryTab.vue";
 // import DocumentVersionHistoryList from "@/components/DocumentVersionHistoryList.vue";
 
 const page = usePage();
@@ -85,7 +86,8 @@ const $q = useQuasar();
               switch-indicator
             >
               <q-tab name="main" label="Info Utama" />
-              <q-tab name="history" label="Riwayat Deposit" />
+              <q-tab name="wallet-history" label="Riwayat Deposit" />
+              <q-tab name="ledger-history" label="Riwayat Utang" />
               <q-tab name="order-history" label="Riwayat Order" />
               <!-- <q-tab name="version-history" label="Riwayat Dokumen" /> -->
             </q-tabs>
@@ -93,12 +95,16 @@ const $q = useQuasar();
               <q-tab-panel name="main">
                 <MainInfoTab />
               </q-tab-panel>
-              <q-tab-panel name="history" class="q-pa-xs">
+              <q-tab-panel name="wallet-history" class="q-pa-xs">
                 <WalletHistoryTab />
+              </q-tab-panel>
+              <q-tab-panel name="ledger-history" class="q-pa-xs">
+                <LedgerHistoryTab />
               </q-tab-panel>
               <q-tab-panel name="order-history" class="q-pa-xs">
                 <OrderHistoryTab />
               </q-tab-panel>
+
               <!-- <q-tab-panel name="version-history" class="q-pa-xs">
                 <DocumentVersionHistoryList
                   :document-id="page.props.data.id"

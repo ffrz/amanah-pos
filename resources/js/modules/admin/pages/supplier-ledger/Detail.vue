@@ -3,7 +3,7 @@ import { formatDateTime, formatMoneyWithSymbol } from "@/helpers/formatter";
 import { usePage, router } from "@inertiajs/vue3";
 
 const page = usePage();
-const title = "Rincian Transaksi Utang / Piutang";
+const title = "Rincian Transaksi Utang";
 const data = page.props.data;
 </script>
 
