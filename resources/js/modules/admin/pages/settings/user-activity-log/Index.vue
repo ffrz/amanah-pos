@@ -8,6 +8,8 @@ import useTableHeight from "@/composables/useTableHeight";
 import { showError, showInfo } from "@/composables/useNotify";
 import { formatDateTime } from "@/helpers/formatter";
 import { useTableClickProtection } from "@/composables/useTableClickProtection";
+import DateTimePicker from "@/components/DateTimePicker.vue";
+import dayjs from "dayjs";
 
 const page = usePage();
 const title = "Log Aktifitas Pengguna";
@@ -21,6 +23,8 @@ const tableHeight = useTableHeight(filterToolbarRef);
 const { protectClick } = useTableClickProtection();
 
 const filter = reactive({
+  start_date: dayjs().startOf("month").toDate(),
+  end_date: dayjs().endOf("month").toDate(),
   user_id: "all",
   activity_category: "all",
   activity_name: "all",
@@ -32,7 +36,7 @@ const pagination = ref({
   page: 1,
   rowsPerPage: 10,
   rowsNumber: 10,
-  sortBy: "id",
+  sortBy: "logged_at",
   descending: true,
 });
 
@@ -125,13 +129,6 @@ const filterActivityNames = (val, update) => {
 
 const columns = [
   {
-    name: "id",
-    label: $q.screen.lt.md ? "Log Item" : "ID",
-    field: "id",
-    align: "left",
-    sortable: true,
-  },
-  {
     name: "logged_at",
     label: "Waktu",
     field: "logged_at",
@@ -143,28 +140,24 @@ const columns = [
     label: "Pengguna",
     field: "username",
     align: "left",
-    sortable: true,
   },
   {
     name: "activity_category",
     label: "Kategori Aktifitas",
     field: "activity_category",
     align: "left",
-    sortable: true,
   },
   {
     name: "activity_name",
     label: "Nama Aktifitas",
     field: "activity_name",
     align: "left",
-    sortable: true,
   },
   {
     name: "description",
     label: "Deskripsi",
     field: "description",
     align: "left",
-    sortable: true,
   },
   {
     name: "action",
@@ -205,7 +198,9 @@ const protectedRowClick = protectClick(onRowClicked);
 
 const computedColumns = computed(() => {
   if ($q.screen.gt.sm) return columns;
-  return columns.filter((col) => col.name === "id" || col.name === "action");
+  return columns.filter(
+    (col) => col.name === "logged_at" || col.name === "action"
+  );
 });
 
 const confirmClear = () => {
@@ -213,12 +208,12 @@ const confirmClear = () => {
   // lalu ganti penggunaan seluruh dialog di aplikasi agar lebih seragam dan mudah dimaintain!
   Dialog.create({
     title: "PERINGATAN: Hapus Permanen Log",
-    message: `Anda yakin ingin menghapus SELURUH log aktivitas pengguna? Aksi ini tidak dapat dibatalkan dan akan menghapus semua rekaman riwayat.`,
+    message: `Anda yakin ingin menghapus log aktivitas pengguna berdasarkan filter yang sedang aktif? Aksi ini tidak dapat dibatalkan dan akan menghapus rekaman riwayat berdasakran filter yang sedang dipilih.`,
     focus: "cancel",
     cancel: true,
     persistent: true,
     ok: {
-      label: "YA, HAPUS SEKARANG",
+      label: "YA, HAPUS PERMANEN",
       color: "negative",
     },
     cancel: {
@@ -226,7 +221,16 @@ const confirmClear = () => {
     },
   }).onOk(() => {
     axios
-      .post(route("admin.user-activity-log.clear"))
+      .post(route("admin.user-activity-log.clear"), {
+        filter: {
+          start_date: filter.start_date,
+          end_date: filter.end_date,
+          user_id: filter.user_id,
+          activity_category: filter.activity_category,
+          activity_name: filter.activity_name,
+          search: filter.search,
+        },
+      })
       .then(() => {
         showInfo("Seluruh log telah dibersihkan.");
         fetchItems();
@@ -269,6 +273,26 @@ const confirmClear = () => {
     <template #header v-if="showFilter">
       <q-toolbar class="filter-bar" ref="filterToolbarRef">
         <div class="row q-col-gutter-xs items-center q-pa-sm full-width">
+          <DateTimePicker
+            v-model="filter.start_date"
+            label="Mulai Tanggal"
+            dense
+            outlined
+            class="col-xs-12 col-sm-2"
+            @update:model-value="onFilterChange"
+            hide-bottom-space
+            date-only
+          />
+          <DateTimePicker
+            v-model="filter.end_date"
+            label="Sampai Tanggal"
+            dense
+            outlined
+            class="col-xs-12 col-sm-2"
+            @update:model-value="onFilterChange"
+            hide-bottom-space
+            date-only
+          />
           <q-select
             v-model="filter.user_id"
             class="custom-select col-xs-12 col-sm-2"
@@ -366,19 +390,12 @@ const confirmClear = () => {
             class="cursor-pointer"
             @click.stop="protectedRowClick(props.row, $event)"
           >
-            <q-td key="id" :props="props">
+            <q-td key="logged_at" :props="props">
               <div>
-                <template v-if="$q.screen.lt.md">
-                  <q-icon name="tag" class="inline-icon" />
-                  ID Aktifitas:
-                </template>
-                {{ props.row.id }}
+                <q-icon name="calendar_clock" class="inline-icon" />
+                {{ formatDateTime(props.row.logged_at) }}
               </div>
               <div v-if="$q.screen.lt.md">
-                <div>
-                  <q-icon name="calendar_clock" class="inline-icon" />
-                  {{ formatDateTime(props.row.logged_at) }}
-                </div>
                 <div>
                   <q-icon name="person" class="inline-icon" />
                   <i-link
@@ -400,9 +417,6 @@ const confirmClear = () => {
                   {{ props.row.description }}
                 </div>
               </div>
-            </q-td>
-            <q-td key="logged_at" :props="props">
-              {{ formatDateTime(props.row.logged_at) }}
             </q-td>
             <q-td key="username" :props="props">
               <i-link

@@ -89,9 +89,9 @@ class UserActivityLogController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function clear()
+    public function clear(Request $request)
     {
-        $this->userActivityLogService->clear();
+        $this->userActivityLogService->clear($request->input('filter', []));
 
         return JsonResponseHelper::success(null, "Semua log aktifitas telah dibersihkan!");
     }

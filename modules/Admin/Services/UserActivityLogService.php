@@ -66,16 +66,24 @@ class UserActivityLogService
         return UserActivityLog::with('user')->findOrFail($id);
     }
 
-    public function clear()
+    public function clear(array $filter)
     {
         $user = Auth::user();
 
-        UserActivityLog::truncate();
+        $q = UserActivityLog::query();
+
+        $this->applyFilter($q, $filter);
+
+        $deletedCount = $q->delete();
 
         $this->log(
             UserActivityLog::Category_UserActivityLog,
             UserActivityLog::Name_UserActivityLog_Clear,
-            "Pengguna '$user->username' telah membersihkan riwayat aktifitas pengguna.",
+            "Pengguna '$user->username' telah menghapus $deletedCount baris riwayat aktifitas pengguna.",
+            [
+                'deleted_count' => $deletedCount,
+                'filter' => $filter,
+            ]
         );
     }
 
@@ -91,6 +99,19 @@ class UserActivityLogService
         $filter = $options['filter'];
 
         $q = UserActivityLog::query();
+
+        $this->applyFilter($q, $filter);
+
+        $q->orderBy($options['order_by'], $options['order_type']);
+
+        $q->select(['id', 'logged_at', 'activity_name', 'activity_category', 'description', 'user_id', 'username']);
+
+        // TODO: Wajib ganti ke cursor pagination, jangan lupa indexing di database!
+        return $q->paginate($options['per_page'])->withQueryString();
+    }
+
+    protected function applyFilter($q, array $filter)
+    {
         if (!empty($filter['user_id']) && $filter['user_id'] != 'all') {
             $q->where('user_id', $filter['user_id']);
         }
@@ -109,10 +130,12 @@ class UserActivityLogService
             });
         }
 
-        $q->orderBy($options['order_by'], $options['order_type']);
+        if (!empty($filter['start_date'])) {
+            $q->where('logged_at', '>=', $filter['start_date']);
+        }
 
-        $q->select(['id', 'logged_at', 'activity_name', 'activity_category', 'description', 'user_id', 'username']);
-
-        return $q->paginate($options['per_page'])->withQueryString();
+        if (!empty($filter['end_date'])) {
+            $q->where('logged_at', '<=', $filter['end_date']);
+        }
     }
 }
