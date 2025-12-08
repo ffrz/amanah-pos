@@ -20,6 +20,7 @@ use App\Models\Traits\HasTransactionCode;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
 
@@ -85,11 +86,13 @@ class CustomerLedger extends BaseModel
     const RefType_SalesOrder = 'sales_order';
     const RefType_SalesOrderPayment = 'sales_order_payment';
     const RefType_SalesOrderReturn = 'sales_order_return';
+    const RefType_SalesOrderRefund = 'sales_order_refund';
 
     const RefTypes = [
         self::RefType_SalesOrder => 'Order Penjualan',
         self::RefType_SalesOrderPayment => 'Pembayaran Penjualan',
         self::RefType_SalesOrderReturn => 'Retur Penjualan',
+        self::RefType_SalesOrderRefund => 'Refund Penjualan',
     ];
 
     protected function casts(): array
@@ -110,6 +113,20 @@ class CustomerLedger extends BaseModel
             'updated_at' => 'datetime',
             'image_path' => 'string'
         ];
+    }
+
+    protected static function booted()
+    {
+        // Panggil parent boot jika ada logika parent yang perlu jalan
+        // parent::booted(); 
+
+        // Daftarkan mapping di sini
+        Relation::morphMap([
+            self::RefType_SalesOrder => SalesOrder::class,
+            self::RefType_SalesOrderPayment => SalesOrderPayment::class,
+            self::RefType_SalesOrderReturn  => SalesOrderReturn::class,
+            self::RefType_SalesOrderRefund  => SalesOrderPayment::class,
+        ]);
     }
 
     public function getTypeLabelAttribute()

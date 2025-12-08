@@ -18,6 +18,7 @@ namespace Modules\Admin\Services;
 
 use App\Exceptions\BusinessRuleViolationException;
 use App\Models\Customer;
+use App\Models\CustomerLedger;
 use App\Models\CustomerWalletTransaction;
 use App\Models\FinanceAccount;
 use App\Models\FinanceTransaction;
@@ -40,35 +41,35 @@ class SalesOrderReturnRefundService
     }
 
     // OK
-    public function addRefund(SalesOrderReturn $order, array $data): void
+    public function addRefund(SalesOrderReturn $soReturn, array $data): void
     {
-        $this->ensureOrderIsProcessable($order);
+        $this->ensureOrderIsProcessable($soReturn);
 
         if ($data['amount'] <= 0) {
             throw new BusinessRuleViolationException('Jumlah refund harus lebih dari nol.');
         }
 
-        // if ($data['amount'] > ($order->salesOrder->total_paid - $order->total_refunded)) {
+        // if ($data['amount'] > ($soReturn->salesOrder->total_paid - $soReturn->total_refunded)) {
         //     throw new BusinessRuleViolationException('Jumlah refund melebihi batas yang diperbolehkan.');
         // }
 
-        // if ($order->remaining_refund <= 0) {
+        // if ($soReturn->remaining_refund <= 0) {
         //     throw new BusinessRuleViolationException('Pesanan ini sudah lunas.');
         // }
 
-        DB::transaction(function () use ($order, $data) {
+        DB::transaction(function () use ($soReturn, $data) {
             $amount = intval($data['amount']);
-            $result = $this->processAndValidatePaymentMethod($order, $data['id'], $amount);
-            $refund = $this->createRefundRecord($order, $result);
+            $result = $this->processAndValidatePaymentMethod($soReturn, $data['id'], $amount);
+            $refund = $this->createRefundRecord($soReturn, $result);
             $this->processFinancialRecords($refund);
-            $order->updateBalanceAndStatus();
-            $order->save();
+            $soReturn->updateBalanceAndStatus();
+            $soReturn->save();
 
-            if ($order->sales_order_id) {
+            if ($soReturn->sales_order_id) {
                 /**
                  * @var SalesOrder
                  */
-                $salesOrder = $order->salesOrder;
+                $salesOrder = $soReturn->salesOrder;
                 if ($salesOrder) {
                     $salesOrder->updateTotals();
                     $salesOrder->save();
@@ -76,12 +77,21 @@ class SalesOrderReturnRefundService
 
                 $customer = $salesOrder->customer;
                 if ($customer) {
-                    $this->customerService->addToBalance($customer, -abs($refund->amount));
+                    app(CustomerLedgerService::class)->save([
+                        'customer_id' => $soReturn->customer_id,
+                        'datetime'    => now(),
+                        'type'        => CustomerLedger::Type_Refund,
+                        'amount'      => abs($amount),
+                        'notes'       => 'Refund tagihan transaksi penjualan #' . $soReturn->code . ' refund #' . $refund->code,
+                        'ref_type'    => CustomerLedger::RefType_SalesOrderRefund,
+                        'ref_id'      => $refund->id,
+                    ]);
+                    // $this->customerService->addToBalance($customer, -abs($refund->amount));
                 }
             }
 
-            $order->updateBalanceAndStatus();
-            $order->save();
+            $soReturn->updateBalanceAndStatus();
+            $soReturn->save();
         });
     }
 
@@ -137,11 +147,6 @@ class SalesOrderReturnRefundService
                     $salesOrder->updateTotals();
                     $salesOrder->save();
                 }
-
-                $customer = $salesOrder->customer;
-                if ($customer && $amount != 0) {
-                    $this->customerService->addToBalance($customer, abs($amount));
-                }
             }
 
             $returnOrder->updateBalanceAndStatus();
@@ -175,6 +180,11 @@ class SalesOrderReturnRefundService
             $this->reverseFinancialRecords($refund);
             $refund->delete();
             $total_amount += $refund->amount;
+
+            app(CustomerLedgerService::class)->deleteByRef(
+                CustomerLedger::RefType_SalesOrderRefund,
+                $refund->id
+            );
         }
         return $total_amount;
     }

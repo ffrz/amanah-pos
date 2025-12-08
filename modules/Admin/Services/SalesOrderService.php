@@ -18,6 +18,7 @@ namespace Modules\Admin\Services;
 
 use App\Exceptions\BusinessRuleViolationException;
 use App\Models\Customer;
+use App\Models\CustomerLedger;
 use App\Models\Product;
 use App\Models\SalesOrder;
 use App\Models\SalesOrderReturn;
@@ -271,7 +272,15 @@ class SalesOrderService
 
             // catat utang piutang
             if ($order->customer_id && $order->balance != 0) {
-                $this->customerService->addToBalance($order->customer, $order->balance);
+                app(CustomerLedgerService::class)->save([
+                    'customer_id' => $order->customer_id,
+                    'datetime'    => now(),
+                    'type'        => CustomerLedger::Type_Invoice,
+                    'amount'      => abs($order->balance),
+                    'notes'       => 'Tagihan transaksi penjualan #' . $order->code,
+                    'ref_type'    => CustomerLedger::RefType_SalesOrder,
+                    'ref_id'      => $order->id,
+                ]);
             }
 
             // Perbarui stok produk secara massal
@@ -331,6 +340,12 @@ class SalesOrderService
         return $payments;
     }
 
+    /**
+     * Menghapus order penjualan beserta semua data terkaitnya.
+     * - Menghapus seluruh pembayaran terkait jika order sudah ditutup
+     * - Mengembalikan stok produk jika order sudah ditutup
+     * STATUS: OK
+     */
     public function deleteOrder(SalesOrder $order)
     {
         $cashierSession = $order->cashierSession;
@@ -350,10 +365,11 @@ class SalesOrderService
 
             $order->delete();
 
-            if ($order->status == SalesOrder::Status_Closed) {
-                if ($order->customer_id && $order->balance != 0) {
-                    $this->customerService->addToBalance($order->customer, abs($order->grand_total));
-                }
+            if ($order->status == SalesOrder::Status_Closed && $order->customer_id) {
+                app(CustomerLedgerService::class)->deleteByRef(
+                    CustomerLedger::RefType_SalesOrder,
+                    $order->id
+                );
             }
         });
     }

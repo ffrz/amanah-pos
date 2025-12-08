@@ -17,6 +17,7 @@
 namespace Modules\Admin\Services;
 
 use App\Exceptions\BusinessRuleViolationException;
+use App\Models\CustomerLedger;
 use App\Models\Product;
 use App\Models\SalesOrder;
 use App\Models\SalesOrderReturn;
@@ -233,7 +234,15 @@ class SalesOrderReturnService
 
             $customer = $salesOrderReturn->customer;
             if ($customer && $balanceDelta != 0) {
-                $customer = $this->customerService->addToBalance($customer, $balanceDelta);
+                app(CustomerLedgerService::class)->save([
+                    'customer_id' => $customer->id,
+                    'datetime'    => now(),
+                    'type'        => CustomerLedger::Type_CreditNote,
+                    'amount'      => abs($balanceDelta),
+                    'notes'       => 'Retur transaksi penjualan #' . $salesOrderReturn->code,
+                    'ref_type'    => CustomerLedger::RefType_SalesOrderReturn,
+                    'ref_id'      => $salesOrderReturn->id,
+                ]);
             }
 
             // kita harus update lagi karena sebelumnya order belum diupdate
@@ -252,6 +261,13 @@ class SalesOrderReturnService
             if ($return->status == SalesOrderReturn::Status_Closed) {
                 $this->reverseStock($return);
                 $this->refundService->deleteRefunds($return);
+
+                if ($return->customer_id) {
+                    app(CustomerLedgerService::class)->deleteByRef(
+                        CustomerLedger::RefType_SalesOrderReturn,
+                        $return->id
+                    );
+                }
             }
 
             $return->delete();
@@ -261,17 +277,9 @@ class SalesOrderReturnService
                  * @var SalesOrder
                  */
                 $order = $return->salesOrder;
-                $balanceDelta = 0;
                 if ($order) {
-                    $oldBalance = $order->balance;
                     $order->updateTotals();
                     $order->save();
-                    $balanceDelta = $order->balance - $oldBalance;
-                }
-
-                $customer = $return->customer;
-                if ($customer && $balanceDelta != 0) {
-                    $this->customerService->addToBalance($customer, $balanceDelta);
                 }
             }
         });

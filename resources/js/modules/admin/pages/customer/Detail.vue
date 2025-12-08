@@ -87,7 +87,7 @@ const $q = useQuasar();
             >
               <q-tab name="main" label="Info Utama" />
               <q-tab name="wallet-history" label="Riwayat Deposit" />
-              <q-tab name="ledger-history" label="Riwayat Utang" />
+              <q-tab name="ledger-history" label="Riwayat Piutang" />
               <q-tab name="order-history" label="Riwayat Order" />
               <!-- <q-tab name="version-history" label="Riwayat Dokumen" /> -->
             </q-tabs>

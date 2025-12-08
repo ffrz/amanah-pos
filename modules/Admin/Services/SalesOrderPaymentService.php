@@ -18,6 +18,7 @@ namespace Modules\Admin\Services;
 
 use App\Exceptions\BusinessRuleViolationException;
 use App\Models\Customer;
+use App\Models\CustomerLedger;
 use App\Models\CustomerWalletTransaction;
 use App\Models\FinanceAccount;
 use App\Models\FinanceTransaction;
@@ -55,6 +56,19 @@ class SalesOrderPaymentService
                 $payment = $this->createPaymentRecord($order, $result);
                 $this->processFinancialRecords($payment);
                 $totalPaidAmount += $amount;
+
+                if ($order->customer_id && $updateCustomerBalance) {
+                    app(CustomerLedgerService::class)->save([
+                        'customer_id' => $order->customer_id,
+                        'datetime'    => now(),
+                        'type'        => CustomerLedger::Type_Payment,
+                        'amount'      => abs($amount),
+                        'notes'       => 'Pembayaran tagihan transaksi penjualan #' . $order->code . ' payment #' . $payment->code,
+                        'ref_type'    => CustomerLedger::RefType_SalesOrderPayment,
+                        'ref_id'      => $payment->id,
+                    ]);
+                    // $this->customerService->addToBalance($order->customer, abs($totalPaidAmount));
+                }
             }
 
             if ($totalPaidAmount > $order->remaining_debt) {
@@ -63,10 +77,6 @@ class SalesOrderPaymentService
 
             $order->updateTotals();
             $order->save();
-
-            if ($order->customer_id && $updateCustomerBalance) {
-                $this->customerService->addToBalance($order->customer, abs($totalPaidAmount));
-            }
 
             foreach ($order->returns as $return) {
                 $return->updateBalanceAndStatus();
@@ -109,23 +119,25 @@ class SalesOrderPaymentService
         DB::transaction(function () use ($order) {
             // Memastikan relasi payments terload sebelum diteruskan ke impl
             $order->loadMissing('payments');
-            $delta = $this->deletePaymentsImpl($order->payments);
+            $this->deletePaymentsImpl($order->payments);
 
             $order->updateTotals();
             $order->save();
-
-            if ($order->customer_id) {
-                $this->customerService->addToBalance($order->customer, -abs($delta));
-            }
         });
     }
 
+    /**
+     * Menghapus satu pembayaran dari order, ini akan menghapus rekaman keuangan terkain
+     * serta menghapus dari ledger pelanggan jika ada.
+     * STATUS: OK
+     */
     public function deletePayment(SalesOrderPayment $payment, $updateCustomerBalance = true): void
     {
         /**
          * @var SalesOrder
          */
         $order = $payment->order;
+
         $this->ensureOrderIsProcessable($payment->order);
 
         if (!$order->customer_id) {
@@ -137,10 +149,6 @@ class SalesOrderPaymentService
 
             $order->updateTotals();
             $order->save();
-
-            if ($updateCustomerBalance && $order->customer_id) {
-                $this->customerService->addToBalance($order->customer, -abs($payment->amount));
-            }
 
             foreach ($order->returns as $return) {
                 $return->updateBalanceAndStatus();
@@ -174,6 +182,11 @@ class SalesOrderPaymentService
             $this->reverseFinancialRecords($payment);
             $payment->delete();
             $total_amount += $payment->amount;
+
+            app(CustomerLedgerService::class)->deleteByRef(
+                CustomerLedger::RefType_SalesOrderPayment,
+                $payment->id
+            );
         }
         return $total_amount;
     }

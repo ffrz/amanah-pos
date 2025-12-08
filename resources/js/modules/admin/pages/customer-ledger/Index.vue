@@ -374,6 +374,7 @@ const showAttachment = (url) => {
                   flat
                   rounded
                   disable
+                  size="sm"
                 >
                   <q-tooltip
                     >Transaksi Otomatis (Tidak bisa dihapus manual)</q-tooltip

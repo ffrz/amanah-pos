@@ -106,7 +106,7 @@ class CustomerLedgerService
                 if ($financeType) {
                     $this->financeTransactionService->handleTransaction([
                         'datetime'   => $validated['datetime'],
-                        'account_id' => $validated['finance_account_id'],
+                        'account_id' => $validated['finance_account_id'] ?? null,
                         'amount'     => $cashFlowAmount, // Gunakan nilai yang arahnya sudah benar
                         'type'       => $financeType,    // Tipe Income/Expense eksplisit
                         'notes'      => 'Transaksi pelanggan ' . $item->customer->name . ' Ref: ' . $item->code,
@@ -164,6 +164,19 @@ class CustomerLedgerService
         });
     }
 
+    public function deleteByRef(string $refType, int $refId)
+    {
+        $items = CustomerLedger::where('ref_type', $refType)
+            ->where('ref_id', $refId)
+            ->get();
+
+        foreach ($items as $item) {
+            // Bypass validasi berdasaran ref_type agar tidak melemparkan exception
+            $item->ref_type = null;
+            $this->delete($item);
+        }
+    }
+
     public function delete(CustomerLedger $item): CustomerLedger
     {
         // Validasi: Jangan hapus ledger otomatis dari Order
@@ -189,12 +202,7 @@ class CustomerLedgerService
                 ->first();
 
             if ($financeTx) {
-                // Hapus transaksi keuangan.
-                // ASUMSI: Anda menggunakan Model Observer pada FinanceTransaction 
-                // yang otomatis mengupdate saldo FinanceAccount saat di-delete.
                 $financeTx->delete();
-
-                // TODO: CEK Barangkali Terbalik
                 FinanceAccount::incrementBalance($financeTx->account_id, -$financeTx->amount);
             }
 
@@ -224,7 +232,7 @@ class CustomerLedgerService
         // 2. Create Ledger Record
         return CustomerLedger::create([
             'customer_id' => $data['customer_id'],
-            'finance_account_id' => $data['finance_account_id'],
+            'finance_account_id' => $data['finance_account_id'] ?? null,
             'datetime'    => $data['datetime'],
             'type'        => $data['type'],
             'amount'      => $data['amount'],
