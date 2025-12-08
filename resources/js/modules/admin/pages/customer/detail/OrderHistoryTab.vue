@@ -39,9 +39,9 @@ const columns = [
     align: "right",
   },
   {
-    name: "remaining_debt",
+    name: "balance",
     label: "Sisa Utang (Rp)",
-    field: "remaining_debt",
+    field: "balance",
     align: "right",
   },
   {
@@ -134,9 +134,12 @@ const computedColumns = computed(() => {
               <q-icon name="money" class="inline-icon" />
               Total: Rp. {{ formatNumber(props.row.grand_total) }}
             </div>
-            <div v-if="props.row.remaining_debt > 0">
+            <div v-if="props.row.balance != 0">
               <q-icon name="money" class="inline-icon" />
-              Sisa Utang Rp. {{ formatNumber(props.row.remaining_debt) }}
+              Sisa Utang:
+              <span :class="props.row.balance < 0 ? 'text-red' : ''">
+                Rp. {{ formatNumber(props.row.balance) }}
+              </span>
             </div>
             <div v-if="props.row.notes">
               <LongTextView
@@ -160,8 +163,12 @@ const computedColumns = computed(() => {
         <q-td key="grand_total" :props="props">
           {{ formatNumber(props.row.grand_total) }}
         </q-td>
-        <q-td key="remaining_debt" :props="props">
-          {{ formatNumber(props.row.remaining_debt) }}
+        <q-td
+          key="balance"
+          :props="props"
+          :class="props.row.balance < 0 ? 'text-red' : ''"
+        >
+          {{ formatNumber(props.row.balance) }}
         </q-td>
         <q-td key="notes" :props="props" class="wrap-column">
           <LongTextView :text="props.row.notes" />
