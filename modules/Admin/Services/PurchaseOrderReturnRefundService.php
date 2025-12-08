@@ -22,6 +22,7 @@ use App\Models\FinanceTransaction;
 use App\Models\PurchaseOrderPayment;
 use App\Models\PurchaseOrderReturn;
 use App\Models\Supplier;
+use App\Models\SupplierLedger;
 use App\Models\SupplierWalletTransaction;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
@@ -78,19 +79,16 @@ class PurchaseOrderReturnRefundService
                 $purchaseOrder->updateTotals();
                 $purchaseOrder->save();
 
-                // 5. Update Saldo Hutang Supplier (Ledger Adjustment)
-                // Logika:
-                // Saat Return dibuat -> Hutang Berkurang (Debit Supplier).
-                // Saat Refund Diterima -> Uang masuk, berarti "Debit Supplier" diselesaikan.
-                // Maka Balance Supplier harus di-Credit (Ditambah Positif/Arah ke 0).
-                // Contoh: Utang -100 (Kredit). Return barang 10. Utang jadi -90.
-                // Ternyata supplier refund cash 10. Utang -90 tetap -90?
-                // Tidak, biasanya refund merujuk pengembalian uang atas barang yg LUNAS.
-                // Jadi addToBalance di sini fungsinya menetralkan nilai retur di buku besar.
-                $supplier = $purchaseOrder->supplier;
-                if ($supplier) {
-                    // Kita kirim positif, karena kita menerima uang, artinya "piutang" ke supplier berkurang.
-                    $this->supplierService->addToBalance($supplier, -abs($inputAmount));
+                if ($return->supplier_id) {
+                    app(SupplierLedgerService::class)->save([
+                        'supplier_id' => $return->supplier_id,
+                        'datetime'    => now(),
+                        'type'        => SupplierLedger::Type_Refund,
+                        'amount'      => abs($inputAmount),
+                        'notes'       => 'Refund tagihan transaksi pembelian #' . $return->code . ' refund #' . $refund->code,
+                        'ref_type'    => SupplierLedger::RefType_PurchaseOrderRefund,
+                        'ref_id'      => $refund->id,
+                    ]);
                 }
             }
         });
@@ -156,12 +154,6 @@ class PurchaseOrderReturnRefundService
                     $purchaseOrder->updateTotals();
                     $purchaseOrder->save();
                 }
-
-                $supplier = $purchaseOrder->supplier;
-                // Reverse logic: Hapus Refund -> Uang keluar/batal masuk -> Piutang supplier muncul lagi.
-                if ($supplier && $amount != 0) {
-                    $this->supplierService->addToBalance($supplier, abs($amount));
-                }
             }
 
             $returnOrder->updateBalanceAndStatus();
@@ -193,6 +185,11 @@ class PurchaseOrderReturnRefundService
             $this->reverseFinancialRecords($refund);
             $refund->delete();
             $total_amount += $refund->amount;
+
+            app(SupplierLedgerService::class)->deleteByRef(
+                SupplierLedger::RefType_PurchaseOrderRefund,
+                $refund->id
+            );
         }
         return $total_amount;
     }

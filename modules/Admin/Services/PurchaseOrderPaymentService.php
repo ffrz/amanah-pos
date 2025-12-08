@@ -22,6 +22,7 @@ use App\Models\FinanceTransaction;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderPayment;
 use App\Models\Supplier;
+use App\Models\SupplierLedger;
 use App\Models\SupplierWalletTransaction;
 use Illuminate\Support\Facades\DB;
 
@@ -64,8 +65,16 @@ class PurchaseOrderPaymentService
                 $this->processFinancialRecords($payment);
             }
 
-            if ($updateSupplierBalance) {
-                $this->supplierService->addToBalance($order->supplier, abs($totalPaidAmount));
+            if ($order->supplier_id && $updateSupplierBalance) {
+                app(SupplierLedgerService::class)->save([
+                    'supplier_id' => $order->supplier_id,
+                    'datetime'    => now(),
+                    'type'        => SupplierLedger::Type_Payment,
+                    'amount'      => abs($amount),
+                    'notes'       => 'Pembayaran tagihan transaksi penjualan #' . $order->code . ' payment #' . $payment->code,
+                    'ref_type'    => SupplierLedger::RefType_PurchaseOrderPayment,
+                    'ref_id'      => $payment->id,
+                ]);
             }
 
             $order->updateTotals();
@@ -94,13 +103,10 @@ class PurchaseOrderPaymentService
 
             $payment->delete();
 
-            if ($updateSupplierBalance) {
-                if (!$payment->order->supplier_id) {
-                    return;
-                }
-
-                $this->supplierService->addToBalance($payment->order->supplier, -abs($payment->amount));
-            }
+            app(SupplierLedgerService::class)->deleteByRef(
+                SupplierLedger::RefType_PurchaseOrderPayment,
+                $payment->id
+            );
 
             $order->updateTotals();
             $order->save();

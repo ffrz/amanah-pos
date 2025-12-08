@@ -335,7 +335,7 @@ const showAttachment = (url) => {
             </q-td>
 
             <q-td key="action" :props="props">
-              <div class="flex justify-end no-wrap">
+              <div class="flex justify-end">
                 <!-- Lihat Bukti -->
                 <q-btn
                   v-if="props.row.image_path"
@@ -374,6 +374,7 @@ const showAttachment = (url) => {
                   flat
                   rounded
                   disable
+                  size="sm"
                 >
                   <q-tooltip
                     >Transaksi Otomatis (Tidak bisa dihapus manual)</q-tooltip

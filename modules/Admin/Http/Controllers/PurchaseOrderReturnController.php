@@ -75,14 +75,14 @@ class PurchaseOrderReturnController extends Controller
                 return redirect()
                     ->back()
                     ->withInput()
-                    ->withErrors(['code' => 'Transaksi penjualan tidak ditemukan.']);
+                    ->withErrors(['code' => 'Transaksi pembelian tidak ditemukan.']);
             }
 
             if ($PurchaseOrder->status !== PurchaseOrder::Status_Closed) {
                 return redirect()
                     ->back()
                     ->withInput()
-                    ->withErrors(['code' => 'Transaksi penjualan belum ditutup / tidak valid.']);
+                    ->withErrors(['code' => 'Transaksi pembelian belum ditutup / tidak valid.']);
             }
 
             $PurchaseOrderReturn = $this->service->createOrderReturn($PurchaseOrder);

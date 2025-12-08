@@ -24,6 +24,7 @@ use App\Models\PurchaseOrderDetail;
 use App\Models\PurchaseOrderReturn;
 use App\Models\StockMovement;
 use App\Models\Supplier;
+use App\Models\SupplierLedger;
 use App\Models\UserActivityLog;
 use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -234,7 +235,15 @@ class PurchaseOrderService
 
             $supplier = $order->supplier;
             if ($supplier && $order->balance != 0) {
-                $this->supplierService->addToBalance($supplier, $order->balance);
+                app(SupplierLedgerService::class)->save([
+                    'supplier_id' => $order->supplier_id,
+                    'datetime'    => now(),
+                    'type'        => SupplierLedger::Type_Bill,
+                    'amount'      => abs($order->balance),
+                    'notes'       => 'Tagihan transaksi pembelian #' . $order->code,
+                    'ref_type'    => SupplierLedger::RefType_PurchaseOrder,
+                    'ref_id'      => $order->id,
+                ]);
             }
 
             // catat stok
@@ -274,10 +283,11 @@ class PurchaseOrderService
 
             $order->delete();
 
-            if ($order->status == PurchaseOrder::Status_Closed) {
-                if ($order->supplier_id && $order->balance != 0) {
-                    $this->supplierService->addToBalance($order->supplier, -$order->balance);
-                }
+            if ($order->status == PurchaseOrder::Status_Closed && $order->supplier_id) {
+                app(SupplierLedgerService::class)->deleteByRef(
+                    SupplierLedger::RefType_PurchaseOrder,
+                    $order->id
+                );
             }
 
             $this->documentVersionService->createDeletedVersion($order);

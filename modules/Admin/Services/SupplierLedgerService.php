@@ -129,7 +129,7 @@ class SupplierLedgerService
                 if ($financeType) {
                     $this->financeTransactionService->handleTransaction([
                         'datetime'   => $validated['datetime'],
-                        'account_id' => $validated['finance_account_id'],
+                        'account_id' => $validated['finance_account_id'] ?? null,
                         'amount'     => $cashFlowAmount, // Gunakan nilai yang sudah disesuaikan arahnya
                         'type'       => $financeType,    // Gunakan tipe yang eksplisit
                         'notes'      => 'Transaksi pemasok ' . $item->supplier->name . ' Ref: ' . $item->code,
@@ -245,7 +245,7 @@ class SupplierLedgerService
         // 2. Create Ledger Record
         return SupplierLedger::create([
             'supplier_id' => $data['supplier_id'],
-            'finance_account_id' => $data['finance_account_id'],
+            'finance_account_id' => $data['finance_account_id'] ?? null,
             'datetime'    => $data['datetime'],
             'type'        => $data['type'],
             'amount'      => $data['amount'],
@@ -266,5 +266,17 @@ class SupplierLedgerService
         $supplier->save();
 
         return $supplier->balance;
+    }
+
+    public function deleteByRef(string $refType, int $refId)
+    {
+        $items = SupplierLedger::where('ref_type', $refType)
+            ->where('ref_id', $refId)
+            ->get();
+
+        foreach ($items as $item) {
+            $item->ref_type = null;
+            $this->delete($item);
+        }
     }
 }

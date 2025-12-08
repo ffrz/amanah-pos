@@ -21,6 +21,7 @@ use App\Models\Traits\HasTransactionCode;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
 
@@ -84,11 +85,13 @@ class SupplierLedger extends BaseModel
     const RefType_PurchaseOrder = 'purchase_order';
     const RefType_PurchaseOrderPayment = 'purchase_order_payment';
     const RefType_PurchaseOrderReturn = 'purchase_order_return';
+    const RefType_PurchaseOrderRefund = 'purchase_order_refund';
 
     const RefTypes = [
         self::RefType_PurchaseOrder => 'Order Pembelian',
         self::RefType_PurchaseOrderPayment => 'Pembayaran Pembelian',
         self::RefType_PurchaseOrderReturn => 'Retur Pembelian',
+        self::RefType_PurchaseOrderRefund => 'Refund Pembelian',
     ];
 
     protected function casts(): array
@@ -109,6 +112,18 @@ class SupplierLedger extends BaseModel
             'updated_at' => 'datetime',
             'image_path' => 'string'
         ];
+    }
+
+    protected static function booted()
+    {
+        parent::booted();
+
+        Relation::morphMap([
+            self::RefType_PurchaseOrder => PurchaseOrder::class,
+            self::RefType_PurchaseOrderPayment => PurchaseOrderPayment::class,
+            self::RefType_PurchaseOrderReturn  => PurchaseOrderReturn::class,
+            self::RefType_PurchaseOrderRefund  => PurchaseOrderPayment::class,
+        ]);
     }
 
     public function getTypeLabelAttribute()

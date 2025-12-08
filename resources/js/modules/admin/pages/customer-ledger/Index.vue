@@ -335,7 +335,7 @@ const showAttachment = (url) => {
             </q-td>
 
             <q-td key="action" :props="props">
-              <div class="flex justify-end no-wrap">
+              <div class="flex justify-end">
                 <!-- Lihat Bukti -->
                 <q-btn
                   v-if="props.row.image_path"

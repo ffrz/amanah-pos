@@ -21,6 +21,7 @@ use App\Models\Product;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderReturn;
 use App\Models\StockMovement;
+use App\Models\SupplierLedger;
 use App\Models\UserActivityLog;
 use Illuminate\Support\Facades\DB;
 
@@ -208,14 +209,20 @@ class PurchaseOrderReturnService
 
             $supplier = $return->supplier;
             if ($supplier && $balanceDelta != 0) {
-                $this->supplierService->addToBalance($supplier, $balanceDelta);
+                app(SupplierLedgerService::class)->save([
+                    'supplier_id' => $supplier->id,
+                    'datetime'    => now(),
+                    'type'        => SupplierLedger::Type_DebitNote,
+                    'amount'      => abs($balanceDelta),
+                    'notes'       => 'Retur transaksi pembelian #' . $return->code,
+                    'ref_type'    => SupplierLedger::RefType_PurchaseOrderReturn,
+                    'ref_id'      => $return->id,
+                ]);
             }
 
             // kita harus update lagi karena sebelumnya order belum diupdate
             $return->updateBalanceAndStatus();
             $return->save();
-
-            // dd($return->remaining_refund);
 
             $this->processPurchaseOrderReturnStockOut($return);
         });
@@ -228,9 +235,14 @@ class PurchaseOrderReturnService
             if ($return->status == PurchaseOrderReturn::Status_Closed) {
                 $this->reverseStock($return);
                 $this->refundService->deleteRefunds($return);
-            }
 
-            $code = $return->code;
+                if ($return->supplier_id) {
+                    app(SupplierLedgerService::class)->deleteByRef(
+                        SupplierLedger::RefType_PurchaseOrderReturn,
+                        $return->id
+                    );
+                }
+            }
 
             $return->delete();
 
@@ -239,17 +251,9 @@ class PurchaseOrderReturnService
                  * @var PurchaseOrder
                  */
                 $order = $return->purchaseOrder;
-                $balanceDelta = 0;
                 if ($order) {
-                    $oldBalance = $order->balance;
                     $order->updateTotals();
                     $order->save();
-                    $balanceDelta = $order->balance - $oldBalance;
-                }
-
-                $supplier = $return->supplier;
-                if ($supplier && $balanceDelta != 0) {
-                    $this->supplierService->addToBalance($supplier, $balanceDelta);
                 }
             }
         });

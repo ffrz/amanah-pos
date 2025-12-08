@@ -117,10 +117,8 @@ class CustomerLedger extends BaseModel
 
     protected static function booted()
     {
-        // Panggil parent boot jika ada logika parent yang perlu jalan
-        // parent::booted(); 
+        parent::booted();
 
-        // Daftarkan mapping di sini
         Relation::morphMap([
             self::RefType_SalesOrder => SalesOrder::class,
             self::RefType_SalesOrderPayment => SalesOrderPayment::class,
