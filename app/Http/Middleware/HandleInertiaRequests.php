@@ -50,7 +50,7 @@ class HandleInertiaRequests extends Middleware
     {
         $auth = [];
         $module = $request->attributes->get('module_root_view', null);
-        if ($module === 'admin') {
+        if ($module === 'admin' || $module === 'service') {
             $user = $request->user();
             if ($user) {
                 $auth['user'] = [

@@ -1,17 +1,17 @@
 import boot from "@/bootstrap";
 
 import AuthenticatedLayout from "./layouts/AuthenticatedLayout.vue";
-import GuestLayout from "./layouts/GuestLayout.vue";
+import GuestLayout from "../admin/layouts/GuestLayout.vue";
 
 import { registerSW } from "virtual:pwa-register";
 
 registerSW({
-  scope: "/admin/",
+  scope: "/service/",
   onRegistered(r) {
-    console.log("Admin Service Worker registered:", r);
+    console.log("Service Service Worker registered:", r);
   },
   onError(error) {
-    console.error("Admin SW registration failed:", error);
+    console.error("Service SW registration failed:", error);
   },
 });
 

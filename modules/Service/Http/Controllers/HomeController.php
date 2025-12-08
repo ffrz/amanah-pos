@@ -14,22 +14,15 @@
  * Email: fahmifauzirahman@gmail.com
  */
 
-return [
-    'admin' => [
-        'name' => 'admin',
-        'display_name' => 'Admin',
-        'prefix' => 'admin',
-    ],
-    'customer' => [
-        'name' => 'customer',
-        'display_name' => 'Customer',
-        'prefix' => 'customer',
-    ],
-    'service' => [
-        'name' => 'service',
-        'display_name' => 'Service',
-        'prefix' => 'service',
-    ],
+namespace Modules\Service\Http\Controllers;
 
-    // Tambah modul lain...
-];
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+
+class HomeController extends Controller
+{
+    public function index(Request $request)
+    {
+        return inertia('home/Index', []);
+    }
+}

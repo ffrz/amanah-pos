@@ -19,6 +19,7 @@ export default defineConfig({
         "resources/css/app.css",
         "resources/js/modules/admin/app.js",
         "resources/js/modules/customer/app.js",
+        "resources/js/modules/service/app.js",
       ],
       refresh: true,
     }),
@@ -84,7 +85,38 @@ export default defineConfig({
       },
       workbox: {
         maximumFileSizeToCacheInBytes: 5242880,
-        navigateFallback: "/customer",
+        navigateFallback: "/admin",
+        globPatterns: ["**/*.{js,css,html}", "pwa-*.png"],
+      },
+    }),
+    VitePWA({
+      manifestFilename: "service-manifest.webmanifest",
+      filename: "sw-service.js",
+      registerType: "autoUpdate",
+      injectRegister: "auto", // biar otomatis include registerSW, aman
+      manifest: {
+        name: "Shiftech Service Admin",
+        short_name: "Shiftech Service Admin",
+        description: "Shiftech Service Admin untuk staff.",
+        theme_color: "#ffffff",
+        background_color: "#ffffff",
+        icons: [
+          { src: "pwa-192x192.png", sizes: "192x192", type: "image/png" },
+          { src: "pwa-512x512.png", sizes: "512x512", type: "image/png" },
+          {
+            src: "pwa-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable",
+          },
+        ],
+        start_url: "/service",
+        scope: "/service/",
+        display: "standalone",
+      },
+      workbox: {
+        maximumFileSizeToCacheInBytes: 5242880,
+        navigateFallback: "/service",
         globPatterns: ["**/*.{js,css,html}", "pwa-*.png"],
       },
     }),

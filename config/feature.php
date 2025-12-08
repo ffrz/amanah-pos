@@ -15,21 +15,7 @@
  */
 
 return [
-    'admin' => [
-        'name' => 'admin',
-        'display_name' => 'Admin',
-        'prefix' => 'admin',
-    ],
-    'customer' => [
-        'name' => 'customer',
-        'display_name' => 'Customer',
-        'prefix' => 'customer',
-    ],
     'service' => [
-        'name' => 'service',
-        'display_name' => 'Service',
-        'prefix' => 'service',
+        'enabled' => env('FEATURE_SERVICE_ENABLED', false),
     ],
-
-    // Tambah modul lain...
 ];
