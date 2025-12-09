@@ -286,6 +286,7 @@ defineExpose({
               </q-item-section>
             </q-item>
           </q-expansion-item>
+
           <q-expansion-item
             v-if="
               $can('admin.sales-order.index') ||
@@ -620,6 +621,20 @@ defineExpose({
               </q-item-section>
             </q-item>
           </q-expansion-item>
+
+          <q-item
+            v-if="$config.FEATURE.SERVICE.ENABLED"
+            clickable
+            v-ripple
+            @click="$window.location.href = '/service'"
+          >
+            <q-item-section avatar>
+              <q-icon name="construction" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Servis</q-item-label>
+            </q-item-section>
+          </q-item>
 
           <q-expansion-item
             v-if="

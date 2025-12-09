@@ -113,14 +113,14 @@ defineExpose({
                   ><q-icon name="person"
                 /></q-avatar>
                 <q-item-section>
-                  <q-item-label>
-                    <my-link
-                      class="text-bold text-grey-9"
-                      :href="route('admin.user-profile.edit')"
-                    >
-                      {{ page.props.auth.user.name }}
-                    </my-link>
-                  </q-item-label>
+                  <q-item-label
+                    class="text-bold text-grey-9 cursor-pointer"
+                    @click="
+                      $window.location.href = route('admin.user-profile.edit')
+                    "
+                  >
+                    {{ page.props.auth.user.name }}</q-item-label
+                  >
                 </q-item-section>
               </q-item>
               <q-separator />
@@ -196,7 +196,11 @@ defineExpose({
             </q-item-section>
           </q-item>
 
-          <q-item clickable v-ripple @click="window.location.href = '/admin'">
+          <q-item
+            clickable
+            v-ripple
+            @click="$window.location.href = route('admin.home')"
+          >
             <q-item-section avatar>
               <q-icon name="apps" />
             </q-item-section>

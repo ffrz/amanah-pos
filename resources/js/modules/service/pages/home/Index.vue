@@ -87,7 +87,7 @@ const menuItems = {
     <q-page class="fit animated-background-container">
       <div class="q-pa-sm">
         <div class="text-h6 q-my-md text-center">
-          Selamat datang, {{ page.props.auth.user.name }}.
+          Hai, {{ page.props.auth.user.name }}. Selamat datang di Service Area.
           <q-icon name="waving_hand" class="waving-hand" />
         </div>
       </div>

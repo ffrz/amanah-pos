@@ -12,5 +12,6 @@ export default {
     app.config.globalProperties.$dayjs = dayjs;
     app.config.globalProperties.$config = window.CONFIG;
     app.config.globalProperties.$CONSTANTS = window.CONSTANTS;
+    app.config.globalProperties.$window = window;
   },
 };
