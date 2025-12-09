@@ -146,7 +146,6 @@ const submit = () => {
                 :disable="form.processing"
                 :error="!!form.errors.amount"
                 :errorMessage="form.errors.amount"
-                :rules="[(val) => val > 0 || 'Jumlah harus lebih dari 0']"
                 hide-bottom-space
               />
 
