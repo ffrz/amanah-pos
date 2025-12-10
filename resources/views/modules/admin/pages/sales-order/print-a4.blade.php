@@ -99,7 +99,11 @@
             <tfoot>
                 <tr>
                     <th class="text-right" colspan="4">Total</th>
-                    <th class="text-right">{{ format_number(abs($item->total_price)) }}</th>
+                    <th class="text-right">Rp. {{ format_number(abs($item->total_price)) }}</th>
+                </tr>
+                <tr>
+                    <th class="text-right" colspan="4">Diskon Akhir</th>
+                    <th class="text-right">Rp. {{ format_number(-$item->total_discount) }}</th>
                 </tr>
                 {{-- <tr>
                 <th colspan="4" class="text-right">Diskon</th>
@@ -115,7 +119,7 @@
             </tr> --}}
                 <tr>
                     <th class="text-right" colspan="4">Grand Total</th>
-                    <th class="text-right">{{ format_number(abs($item->grand_total)) }}</th>
+                    <th class="text-right">Rp. {{ format_number(abs($item->grand_total)) }}</th>
                 </tr>
             </tfoot>
         </table>

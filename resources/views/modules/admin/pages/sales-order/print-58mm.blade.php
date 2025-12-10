@@ -96,7 +96,17 @@
             </tr>
             <tr>
                 <td class="text-right">
-                    <b>Total: Rp. {{ format_number(abs($item->grand_total)) }}</b>
+                    <b>Total: Rp. {{ format_number($item->grand_total + $item->total_discount) }}</b>
+                </td>
+            </tr>
+            <tr>
+                <td class="text-right">
+                    <b>Diskon Akhir: Rp. -{{ format_number($item->total_discount) }}</b>
+                </td>
+            </tr>
+            <tr>
+                <td class="text-right">
+                    <b>Grand Total: Rp. {{ format_number(abs($item->grand_total)) }}</b>
                 </td>
             </tr>
             <tr>
