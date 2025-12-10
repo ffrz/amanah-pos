@@ -34,6 +34,22 @@ const print = (size) => {
     "_self"
   );
 };
+
+const getWatermarkClass = () => {
+  if (currentTab.value != "invoice") {
+    return "";
+  }
+  if (page.props.data.status == "canceled") {
+    return "canceled-label";
+  }
+  if (isPreview.value) {
+    return "draft-label";
+  }
+  if (page.props.data.payment_status == "fully_paid") {
+    return "paid-label";
+  }
+  return "unpaid-label";
+};
 </script>
 
 <template>
@@ -91,6 +107,7 @@ const print = (size) => {
           flat
           bordered
           class="full-width"
+          :class="getWatermarkClass()"
           style="max-width: 1024px"
         >
           <q-tabs

@@ -1,14 +1,12 @@
 <script setup>
-import {
-  formatDateTime,
-  formatNumber,
-  formatNumberWithSymbol,
-} from "@/helpers/formatter";
+import { formatDateTime, formatNumber } from "@/helpers/formatter";
 import { computed, ref } from "vue";
 import PaymentDialog from "./PaymentDialog.vue";
 import { useQuasar } from "quasar";
 import axios from "axios";
-import { router } from "@inertiajs/vue3";
+import { router, usePage } from "@inertiajs/vue3";
+
+const page = usePage();
 
 const props = defineProps({
   data: Object,
@@ -126,6 +124,7 @@ const deletePayment = (payment) => {
       <div class="row">
         <q-btn
           v-if="$can('admin.purchase-order-return.add-refund')"
+          :disable="page.props.data.status != 'closed'"
           label="Tambah"
           color="primary"
           icon="add"
