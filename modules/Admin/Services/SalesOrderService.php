@@ -192,6 +192,7 @@ class SalesOrderService
         $item->cashier_session_id = $activeSession ? $activeSession->id : null;
         $item->notes = $data['notes'];
         $item->datetime = $data['datetime'];
+        $item->total_discount = $data['total_discount'] ?? 0;
 
         return DB::transaction(function () use ($item) {
             $item->updateGrandTotal();

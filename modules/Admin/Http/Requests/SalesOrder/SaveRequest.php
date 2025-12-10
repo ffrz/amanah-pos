@@ -32,8 +32,9 @@ class SaveRequest extends FormRequest
         return [
             'id' => 'nullable|integer|exists:sales_orders,id',
             'customer_id' => 'nullable|integer|exists:customers,id',
-            'notes'       => 'nullable|string|max:200',
-            'datetime'    => 'nullable|date',
+            'notes' => 'nullable|string|max:200',
+            'total_discount' => 'nullable|numeric|min:0',
+            'datetime' => 'nullable|date',
         ];
     }
 

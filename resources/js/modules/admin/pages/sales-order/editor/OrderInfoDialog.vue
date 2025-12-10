@@ -98,6 +98,13 @@ defineExpose({
           :disable="isProcessing"
         />
 
+        <LocaleNumberInput
+          v-model="data.total_discount"
+          label="Diskon Akhir (Rp)"
+          hide-bottom-space
+          :disable="isProcessing"
+        />
+
         <q-input
           v-model="data.notes"
           label="Catatan"

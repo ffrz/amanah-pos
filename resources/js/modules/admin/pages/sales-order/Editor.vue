@@ -9,7 +9,6 @@ import PaymentDialog from "./editor/PaymentDialog.vue";
 import ProductBrowserDialog from "@/components/ProductBrowserDialog.vue";
 import CheckBox from "@/components/CheckBox.vue";
 import ItemEditorDialog from "./editor/ItemEditorDialog.vue";
-import DigitalClock from "@/components/DigitalClock.vue";
 import CustomerAutocomplete from "@/components/CustomerAutocomplete.vue";
 import {
   formatDateTime,
@@ -57,12 +56,15 @@ const form = reactive({
   delivery_status: page.props.data.delivery_status,
   notes: page.props.data.notes,
   items: page.props.data.details ?? [],
+  total_discount: parseFloat(page.props.data.total_discount) || 0,
 });
 
 const total = computed(() => {
-  return form.items.reduce((sum, item) => {
-    return sum + item.price * item.quantity;
-  }, 0);
+  return (
+    form.items.reduce((sum, item) => {
+      return sum + item.price * item.quantity;
+    }, 0) - form.total_discount
+  );
 });
 
 // validations
@@ -231,7 +233,7 @@ const removeItem = (item) => {
   });
 };
 
-const updateItem = () => {
+const updateItem = async () => {
   isProcessing.value = true;
   const item = itemEditorRef.value.getCurrentItem();
   const data = {
@@ -247,7 +249,7 @@ const updateItem = () => {
     data.notes = item.notes;
   }
 
-  axios
+  await axios
     .post(route("admin.sales-order.update-item"), data)
     .then((response) => {
       const item = response.data.data;
@@ -308,10 +310,6 @@ onMounted(() => {
   onUnmounted(() => {
     document.removeEventListener("keydown", handler);
   });
-
-  // nextTick(() => {
-  //   authLayoutRef?.value?.hideDrawer();
-  // });
 });
 
 const handleCustomerSelected = async (data) => {
@@ -334,13 +332,14 @@ const updateOrder = async () => {
     id: form.id,
     customer_id: form.customer_id ?? null,
     datetime: formatDateTimeForEditing(form.datetime),
+    total_discount: form.total_discount,
     notes: form.notes,
   };
 
   await axios
     .post(route("admin.sales-order.update"), data)
     .then((response) => {
-      const updated = response.data.data.id;
+      const updated = response.data.data;
       form.customer_id = updated.customer_id;
     })
     .catch((error) => {
@@ -440,14 +439,6 @@ const invoicePreview = () => {
   );
 };
 
-const isValidWalletBalance = computed(() => {
-  if (customer.value) {
-    return customer.value.wallet_balance >= total.value;
-  }
-
-  return true;
-});
-
 const isValidOrder = computed(() => {
   return (
     getCurrentInstance().appContext.config.globalProperties.$can(
@@ -546,6 +537,7 @@ const isValidOrder = computed(() => {
             <div class="text-caption text-grey-6">
               {{ form.items.length }} item(s)
             </div>
+
             <div class="text-caption text-grey-8 q-mt-xs" v-if="form.notes">
               <div class="text-bold">Catatan:</div>
               <div class="text-italic">
@@ -569,14 +561,24 @@ const isValidOrder = computed(() => {
 
           <div class="col">
             <div
-              class="row no-wrap items-start justify-between"
               style="background: #eee; padding: 10px; border: 1px solid #ddd"
             >
-              <span class="text-grey-8 text-subtitle-2 text-bold">TOTAL</span>
-              <span class="text-h4 text-weight-bold">
-                <sup style="font-size: 13px">Rp.</sup>
-                {{ formatNumber(total) }}
-              </span>
+              <div
+                v-if="form.total_discount > 0"
+                class="row no-wrap items-start justify-between"
+              >
+                <span class="text-grey-8 text-subtitle-2">DISKON AKHIR</span>
+                <span class="text-subtitle2">
+                  Rp. {{ formatNumber(form.total_discount) }}
+                </span>
+              </div>
+              <div class="row no-wrap items-start justify-between">
+                <span class="text-grey-8 text-subtitle-2 text-bold">TOTAL</span>
+                <span class="text-h4 text-weight-bold">
+                  <sup style="font-size: 13px">Rp.</sup>
+                  {{ formatNumber(total) }}
+                </span>
+              </div>
             </div>
           </div>
         </div>
