@@ -4,7 +4,9 @@ import { computed, ref } from "vue";
 import PaymentDialog from "./PaymentDialog.vue";
 import { useQuasar } from "quasar";
 import axios from "axios";
-import { router } from "@inertiajs/vue3";
+import { router, usePage } from "@inertiajs/vue3";
+
+const page = usePage();
 
 const props = defineProps({
   data: Object,
@@ -124,6 +126,7 @@ const deletePayment = (payment) => {
           dense
           class="custom-dense"
           size="sm"
+          :disable="page.props.data.status != 'closed'"
           @click.stop="openPaymentDialog()"
         />
       </div>
