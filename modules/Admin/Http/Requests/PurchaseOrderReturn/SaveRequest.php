@@ -33,6 +33,7 @@ class SaveRequest extends FormRequest
             'id' => 'nullable|integer|exists:purchase_orders,id',
             'customer_id' => 'nullable|integer|exists:suppliers,id',
             'notes'       => 'nullable|string|max:200',
+            'total_discount' => 'nullable|numeric|min:0',
             'datetime'    => 'nullable|date',
         ];
     }
@@ -47,6 +48,7 @@ class SaveRequest extends FormRequest
             'id'      => $this->id ?? null,
             'notes'    => $this->notes ?? '',
             'datetime' => $this->datetime ?? now(),
+            'total_discount' => $this->total_discount ?? 0,
         ]);
     }
 }

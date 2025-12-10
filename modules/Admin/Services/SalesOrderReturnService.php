@@ -164,6 +164,7 @@ class SalesOrderReturnService
 
         $item->notes = $data['notes'];
         $item->datetime = $data['datetime'];
+        $item->total_discount = $data['total_discount'] ?? 0;
 
         return DB::transaction(function () use ($item) {
             $item->save();

@@ -48,6 +48,7 @@ class SaveRequest extends FormRequest
             'id'      => $this->id ?? null,
             'notes'    => $this->notes ?? '',
             'datetime' => $this->datetime ?? now(),
+            'total_discount' => $this->total_discount ?? 0,
         ]);
     }
 }
