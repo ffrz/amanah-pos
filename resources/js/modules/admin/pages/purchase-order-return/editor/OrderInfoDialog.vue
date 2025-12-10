@@ -1,7 +1,7 @@
 <script setup>
 import DateTimePicker from "@/components/DateTimePicker.vue";
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
-import { computed, onMounted, onUnmounted } from "vue";
+import { onMounted, onUnmounted } from "vue";
 
 const props = defineProps({
   modelValue: {
@@ -94,6 +94,13 @@ defineExpose({
           label="Status"
           hide-bottom-space
           readonly
+          :disable="isProcessing"
+        />
+
+        <LocaleNumberInput
+          v-model="data.total_discount"
+          label="Diskon Akhir (Rp)"
+          hide-bottom-space
           :disable="isProcessing"
         />
 

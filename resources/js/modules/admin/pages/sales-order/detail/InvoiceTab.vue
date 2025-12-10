@@ -243,9 +243,9 @@ const props = defineProps({
             </div>
           </div>
         </div>
-        <div class="row justify-end q-gutter-y-xs">
+        <div class="row justify-end q-gutter-y-xs text-negative">
           <div class="col-12 row justify-between">
-            <div class="text-subtitle2 text-grey-7">Total Diskon</div>
+            <div class="text-subtitle2">Diskon Akhir</div>
             <div class="text-subtitle2 text-bold">
               Rp -{{ formatNumber(props.data.total_discount) }}
             </div>

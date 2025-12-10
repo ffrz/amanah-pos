@@ -193,18 +193,40 @@ const props = defineProps({
       <div class="col-12 col-sm-6">
         <div class="row justify-end q-gutter-y-xs">
           <div class="col-12 row justify-between">
-            <div class="text-subtitle2 text-grey-7">Grand Total (Rp)</div>
+            <div class="text-subtitle2 text-grey-7">Total</div>
             <div class="text-subtitle2 text-bold">
-              {{ formatNumber(props.data.grand_total) }}
+              Rp
+              {{
+                formatNumber(
+                  parseFloat(props.data.grand_total) +
+                    parseFloat(props.data.total_discount)
+                )
+              }}
+            </div>
+          </div>
+        </div>
+        <div class="row justify-end q-gutter-y-xs text-negative">
+          <div class="col-12 row justify-between">
+            <div class="text-subtitle2">Diskon Akhir</div>
+            <div class="text-subtitle2 text-bold">
+              Rp -{{ formatNumber(props.data.total_discount) }}
+            </div>
+          </div>
+        </div>
+        <div class="row justify-end q-gutter-y-xs">
+          <div class="col-12 row justify-between">
+            <div class="text-subtitle1 text-grey-7">Grand Total</div>
+            <div class="text-subtitle1 text-bold">
+              Rp {{ formatNumber(props.data.grand_total) }}
             </div>
           </div>
         </div>
 
         <div class="row justify-end q-gutter-y-xs">
           <div class="col-12 row justify-between">
-            <div class="text-subtitle2 text-grey-7">Total Refund (Rp)</div>
+            <div class="text-subtitle2 text-grey-7">Total Refund</div>
             <div class="text-subtitle2 text-bold">
-              {{ formatNumber(props.data.total_refunded) }}
+              Rp {{ formatNumber(props.data.total_refunded) }}
             </div>
           </div>
         </div>

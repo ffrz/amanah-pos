@@ -54,12 +54,15 @@ const form = reactive({
   delivery_status: page.props.data.delivery_status,
   notes: page.props.data.notes,
   items: page.props.data.details ?? [],
+  total_discount: parseFloat(page.props.data.total_discount),
 });
 
 const total = computed(() => {
-  return form.items.reduce((sum, item) => {
-    return sum + item.price * item.quantity;
-  }, 0);
+  return (
+    form.items.reduce((sum, item) => {
+      return sum + item.price * item.quantity;
+    }, 0) - form.total_discount
+  );
 });
 
 // validations
@@ -323,13 +326,14 @@ const updateOrder = async () => {
     id: form.id,
     customer_id: form.customer_id ?? null,
     datetime: formatDateTimeForEditing(form.datetime),
+    total_discount: form.total_discount,
     notes: form.notes,
   };
 
   await axios
     .post(route("admin.sales-order-return.update"), data)
     .then((response) => {
-      const updated = response.data.data.id;
+      const updated = response.data.data;
       form.customer_id = updated.customer_id;
     })
     .catch((error) => {
@@ -541,14 +545,24 @@ const isValidWalletBalance = computed(() => {
 
           <div class="col">
             <div
-              class="row no-wrap items-start justify-between"
               style="background: #eee; padding: 10px; border: 1px solid #ddd"
             >
-              <span class="text-grey-8 text-subtitle-2 text-bold">TOTAL</span>
-              <span class="text-h4 text-weight-bold">
-                <sup style="font-size: 13px">Rp.</sup>
-                {{ formatNumber(total) }}
-              </span>
+              <div
+                v-if="form.total_discount > 0"
+                class="row no-wrap items-start justify-between"
+              >
+                <span class="text-grey-8 text-subtitle-2">DISKON AKHIR</span>
+                <span class="text-subtitle2">
+                  Rp. {{ formatNumber(form.total_discount) }}
+                </span>
+              </div>
+              <div class="row no-wrap items-start justify-between">
+                <span class="text-grey-8 text-subtitle-2 text-bold">TOTAL</span>
+                <span class="text-h4 text-weight-bold">
+                  <sup style="font-size: 13px">Rp.</sup>
+                  {{ formatNumber(total) }}
+                </span>
+              </div>
             </div>
           </div>
         </div>

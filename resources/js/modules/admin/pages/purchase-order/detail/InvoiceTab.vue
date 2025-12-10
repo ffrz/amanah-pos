@@ -193,19 +193,44 @@ const props = defineProps({
       <div class="col-12 col-sm-6">
         <div class="row justify-end q-gutter-y-xs">
           <div class="col-12 row justify-between">
-            <div class="text-subtitle2 text-grey-7">Grand Total (Rp)</div>
-            <div class="text-subtitle2 text-bold">
-              {{ formatNumber(props.data.grand_total) }}
+            <div class="text-subtitle2 text-grey-7">Total</div>
+            <div class="text-subtitle2">
+              Rp
+              {{
+                formatNumber(
+                  parseFloat(props.data.grand_total) +
+                    parseFloat(props.data.total_discount)
+                )
+              }}
+            </div>
+          </div>
+        </div>
+        <div class="row justify-end q-gutter-y-xs text-negative">
+          <div class="col-12 row justify-between">
+            <div class="text-subtitle2">Diskon Akhir</div>
+            <div class="text-subtitle2">
+              Rp -{{ formatNumber(props.data.total_discount) }}
+            </div>
+          </div>
+        </div>
+        <div class="row justify-end q-gutter-y-xs">
+          <div class="col-12 row justify-between">
+            <div class="text-subtitle1 text-grey-7 text-bold">Grand Total</div>
+            <div class="text-subtitle1 text-bold">
+              Rp {{ formatNumber(props.data.grand_total) }}
             </div>
           </div>
         </div>
         <div
-          v-if="props.data.status == 'closed' && props.data.total_return"
+          v-if="
+            props.data.status == 'closed' &&
+            parseInt(props.data.total_return) != 0
+          "
           class="row justify-end q-gutter-y-xs"
         >
           <div class="col-12 row justify-between">
             <div class="text-subtitle2 text-grey-7">Total Retur (Rp)</div>
-            <div class="text-subtitle2 text-bold">
+            <div class="text-subtitle2">
               {{ formatNumber(props.data.total_return) }}
             </div>
           </div>
@@ -215,9 +240,11 @@ const props = defineProps({
           class="row justify-end q-gutter-y-xs"
         >
           <div class="col-12 row justify-between">
-            <div class="text-subtitle2 text-grey-7">Total Dibayar (Rp)</div>
+            <div class="text-subtitle2 text-grey-7 text-bold">
+              Total Dibayar
+            </div>
             <div class="text-subtitle2 text-bold">
-              {{ formatNumber(props.data.total_paid) }}
+              Rp {{ formatNumber(props.data.total_paid) }}
             </div>
           </div>
         </div>
