@@ -1,9 +1,8 @@
 <script setup>
+import PasswordInput from "@/components/PasswordInput.vue";
 import { scrollToFirstErrorField } from "@/helpers/utils";
 import { useForm } from "@inertiajs/vue3";
-import { ref } from "vue";
 
-const showPassword = ref(false);
 const passwordInput = ref(null);
 const currentPasswordInput = ref(null);
 const form = useForm({
@@ -20,11 +19,11 @@ const updatePassword = () => {
     onError: () => {
       if (form.errors.password) {
         form.reset("password", "password_confirmation");
-        passwordInput.value.focus();
+        passwordInput.value?.focus();
       }
       if (form.errors.current_password) {
         form.reset("current_password");
-        currentPasswordInput.value.focus();
+        currentPasswordInput.value?.focus();
       }
     },
   });
@@ -44,66 +43,33 @@ const updatePassword = () => {
           Pastikan akun anda menggunakan kata sandi acak yang panjang agar akun
           tetap aman.
         </p>
-        <q-input
+        <PasswordInput
+          :ref="currentPasswordInput"
           v-model="form.current_password"
           label="Kata Sandi Sekarang"
-          :type="showPassword ? 'text' : 'password'"
-          lazy-rules
           autocomplete="off"
-          hide-bottom-space
-          :disable="form.processing"
-          :error="!!form.errors.current_password"
-          :error-message="form.errors.current_password"
           :rules="[
             (val) => (val && val.length > 0) || 'Kata sandi harus diisi.',
           ]"
-        >
-          <template v-slot:append>
-            <q-btn dense flat round @click="showPassword = !showPassword"
-              ><q-icon :name="showPassword ? 'key_off' : 'key'"
-            /></q-btn>
-          </template>
-        </q-input>
-        <q-input
+          autofocus
+        />
+        <PasswordInput
+          :ref="passwordInput"
           v-model="form.password"
           label="Kata Sandi Baru"
-          :type="showPassword ? 'text' : 'password'"
-          lazy-rules
           autocomplete="off"
-          hide-bottom-space
-          :disable="form.processing"
-          :error="!!form.errors.password"
-          :error-message="form.errors.password"
           :rules="[
             (val) => (val && val.length > 0) || 'Kata sandi harus diisi.',
           ]"
-        >
-          <template v-slot:append>
-            <q-btn dense flat round @click="showPassword = !showPassword"
-              ><q-icon :name="showPassword ? 'key_off' : 'key'"
-            /></q-btn>
-          </template>
-        </q-input>
-        <q-input
+        />
+        <PasswordInput
           v-model="form.password_confirmation"
-          label="Konfirmasi Kata Sandi"
-          :type="showPassword ? 'text' : 'password'"
-          lazy-rules
+          label="Konfirmasi Kata Sandi Baru"
           autocomplete="off"
-          hide-bottom-space
-          :disable="form.processing"
-          :error="!!form.errors.password_confirmation"
-          :error-message="form.errors.password_confirmation"
           :rules="[
             (val) => (val && val.length > 0) || 'Kata sandi harus diisi.',
           ]"
-        >
-          <template v-slot:append>
-            <q-btn dense flat round @click="showPassword = !showPassword"
-              ><q-icon :name="showPassword ? 'key_off' : 'key'"
-            /></q-btn>
-          </template>
-        </q-input>
+        />
       </q-card-section>
       <q-card-section>
         <q-btn

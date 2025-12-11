@@ -1,16 +1,15 @@
 <script setup>
+import PasswordInput from "@/components/PasswordInput.vue";
 import StandardCheckBox from "@/components/StandardCheckBox.vue";
 import { handleSubmit } from "@/helpers/client-req-handler";
 import { createOptions } from "@/helpers/options";
 import { validateUsername } from "@/helpers/validations";
 import { router, useForm, usePage } from "@inertiajs/vue3";
-import { ref } from "vue";
 
 const types = createOptions(window.CONSTANTS.USER_TYPES);
 const page = usePage();
 const roles = page.props.roles;
 const title = !!page.props.data.id ? "Edit Pengguna" : "Tambah Pengguna";
-const showPassword = ref(!page.props.data.id ? true : false);
 
 // Terapkan mapping di sini untuk memastikan form.roles selalu array of ID integer
 const initialRoles = page.props.data.roles;
@@ -80,22 +79,11 @@ const submit = () => handleSubmit({ form, url: route("admin.user.save") });
                 lazy-rules
                 hide-bottom-space
               />
-              <q-input
+              <PasswordInput
                 v-model="form.password"
                 label="Kata Sandi"
-                lazy-rules
-                :disable="form.processing"
-                :error="!!form.errors.password"
-                :error-message="form.errors.password"
-                hide-bottom-space
-                :type="showPassword ? 'text' : 'password'"
-              >
-                <template v-slot:append>
-                  <q-btn dense flat round @click="showPassword = !showPassword"
-                    ><q-icon :name="showPassword ? 'key_off' : 'key'"
-                  /></q-btn>
-                </template>
-              </q-input>
+                autofocus
+              />
               <q-select
                 v-model="form.type"
                 label="Jenis Akun"

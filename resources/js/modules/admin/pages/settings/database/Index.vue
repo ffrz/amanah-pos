@@ -2,16 +2,12 @@
 import { ref } from "vue";
 import { router } from "@inertiajs/vue3";
 import { useQuasar } from "quasar";
-// Asumsi 'axios' tersedia secara global, seperti di setup Laravel Breeze/Jetstream
-// import axios from 'axios';
+import PasswordInput from "@/components/PasswordInput.vue";
 
 const $q = useQuasar();
 const title = "Pengaturan Database & Utilitas";
-
-// Referensi untuk input file tersembunyi
 const restoreFileInput = ref(null);
 
-// State untuk menyimpan input password dan konfirmasi di dialog kustom
 const dialogState = ref({
   show: false,
   title: "",
@@ -60,20 +56,20 @@ const submitDatabaseAction = async (routeName, data, successMessage) => {
         // Sembunyikan loading
         $q.loading.hide();
 
-        // Tampilkan dialog yang memblokir
         $q.dialog({
           title: "Sistem Reset Selesai",
           message: `<span class="text-positive text-bold">Reset total berhasil.</span><br/>Database telah dikembalikan ke pengaturan pabrik. Anda akan segera di-logout untuk login ulang.`,
           html: true,
-          persistent: true, // Tidak bisa ditutup
-          ok: false, // Nonaktifkan tombol OK
-          cancel: false, // Nonaktifkan tombol Cancel
+          persistent: true,
+          ok: false,
+          cancel: false,
         });
 
         // Paksa logout dengan full page reload
+        // Beri waktu 3 detik agar notifikasi terbaca
         setTimeout(() => {
           window.location.href = route("admin.auth.logout");
-        }, 3000); // Beri waktu 3 detik agar notifikasi terbaca
+        }, 3000);
       } else {
         // Untuk Restore dan Reset Transaksional, cukup soft reload
         router.reload({
@@ -374,15 +370,12 @@ const dbActions = [
             />
 
             <!-- Input Password (Wajib untuk semua aksi sensitif) -->
-            <q-input
+            <PasswordInput
               v-model="dialogState.password"
-              type="password"
-              label="Masukkan Password Anda"
-              lazy-rules
+              label="Masukkan Password"
               :rules="[
                 (val) => (val && val.length > 0) || 'Password wajib diisi',
               ]"
-              autocomplete="current-password"
               autofocus
             />
           </q-card-section>
@@ -393,7 +386,6 @@ const dbActions = [
               type="submit"
               :label="dialogState.isRestore ? 'Pulihkan' : 'Konfirmasi'"
               color="negative"
-              push
             />
           </q-card-actions>
         </q-form>

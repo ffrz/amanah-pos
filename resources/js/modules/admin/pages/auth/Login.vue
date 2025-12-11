@@ -1,9 +1,9 @@
 <script setup>
+import PasswordInput from "@/components/PasswordInput.vue";
 import StandardCheckBox from "@/components/StandardCheckBox.vue";
 import { useApiForm } from "@/composables/useApiForm";
 import { handleSubmit } from "@/helpers/client-req-handler";
 import { usePage } from "@inertiajs/vue3";
-import { ref } from "vue";
 
 let form = useApiForm({
   username: window.CONFIG.APP_DEMO ? "admin" : "",
@@ -12,7 +12,6 @@ let form = useApiForm({
 });
 
 const page = usePage();
-console.log(page.props.data);
 
 const submit = () =>
   handleSubmit({
@@ -23,7 +22,6 @@ const submit = () =>
       window.location.href = route("admin.home");
     },
   });
-const showPassword = ref(false);
 </script>
 
 <template>
@@ -61,32 +59,18 @@ const showPassword = ref(false);
                     <q-icon name="person" />
                   </template>
                 </q-input>
-                <q-input
+                <PasswordInput
                   v-model="form.password"
-                  :type="showPassword ? 'text' : 'password'"
                   label="Kata Sandi"
-                  :error="!!form.errors.password"
-                  autocomplete="current-password"
                   :error-message="form.errors.password"
-                  lazy-rules
                   :disable="form.processing"
                   :rules="[
                     (val) => (val && val.length > 0) || 'Masukkan kata sandi',
                   ]"
+                  autocomplete="current-password"
                   hide-bottom-space
                   data-test="password"
-                >
-                  <template v-slot:append>
-                    <q-btn
-                      dense
-                      flat
-                      round
-                      @click="showPassword = !showPassword"
-                    >
-                      <q-icon :name="showPassword ? 'key_off' : 'key'" />
-                    </q-btn>
-                  </template>
-                </q-input>
+                />
                 <StandardCheckBox
                   class="q-mt-sm"
                   v-model="form.remember"
