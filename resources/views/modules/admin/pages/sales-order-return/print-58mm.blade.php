@@ -90,7 +90,7 @@
           @foreach ($item->details as $i => $detail)
             <div>
               {{ $i + 1 }})
-              {{ format_number(abs($detail->quantity)) }} {{ $detail->product->uom }}
+              {{ format_number(abs($detail->quantity)) }} {{ $detail->product_uom }}
               {{ $detail->product->name }}
               @Rp.{{ format_number($detail->price) }}
               = Rp.{{ format_number(abs($detail->subtotal_price)) }}

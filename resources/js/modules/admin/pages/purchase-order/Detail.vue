@@ -17,7 +17,10 @@ const getInitialTab = () => {
 const currentTab = ref(getInitialTab());
 
 const print = () => {
-  window.print();
+  window.open(
+    route("admin.purchase-order.print", { id: page.props.data.id, size: "a4" }),
+    "_self"
+  );
 };
 
 const getWatermarkClass = () => {

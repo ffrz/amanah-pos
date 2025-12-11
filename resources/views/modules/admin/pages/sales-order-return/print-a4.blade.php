@@ -94,7 +94,7 @@
           <tr>
             <td class="text-right">{{ $i + 1 }}</td>
             <td>{{ $detail->product->name }}</td>
-            <td class="text-right">{{ format_number(abs($detail->quantity)) }} {{ $detail->product->uom }}
+            <td class="text-right">{{ format_number(abs($detail->quantity)) }} {{ $detail->product_uom }}
             </td>
             <td class="text-right">{{ format_number($detail->price) }}</td>
             <td class="text-right">{{ format_number(abs($subtotal_price)) }}</td>

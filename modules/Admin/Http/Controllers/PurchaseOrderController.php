@@ -19,6 +19,7 @@ namespace Modules\Admin\Http\Controllers;
 use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\PurchaseOrder;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Modules\Admin\Http\Requests\PurchaseOrder\GetDataRequest;
 use Modules\Admin\Http\Requests\PurchaseOrder\SaveRequest;
@@ -154,5 +155,32 @@ class PurchaseOrderController extends Controller
         $this->authorize('update', $payment->order);
         $this->paymentService->deletePayment($payment);
         return JsonResponseHelper::success(message: "Pembayaran berhasil dihapus.");
+    }
+
+    public function print($id, Request $request)
+    {
+        $order = $this->service->findOrderOrFail($id);
+
+        $this->authorize('view', $order);
+
+        $size = $request->get('size', 'a4');
+        if (!in_array($size, ['a4'])) {
+            $size = 'a4';
+        }
+
+        if ($request->get('output') == 'pdf') {
+            $pdf = Pdf::loadView('modules.admin.pages.purchase-order.print-' . $size, [
+                'item' => $order,
+                'pdf'  => true,
+            ])
+                ->setPaper($size, 'portrait')
+                ->setOption('isHtml5ParserEnabled', true)
+                ->setOption('isPhpEnabled', true);
+            return $pdf->download(config('app.name') . '_' . $order->code . '.pdf');
+        }
+
+        return view('modules.admin.pages.purchase-order.print-' . $size, [
+            'item' => $order,
+        ]);
     }
 }

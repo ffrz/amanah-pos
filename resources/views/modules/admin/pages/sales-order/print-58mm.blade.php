@@ -61,10 +61,14 @@
           <hr style="margin: 4px 0;">
           @if (!empty($item->customer_name))
             <b>Pelanggan:</b><br>
-            {{ $item->customer_code }}<br>
-            {{ $item->customer_name }}<br>
-            {{ $item->customer_address }}<br>
-            {{ $item->customer_phone }}
+            {{ $item->customer_code }}
+            <br>{{ $item->customer_name }}
+            @if (!empty($item->customer_address))
+              <br>{{ $item->customer_address }}
+            @endif
+            @if (!empty($item->customer_phone))
+              <br>{{ $item->customer_phone }}
+            @endif
           @endif
         </td>
       </tr>
@@ -85,7 +89,7 @@
           @foreach ($item->details as $i => $detail)
             <div>
               {{ $i + 1 }})
-              {{ format_number(abs($detail->quantity)) }} {{ $detail->product->uom }}
+              {{ format_number(abs($detail->quantity)) }} {{ $detail->product_uom }}
               {{ $detail->product->name }}
               @Rp.{{ format_number($detail->price) }}
               = Rp.{{ format_number(abs($detail->subtotal_price)) }}

@@ -355,6 +355,7 @@ Route::middleware([Auth::class])
                 Route::post('close', [PurchaseOrderController::class, 'close'])->name('admin.purchase-order.close');
                 Route::post('add-payment', [PurchaseOrderController::class, 'addPayment'])->name('admin.purchase-order.add-payment');
                 Route::post('delete-payment', [PurchaseOrderController::class, 'deletePayment'])->name('admin.purchase-order.delete-payment');
+                Route::get('print/{id}', [PurchaseOrderController::class, 'print'])->name('admin.purchase-order.print');
                 // items
                 Route::post('add-item', [PurchaseOrderController::class, 'addItem'])->name('admin.purchase-order.add-item');
                 Route::post('remove-item', [PurchaseOrderController::class, 'removeItem'])->name('admin.purchase-order.remove-item');
@@ -374,6 +375,7 @@ Route::middleware([Auth::class])
                 Route::post('close', [PurchaseOrderReturnController::class, 'close'])->name('admin.purchase-order-return.close');
                 Route::post('add-refund', [PurchaseOrderReturnController::class, 'addRefund'])->name('admin.purchase-order-return.add-refund');
                 Route::post('delete-refund', [PurchaseOrderReturnController::class, 'deleteRefund'])->name('admin.purchase-order-return.delete-refund');
+                Route::get('print/{id}', [PurchaseOrderReturnController::class, 'print'])->name('admin.purchase-order-return.print');
                 // items
                 Route::post('add-item', [PurchaseOrderReturnController::class, 'addItem'])->name('admin.purchase-order-return.add-item');
                 Route::post('remove-item', [PurchaseOrderReturnController::class, 'removeItem'])->name('admin.purchase-order-return.remove-item');
