@@ -22,6 +22,8 @@ use App\Helpers\WhatsAppHelper;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Models\ProductQuantityPrice;
+use App\Models\ProductUnit;
 use App\Models\Setting;
 use App\Models\StockMovement;
 use App\Models\Supplier;
@@ -154,7 +156,7 @@ class ProductService
      */
     public function find(int $id): ?Product
     {
-        return Product::with(['category', 'supplier', 'creator', 'updater'])->findOrFail($id);
+        return Product::with(['category:id,name', 'supplier:id,code,name', 'creator:id,username,name', 'updater:id,username,name', 'productUnits'])->findOrFail($id);
     }
 
     public function findOrCreate($id = null)
@@ -188,19 +190,123 @@ class ProductService
      */
     public function save(Product $item, array $data): Product
     {
-
         $isNew = !$item->id;
         $oldStock = $item->stock;
         $oldData = $isNew ? [] : $item->toArray();
 
         $item->fill($data);
 
-        if (empty($item->getDirty())) {
+        // Pengecekan tidak cukup dengan getDirty saja karena multi satuan harus dicek juga
+        if (empty($item->getDirty()) && (!isset($data['product_units']) || empty($data['product_units']))) {
             throw new ModelNotModifiedException();
         }
 
-        return DB::transaction(function () use ($item, $oldStock, $oldData, $isNew) {
+        return DB::transaction(function () use ($item, $oldStock, $oldData, $isNew, $data) {
             $item->save();
+
+            $baseUnit = ProductUnit::firstOrNew([
+                'product_id'   => $item->id,
+                'is_base_unit' => true,
+            ]);
+
+            // Paksa nilai Base Unit agar SAMA PERSIS dengan data tabel Products
+            $baseUnit->fill([
+                'name'              => $item->uom,
+                'conversion_factor' => 1,
+                'barcode'           => $item->barcode,
+                'price_1'           => $item->price_1,
+                'price_1_markup'    => $item->price_1_markup,
+                'price_1_option'    => $item->price_1_option,
+                'price_2'           => $item->price_2,
+                'price_2_markup'    => $item->price_2_markup,
+                'price_2_option'    => $item->price_2_option,
+                'price_3'           => $item->price_3,
+                'price_3_markup'    => $item->price_3_markup,
+                'price_3_option'    => $item->price_3_option,
+            ]);
+
+            $baseUnit->save();
+
+            // Multi Satuan
+            if (isset($data['product_units']) && is_array($data['product_units'])) {
+                // Array untuk menampung ID UOM yang valid (disimpan/diupdate)
+                // ID yang tidak ada di list ini nanti akan dihapus (mekanisme sync)
+                $keptUomIds = [];
+
+                foreach ($data['product_units'] as $uomData) {
+                    // 1. Mapping Field JSON -> Database ProductUnit
+                    $uomAttributes = [
+                        'product_id'        => $item->id,
+                        'name'              => $uomData['name'],
+                        'conversion_factor' => $uomData['conversion_factor'],
+                        'barcode'           => $uomData['barcode'] ?? null,
+                        'is_base_unit'      => false, // UOM tambahan bukan base unit
+
+                        'price_1'        => $uomData['price_1'] ?? 0,
+                        'price_1_markup' => $uomData['price_1_markup'] ?? 0,
+                        'price_1_option' => 'price', // belum digunakan
+
+                        'price_2'        => $uomData['price_2'] ?? 0,
+                        'price_2_markup' => $uomData['price_2_markup'] ?? 0,
+                        'price_2_option' => 'price', // belum digunakan
+
+                        'price_3'        => $uomData['price_3'] ?? 0,
+                        'price_3_markup' => $uomData['price_3_markup'] ?? 0,
+                        'price_3_option' => 'price', // belum digunakan
+                    ];
+
+
+                    // 2. Simpan atau Update ProductUnit
+                    if (!empty($uomData['id'])) {
+                        // Update existing
+                        $unit = ProductUnit::where('id', $uomData['id'])
+                            ->where('product_id', $item->id)
+                            ->first();
+                        if ($unit) {
+                            $unit->update($uomAttributes);
+                        } else {
+                            // Fallback jika ID dikirim tapi tidak ketemu (jarang terjadi)
+                            $unit = ProductUnit::create($uomAttributes);
+                        }
+                    } else {
+                        // Create new
+                        $unit = ProductUnit::create($uomAttributes);
+                    }
+
+                    // Simpan ID untuk proses pembersihan (deletion) nanti
+                    $keptUomIds[] = $unit->id;
+
+                    // 3. Proses Tiered Pricing (Harga Bertingkat) per Unit
+                    // Kita hapus dulu tiers lama untuk unit ini agar bersih, lalu insert ulang (Full Sync)
+                    $unit->quantityPrices()->forceDelete();
+
+                    // Loop level harga 1, 2, 3
+                    // TODO: Kode ini belum diuji
+                    // foreach ([1, 2, 3] as $level) {
+                    //     if (!empty($uomData['prices'][$level]['tiers']) && is_array($uomData['prices'][$level]['tiers'])) {
+                    //         foreach ($uomData['prices'][$level]['tiers'] as $tier) {
+                    //             // Validasi data tier minimal
+                    //             if (isset($tier['min_qty']) && isset($tier['price'])) {
+                    //                 ProductQuantityPrice::create([
+                    //                     'product_unit_id' => $unit->id,
+                    //                     'price_type'      => 'price_' . $level,
+                    //                     'min_quantity'    => $tier['min_qty'], // Sesuaikan nama key JSON tier
+                    //                     'price'           => $tier['price'],
+                    //                 ]);
+                    //             }
+                    //         }
+                    //     }
+                    // }
+                }
+
+                // 4. Hapus UOM yang tidak ada di payload (User menghapus baris di UI)
+                // Kecuali base unit (biasanya logic base unit terpisah, tapi amannya kita filter)
+                ProductUnit::where('product_id', $item->id)
+                    ->where('is_base_unit', false)
+                    ->whereNotIn('id', $keptUomIds)
+                    ->delete();
+            }
+
 
             $newStock = $item->stock;
 

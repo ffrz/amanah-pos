@@ -12,7 +12,8 @@ import BarcodeInput from "@/components/BarcodeInput.vue";
 import SupplierAutocomplete from "@/components/SupplierAutocomplete.vue";
 import ProductCategoryAutocomplete from "@/components/ProductCategoryAutocomplete.vue";
 import UomAutocomplete from "@/components/UomAutocomplete.vue";
-// Import komponen baru (sesuaikan path-nya)
+
+// Import komponen pricing (sesuaikan path)
 import PricingLevelRow from "./editor/PricingLevelRow.vue";
 import PricingUnitCard from "./editor/PricingUnitCard.vue";
 
@@ -22,7 +23,7 @@ const types = createOptions(window.CONSTANTS.PRODUCT_TYPES);
 
 const tab = ref("general");
 const selectedSupplier = ref(page.props.data.supplier);
-const uoms = ref(usePage().props.uoms);
+const availableUoms = ref(usePage().props.uoms);
 
 // Definisi Level Harga Global
 const priceLevels = [
@@ -59,8 +60,7 @@ const form = useForm({
   price_2_tiers: page.props.data.price_2_tiers || [],
   price_3_tiers: page.props.data.price_3_tiers || [],
 
-  // Options (default 'price' agar inputan tidak readonly di logika lama,
-  // tapi logika baru di component PricingLevelRow menghandle keduanya)
+  // Options
   price_1_option: "price",
   price_2_option: "price",
   price_3_option: "price",
@@ -69,7 +69,11 @@ const form = useForm({
   price_editable: !!page.props.data.price_editable,
   notes: page.props.data.notes || "",
 
-  uoms: page.props.data.uoms || [],
+  // Product Units (Multi Satuan) - Pastikan array
+  // Exclude base unit from the list, because its already represented by main fields
+  product_units: (page.props.data.product_units || []).filter(
+    (unit) => !unit.is_base_unit
+  ),
 });
 
 const submit = () => {
@@ -80,30 +84,28 @@ watch(selectedSupplier, (val) => (form.supplier_id = val ? val.id : null));
 
 // --- LOGIC MULTI SATUAN ---
 
-const initUomPrices = (uom) => {
-  if (!uom.prices) uom.prices = {};
-  priceLevels.forEach((level) => {
-    if (!uom.prices[level.key]) {
-      uom.prices[level.key] = { price: 0, markup: 0, tiers: [] };
-    }
+const addUnit = () => {
+  form.product_units.push({
+    id: null,
+    name: null,
+    conversion_factor: 1,
+    barcode: "",
+    // Inisialisasi field harga flat
+    price_1: 0,
+    price_1_markup: 0,
+    price_1_tiers: [],
+    price_2: 0,
+    price_2_markup: 0,
+    price_2_tiers: [],
+    price_3: 0,
+    price_3_markup: 0,
+    price_3_tiers: [],
   });
 };
 
-const addUom = () => {
-  const newUom = {
-    id: null,
-    name: null,
-    conversion_rate: 1,
-    barcode: "",
-    prices: {},
-  };
-  initUomPrices(newUom);
-  form.uoms.push(newUom);
-};
+const removeUnit = (index) => form.product_units.splice(index, 1);
 
-const removeUom = (index) => form.uoms.splice(index, 1);
-
-// Helper hitung HPP Konversi
+// Helper hitung HPP Konversi (HPP Utama * Faktor)
 const getConvertedCost = (rate) => {
   const baseCost = parseFloat(form.cost) || 0;
   const conversion = parseFloat(rate) || 1;
@@ -112,13 +114,21 @@ const getConvertedCost = (rate) => {
 
 // --- LIFECYCLE ---
 onMounted(() => {
-  // Init array tier satuan utama jika belum ada
+  // Init array tier satuan utama
   [1, 2, 3].forEach((i) => {
     if (!form[`price_${i}_tiers`]) form[`price_${i}_tiers`] = [];
   });
-  // Init struktur harga multi satuan
-  if (form.uoms && form.uoms.length > 0) {
-    form.uoms.forEach((uom) => initUomPrices(uom));
+
+  // Init array tier multi satuan
+  if (form.product_units && form.product_units.length > 0) {
+    form.product_units.forEach((unit) => {
+      [1, 2, 3].forEach((level) => {
+        const tierKey = `price_${level}_tiers`;
+        if (!unit[tierKey]) {
+          unit[tierKey] = [];
+        }
+      });
+    });
   }
 });
 </script>
@@ -187,7 +197,6 @@ onMounted(() => {
                     emit-value
                     hide-bottom-space
                   />
-
                   <q-input
                     v-model.trim="form.name"
                     label="Kode / Nama Produk"
@@ -196,7 +205,6 @@ onMounted(() => {
                     :error-message="form.errors.name"
                     :rules="[(val) => (val && val.length > 0) || 'Wajib diisi']"
                   />
-
                   <q-input
                     v-model.trim="form.description"
                     type="textarea"
@@ -205,7 +213,6 @@ onMounted(() => {
                     maxlength="200"
                     label="Deskripsi"
                   />
-
                   <ProductCategoryAutocomplete
                     v-model:modelValue="form.category_id"
                     :categories="page.props.categories"
@@ -227,7 +234,7 @@ onMounted(() => {
                       <UomAutocomplete
                         dense
                         v-model:modelValue="form.uom"
-                        v-model:items="uoms"
+                        v-model:items="availableUoms"
                         :items="page.props.uoms"
                         label="Satuan Dasar (Stok)"
                         :error="!!form.errors.uom"
@@ -245,46 +252,55 @@ onMounted(() => {
                   </div>
 
                   <q-separator class="q-my-md" />
-
                   <div class="text-grey-8 text-subtitle1">
                     Pengaturan Multi Satuan
                   </div>
+
                   <div
                     class="row q-gutter-sm q-pt-none items-start"
-                    v-for="(uom, index) in form.uoms"
+                    v-for="(unit, index) in form.product_units"
                     :key="index"
                   >
                     <div class="col">
                       <UomAutocomplete
                         dense
-                        v-model:modelValue="uom.name"
-                        v-model:items="uoms"
+                        v-model:modelValue="unit.name"
+                        v-model:items="availableUoms"
                         label="Satuan Konversi"
-                        :error="!!form.errors[`uoms.${index}.name`]"
-                        :error-message="form.errors[`uoms.${index}.name`]"
+                        :error="!!form.errors[`product_units.${index}.name`]"
+                        :error-message="
+                          form.errors[`product_units.${index}.name`]
+                        "
                         hide-bottom-space
                       />
                     </div>
                     <div class="col">
                       <LocaleNumberInput
                         dense
-                        v-model:modelValue="uom.conversion_rate"
+                        v-model:modelValue="unit.conversion_factor"
                         label="Jumlah Isi"
-                        :error="!!form.errors[`uoms.${index}.conversion_rate`]"
+                        :error="
+                          !!form.errors[
+                            `product_units.${index}.conversion_factor`
+                          ]
+                        "
                         :error-message="
-                          form.errors[`uoms.${index}.conversion_rate`]
+                          form.errors[
+                            `product_units.${index}.conversion_factor`
+                          ]
                         "
                         hide-bottom-space
                       />
                       <div class="q-pt-xs text-grey-6 text-caption">
-                        1 {{ uom.name || "..." }} =
-                        {{ uom.conversion_rate || 0 }} {{ form.uom || "..." }}
+                        1 {{ unit.name || "..." }} =
+                        {{ unit.conversion_factor || 0 }}
+                        {{ form.uom || "..." }}
                       </div>
                     </div>
                     <div class="col">
                       <BarcodeInput
                         dense
-                        v-model.trim="uom.barcode"
+                        v-model.trim="unit.barcode"
                         label="Barcode"
                         hide-bottom-space
                       />
@@ -297,7 +313,7 @@ onMounted(() => {
                         dense
                         flat
                         color="red"
-                        @click="removeUom(index)"
+                        @click="removeUnit(index)"
                       />
                     </div>
                   </div>
@@ -307,7 +323,7 @@ onMounted(() => {
                       dense
                       flat
                       color="primary"
-                      @click="addUom()"
+                      @click="addUnit()"
                       icon="add"
                       >Tambah satuan</q-btn
                     >
@@ -349,7 +365,10 @@ onMounted(() => {
                   <q-separator />
 
                   <div
-                    v-for="(unitContext, idx) in [-1, ...form.uoms.keys()]"
+                    v-for="(unitContext, idx) in [
+                      -1,
+                      ...form.product_units.keys(),
+                    ]"
                     :key="idx"
                   >
                     <template v-if="unitContext === -1">
@@ -378,17 +397,17 @@ onMounted(() => {
                     </template>
 
                     <template v-else>
-                      <div class="hidden">
-                        {{ (uomData = form.uoms[unitContext]) }}
-                      </div>
-
                       <PricingUnitCard
                         title="Satuan Konversi"
-                        :label="uomData.name || 'Baru'"
-                        :badge-label="`Isi ${uomData.conversion_rate}`"
+                        :label="form.product_units[unitContext].name || 'Baru'"
+                        :badge-label="`Isi ${form.product_units[unitContext].conversion_factor}`"
                         badge-color="orange"
                         icon="layers"
-                        :cost="getConvertedCost(uomData.conversion_rate)"
+                        :cost="
+                          getConvertedCost(
+                            form.product_units[unitContext].conversion_factor
+                          )
+                        "
                       >
                         <div
                           v-for="(level, lIdx) in priceLevels"
@@ -396,12 +415,28 @@ onMounted(() => {
                           :class="lIdx % 2 !== 0 ? 'bg-grey-1' : ''"
                         >
                           <PricingLevelRow
-                            v-if="uomData.prices && uomData.prices[level.key]"
                             :label="level.label"
-                            :cost="getConvertedCost(uomData.conversion_rate)"
-                            v-model:price="uomData.prices[level.key].price"
-                            v-model:markup="uomData.prices[level.key].markup"
-                            v-model:tiers="uomData.prices[level.key].tiers"
+                            :cost="
+                              getConvertedCost(
+                                form.product_units[unitContext]
+                                  .conversion_factor
+                              )
+                            "
+                            v-model:price="
+                              form.product_units[unitContext][
+                                `price_${level.key}`
+                              ]
+                            "
+                            v-model:markup="
+                              form.product_units[unitContext][
+                                `price_${level.key}_markup`
+                              ]
+                            "
+                            v-model:tiers="
+                              form.product_units[unitContext][
+                                `price_${level.key}_tiers`
+                              ]
+                            "
                           />
                         </div>
                       </PricingUnitCard>
