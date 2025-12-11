@@ -15,22 +15,27 @@
 @section('content')
   @if (!$is_pdf_export)
     <div class="no-print text-center" style="margin-top: 10px; margin-bottom:20px;">
-      <a class="btn my-xs" href="{{ route('admin.sales-order.add') }}">+ Order Baru</a>
-      <a class="btn my-xs" href="{{ route('admin.sales-order.index') }}">&laquo; Daftar Order</a>
-      <a class="btn my-xs" href="{{ route('admin.sales-order.detail', $item->id) }}">&laquo; Rincian</a>
-      <a class="btn my-xs" href="{{ route('admin.sales-order.print', $item->id) }}?output=pdf&size=a4">Simpan PDF</a>
+      <a class="btn my-xs" href="{{ route('admin.sales-order-return.add') }}">+ Retur Baru</a>
+      <a class="btn my-xs" href="{{ route('admin.sales-order-return.index') }}">&laquo; Daftar Retur</a>
+      <a class="btn my-xs" href="{{ route('admin.sales-order-return.detail', $item->id) }}">&laquo; Rincian</a>
+      <a class="btn my-xs" href="{{ route('admin.sales-order-return.print', $item->id) }}?output=pdf&size=a4">Simpan PDF</a>
       <a class="btn my-xs" href="#" onclick="window.print()">Cetak</a>
     </div>
   @endif
   <div class="page">
 
     <x-admin.company-header :logo-path="$logo_path">
-      <h4 style="margin: 0 0 5px 0; text-align: Left;">SALES INVOICE - {{ $item->code }}</h4>
+      <h4 style="margin: 0 0 5px 0; text-align: Left;">SALES RETURN - {{ $item->code }}</h4>
       <table>
+        <tr>
+          <td style="width: 2cm;">No. Inv / Tgl</td>
+          <td>:</td>
+          <td>{{ $item->salesOrder->code }} - {{ format_datetime($item->salesOrder->datetime) }}</td>
+        </tr>
         <tr>
           <td>Waktu</td>
           <td>:</td>
-          <td>{{ format_datetime($item->datetime) }}</td>
+          <td>{{ $item->code }} - {{ format_datetime($item->datetime) }}</td>
         </tr>
         <tr>
           <td>Status</td>
@@ -40,19 +45,17 @@
         @if ($item->customer_id)
           <tr>
             <td style="vertical-align:top;">Pelanggan</td>
-            <td style="vertical-align:top">:</td>
+            <td>:</td>
             <td>
               {{ $item->customer_code }}<br />
               {{ $item->customer_name }}
             </td>
           </tr>
-          @if ($item->customer_phone)
-            <tr>
-              <td>No. Telepon</td>
-              <td>:</td>
-              <td>{{ $item->customer_phone }}</td>
-            </tr>
-          @endif
+          <tr>
+            <td>No. Telepon</td>
+            <td>:</td>
+            <td>{{ $item->customer_phone }}</td>
+          </tr>
           <tr>
             <td style="vertical-align:top;">Alamat</td>
             <td>:</td>
@@ -128,7 +131,7 @@
     <br>
     <table style="width:100%;">
       <tr>
-        <td style="font-size: smaller;">
+        <td style="font-size: small;">
           @if ($foot_note)
             <div class="warning-notes">
               Catatan:<br>
@@ -137,8 +140,8 @@
           @endif
           @if ($item->cashierSession)
             <div>
-              L: {{ $item->cashierSession->cashierTerminal?->location }} |
-              T: {{ $item->cashierSession->cashierTerminal?->name }} | K:
+              Lokasi: {{ $item->cashierSession->cashierTerminal?->location }} |
+              Terminal: {{ $item->cashierSession->cashierTerminal?->name }} | Kasir:
               {{ $item->cashier->name }}
             </div>
           @endif

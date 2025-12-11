@@ -12,14 +12,12 @@
 
 @section('content')
   @if (!$is_pdf_export)
-    <div class="no-print text-center">
-      <br>
-      <a class="btn my-xs" href="{{ route('admin.sales-order.add') }}">+ Order Baru</a>
-      <a class="btn my-xs" href="{{ route('admin.sales-order.index') }}">&laquo; Daftar Order</a>
-      <a class="btn my-xs" href="{{ route('admin.sales-order.detail', $item->id) }}">&laquo; Rincian</a>
-      <a class="btn my-xs" href="{{ route('admin.sales-order.print', $item->id) }}?output=pdf&size=58">Simpan PDF</a>
+    <div class="no-print text-center" style="margin-top: 10px; margin-bottom:20px;">
+      <a class="btn my-xs" href="{{ route('admin.sales-order-return.add') }}">+ Retur Baru</a>
+      <a class="btn my-xs" href="{{ route('admin.sales-order-return.index') }}">&laquo; Daftar Retur</a>
+      <a class="btn my-xs" href="{{ route('admin.sales-order-return.detail', $item->id) }}">&laquo; Rincian</a>
+      <a class="btn my-xs" href="{{ route('admin.sales-order-return.print', $item->id) }}?output=pdf&size=a4">Simpan PDF</a>
       <a class="btn my-xs" href="#" onclick="window.print()">Cetak</a>
-      <br><br><br>
     </div>
   @endif
   <div class="page">
@@ -71,8 +69,15 @@
       <tr>
         <td class="text-center">
           <hr style="margin: 4px 0;">
-          <b>#{{ $item->code }}</b><br>
+          <b>Kode Retur: #{{ $item->code }}</b><br>
           {{ format_datetime($item->datetime) }}
+        </td>
+      </tr>
+      <tr>
+        <td class="text-center">
+          <hr style="margin: 4px 0;">
+          <b>Kode Order: #{{ $item->salesOrder->code }}</b><br>
+          {{ format_datetime($item->salesOrder->datetime) }}
         </td>
       </tr>
       <tr>
