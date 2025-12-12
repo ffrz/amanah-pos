@@ -47,19 +47,16 @@ class SalesOrderDetailService
         $product = $this->productService->findProductByCodeOrId($data);
         $quantity = $data['qty'] ?? 1;
         $data['price'] = $data['price'] ?? null;
-        $price = null;
 
+        $targetPriceType = 'price_1';
         if ($order->customer) {
-            $price_type = $order->customer->default_price_type;
-            $price = $product->getAttribute($price_type);
+            $targetPriceType = $order->customer->default_price_type ?? 'price_1';
         }
 
-        if (!$price) {
-            $price = $product->price_1;
-        }
+        $price = $product->getSellingPrice($targetPriceType);
 
-        if ($product->price_editable && $data['price'] !== null) {
-            $price = $data['price'];
+        if ($product->price_editable && isset($data['price']) && $data['price'] !== null && $data['price'] !== '') {
+            $price = (float) $data['price'];
         }
 
         $item = null;

@@ -281,4 +281,38 @@ class Product extends BaseModel
             ->where('active', true)
             ->sum(DB::raw("stock"));
     }
+
+    /**
+     * Mendapatkan harga jual dengan logika Waterfall Fallback.
+     * Urutan: Price 3 -> Price 2 -> Price 1.
+     * * @param string|null $priceType Tipe harga (price_1, price_2, price_3)
+     * @return float
+     */
+    public function getSellingPrice(?string $priceType): float
+    {
+        // Jika tipe tidak valid atau null, default ke Eceran (price_1)
+        if (empty($priceType)) {
+            return (float) $this->price_1;
+        }
+
+        // 1. Cek Harga Grosir (Price 3)
+        if ($priceType === 'price_3') {
+            $p3 = (float) $this->price_3;
+            if ($p3 > 0) return $p3;
+
+            // Fallback: Turun ke Partai
+            $priceType = 'price_2';
+        }
+
+        // 2. Cek Harga Partai (Price 2)
+        if ($priceType === 'price_2') {
+            $p2 = (float) $this->price_2;
+            if ($p2 > 0) return $p2;
+
+            // Fallback: Turun ke Eceran
+        }
+
+        // 3. Final Fallback: Harga Eceran (Price 1)
+        return (float) $this->price_1;
+    }
 }
