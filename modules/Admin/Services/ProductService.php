@@ -51,16 +51,13 @@ class ProductService
     {
         $filter = $options['filter'];
         $query = Product::query()->with([
-            'supplier' => function ($query) {
-                $query->select('id', 'code', 'name');
-            },
-            'category' => function ($query) {
-                $query->select('id', 'name');
-            },
+            'supplier:id,code,name',
+            'category:id,name',
+            'productUnits' => fn($q) => $q->where('is_base_unit', false)->orderBy('conversion_factor', 'asc')
         ])
             ->select([
                 'id',
-                'type', // product browser butuh jenis untuk nampilin stok
+                'type',
                 'supplier_id',
                 'category_id',
                 'name',
@@ -71,6 +68,9 @@ class ProductService
                 'price_2',
                 'price_3',
                 'active',
+                'barcode',
+                'min_stock',
+                'max_stock'
             ]);
 
         if (isset($filter['search']) && $filter['search']) {
@@ -132,10 +132,36 @@ class ProductService
 
         $paginator = $query->paginate($options['per_page'])->withQueryString();
 
-        $paginator->getCollection()->each(function ($customer) {
-            $customer->makeHidden([
-                'type_label',
-            ]);
+        $paginator->getCollection()->transform(function ($product) {
+
+            // 1. Logika Stok Pecahan (Mirip method find, tapi versi ringkas)
+            // Kita butuh unit urut DESC (Besar -> Kecil) khusus hitung stok
+            $calcUnits = $product->productUnits->sortByDesc('conversion_factor');
+            $remainder = $product->stock;
+            $parts = [];
+
+            foreach ($calcUnits as $unit) {
+                if ($unit->conversion_factor > 0 && $remainder >= $unit->conversion_factor) {
+                    $qty = floor($remainder / $unit->conversion_factor);
+                    if ($qty > 0) {
+                        $parts[] = number_format($qty, 0, ',', '.') . ' ' . $unit->name;
+                        $remainder = fmod($remainder, $unit->conversion_factor);
+                    }
+                }
+            }
+
+            // Sisa satuan dasar
+            if ($remainder > 0.0001 || count($parts) === 0) {
+                $fmt = (float)$remainder == (int)$remainder
+                    ? number_format($remainder, 0, ',', '.')
+                    : number_format($remainder, 2, ',', '.');
+                $parts[] = $fmt . ' ' . $product->uom;
+            }
+
+            // Inject attribute baru ke JSON response
+            $product->stock_breakdown_text = implode(', ', $parts);
+
+            return $product;
         });
 
         return $paginator;

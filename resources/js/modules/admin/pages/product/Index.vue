@@ -80,18 +80,18 @@ let columns = [
     field: "price_1",
     align: "right",
   },
-  // {
-  //   name: "price_2",
-  //   label: "Harga Partai",
-  //   field: "price_2",
-  //   align: "right",
-  // },
-  // {
-  //   name: "price_3",
-  //   label: "Harga Grosir",
-  //   field: "price_3",
-  //   align: "right",
-  // },
+  {
+    name: "price_2",
+    label: "Harga Partai",
+    field: "price_2",
+    align: "right",
+  },
+  {
+    name: "price_3",
+    label: "Harga Grosir",
+    field: "price_3",
+    align: "right",
+  },
   {
     name: "action",
     align: "right",
@@ -154,6 +154,15 @@ const computedColumns = computed(() => {
 
 const goToDetail = (props) => {
   router.get(route("admin.product.detail", props.row.id));
+};
+
+const getUnitCost = (row, unit) => {
+  // Jika unit punya cost tersimpan dan > 0, gunakan itu
+  if (unit.cost && parseFloat(unit.cost) > 0) {
+    return parseFloat(unit.cost);
+  }
+  // Fallback: Cost Dasar * Faktor Konversi
+  return parseFloat(row.cost) * parseFloat(unit.conversion_factor);
 };
 </script>
 
@@ -389,32 +398,19 @@ const goToDetail = (props) => {
                 "
               />
             </q-td>
-            <q-td key="name" :props="props" class="wrap-column">
-              {{ props.row.name }}
 
-              <template v-if="!$q.screen.gt.sm">
-                <div v-if="props.row.type == 'stocked'">
-                  <q-icon name="cycle" /> Stok:
-                  {{ formatNumber(props.row.stock) }} {{ props.row.uom }}
-                </div>
-                <div v-if="showCostColumn">
-                  <q-icon name="money" /> Modal: Rp.
-                  {{ formatNumber(props.row.cost) }}
-                </div>
-                <div>
-                  <q-icon name="sell" /> Eceran: Rp.
-                  {{ formatNumber(props.row.price_1) }}
-                </div>
-                <div v-if="props.row.price_2 != 0">
-                  <q-icon name="sell" /> Partai: Rp.
-                  {{ formatNumber(props.row.price_2) }}
-                </div>
-                <div v-if="props.row.price_3 != 0">
-                  <q-icon name="sell" /> Grosir: Rp.
-                  {{ formatNumber(props.row.price_3) }}
-                </div>
-              </template>
+            <q-td
+              key="name"
+              :props="props"
+              class="wrap-column"
+              style="max-width: 250px; white-space: normal"
+            >
+              <div class="text-weight-bold">{{ props.row.name }}</div>
+              <div class="text-caption text-grey-7" v-if="props.row.category">
+                {{ props.row.category.name }}
+              </div>
             </q-td>
+
             <q-td
               key="stock"
               :props="props"
@@ -422,93 +418,149 @@ const goToDetail = (props) => {
               :class="{
                 'low-stock':
                   props.row.type == 'stocked' &&
-                  (Number(props.row.stock) == 0 ||
-                    Number(props.row.stock) < Number(props.row.min_stock)),
-                'over-stock':
-                  props.row.type == 'stocked' &&
-                  Number(props.row.max_stock) &&
-                  Number(props.row.stock) > Number(props.row.max_stock),
+                  props.row.stock < props.row.min_stock,
+                'out-stock':
+                  props.row.type == 'stocked' && props.row.stock <= 0,
               }"
             >
-              {{
-                props.row.type == "stocked"
-                  ? formatNumber(props.row.stock) + " " + props.row.uom
-                  : "-"
-              }}
+              <div v-if="props.row.type == 'stocked'">
+                <div
+                  class="text-weight-bold text-primary"
+                  style="font-size: 0.9em"
+                >
+                  {{ props.row.stock_breakdown_text }}
+                </div>
+                <div class="text-caption text-grey-6" style="font-size: 10px">
+                  (Total: {{ formatNumber(props.row.stock) }}
+                  {{ props.row.uom }})
+                </div>
+              </div>
+              <div v-else>-</div>
             </q-td>
-            <q-td key="cost" :props="props" class="wrap-column" v-if="true">
-              {{ formatNumber(props.row.cost) }}
+
+            <q-td
+              key="cost"
+              :props="props"
+              class="wrap-column text-right"
+              v-if="showCostColumn"
+            >
+              <div class="q-mb-xs">
+                <span class="text-weight-medium">{{
+                  formatNumber(props.row.cost)
+                }}</span>
+                <span class="text-caption text-grey-6">
+                  / {{ props.row.uom }}</span
+                >
+              </div>
+
+              <div
+                v-for="unit in props.row.product_units"
+                :key="unit.id"
+                class="text-caption text-grey-9 q-mb-xs"
+              >
+                {{ formatNumber(getUnitCost(props.row, unit)) }}
+                <span class="text-grey-6">/ {{ unit.name }}</span>
+              </div>
             </q-td>
-            <q-td key="price_1" :props="props" class="wrap-column">
-              {{ formatNumber(props.row.price_1) }}
+
+            <q-td
+              key="price_1"
+              :props="props"
+              class="text-right"
+              style="vertical-align: top"
+            >
+              <div class="q-mb-xs">
+                <span class="text-weight-bold">{{
+                  formatNumber(props.row.price_1)
+                }}</span>
+                <span class="text-caption text-grey-6">
+                  / {{ props.row.uom }}</span
+                >
+              </div>
+              <div
+                v-for="unit in props.row.product_units"
+                :key="unit.id"
+                class="text-caption text-grey-9 q-mb-xs"
+              >
+                {{ formatNumber(unit.price_1) }}
+                <span class="text-grey-6">/ {{ unit.name }}</span>
+              </div>
             </q-td>
-            <!-- <q-td key="price_2" :props="props" class="wrap-column">
-              {{ formatNumber(props.row.price_2) }}
+
+            <q-td
+              key="price_2"
+              :props="props"
+              class="text-right"
+              style="vertical-align: top"
+            >
+              <div class="q-mb-xs">
+                <span class="text-weight-bold">{{
+                  formatNumber(props.row.price_2)
+                }}</span>
+                <span class="text-caption text-grey-6">
+                  / {{ props.row.uom }}</span
+                >
+              </div>
+              <div
+                v-for="unit in props.row.product_units"
+                :key="unit.id"
+                class="text-caption text-grey-9 q-mb-xs"
+              >
+                {{ formatNumber(unit.price_2) }}
+                <span class="text-grey-6">/ {{ unit.name }}</span>
+              </div>
             </q-td>
-            <q-td key="price_3" :props="props" class="wrap-column">
-              {{ formatNumber(props.row.price_3) }}
-            </q-td> -->
+
+            <q-td
+              key="price_3"
+              :props="props"
+              class="text-right"
+              style="vertical-align: top"
+            >
+              <div class="q-mb-xs">
+                <span class="text-weight-bold">{{
+                  formatNumber(props.row.price_3)
+                }}</span>
+                <span class="text-caption text-grey-6">
+                  / {{ props.row.uom }}</span
+                >
+              </div>
+              <div
+                v-for="unit in props.row.product_units"
+                :key="unit.id"
+                class="text-caption text-grey-9 q-mb-xs"
+              >
+                {{ formatNumber(unit.price_3) }}
+                <span class="text-grey-6">/ {{ unit.name }}</span>
+              </div>
+            </q-td>
+
             <q-td key="action" :props="props">
               <div class="flex justify-end">
-                <q-btn
-                  v-if="
-                    $can('admin.product.add') ||
-                    $can('admin.product.edit') ||
-                    $can('admin.product.delete')
-                  "
-                  icon="more_vert"
-                  rounded
-                  dense
-                  flat
-                  @click.stop
-                >
-                  <q-menu
-                    anchor="bottom right"
-                    self="top right"
-                    transition-show="scale"
-                    transition-hide="scale"
-                  >
-                    <q-list style="width: 175px">
+                <q-btn icon="more_vert" flat dense rounded @click.stop>
+                  <q-menu anchor="bottom right" self="top right">
+                    <q-list style="min-width: 150px">
                       <q-item
-                        v-if="$can('admin.product.add')"
                         clickable
-                        v-ripple
                         v-close-popup
-                        @click.stop="
-                          router.get(
-                            route('admin.product.duplicate', props.row.id)
-                          )
-                        "
-                      >
-                        <q-item-section avatar>
-                          <q-icon name="file_copy" />
-                        </q-item-section>
-                        <q-item-section>Duplikat</q-item-section>
-                      </q-item>
-                      <q-item
-                        v-if="$can('admin.product.edit')"
-                        clickable
-                        v-ripple
-                        v-close-popup
-                        @click.stop="
+                        @click="
                           router.get(route('admin.product.edit', props.row.id))
                         "
                       >
-                        <q-item-section avatar>
-                          <q-icon name="edit" />
-                        </q-item-section>
+                        <q-item-section avatar
+                          ><q-icon name="edit"
+                        /></q-item-section>
                         <q-item-section>Edit</q-item-section>
                       </q-item>
                       <q-item
-                        v-if="$can('admin.product.delete')"
-                        @click.stop="deleteItem(props.row)"
                         clickable
-                        v-ripple
                         v-close-popup
+                        @click="deleteItem(props.row)"
+                        class="text-negative"
                       >
-                        <q-item-section avatar>
-                          <q-icon name="delete_forever" />
-                        </q-item-section>
+                        <q-item-section avatar
+                          ><q-icon name="delete"
+                        /></q-item-section>
                         <q-item-section>Hapus</q-item-section>
                       </q-item>
                     </q-list>
@@ -517,22 +569,22 @@ const goToDetail = (props) => {
               </div>
             </q-td>
           </q-tr>
+
           <q-tr v-show="props.expand" :props="props">
             <q-td colspan="100%">
-              <div v-if="props.row.barcode">
-                <q-icon class="inline-icon" name="barcode" />
-                Barcode: {{ props.row.barcode }}
-              </div>
-              <div v-if="props.row.category_id">
-                <q-icon name="category" class="inline-icon" />
-                Kategori: {{ props.row.category?.name }}
-              </div>
-              <template v-if="$can('admin.product:view-supplier')">
-                <div v-if="props.row.supplier_id">
-                  <q-icon name="local_shipping" class="inline-icon" />
-                  Supplier: {{ props.row.supplier?.name }}
+              <div class="text-caption row q-gutter-md text-grey-8">
+                <div v-if="props.row.barcode">
+                  <q-icon name="qr_code" /> <b>Barcode:</b>
+                  {{ props.row.barcode }}
                 </div>
-              </template>
+                <div v-if="props.row.supplier">
+                  <q-icon name="local_shipping" /> <b>Supplier:</b>
+                  {{ props.row.supplier.name }}
+                </div>
+                <div v-if="props.row.notes">
+                  <q-icon name="note" /> <b>Catatan:</b> {{ props.row.notes }}
+                </div>
+              </div>
             </q-td>
           </q-tr>
         </template>
