@@ -53,19 +53,19 @@ const columns = [
     sortable: false,
     format: (val, row) => formatNumber(val) + " " + row.uom,
   },
-  {
-    name: "category",
-    label: "Kategori",
-    field: "category.name",
-    align: "left",
-  },
-  {
-    name: "supplier",
-    label: "Supplier",
-    field: "supplier.name",
-    align: "left",
-  },
-  { name: "type", label: "Jenis", field: "product_type", align: "left" },
+  // {
+  //   name: "category",
+  //   label: "Kategori",
+  //   field: "category.name",
+  //   align: "left",
+  // },
+  // {
+  //   name: "supplier",
+  //   label: "Supplier",
+  //   field: "supplier.name",
+  //   align: "left",
+  // },
+  // { name: "type", label: "Jenis", field: "product_type", align: "left" },
 ];
 
 const types = createOptions(window.CONSTANTS.STOCK_ADJUSTMENT_TYPES);
@@ -217,8 +217,8 @@ const computedColumns = computed(() => {
                   selectedProducts.length === 0 ||
                   page.props.errors?.product_ids
                 "
-                class="bg-red-1 text-red-10 q-my-sm text-center q-py-sm"
-                style="border: 1px solid #eb8a8a"
+                class="bg-blue-1 text-blue-10 q-my-sm text-center q-py-sm"
+                style="border: 1px solid #8ce"
               >
                 <template v-if="selectedProducts.length === 0">
                   Silahkan pilih produk yang akan disertakan ke dalam
