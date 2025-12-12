@@ -293,7 +293,7 @@ class ProductService
             $baseUnit->fill([
                 'name'              => $item->uom,
                 'conversion_factor' => 1,
-                'barcode'           => $item->barcode,
+                'barcode'           => empty($item->barcode) ? null : $item->barcode,
                 'price_1'           => $item->price_1,
                 'price_1_markup'    => $item->price_1_markup,
                 'price_1_option'    => $item->price_1_option,
