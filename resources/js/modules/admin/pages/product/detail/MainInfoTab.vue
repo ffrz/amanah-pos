@@ -129,7 +129,10 @@ const getPriceDisplay = (p1, p2, p3) => {
             <div class="text-weight-bold text-primary">
               {{ product.stock_breakdown }}
             </div>
-            <div class="text-caption text-grey-7">
+            <div
+              class="text-caption text-grey-7"
+              v-if="product.product_units.length > 0"
+            >
               (Total: {{ formatNumber(product.stock) }} {{ product.uom }})
             </div>
           </td>

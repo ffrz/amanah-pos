@@ -258,7 +258,7 @@ watch(
       @keydown="handleKeydown"
       ref="cardRef"
     >
-      <q-card-section class="q-py-sm bg-primary text-white">
+      <q-card-section class="q-py-sm bg-grey-3 text-grey-8">
         <div class="row items-center no-wrap">
           <div class="col text-subtitle1 text-bold">Cari Produk</div>
           <div class="col-auto">
@@ -533,11 +533,15 @@ watch(
                     class="text-weight-bold text-primary"
                     style="font-size: 0.9em"
                   >
-                    {{ props.row.stock_breakdown_text }}
+                    {{ formatNumber(props.row.stock) }}
+                    {{ props.row.uom }}
                   </div>
-                  <div class="text-caption text-grey-6" style="font-size: 10px">
-                    (Total: {{ formatNumber(props.row.stock) }}
-                    {{ props.row.uom }})
+                  <div
+                    v-if="props.row.product_units.length > 0"
+                    class="text-caption text-grey-6"
+                    style="font-size: 10px"
+                  >
+                    {{ props.row.stock_breakdown_text }}
                   </div>
                 </div>
                 <div v-else>-</div>
@@ -554,8 +558,8 @@ watch(
                   <span class="text-weight-medium">{{
                     formatNumber(props.row.cost)
                   }}</span>
-                  <span class="text-caption text-grey-6"
-                    >/{{ props.row.uom }}</span
+                  <span class="text-caption text-grey-6">
+                    / {{ props.row.uom }}</span
                   >
                 </div>
                 <div
@@ -564,7 +568,7 @@ watch(
                   class="text-caption text-grey-9 q-mb-xs"
                 >
                   {{ formatNumber(getUnitCost(props.row, unit)) }}
-                  <span class="text-grey-6">/{{ unit.name }}</span>
+                  <span class="text-grey-6"> / {{ unit.name }}</span>
                 </div>
               </q-td>
 
@@ -578,8 +582,8 @@ watch(
                   <span class="text-weight-bold">{{
                     formatNumber(props.row.price_1)
                   }}</span>
-                  <span class="text-caption text-grey-6"
-                    >/{{ props.row.uom }}</span
+                  <span class="text-caption text-grey-6">
+                    / {{ props.row.uom }}</span
                   >
                 </div>
                 <div
@@ -588,7 +592,7 @@ watch(
                   class="text-caption text-grey-9 q-mb-xs"
                 >
                   {{ formatNumber(unit.price_1) }}
-                  <span class="text-grey-6">/{{ unit.name }}</span>
+                  <span class="text-grey-6"> / {{ unit.name }}</span>
                 </div>
               </q-td>
 
@@ -617,8 +621,8 @@ watch(
                     >
                       {{ formatNumber(display.p2.val) }}
                     </span>
-                    <span class="text-caption text-grey-6"
-                      >/{{ props.row.uom }}</span
+                    <span class="text-caption text-grey-6">
+                      / {{ props.row.uom }}</span
                     >
                   </template>
                 </div>
@@ -639,7 +643,7 @@ watch(
                     >
                       {{ formatNumber(uDisplay.p2.val) }}
                     </span>
-                    <span class="text-grey-6">/{{ unit.name }}</span>
+                    <span class="text-grey-6"> / {{ unit.name }}</span>
                   </template>
                 </div>
               </q-td>
@@ -669,8 +673,8 @@ watch(
                     >
                       {{ formatNumber(display.p3.val) }}
                     </span>
-                    <span class="text-caption text-grey-6"
-                      >/{{ props.row.uom }}</span
+                    <span class="text-caption text-grey-6">
+                      / {{ props.row.uom }}</span
                     >
                   </template>
                 </div>
@@ -691,7 +695,7 @@ watch(
                     >
                       {{ formatNumber(uDisplay.p3.val) }}
                     </span>
-                    <span class="text-grey-6">/{{ unit.name }}</span>
+                    <span class="text-grey-6"> / {{ unit.name }}</span>
                   </template>
                 </div>
               </q-td>
@@ -720,8 +724,15 @@ watch(
 }
 
 /* Hilangkan border kiri kanan seleksi agar bersih */
+.selected-row td {
+  border-top: 1px solid rgba(33, 150, 243, 0.6) !important;
+  border-bottom: 1px solid rgba(33, 150, 243, 0.6) !important;
+}
 .selected-row td:first-child {
-  border: 1px solid rgb(33, 150, 243) !important;
+  border-left: 1px solid rgba(33, 150, 243, 0.6) !important;
+}
+.selected-row td:last-child {
+  border-right: 1px solid rgba(33, 150, 243, 0.6) !important;
 }
 
 .lowstock {

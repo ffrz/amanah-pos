@@ -447,11 +447,15 @@ const getPriceDisplay = (p1, p2, p3) => {
                   class="text-weight-bold text-primary"
                   style="font-size: 0.9em"
                 >
-                  {{ props.row.stock_breakdown_text }}
+                  {{ formatNumber(props.row.stock) }}
+                  {{ props.row.uom }}
                 </div>
-                <div class="text-caption text-grey-6" style="font-size: 10px">
-                  (Total: {{ formatNumber(props.row.stock) }}
-                  {{ props.row.uom }})
+                <div
+                  v-if="props.row.product_units.length > 0"
+                  class="text-caption text-grey-6"
+                  style="font-size: 10px"
+                >
+                  {{ props.row.stock_breakdown_text }}
                 </div>
               </div>
               <div v-else>-</div>
