@@ -164,6 +164,25 @@ const getUnitCost = (row, unit) => {
   // Fallback: Cost Dasar * Faktor Konversi
   return parseFloat(row.cost) * parseFloat(unit.conversion_factor);
 };
+
+const getPriceDisplay = (p1, p2, p3) => {
+  const price1 = parseFloat(p1) || 0;
+  let price2 = parseFloat(p2) || 0;
+  let price3 = parseFloat(p3) || 0;
+
+  // Logika Fallback
+  const isP2Fallback = price2 === 0;
+  if (isP2Fallback) price2 = price1;
+
+  const isP3Fallback = price3 === 0;
+  if (isP3Fallback) price3 = price2;
+
+  return {
+    p1: { val: price1, isFallback: false },
+    p2: { val: price2, isFallback: isP2Fallback },
+    p3: { val: price3, isFallback: isP3Fallback },
+  };
+};
 </script>
 
 <template>
@@ -494,20 +513,54 @@ const getUnitCost = (row, unit) => {
               style="vertical-align: top"
             >
               <div class="q-mb-xs">
-                <span class="text-weight-bold">{{
-                  formatNumber(props.row.price_2)
-                }}</span>
-                <span class="text-caption text-grey-6">
-                  / {{ props.row.uom }}</span
+                <template
+                  v-for="display in [
+                    getPriceDisplay(
+                      props.row.price_1,
+                      props.row.price_2,
+                      props.row.price_3
+                    ),
+                  ]"
                 >
+                  <span
+                    :class="
+                      display.p2.isFallback
+                        ? 'text-grey-5 text-italic'
+                        : 'text-weight-bold'
+                    "
+                  >
+                    {{ formatNumber(display.p2.val) }}
+                  </span>
+                  <span class="text-caption text-grey-6">
+                    / {{ props.row.uom }}</span
+                  >
+                  <q-tooltip v-if="display.p2.isFallback" class="bg-grey-8"
+                    >Mengikut Harga Eceran</q-tooltip
+                  >
+                </template>
               </div>
+
               <div
                 v-for="unit in props.row.product_units"
                 :key="unit.id"
-                class="text-caption text-grey-9 q-mb-xs"
+                class="text-caption q-mb-xs"
               >
-                {{ formatNumber(unit.price_2) }}
-                <span class="text-grey-6">/ {{ unit.name }}</span>
+                <template
+                  v-for="uDisplay in [
+                    getPriceDisplay(unit.price_1, unit.price_2, unit.price_3),
+                  ]"
+                >
+                  <span
+                    :class="
+                      uDisplay.p2.isFallback
+                        ? 'text-grey-5 text-italic'
+                        : 'text-grey-9'
+                    "
+                  >
+                    {{ formatNumber(uDisplay.p2.val) }}
+                  </span>
+                  <span class="text-grey-6">/ {{ unit.name }}</span>
+                </template>
               </div>
             </q-td>
 
@@ -518,20 +571,54 @@ const getUnitCost = (row, unit) => {
               style="vertical-align: top"
             >
               <div class="q-mb-xs">
-                <span class="text-weight-bold">{{
-                  formatNumber(props.row.price_3)
-                }}</span>
-                <span class="text-caption text-grey-6">
-                  / {{ props.row.uom }}</span
+                <template
+                  v-for="display in [
+                    getPriceDisplay(
+                      props.row.price_1,
+                      props.row.price_2,
+                      props.row.price_3
+                    ),
+                  ]"
                 >
+                  <span
+                    :class="
+                      display.p3.isFallback
+                        ? 'text-grey-5 text-italic'
+                        : 'text-weight-bold'
+                    "
+                  >
+                    {{ formatNumber(display.p3.val) }}
+                  </span>
+                  <span class="text-caption text-grey-6">
+                    / {{ props.row.uom }}</span
+                  >
+                  <q-tooltip v-if="display.p3.isFallback" class="bg-grey-8"
+                    >Mengikut Harga Partai/Eceran</q-tooltip
+                  >
+                </template>
               </div>
+
               <div
                 v-for="unit in props.row.product_units"
                 :key="unit.id"
-                class="text-caption text-grey-9 q-mb-xs"
+                class="text-caption q-mb-xs"
               >
-                {{ formatNumber(unit.price_3) }}
-                <span class="text-grey-6">/ {{ unit.name }}</span>
+                <template
+                  v-for="uDisplay in [
+                    getPriceDisplay(unit.price_1, unit.price_2, unit.price_3),
+                  ]"
+                >
+                  <span
+                    :class="
+                      uDisplay.p3.isFallback
+                        ? 'text-grey-5 text-italic'
+                        : 'text-grey-9'
+                    "
+                  >
+                    {{ formatNumber(uDisplay.p3.val) }}
+                  </span>
+                  <span class="text-grey-6">/ {{ unit.name }}</span>
+                </template>
               </div>
             </q-td>
 

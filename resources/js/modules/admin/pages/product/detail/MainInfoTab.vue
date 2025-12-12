@@ -2,7 +2,7 @@
 import { handleDelete } from "@/helpers/client-req-handler";
 import { formatNumber, formatDateTime } from "@/helpers/formatter";
 import { useQuasar } from "quasar";
-import { router } from "@inertiajs/vue3"; // Pastikan import router ada
+import { router } from "@inertiajs/vue3";
 
 const props = defineProps({
   product: {
@@ -14,16 +14,13 @@ const props = defineProps({
 const $q = useQuasar();
 
 const marginInfo = (price, cost) => {
-  // Hitung margin dinamis berdasarkan cost yang dikirim (bisa cost unit atau cost dasar)
   const val =
     price > 0 && cost > 0 ? formatNumber(((price - cost) / cost) * 100, 2) : 0;
   return `${val}%`;
 };
 
-// Helper untuk menghitung HPP Konversi di UI (jika unit tidak menyimpan cost sendiri)
+// Helper untuk menghitung HPP Konversi di UI
 const getUnitCost = (unit) => {
-  // Jika di backend unit punya cost sendiri, pakai itu.
-  // Jika 0, hitung dari product base cost * conversion
   if (unit.cost && parseFloat(unit.cost) > 0) return parseFloat(unit.cost);
   return parseFloat(props.product.cost) * parseFloat(unit.conversion_factor);
 };
@@ -36,6 +33,25 @@ const confirmDelete = () => {
       router.get(route("admin.product.index"));
     },
   });
+};
+
+// LOGIC FALLBACK HARGA (Sama dengan Index.vue)
+const getPriceDisplay = (p1, p2, p3) => {
+  const price1 = parseFloat(p1) || 0;
+  let price2 = parseFloat(p2) || 0;
+  let price3 = parseFloat(p3) || 0;
+
+  const isP2Fallback = price2 === 0;
+  if (isP2Fallback) price2 = price1;
+
+  const isP3Fallback = price3 === 0;
+  if (isP3Fallback) price3 = price2;
+
+  return {
+    p1: { val: price1, isFallback: false },
+    p2: { val: price2, isFallback: isP2Fallback },
+    p3: { val: price3, isFallback: isP3Fallback },
+  };
 };
 </script>
 
@@ -161,6 +177,7 @@ const confirmDelete = () => {
             >
               {{ product.uom }} (Dasar)
             </td>
+
             <td
               v-if="$can('admin.product:view-cost')"
               class="q-pa-sm text-bold"
@@ -168,33 +185,69 @@ const confirmDelete = () => {
             >
               Rp {{ formatNumber(product.cost) }}
             </td>
-            <td class="q-pa-sm text-bold" style="border-bottom: 1px solid #eee">
-              <div>Rp {{ formatNumber(product.price_1) }}</div>
-              <div
-                v-if="$can('admin.product:view-cost')"
-                class="text-caption text-green"
+
+            <template
+              v-for="disp in [
+                getPriceDisplay(
+                  product.price_1,
+                  product.price_2,
+                  product.price_3
+                ),
+              ]"
+            >
+              <td
+                class="q-pa-sm text-bold"
+                style="border-bottom: 1px solid #eee"
               >
-                {{ marginInfo(product.price_1, product.cost) }}
-              </div>
-            </td>
-            <td class="q-pa-sm text-bold" style="border-bottom: 1px solid #eee">
-              <div>Rp {{ formatNumber(product.price_2) }}</div>
-              <div
-                v-if="$can('admin.product:view-cost')"
-                class="text-caption text-green"
+                <div>Rp {{ formatNumber(disp.p1.val) }}</div>
+                <div
+                  v-if="$can('admin.product:view-cost')"
+                  class="text-caption text-green"
+                >
+                  {{ marginInfo(disp.p1.val, product.cost) }}
+                </div>
+              </td>
+
+              <td
+                class="q-pa-sm text-bold"
+                style="border-bottom: 1px solid #eee"
               >
-                {{ marginInfo(product.price_2, product.cost) }}
-              </div>
-            </td>
-            <td class="q-pa-sm text-bold" style="border-bottom: 1px solid #eee">
-              <div>Rp {{ formatNumber(product.price_3) }}</div>
-              <div
-                v-if="$can('admin.product:view-cost')"
-                class="text-caption text-green"
+                <div
+                  :class="disp.p2.isFallback ? 'text-grey-6 text-italic' : ''"
+                >
+                  Rp {{ formatNumber(disp.p2.val) }}
+                  <q-tooltip v-if="disp.p2.isFallback"
+                    >Harga belum diset, ikut eceran</q-tooltip
+                  >
+                </div>
+                <div
+                  v-if="$can('admin.product:view-cost')"
+                  class="text-caption text-green"
+                >
+                  {{ marginInfo(disp.p2.val, product.cost) }}
+                </div>
+              </td>
+
+              <td
+                class="q-pa-sm text-bold"
+                style="border-bottom: 1px solid #eee"
               >
-                {{ marginInfo(product.price_3, product.cost) }}
-              </div>
-            </td>
+                <div
+                  :class="disp.p3.isFallback ? 'text-grey-6 text-italic' : ''"
+                >
+                  Rp {{ formatNumber(disp.p3.val) }}
+                  <q-tooltip v-if="disp.p3.isFallback"
+                    >Harga belum diset, ikut partai/eceran</q-tooltip
+                  >
+                </div>
+                <div
+                  v-if="$can('admin.product:view-cost')"
+                  class="text-caption text-green"
+                >
+                  {{ marginInfo(disp.p3.val, product.cost) }}
+                </div>
+              </td>
+            </template>
           </tr>
 
           <tr v-for="unit in product.product_units" :key="unit.id">
@@ -204,6 +257,7 @@ const confirmDelete = () => {
                 >(x{{ formatNumber(unit.conversion_factor) }})</span
               >
             </td>
+
             <td
               v-if="$can('admin.product:view-cost')"
               class="q-pa-sm"
@@ -211,33 +265,50 @@ const confirmDelete = () => {
             >
               Rp {{ formatNumber(getUnitCost(unit)) }}
             </td>
-            <td class="q-pa-sm" style="border-bottom: 1px solid #eee">
-              <div>Rp {{ formatNumber(unit.price_1) }}</div>
-              <div
-                v-if="$can('admin.product:view-cost')"
-                class="text-caption text-green"
-              >
-                {{ marginInfo(unit.price_1, getUnitCost(unit)) }}
-              </div>
-            </td>
-            <td class="q-pa-sm" style="border-bottom: 1px solid #eee">
-              <div>Rp {{ formatNumber(unit.price_2) }}</div>
-              <div
-                v-if="$can('admin.product:view-cost')"
-                class="text-caption text-green"
-              >
-                {{ marginInfo(unit.price_2, getUnitCost(unit)) }}
-              </div>
-            </td>
-            <td class="q-pa-sm" style="border-bottom: 1px solid #eee">
-              <div>Rp {{ formatNumber(unit.price_3) }}</div>
-              <div
-                v-if="$can('admin.product:view-cost')"
-                class="text-caption text-green"
-              >
-                {{ marginInfo(unit.price_3, getUnitCost(unit)) }}
-              </div>
-            </td>
+
+            <template
+              v-for="uDisp in [
+                getPriceDisplay(unit.price_1, unit.price_2, unit.price_3),
+              ]"
+            >
+              <td class="q-pa-sm" style="border-bottom: 1px solid #eee">
+                <div>Rp {{ formatNumber(uDisp.p1.val) }}</div>
+                <div
+                  v-if="$can('admin.product:view-cost')"
+                  class="text-caption text-green"
+                >
+                  {{ marginInfo(uDisp.p1.val, getUnitCost(unit)) }}
+                </div>
+              </td>
+
+              <td class="q-pa-sm" style="border-bottom: 1px solid #eee">
+                <div
+                  :class="uDisp.p2.isFallback ? 'text-grey-5 text-italic' : ''"
+                >
+                  Rp {{ formatNumber(uDisp.p2.val) }}
+                </div>
+                <div
+                  v-if="$can('admin.product:view-cost')"
+                  class="text-caption text-green"
+                >
+                  {{ marginInfo(uDisp.p2.val, getUnitCost(unit)) }}
+                </div>
+              </td>
+
+              <td class="q-pa-sm" style="border-bottom: 1px solid #eee">
+                <div
+                  :class="uDisp.p3.isFallback ? 'text-grey-5 text-italic' : ''"
+                >
+                  Rp {{ formatNumber(uDisp.p3.val) }}
+                </div>
+                <div
+                  v-if="$can('admin.product:view-cost')"
+                  class="text-caption text-green"
+                >
+                  {{ marginInfo(uDisp.p3.val, getUnitCost(unit)) }}
+                </div>
+              </td>
+            </template>
           </tr>
         </tbody>
       </table>
