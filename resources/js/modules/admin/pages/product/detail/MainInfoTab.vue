@@ -2,6 +2,7 @@
 import { handleDelete } from "@/helpers/client-req-handler";
 import { formatNumber, formatDateTime } from "@/helpers/formatter";
 import { useQuasar } from "quasar";
+import { router } from "@inertiajs/vue3"; // Pastikan import router ada
 
 const props = defineProps({
   product: {
@@ -12,15 +13,19 @@ const props = defineProps({
 
 const $q = useQuasar();
 
-const marginInfo = (price) => {
+const marginInfo = (price, cost) => {
+  // Hitung margin dinamis berdasarkan cost yang dikirim (bisa cost unit atau cost dasar)
   const val =
-    price > 0
-      ? formatNumber(
-          ((price - props.product.cost) / props.product.cost) * 100,
-          2
-        )
-      : 0;
+    price > 0 && cost > 0 ? formatNumber(((price - cost) / cost) * 100, 2) : 0;
   return `${val}%`;
+};
+
+// Helper untuk menghitung HPP Konversi di UI (jika unit tidak menyimpan cost sendiri)
+const getUnitCost = (unit) => {
+  // Jika di backend unit punya cost sendiri, pakai itu.
+  // Jika 0, hitung dari product base cost * conversion
+  if (unit.cost && parseFloat(unit.cost) > 0) return parseFloat(unit.cost);
+  return parseFloat(props.product.cost) * parseFloat(unit.conversion_factor);
 };
 
 const confirmDelete = () => {
@@ -42,9 +47,7 @@ const confirmDelete = () => {
         <tr>
           <td style="width: 120px">Kode / Nama</td>
           <td style="width: 1px">:</td>
-          <td>
-            {{ product.name }}
-          </td>
+          <td>{{ product.name }}</td>
         </tr>
         <tr>
           <td>Deskirpsi</td>
@@ -54,27 +57,17 @@ const confirmDelete = () => {
         <tr>
           <td>Barcode</td>
           <td>:</td>
-          <td>
-            {{ product.barcode }}
-          </td>
+          <td>{{ product.barcode }}</td>
         </tr>
         <tr>
           <td>Jenis Produk</td>
           <td>:</td>
-          <td>
-            {{ $CONSTANTS.PRODUCT_TYPES[product.type] }}
-          </td>
+          <td>{{ $CONSTANTS.PRODUCT_TYPES[product.type] }}</td>
         </tr>
         <tr>
           <td>Kategori</td>
           <td>:</td>
-          <td>
-            {{
-              product.category
-                ? product.category.name
-                : "--Tidak memiliki kategori--"
-            }}
-          </td>
+          <td>{{ product.category ? product.category.name : "--" }}</td>
         </tr>
         <tr v-if="$can('admin.product:view-supplier')">
           <td>Supplier</td>
@@ -83,150 +76,173 @@ const confirmDelete = () => {
             <template v-if="product.supplier">
               <i-link
                 :href="
-                  route('admin.supplier.detail', {
-                    id: product.supplier.id,
-                  })
+                  route('admin.supplier.detail', { id: product.supplier.id })
                 "
               >
                 {{ product.supplier.name }}
               </i-link>
             </template>
-            <template v-else>
-              {{ "--Tidak memiliki supplier--" }}
-            </template>
+            <template v-else>--</template>
           </td>
         </tr>
         <tr>
           <td>Status</td>
           <td>:</td>
-          <td>
-            {{ product.active ? "Aktif" : "Tidak Aktif" }}
-          </td>
+          <td>{{ product.active ? "Aktif" : "Tidak Aktif" }}</td>
         </tr>
         <tr v-if="!!product.created_at">
-          <td>Dibuat Oleh</td>
+          <td>Dibuat</td>
           <td>:</td>
           <td>
-            <template v-if="product.creator">
-              <i-link
-                :href="
-                  route('admin.user.detail', {
-                    id: product.creator,
-                  })
-                "
-              >
-                {{ product.creator.username }}
-              </i-link>
-              -
-            </template>
+            <span v-if="product.creator">{{ product.creator.name }}</span> -
             {{ formatDateTime(product.created_at) }}
-          </td>
-        </tr>
-        <tr v-if="!!product.updater">
-          <td>Diperbarui oleh</td>
-          <td>:</td>
-          <td>
-            <template v-if="product.updater">
-              <i-link
-                :href="
-                  route('admin.user.detail', {
-                    id: product.updater,
-                  })
-                "
-              >
-                {{ product.updater.username }}
-              </i-link>
-              -
-            </template>
-            {{ formatDateTime(product.updated_at) }}
           </td>
         </tr>
       </tbody>
     </table>
+
     <div class="text-subtitle1 q-pt-lg text-bold text-grey-9">
       Info Inventori
     </div>
     <table class="detail">
       <tbody>
         <tr>
-          <td style="width: 120px">Stok</td>
+          <td style="width: 120px">Stok Fisik</td>
           <td style="width: 1px">:</td>
           <td>
-            {{ formatNumber(product.stock) }}
-            {{ product.uom }}
+            <div class="text-weight-bold text-primary">
+              {{ product.stock_breakdown }}
+            </div>
+            <div class="text-caption text-grey-7">
+              (Total: {{ formatNumber(product.stock) }} {{ product.uom }})
+            </div>
           </td>
         </tr>
         <tr>
-          <td>Stok Minimum</td>
+          <td>Stok Min</td>
           <td>:</td>
-          <td>
-            {{ formatNumber(product.min_stock) }}
-            {{ product.uom }}
-          </td>
-        </tr>
-        <!-- <tr>
-          <td>Stok Maksimum</td>
-          <td>:</td>
-          <td>
-            {{ formatNumber(product.max_stock) }}
-            {{ product.uom }}
-          </td>
-        </tr> -->
-        <tr>
-          <td>Barcode</td>
-          <td>:</td>
-          <td>{{ product.barcode }}</td>
+          <td>{{ formatNumber(product.min_stock) }} {{ product.uom }}</td>
         </tr>
       </tbody>
     </table>
+
     <div class="text-subtitle1 q-pt-md text-bold text-grey-9">Info Harga</div>
-    <table class="detail">
-      <tbody>
-        <tr>
-          <td>Opsi Harga</td>
-          <td>:</td>
-          <td>
-            {{ product.price_editable ? "Dapat" : "Tidak dapat" }}
-            diubah saat penjualan.
-          </td>
-        </tr>
-        <tr v-if="$can('admin.product:view-cost')">
-          <td style="width: 120px">Harga Beli</td>
-          <td style="width: 1px">:</td>
-          <td>Rp. {{ formatNumber(product.cost) }}</td>
-        </tr>
-        <tr>
-          <td>Harga Eceran</td>
-          <td>:</td>
-          <td>
-            Rp. {{ formatNumber(product.price_1) }}
-            <span v-if="$can('admin.product:view-cost')">
-              ({{ marginInfo(product.price_1) }})
-            </span>
-          </td>
-        </tr>
-        <tr>
-          <td>Harga Partai</td>
-          <td>:</td>
-          <td>
-            Rp. {{ formatNumber(product.price_2) }}
-            <span v-if="$can('admin.product:view-cost')">
-              ({{ marginInfo(product.price_2) }})
-            </span>
-          </td>
-        </tr>
-        <tr>
-          <td>Harga Grosir</td>
-          <td>:</td>
-          <td>
-            Rp. {{ formatNumber(product.price_3) }}
-            <span v-if="$can('admin.product:view-cost')">
-              ({{ marginInfo(product.price_3) }})
-            </span>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+
+    <div class="q-markup-table q-table--dense q-mt-sm">
+      <table style="width: 100%; border-collapse: collapse">
+        <thead>
+          <tr class="text-left bg-grey-2">
+            <th class="q-pa-sm" style="border-bottom: 1px solid #ddd">
+              Satuan
+            </th>
+            <th
+              v-if="$can('admin.product:view-cost')"
+              class="q-pa-sm"
+              style="border-bottom: 1px solid #ddd"
+            >
+              Modal
+            </th>
+            <th class="q-pa-sm" style="border-bottom: 1px solid #ddd">
+              Eceran
+            </th>
+            <th class="q-pa-sm" style="border-bottom: 1px solid #ddd">
+              Partai
+            </th>
+            <th class="q-pa-sm" style="border-bottom: 1px solid #ddd">
+              Grosir
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="bg-blue-1">
+            <td
+              class="q-pa-sm text-bold text-primary"
+              style="border-bottom: 1px solid #eee"
+            >
+              {{ product.uom }} (Dasar)
+            </td>
+            <td
+              v-if="$can('admin.product:view-cost')"
+              class="q-pa-sm text-bold"
+              style="border-bottom: 1px solid #eee"
+            >
+              Rp {{ formatNumber(product.cost) }}
+            </td>
+            <td class="q-pa-sm text-bold" style="border-bottom: 1px solid #eee">
+              <div>Rp {{ formatNumber(product.price_1) }}</div>
+              <div
+                v-if="$can('admin.product:view-cost')"
+                class="text-caption text-green"
+              >
+                {{ marginInfo(product.price_1, product.cost) }}
+              </div>
+            </td>
+            <td class="q-pa-sm text-bold" style="border-bottom: 1px solid #eee">
+              <div>Rp {{ formatNumber(product.price_2) }}</div>
+              <div
+                v-if="$can('admin.product:view-cost')"
+                class="text-caption text-green"
+              >
+                {{ marginInfo(product.price_2, product.cost) }}
+              </div>
+            </td>
+            <td class="q-pa-sm text-bold" style="border-bottom: 1px solid #eee">
+              <div>Rp {{ formatNumber(product.price_3) }}</div>
+              <div
+                v-if="$can('admin.product:view-cost')"
+                class="text-caption text-green"
+              >
+                {{ marginInfo(product.price_3, product.cost) }}
+              </div>
+            </td>
+          </tr>
+
+          <tr v-for="unit in product.product_units" :key="unit.id">
+            <td class="q-pa-sm text-bold" style="border-bottom: 1px solid #eee">
+              {{ unit.name }}
+              <span class="text-caption text-grey font-weight-normal"
+                >(x{{ formatNumber(unit.conversion_factor) }})</span
+              >
+            </td>
+            <td
+              v-if="$can('admin.product:view-cost')"
+              class="q-pa-sm"
+              style="border-bottom: 1px solid #eee"
+            >
+              Rp {{ formatNumber(getUnitCost(unit)) }}
+            </td>
+            <td class="q-pa-sm" style="border-bottom: 1px solid #eee">
+              <div>Rp {{ formatNumber(unit.price_1) }}</div>
+              <div
+                v-if="$can('admin.product:view-cost')"
+                class="text-caption text-green"
+              >
+                {{ marginInfo(unit.price_1, getUnitCost(unit)) }}
+              </div>
+            </td>
+            <td class="q-pa-sm" style="border-bottom: 1px solid #eee">
+              <div>Rp {{ formatNumber(unit.price_2) }}</div>
+              <div
+                v-if="$can('admin.product:view-cost')"
+                class="text-caption text-green"
+              >
+                {{ marginInfo(unit.price_2, getUnitCost(unit)) }}
+              </div>
+            </td>
+            <td class="q-pa-sm" style="border-bottom: 1px solid #eee">
+              <div>Rp {{ formatNumber(unit.price_3) }}</div>
+              <div
+                v-if="$can('admin.product:view-cost')"
+                class="text-caption text-green"
+              >
+                {{ marginInfo(unit.price_3, getUnitCost(unit)) }}
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
     <div class="text-subtitle1 q-pt-md text-bold text-grey-9">
       Info Deskripsi & Catatan
     </div>
@@ -235,10 +251,11 @@ const confirmDelete = () => {
         <tr>
           <td style="width: 120px">Catatan</td>
           <td style="width: 1px">:</td>
-          <td>{{ product.notes }}</td>
+          <td>{{ product.notes || "-" }}</td>
         </tr>
       </tbody>
     </table>
+
     <div class="q-pt-md" v-if="$can('admin.product.delete')">
       <q-btn
         icon="delete"
@@ -249,3 +266,11 @@ const confirmDelete = () => {
     </div>
   </div>
 </template>
+
+<style scoped>
+/* Sedikit styling tambahan untuk tabel custom */
+.detail td {
+  vertical-align: top;
+  padding-bottom: 8px;
+}
+</style>

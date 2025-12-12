@@ -159,6 +159,60 @@ class ProductService
         return Product::with(['category:id,name', 'supplier:id,code,name', 'creator:id,username,name', 'updater:id,username,name', 'productUnits'])->findOrFail($id);
     }
 
+    // TODO: AI generated code, we still need to review this!
+    public function findWithStockBreakdown(int $id): ?Product
+    {
+        // 1. Load Relasi untuk dikirim ke Frontend (Tetap ASC / Kecil ke Besar)
+        // Agar tabel harga tetap rapi (m -> Roll -> Dus)
+        $product = Product::with([
+            'category:id,name',
+            'supplier:id,code,name',
+            'creator:id,username,name',
+            'updater:id,username,name',
+            'productUnits' => fn($q) => $q->where('is_base_unit', false)
+                ->orderBy('conversion_factor', 'asc')
+        ])->findOrFail($id);
+
+        // --- LOGIC HITUNG PECAHAN STOK (FIXED) ---
+        $remainder = $product->stock;
+        $parts = [];
+
+        // 2. CRITICAL FIX: Kita buat salinan list unit lalu urutkan DESC (Besar ke Kecil)
+        // khusus untuk perhitungan matematika ini saja.
+        $calculationUnits = $product->productUnits->sortByDesc('conversion_factor');
+
+        foreach ($calculationUnits as $unit) {
+            // Pastikan faktor konversi valid & sisa stok cukup untuk minimal 1 unit ini
+            if ($unit->conversion_factor > 0 && $remainder >= $unit->conversion_factor) {
+
+                $qty = floor($remainder / $unit->conversion_factor);
+
+                if ($qty > 0) {
+                    $parts[] = number_format($qty, 0, ',', '.') . ' ' . $unit->name;
+
+                    // Kurangi sisa stok
+                    // Gunakan fmod untuk akurasi desimal, atau pengurangan biasa
+                    $remainder = fmod($remainder, $unit->conversion_factor);
+                }
+            }
+        }
+
+        // 3. Masukkan Sisa Stok (Satuan Dasar / Terkecil)
+        // Floating point precision fix: anggap 0 jika sangat kecil (misal 0.000001)
+        if ($remainder > 0.0001 || count($parts) === 0) {
+            $formattedRemainder = (float)$remainder == (int)$remainder
+                ? number_format($remainder, 0, ',', '.')
+                : number_format($remainder, 2, ',', '.');
+
+            $parts[] = $formattedRemainder . ' ' . $product->uom;
+        }
+
+        // 4. Inject string hasil ke object
+        $product->stock_breakdown = implode(', ', $parts);
+
+        return $product;
+    }
+
     public function findOrCreate($id = null)
     {
         return $id ? $this->find($id) : new Product([

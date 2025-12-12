@@ -64,7 +64,7 @@ class ProductController extends Controller
      */
     public function detail(int $id = 0): Response|RedirectResponse
     {
-        $item = $this->productService->find($id);
+        $item = $this->productService->findWithStockBreakdown($id);
         $this->authorize('view', $item);
         return Inertia::render('product/Detail', [
             'data' => $item,
