@@ -19,12 +19,12 @@ a:hover {
 }
 
 #main-nav .q-item--active .q-icon {
-  color: #309dcf;
+  color: #323f51;
 }
 
 #main-nav .q-item--active {
-  background: #d0f0ff;
-  color: #309dcf;
+  background: #ebebeb;
+  color: #323f51;
   font-weight: bold;
 }
 
