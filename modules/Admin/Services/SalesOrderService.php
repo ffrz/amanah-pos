@@ -397,8 +397,13 @@ class SalesOrderService
     private function processSalesOrderStockOut(SalesOrder $order)
     {
         foreach ($order->details as $detail) {
-            $productType = $detail->product->type;
-            // TODO: Skip tipe produk tertentu
+            $product = Product::where('id', $detail->product_id)
+                ->lockForUpdate()
+                ->first();
+
+            $productType = $product->type;
+
+            // 1. Skip Tipe Produk Non-Stock
             if (
                 $productType == Product::Type_NonStocked
                 || $productType == Product::Type_Service
@@ -406,39 +411,78 @@ class SalesOrderService
                 continue;
             }
 
-            $quantity = $detail->quantity;
-            $product = $detail->product;
+            // 2. HITUNG KUANTITAS DALAM SATUAN DASAR
+            // Rumus: Qty Transaksi * Rate Konversi
+            // Contoh: 2 ROLL * 305 = 610 Meter
+            $rate = $detail->conversion_rate > 0 ? $detail->conversion_rate : 1;
+            $qtyTransaction = $detail->quantity;
+            $qtyBase = $qtyTransaction * $rate;
 
+            // 3. AMBIL STOK 'REAL-TIME' YANG SUDAH DILOCK
+            $stockBefore = $product->stock;
+            $stockAfter  = $stockBefore - $qtyBase;
+
+            // 4. UPDATE STOCK MOVEMENT
             StockMovement::create([
-                'parent_id'         => $order->id,
-                'parent_ref_type'   => StockMovement::ParentRefType_SalesOrder,
-                'document_code'     => $order->code,
+                // Header Dokumen
+                'parent_id'       => $order->id,
+                'parent_ref_type' => StockMovement::ParentRefType_SalesOrder,
+                'document_code'   => $order->code,
                 'document_datetime' => $order->datetime,
-                'party_id'          => $order->customer_id,
-                'party_type'        => 'customer',
-                'party_code'        => $order->customer_code,
-                'party_name'        => $order->customer_name,
 
+                // Pihak Terkait (Customer)
+                'party_id'        => $order->customer_id,
+                'party_type'      => 'customer',
+                'party_code'      => $order->customer_code,
+                'party_name'      => $order->customer_name,
+
+                // Info Produk
                 'product_id'      => $detail->product_id,
                 'product_name'    => $detail->product_name,
-                'uom'             => $detail->product_uom,
+
+                // PENTING: UOM di StockMovement WAJIB Satuan Dasar Produk
+                // Jangan pakai $detail->product_uom (ROLL), tapi pakai $product->uom (m)
+                'uom'             => $product->uom,
+
                 'ref_id'          => $detail->id,
                 'ref_type'        => StockMovement::RefType_SalesOrderDetail,
-                'quantity'        => -$quantity,
-                'quantity_before' => $product->stock,
-                'quantity_after'  => $product->stock - $quantity,
-                'notes'           => "Transaksi penjualan #$order->code",
+
+                // PENTING: Quantity yang mengurangi stok adalah Quantity Base
+                'quantity'        => -$qtyBase,
+
+                // Audit Trail (Info Transaksi Asli)
+                'user_input_qty'  => $qtyTransaction,
+                'user_input_uom'  => $detail->product_uom,
+                'conversion_rate' => $rate,
+
+                // Snapshot Stok (Opsional, untuk tracking history saldo)
+                // Pastikan $product->stock adalah stok sebelum dikurangi
+                'quantity_before' => $stockBefore,
+                'quantity_after'  => $stockAfter,
+
+                'notes'           => "Penjualan #$order->code ($qtyTransaction {$detail->product_uom})",
             ]);
 
-            Product::where('id', $detail->product_id)->decrement('stock', $quantity);
+            // 5. Kurangi Stok Master (Satuan Dasar)
+            $product->stock = $stockAfter;
+            $product->save();
         }
     }
 
     private function reverseStock(SalesOrder $order)
     {
         foreach ($order->details as $detail) {
-            Product::where('id', $detail->product_id)->increment('stock', $detail->quantity);
+            // 1. HITUNG QTY BASE (SAMA SEPERTI SAAT STOCK OUT)
+            $rate = $detail->conversion_rate > 0 ? $detail->conversion_rate : 1;
+            $qtyBase = $detail->quantity * $rate; // Contoh: 2 * 305 = 610
 
+            // 2. KEMBALIKAN STOK DALAM SATUAN DASAR
+            // Gunakan increment agar atomic (aman dari race condition sederhana)
+            Product::where('id', $detail->product_id)->increment('stock', $qtyBase);
+
+            // 3. HAPUS MUTASI
+            // Hati-hati: Menghapus baris di tengah-tengah bisa memutus
+            // rantai history 'quantity_before' dan 'quantity_after' jika Anda menggunakannya.
             StockMovement::where('ref_type', StockMovement::RefType_SalesOrderDetail)
                 ->where('ref_id', $detail->id)
                 ->delete();

@@ -32,7 +32,6 @@ const userInputRef = ref(null);
 const itemEditorRef = ref(null);
 const customerAutocompleteRef = ref(null);
 const showHelpDialog = ref(false);
-const authLayoutRef = ref(null);
 const title = page.props.data.code;
 const customer = ref(page.props.data.customer);
 const payment = ref(null);
@@ -95,7 +94,6 @@ const validateBarcode = (code) => {
   return true;
 };
 
-// -----
 const handleProductSelection = (product) => {
   if (userInput.value?.endsWith("*")) {
     userInput.value += product.name;
@@ -111,27 +109,49 @@ const addItem = async () => {
   }
 
   const input = userInput.value?.trim();
-  if (input.length === 0) {
+  if (!input || input.length === 0) {
     showProductBrowserDialog.value = true;
     return;
   }
 
-  const parts = input.split("*");
+  // Split dan bersihkan spasi di kiri/kanan setiap bagian
+  const parts = input.split("*").map((p) => p.trim());
 
-  let inputQuantity = 1;
+  let rawQuantity = "1"; // Default string, nanti diparse
   let inputBarcode = "";
   let inputPrice = null;
 
   if (parts.length === 1) {
+    // KASUS 1: Cuma Barcode
     inputBarcode = parts[0];
-  } else if (parts.length <= 3) {
-    inputQuantity = parseInt(parts[0]);
-    inputBarcode = parts[1];
-    if (parts.length === 3) {
-      inputPrice = parseFloat(parts[2]);
+  } else if (parts.length === 2) {
+    // KASUS 2: QTY*ITEM atau ITEM*HARGA
+    const part0 = parts[0];
+    const part1 = parts[1];
+
+    // Cek apakah sisi KANAN adalah Angka (Harga)?
+    // Regex ini membolehkan angka bulat atau desimal
+    const isRightSidePrice = /^[0-9]+(\.[0-9]+)?$/.test(part1);
+
+    if (isRightSidePrice) {
+      // Pola: ITEM * HARGA (Sesuai preferensi)
+      // Contoh: "ROTI * 5000" atau "899700 * 5000"
+      inputBarcode = part0;
+      inputPrice = parseFloat(part1);
+    } else {
+      // Pola: QTY * ITEM
+      // Contoh: "10 * ROTI" atau "1 dus * KABEL"
+      // Karena sisi kanan ada hurufnya, gak mungkin itu harga.
+      rawQuantity = part0;
+      inputBarcode = part1;
     }
+  } else if (parts.length === 3) {
+    // KASUS 3: QTY * ITEM * HARGA
+    rawQuantity = parts[0];
+    inputBarcode = parts[1];
+    inputPrice = parseFloat(parts[2]);
   } else {
-    showWarning("Input tidak valid.", "top");
+    showWarning("Format input tidak valid.", "top");
     return;
   }
 
@@ -140,12 +160,49 @@ const addItem = async () => {
     return;
   }
 
-  if (
-    !validateBarcode(inputBarcode) &&
-    !validateQuantity(inputQuantity) &&
-    !validatePrice(inputPrice)
-  ) {
+  // 1. Validasi Barcode
+  if (!validateBarcode(inputBarcode)) {
+    // showWarning("Barcode tidak valid", "top"); // aktifkan jika validateBarcode tidak memunculkan alert
     return;
+  }
+
+  // Parsing Quantity (Support "1roll") boleh ada spasi ataupun tidak
+  let cleanQty = 0;
+  let parsedUom = null;
+
+  // ^([0-9\.]+) -> Cari angka/titik di awal
+  // \s* -> Boleh ada spasi atau tidak
+  // .*)$      -> Ambil sisanya sebagai teks (satuan)
+  const match = rawQuantity.match(/^([0-9]+(?:\.[0-9]+)?)\s*(.*)$/);
+
+  if (match) {
+    // Grup 1 adalah Angka
+    cleanQty = parseFloat(match[1]);
+
+    // Grup 2 adalah Teks (Satuan). Kita trim() agar spasi hilang.
+    const unitStr = match[2] ? match[2].trim() : "";
+
+    // Jika ada teksnya, simpan ke parsedUom
+    if (unitStr.length > 0) {
+      parsedUom = unitStr;
+    }
+  } else {
+    // Fallback jika input tidak sesuai pola (misal ".5" atau error lain)
+    cleanQty = parseFloat(rawQuantity);
+  }
+
+  // Validasi hasil parse quantity
+  if (isNaN(cleanQty) || cleanQty <= 0) {
+    showWarning("Kuantitas tidak valid.", "top");
+    return;
+  }
+
+  // Validasi Price (Jika ada input)
+  if (inputPrice !== null) {
+    if (isNaN(inputPrice) || inputPrice < 0) {
+      showWarning("Harga tidak valid.", "top");
+      return;
+    }
   }
 
   isProcessing.value = true;
@@ -153,7 +210,8 @@ const addItem = async () => {
     .post(route("admin.sales-order.add-item"), {
       order_id: form.id,
       product_code: inputBarcode,
-      qty: inputQuantity,
+      qty: cleanQty, // Kirim angka bersih (bukan string "1roll")
+      uom: parsedUom,
       price: inputPrice,
       merge: mergeItem.value,
     })
@@ -174,8 +232,13 @@ const addItem = async () => {
       }
 
       userInput.value = "";
-      if (inputPrice !== null && inputPrice !== parseFloat(currentItem.price)) {
-        showWarning("Harga tidak dapat diubah!", "top");
+
+      // Cek apakah harga dari server berbeda (misal karena tidak boleh edit harga)
+      if (
+        inputPrice !== null &&
+        Math.abs(inputPrice - parseFloat(currentItem.price)) > 1
+      ) {
+        showWarning("Harga disesuaikan oleh sistem.", "top");
       }
     })
     .catch((error) => {
@@ -239,6 +302,7 @@ const updateItem = async () => {
   const data = {
     id: item.id,
     qty: item.quantity,
+    uom: item.product_uom,
   };
 
   if (item.product.price_editable) {

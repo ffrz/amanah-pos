@@ -101,4 +101,25 @@ class ProductUnit extends BaseModel
     {
         return number_format($this->conversion_factor, 4);
     }
+
+    public function getSellingPrice(?string $priceType): float
+    {
+        $priceType = $priceType ?: 'price_1';
+
+        // Cek Harga Grosir Unit
+        if ($priceType === 'price_3') {
+            $p3 = (float) $this->price_3;
+            if ($p3 > 0) return $p3;
+            $priceType = 'price_2';
+        }
+
+        // Cek Harga Partai Unit
+        if ($priceType === 'price_2') {
+            $p2 = (float) $this->price_2;
+            if ($p2 > 0) return $p2;
+        }
+
+        // Fallback: Eceran Unit
+        return (float) $this->price_1;
+    }
 }

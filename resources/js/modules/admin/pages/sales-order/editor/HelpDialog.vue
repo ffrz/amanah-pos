@@ -39,10 +39,10 @@ const emit = defineEmits(["update:modelValue"]);
               <td>F3</td>
               <td>Aktifkan Input Barcode<</td>
             </tr>
-            <tr>
+            <!-- <tr>
               <td>F4</td>
               <td>Gabung / pisahkan item saat input</td>
-            </tr>
+            </tr> -->
             <tr>
               <td>F10 / Ctrl+Enter</td>
               <td>Bayar / Selesai</td>

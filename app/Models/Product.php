@@ -315,4 +315,43 @@ class Product extends BaseModel
         // 3. Final Fallback: Harga Eceran (Price 1)
         return (float) $this->price_1;
     }
+
+    /**
+     * Mencari produk berdasarkan barcode/kode.
+     * Mengembalikan array konteks: Product, UOM yang terdeteksi, dan Unit Modelnya.
+     */
+    public function scanProduct(string $identifier): array
+    {
+        // 1. Cek Apakah Barcode milik Unit Tambahan (misal Dus/Roll)?
+        // Prioritas 1: ProductUnit
+        $unit = \App\Models\ProductUnit::with('product')
+            ->where('barcode', $identifier)
+            ->first();
+
+        if ($unit) {
+            return [
+                'product' => $unit->product,
+                'uom'     => $unit->name,       // UOM terdeteksi: "ROLL"
+                'unit'    => $unit,             // Model Unit untuk ambil harga khusus
+            ];
+        }
+
+        // 2. Cek Apakah Barcode milik Produk Utama (Satuan Dasar)?
+        // Prioritas 2: Product Table
+        $product = \App\Models\Product::query()
+            ->where('barcode', $identifier)
+            ->orWhere('id', $identifier) // Support cari by ID juga
+            ->first();
+
+        if ($product) {
+            return [
+                'product' => $product,
+                'uom'     => $product->uom,     // UOM terdeteksi: "m"
+                'unit'    => null,              // Null artinya Base Unit
+            ];
+        }
+
+        // 3. Tidak ditemukan
+        throw new \Exception("Produk dengan kode '$identifier' tidak ditemukan.");
+    }
 }

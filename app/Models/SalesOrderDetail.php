@@ -28,15 +28,21 @@ class SalesOrderDetail extends BaseModel
         'product_id',
         'product_name',
         'product_barcode',
-        'product_uom',
-        'quantity',
-        'cost',
+        'product_description',
+        'product_uom',      // Satuan Transaksi (misal: ROLL)
+
+        'quantity',         // Kuantitas Transaksi (misal: 2) -> Dipakai hitung subtotal
+
+        // --- FIELD BARU DARI SCHEMA ---
+        // 'user_input_qty', TIDAK DIBUTUHKAN, BUTUH DIBUANG SAJA!
+        // 'user_input_uom', TIDAK DIBUTUHKAN, BUTUH DIBUANG SAJA!
+        'conversion_rate',  // Nilai konversi saat itu (misal: 305.00)
+        // ------------------------------
+
+        'cost',             // Modal per Satuan Transaksi (misal: Modal per Roll)
         'subtotal_cost',
-        'price',
+        'price',            // Harga per Satuan Transaksi (misal: Harga per Roll)
         'subtotal_price',
-        'discount_amount',
-        'discount_percent',
-        'subtotal_discount',
         'notes',
     ];
 

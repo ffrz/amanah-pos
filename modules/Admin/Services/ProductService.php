@@ -16,6 +16,7 @@
 
 namespace Modules\Admin\Services;
 
+use App\Exceptions\BusinessRuleViolationException;
 use App\Exceptions\ModelInUseException;
 use App\Exceptions\ModelNotModifiedException;
 use App\Helpers\WhatsAppHelper;
@@ -619,29 +620,91 @@ class ProductService
         $lockedProduct->save();
     }
 
-    public function findProductByCodeOrId(array $data)
+    public function scanProduct($identifier, $uom = null)
     {
-        $product = null;
-        $productCode = $data['product_code'] ?? null;
-        $productId = $data['product_id'] ?? null;
+        // ======================================================================
+        // STRATEGI 1: PENCARIAN BY BARCODE (PASTI AKURAT & SPESIFIK)
+        // Jika identifier adalah barcode, kita abaikan parameter $uom
+        // karena barcode sudah menunjuk ke satu unit spesifik.
+        // ======================================================================
 
-        if ($productId) {
-            $product = Product::find($productId);
-        } elseif ($productCode) {
-            // cari berdasarkan barcode
-            $product = Product::where('barcode', '=', $productCode)->first();
+        // 1.1 Cek Barcode di Unit Tambahan (Dus/Roll)
+        $unitByBarcode = \App\Models\ProductUnit::with('product')
+            ->where('barcode', $identifier)
+            ->first();
 
-            // kalo belum ketemu cari berdasarkan nama produk
-            if (!$product) {
-                $product = Product::where('name', '=', $productCode)->first();
+        if ($unitByBarcode) {
+            return [
+                'product' => $unitByBarcode->product,
+                'uom'     => $unitByBarcode->name,
+                'unit'    => $unitByBarcode,
+            ];
+        }
+
+        // 1.2 Cek Barcode di Produk Utama (Satuan Dasar)
+        $productByBarcode = \App\Models\Product::where('barcode', $identifier)->first();
+
+        if ($productByBarcode) {
+            return [
+                'product' => $productByBarcode,
+                'uom'     => $productByBarcode->uom,
+                'unit'    => null, // Base Unit
+            ];
+        }
+
+        // ======================================================================
+        // STRATEGI 2: PENCARIAN BY NAMA / KODE (BUTUH KONTEKS UOM)
+        // Jika barcode tidak ketemu, kita cari berdasarkan Nama/ID.
+        // Di sini parameter $uom menjadi KUNCI penentu satuan mana yang diambil.
+        // ======================================================================
+
+        $product = \App\Models\Product::query()
+            ->where(function ($q) use ($identifier) {
+                $q->where('name', 'LIKE', "%{$identifier}%")
+                    ->orWhere('id', $identifier);
+            })
+            ->first();
+
+        if ($product) {
+            // Produk ketemu (misal: "Kabel"), sekarang kita cek user minta satuan apa?
+
+            // KASUS A: User minta satuan spesifik (misal: "ROLL")
+            if (!empty($uom)) {
+
+                // Cek 1: Apakah yang diminta adalah Satuan Dasar?
+                if (strtoupper($uom) === strtoupper($product->uom)) {
+                    return [
+                        'product' => $product,
+                        'uom'     => $product->uom,
+                        'unit'    => null,
+                    ];
+                }
+
+                // Cek 2: Cari di tabel Multi Satuan (ProductUnit)
+                $requestedUnit = $product->productUnits()
+                    ->where('name', $uom)
+                    ->first();
+
+                if ($requestedUnit) {
+                    return [
+                        'product' => $product,
+                        'uom'     => $requestedUnit->name,
+                        'unit'    => $requestedUnit,
+                    ];
+                }
+
+                throw new BusinessRuleViolationException("Satuan '$uom' tidak ditemukan.");
             }
+
+            // KASUS B: User tidak minta satuan (atau satuan tidak ketemu), return Default/Dasar
+            return [
+                'product' => $product,
+                'uom'     => $product->uom,
+                'unit'    => null,
+            ];
         }
 
-        if (!$product) {
-            throw new ModelNotFoundException('Produk tidak ditemukan.');
-        }
-
-        return $product;
+        throw new ModelNotFoundException("Produk '$identifier' tidak ditemukan.");
     }
 
     private function generateProductCode(): string
