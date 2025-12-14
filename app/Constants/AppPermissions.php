@@ -215,6 +215,7 @@ class AppPermissions
                 'admin.sales-order.index' => 'Lihat Daftar Penjualan',
                 'admin.sales-order.detail' => 'Lihat Detail Penjualan',
                 'admin.sales-order.edit' => 'Membuat / Edit Penjualan',
+                'admin.sales-order.editor:edit-price' => 'Edit Harga Jual',
                 'admin.sales-order.delete' => 'Hapus Penjualan',
                 'admin.sales-order.cancel' => 'Batalkan Penjualan',
                 'admin.sales-order.close' => 'Tutup Penjualan',

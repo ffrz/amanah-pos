@@ -125,6 +125,11 @@ const addItem = async () => {
     // KASUS 1: Cuma Barcode
     inputBarcode = parts[0];
   } else if (parts.length === 2) {
+    if (input.endsWith("*")) {
+      showProductBrowserDialog.value = true;
+      return;
+    }
+
     // KASUS 2: QTY*ITEM atau ITEM*HARGA
     const part0 = parts[0];
     const part1 = parts[1];
@@ -133,7 +138,7 @@ const addItem = async () => {
     // Regex ini membolehkan angka bulat atau desimal
     const isRightSidePrice = /^[0-9]+(\.[0-9]+)?$/.test(part1);
 
-    if (isRightSidePrice) {
+    if (!isRightSidePrice) {
       // Pola: ITEM * HARGA (Sesuai preferensi)
       // Contoh: "ROTI * 5000" atau "899700 * 5000"
       inputBarcode = part0;

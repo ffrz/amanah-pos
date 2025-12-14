@@ -76,9 +76,6 @@ defineEmits(["update-quantity", "remove-item", "edit-item"]);
           <div class="text-weight-medium">
             {{ props.row.product_name }}
           </div>
-          <div class="text-caption text-grey-6 elipsis">
-            {{ props.row.product_barcode }}
-          </div>
           <LongTextView
             v-if="props.row.notes"
             :text="props.row.notes"

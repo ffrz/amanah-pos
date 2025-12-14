@@ -148,7 +148,12 @@ defineExpose({
         <LocaleNumberInput
           v-model="item.price"
           label="Harga (Rp)"
-          :readonly="!item.product?.price_editable"
+          :readonly="
+            !(
+              item.product?.price_editable ||
+              $can('admin.sales-order.editor:edit-price')
+            )
+          "
           hide-bottom-space
           :disable="isProcessing"
         />
