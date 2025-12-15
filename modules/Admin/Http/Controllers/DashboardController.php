@@ -23,6 +23,7 @@ use App\Models\FinanceTransaction;
 use App\Models\OperationalCost; // [TAMBAHAN] Import Model
 use App\Models\Product;
 use App\Models\SalesOrder;
+use App\Models\SalesOrderReturn;
 use App\Models\Supplier;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -59,9 +60,9 @@ class DashboardController extends Controller
                 'total_customer_balance' => Customer::totalActiveBalance(),
                 'total_supplier_wallet_balance' => 0,
                 'total_supplier_balance' => Supplier::totalActiveBalance(),
-                'total_sales' => SalesOrder::sumClosedTotalByPeriod($start_date, $end_date),
+                'total_sales' => SalesOrder::sumClosedTotalByPeriod($start_date, $end_date) - SalesOrderReturn::sumClosedTotalByPeriod($start_date, $end_date),
                 'total_sales_count' => SalesOrder::countClosedByPeriod($start_date, $end_date),
-                'total_sales_profit' => SalesOrder::sumTotalProfitByPeriod($start_date, $end_date),
+                'total_sales_profit' => SalesOrder::sumTotalProfitByPeriod($start_date, $end_date) - SalesOrderReturn::sumTotalLostProfitByPeriod($start_date, $end_date),
                 'chart_data_1' => $aggregationType ? $this->formatSalesChartData(
                     SalesOrder::getSalesDataAggregatedByPeriod($start_date, $end_date, $aggregationType),
                     $dates['start_date'],

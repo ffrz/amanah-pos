@@ -187,4 +187,50 @@ class SalesOrderReturn extends BaseModel
             $this->refund_status = SalesOrderReturn::RefundStatus_NoRefund;
         }
     }
+
+    public static function sumClosedTotalByPeriod($startDate, $endDate): float
+    {
+        return static::query()
+            // Hanya menghitung pesanan yang sudah Selesai (Closed)
+            ->where('status', self::Status_Closed)
+
+            // Memfilter berdasarkan rentang tanggal
+            ->whereBetween('datetime', [
+                $startDate . ' 00:00:00',
+                $endDate . ' 23:59:59'
+            ])
+
+            // Menjumlahkan kolom grand_total
+            ->sum('grand_total');
+    }
+
+    public static function sumTotalLostProfitByPeriod($startDate, $endDate)
+    {
+        return static::query()
+            // Pastikan hanya menghitung retur yang statusnya sudah 'Closed' (Selesai/Disetujui)
+            ->where('status', self::Status_Closed)
+            ->whereBetween('datetime', [
+                $startDate . ' 00:00:00',
+                $endDate . ' 23:59:59'
+            ])
+            // Rumusnya sama: (Harga Jual - Modal)
+            // Hasil dari sum ini adalah Total Profit yang harus Anda kurangi dari Profit Penjualan.
+            ->sum(\Illuminate\Support\Facades\DB::raw('total_price - total_cost'));
+    }
+
+    public static function countClosedByPeriod($startDate, $endDate): float
+    {
+        return static::query()
+            // Hanya menghitung pesanan yang sudah Selesai (Closed)
+            ->where('status', self::Status_Closed)
+
+            // Memfilter berdasarkan rentang tanggal
+            ->whereBetween('datetime', [
+                $startDate . ' 00:00:00',
+                $endDate . ' 23:59:59'
+            ])
+
+            // Menjumlahkan kolom grand_total
+            ->count();
+    }
 }
