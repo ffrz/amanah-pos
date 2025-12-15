@@ -725,6 +725,7 @@ const isValidOrder = computed(() => {
         ref="itemEditorRef"
         v-model="showItemEditorDialog"
         :item="itemToEdit"
+        :customer="customer"
         @save="updateItem()"
         :is-processing="isProcessing"
       />

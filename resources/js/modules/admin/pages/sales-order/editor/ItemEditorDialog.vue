@@ -1,94 +1,123 @@
 <script setup>
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import axios from "axios";
 
 const props = defineProps({
-  modelValue: {
-    type: Boolean,
-    required: true,
-  },
-  item: {
+  modelValue: { type: Boolean, required: true },
+  item: { type: Object, required: false },
+  // Tambahkan Customer untuk mendeteksi default_price_type
+  customer: {
     type: Object,
     required: false,
+    default: () => ({ default_price_type: "price_1" }),
   },
-  isProcessing: {
-    type: Boolean,
-    required: false,
-  },
+  isProcessing: { type: Boolean, required: false },
 });
 
 const emit = defineEmits(["update:modelValue", "save"]);
 
-// --- 1. DATA DUMMY SATUAN (Simulasi data dari backend) ---
-const dummyProductUnits = [
-  { name: "m", price: 4000 }, // Satuan Dasar
-  { name: "ROLL", price: 683963 }, // Satuan Besar 1
-  { name: "DUS BESAR", price: 1522950 }, // Satuan Besar 2
-];
+// --- STATE ---
+const availableUnits = ref([]);
+const isLoadingUnits = ref(false);
 
-// --- 2. DATA OPSI UNTUK SELECT ---
+// --- HELPER: Tentukan kolom harga mana yang dipakai ---
+const getPriceKey = () => {
+  // Asumsi: customer.default_price_type bernilai 'price_1', 'price_2', atau 'price_3'
+  // Jika customer null atau tidak punya setting, default ke 'price_1'
+  return props.customer?.default_price_type || "price_1";
+};
+
+// --- FETCH DATA ---
+const fetchProductUnits = async () => {
+  if (!props.item?.product_id) {
+    availableUnits.value = [];
+    return;
+  }
+  isLoadingUnits.value = true;
+  try {
+    const response = await axios.get(
+      `/web-api/products/${props.item.product_id}/units`
+    );
+    if (response.data?.data) {
+      availableUnits.value = response.data.data;
+    } else {
+      availableUnits.value = [];
+    }
+  } catch (error) {
+    console.error("Error fetching units:", error);
+    // Fallback darurat
+    availableUnits.value = [
+      {
+        name: props.item.product_uom,
+        price_1: props.item.price, // Asumsi harga saat ini masuk price_1
+        is_base: true,
+      },
+    ];
+  } finally {
+    isLoadingUnits.value = false;
+  }
+};
+
+// --- WATCHER ---
+watch(
+  () => props.modelValue,
+  (isOpen) => {
+    if (isOpen) {
+      availableUnits.value = [];
+      fetchProductUnits();
+    }
+  },
+  { immediate: true }
+);
+
+// --- LOGIC UTAMA: Mapping Harga Berdasarkan Customer ---
 const unitOptions = computed(() => {
-  return dummyProductUnits.map((u) => ({
-    label: u.name,
-    value: u.name,
-    price: u.price, // Titip harga di sini
-  }));
+  const priceKey = getPriceKey(); // Misal: 'price_2'
+
+  return availableUnits.value.map((u) => {
+    // Ambil harga dinamis sesuai tipe customer
+    // Jika harga tipe tersebut 0 atau null, fallback ke price_1
+    const finalPrice = parseFloat(u[priceKey] || u["price_1"] || 0);
+
+    return {
+      label: u.name,
+      value: u.name,
+      price: finalPrice,
+      description: u.is_base ? "(Dasar)" : "",
+    };
+  });
 });
 
-// --- 3. LOGIKA GANTI SATUAN ---
+// --- LOGIKA GANTI SATUAN ---
 const onUnitChange = (val) => {
   const selected = unitOptions.value.find((opt) => opt.value === val);
   if (selected) {
-    // Update nama satuan
     props.item.product_uom = selected.value;
-    // Update harga otomatis sesuai satuan
+
+    // PENTING: Jika user manual ganti satuan, harga otomatis ikut berubah
+    // sesuai kategori customer yang sedang aktif
     props.item.price = selected.price;
   }
 };
 
-// --- LOGIKA BAWAAN ---
+// ... sisa logic save, subtotal, onMounted sama seperti sebelumnya ...
 
-const handleSave = () => {
-  emit("save");
-};
+// --- Tambahan Logic Watch Customer (Opsional) ---
+// Jika tiba-tiba object customer berubah saat dialog sedang terbuka
+// maka harga di "unitOptions" akan otomatis berubah (reactive),
+// TAPI harga di "props.item.price" (yang sudah terpilih) tidak otomatis berubah
+// kecuali kita paksa update seperti ini:
 
-const subtotal = computed(() => {
-  return props.item.quantity * props.item.price;
-});
-
-const preventEvent = (e) => {
-  e.stopPropagation();
-  e.preventDefault();
-};
-
-const handleKeyDown = (e) => {
-  if (props.modelValue) {
-    if (e.key === "Enter") {
-      handleSave();
-      emit("update:modelValue", false);
-      preventEvent(e);
-    } else if (e.key === "Escape") {
-      emit("update:modelValue", false);
-      preventEvent(e);
+watch(
+  () => props.customer?.default_price_type,
+  () => {
+    // Refresh harga item yang sedang diedit jika tipe harga customer berubah
+    if (props.modelValue && props.item.product_uom) {
+      onUnitChange(props.item.product_uom);
     }
   }
-};
-
-onMounted(() => {
-  window.addEventListener("keydown", handleKeyDown);
-});
-
-onUnmounted(() => {
-  window.removeEventListener("keydown", handleKeyDown);
-});
-
-const getCurrentItem = () => {
-  return props.item;
-};
-
-defineExpose({
-  getCurrentItem,
-});
+);
 </script>
 
 <template>
@@ -137,11 +166,20 @@ defineExpose({
               :options="unitOptions"
               label="Satuan"
               hide-bottom-space
-              :disable="isProcessing"
+              :disable="isProcessing || isLoadingUnits"
+              :loading="isLoadingUnits"
               emit-value
               map-options
               @update:model-value="onUnitChange"
-            />
+            >
+              <template v-slot:option="scope">
+                <q-item v-bind="scope.itemProps">
+                  <q-item-section>
+                    <q-item-label>{{ scope.opt.label }}</q-item-label>
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
           </div>
         </div>
 

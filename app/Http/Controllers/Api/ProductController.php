@@ -3,13 +3,13 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
+ *
  * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
+ *
  * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
+ *
  * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
@@ -38,6 +38,7 @@ use Modules\Admin\Services\ProductService;
 
 use Illuminate\Http\JsonResponse;
 use App\Http\Resources\ProductResource;
+use App\Models\ProductUnit;
 use Modules\Admin\Http\Requests\Product\SaveRequest;
 use Illuminate\Http\Request;
 
@@ -189,5 +190,48 @@ class ProductController extends Controller
                 'message' => 'Failed to delete product: ' . $e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Get available units for a specific product.
+     *
+     * @param  \App\Models\Product  $product
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getUnits(Product $product): JsonResponse
+    {
+        // 1. Ambil Satuan Dasar (Base Unit) dari tabel produk utama
+        $units = [];
+
+        // Masukkan satuan dasar (misal: PCS/M)
+        $units[] = [
+            'name' => $product->uom ?? '-',
+            'price_1' => $product->price_1,
+            'price_2' => $product->price_2 ?? $product->price_1,
+            'price_3' => $product->price_3 ?? $product->price_2 ?? $product->price_1,
+        ];
+
+        if (method_exists($product, 'productUnits')) {
+            $productUnits = ProductUnit::query()
+                ->where('product_id', $product->id)
+                ->where('is_base_unit', false)
+                ->orderBy('conversion_factor', 'asc')
+                ->select('name', 'price_1', 'price_2', 'price_3')
+                ->get();
+
+            foreach ($productUnits as $unit) {
+                $units[] = [
+                    'name' => $unit->name,
+                    'price_1' => $unit->price_1,
+                    'price_2' => $unit->price_2 ?? $unit->price_1,
+                    'price_3' => $unit->price_3 ?? $unit->price_2 ?? $unit->price_1,
+                ];
+            }
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $units
+        ]);
     }
 }

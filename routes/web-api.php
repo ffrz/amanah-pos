@@ -29,6 +29,8 @@ Route::middleware(['auth:web', 'web'])->prefix('web-api')->group(function () {
             ->name('web-api.products.index');
         Route::get('/find-by-barcode/{product}', [ProductController::class, 'findByBarcode'])
             ->name('web-api.products.find-by-barcode');
+        Route::get('/{product}/units', [ProductController::class, 'getUnits'])
+            ->name('web-api.products.units');
     });
 
     Route::prefix('/customers')->group(function () {
