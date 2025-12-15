@@ -259,6 +259,7 @@ class ProductService
     {
         return Product::with(['category', 'supplier'])
             ->where('barcode', $identifier)
+            ->orWhere('name', $identifier)
             ->first();
     }
 

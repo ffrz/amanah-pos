@@ -66,7 +66,9 @@ class PurchaseOrderReturnDetailService
         $this->ensureOrderIsEditable($orderReturn);
 
         $merge = $data['merge'] ?? false;
-        $product = $this->productService->findProductByCodeOrId($data);
+
+        $product = $this->productService->findProductByIdentifier($data['product_code']);
+
         $orderDetail = PurchaseOrderDetail::where('order_id', $orderReturn->purchase_order_id)
             ->where('product_id', $product->id)
             ->first();

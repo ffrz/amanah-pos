@@ -43,7 +43,7 @@ class PurchaseOrderDetailService
     {
         $this->ensureOrderIsEditable($order);
 
-        $product  = $this->productService->findProductByCodeOrId($data);
+        $product  = $this->productService->findProductByIdentifier($data['product_code']);
         $quantity = $data['qty'] ?? 0;
         $cost     = $data['cost'] ?? $product->cost;
         $item   = null;

@@ -66,7 +66,7 @@ class SalesOrderReturnDetailService
         $this->ensureOrderIsEditable($orderReturn);
 
         $merge = $data['merge'] ?? false;
-        $product = $this->productService->findProductByCodeOrId($data);
+        $product = $this->productService->findProductByIdentifier($data['product_code']);
         $orderDetail = SalesOrderDetail::where('order_id', $orderReturn->sales_order_id)
             ->where('product_id', $product->id)
             ->first();
@@ -109,7 +109,7 @@ class SalesOrderReturnDetailService
             $item->subtotal_cost  = $item->cost  * $item->quantity;
             $item->subtotal_price = $item->price * $item->quantity;
         } else {
-            $returnDetail = new SalesOrderDetail([
+            $item = new SalesOrderDetail([
                 'order_id' => $orderReturn->sales_order_id,
                 'return_id' => $orderReturn->id,
                 'product_id' => $orderDetail->product_id,
@@ -125,17 +125,17 @@ class SalesOrderReturnDetailService
             ]);
         }
 
-        if ($returnDetail->quantity > $maxQuantity) {
+        if ($item->quantity > $maxQuantity) {
             throw new BusinessRuleViolationException('Kwantitas retur melebihi batas.');
         }
 
-        return DB::transaction(function () use ($orderReturn, $returnDetail) {
-            $returnDetail->save();
+        return DB::transaction(function () use ($orderReturn, $item) {
+            $item->save();
 
             $orderReturn->updateGrandTotal();
             $orderReturn->save();
 
-            return $returnDetail;
+            return $item;
         });
     }
 
