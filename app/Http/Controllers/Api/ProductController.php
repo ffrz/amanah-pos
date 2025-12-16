@@ -200,15 +200,15 @@ class ProductController extends Controller
      */
     public function getUnits(Product $product): JsonResponse
     {
-        // 1. Ambil Satuan Dasar (Base Unit) dari tabel produk utama
         $units = [];
 
-        // Masukkan satuan dasar (misal: PCS/M)
         $units[] = [
-            'name' => $product->uom ?? '-',
+            'name' => $product->uom ?? 'PCS',
+            'cost' => $product->cost ?? 0,
             'price_1' => $product->price_1,
             'price_2' => $product->price_2 ?? $product->price_1,
             'price_3' => $product->price_3 ?? $product->price_2 ?? $product->price_1,
+            'is_base_unit' => true,
         ];
 
         if (method_exists($product, 'productUnits')) {
@@ -216,15 +216,18 @@ class ProductController extends Controller
                 ->where('product_id', $product->id)
                 ->where('is_base_unit', false)
                 ->orderBy('conversion_factor', 'asc')
-                ->select('name', 'price_1', 'price_2', 'price_3')
+                ->select('name', 'price_1', 'price_2', 'price_3', 'cost', 'conversion_factor')
                 ->get();
 
             foreach ($productUnits as $unit) {
                 $units[] = [
                     'name' => $unit->name,
+                    'conversion_factor' => $unit->conversion_factor,
+                    'cost' => $unit->cost ?? $product->cost * $unit->conversion_factor,
                     'price_1' => $unit->price_1,
                     'price_2' => $unit->price_2 ?? $unit->price_1,
                     'price_3' => $unit->price_3 ?? $unit->price_2 ?? $unit->price_1,
+                    'is_base_unit' => false,
                 ];
             }
         }

@@ -175,6 +175,8 @@ const addItem = async () => {
       if (inputCost !== null && inputCost !== parseFloat(currentItem.cost)) {
         showWarning("Harga tidak dapat diubah!", "top");
       }
+
+      showItemEditor(currentItem);
     })
     .catch((error) => {
       showError(error.response?.data?.message, "top");

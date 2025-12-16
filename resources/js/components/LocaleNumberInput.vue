@@ -14,10 +14,10 @@ defineExpose({
   },
   select: () => {
     if (qInputRef.value?.$el) {
-      const input = qInputRef.value.$el.querySelector(
-        "input"
-      ) as HTMLInputElement;
-      input?.select();
+      // const input = qInputRef.value.$el.querySelector(
+      //   "input"
+      // ) as HTMLInputElement;
+      // input?.select();
     }
   },
 });
