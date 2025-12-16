@@ -65,25 +65,6 @@ const total = computed(() => {
   );
 });
 
-// validations
-const validateQuantity = (qty) => {
-  if (isNaN(qty) || qty <= 0) {
-    showWarning("Kuantitas tidak valid.", "top");
-    return false;
-  }
-
-  return true;
-};
-
-const validatePrice = (price) => {
-  if (isNaN(price) || price < 0) {
-    showWarning("Harga tidak valid.", "top");
-    return false;
-  }
-
-  return true;
-};
-
 const validateBarcode = (code) => {
   if (!code || code.length == 0) {
     showWarning("Barcode tidak valid.", "top");
@@ -93,7 +74,6 @@ const validateBarcode = (code) => {
   return true;
 };
 
-// -----
 const handleProductSelection = (product) => {
   if (userInput.value?.endsWith("*")) {
     userInput.value += product.name;
@@ -108,28 +88,37 @@ const addItem = async () => {
     return;
   }
 
-  const input = userInput.value.trim();
-  if (input.length === 0) {
+  const input = userInput.value?.trim();
+  if (!input || input.length === 0) {
     showProductBrowserDialog.value = true;
     return;
   }
 
-  const parts = input.split("*");
+  // Split dan bersihkan spasi di kiri/kanan setiap bagian
+  const parts = input.split("*").map((p) => p.trim());
 
-  let inputQuantity = 1;
+  let rawQuantity = "1"; // Default string, nanti diparse
   let inputBarcode = "";
   let inputPrice = null;
 
   if (parts.length === 1) {
+    // KASUS 1: Cuma Barcode
     inputBarcode = parts[0];
-  } else if (parts.length <= 3) {
-    inputQuantity = parseInt(parts[0]);
-    inputBarcode = parts[1];
-    if (parts.length === 3) {
-      inputPrice = parseFloat(parts[2]);
+  } else if (parts.length === 2) {
+    if (input.endsWith("*")) {
+      showProductBrowserDialog.value = true;
+      return;
     }
+    // KASUS 2: QTY*ITEM
+    rawQuantity = parts[0];
+    inputBarcode = parts[1];
+  } else if (parts.length === 3) {
+    // KASUS 3: QTY * ITEM * HARGA
+    rawQuantity = parts[0];
+    inputBarcode = parts[1];
+    inputPrice = parseFloat(parts[2]);
   } else {
-    showWarning("Input tidak valid.", "top");
+    showWarning("Format input tidak valid.", "top");
     return;
   }
 
@@ -138,12 +127,49 @@ const addItem = async () => {
     return;
   }
 
-  if (
-    !validateBarcode(inputBarcode) &&
-    !validateQuantity(inputQuantity) &&
-    !validatePrice(inputPrice)
-  ) {
+  // 1. Validasi Barcode
+  if (!validateBarcode(inputBarcode)) {
+    // showWarning("Barcode tidak valid", "top"); // aktifkan jika validateBarcode tidak memunculkan alert
     return;
+  }
+
+  // Parsing Quantity (Support "1roll") boleh ada spasi ataupun tidak
+  let cleanQty = 0;
+  let parsedUom = null;
+
+  // ^([0-9\.]+) -> Cari angka/titik di awal
+  // \s* -> Boleh ada spasi atau tidak
+  // .*)$      -> Ambil sisanya sebagai teks (satuan)
+  const match = rawQuantity.match(/^([0-9]+(?:\.[0-9]+)?)\s*(.*)$/);
+
+  if (match) {
+    // Grup 1 adalah Angka
+    cleanQty = parseFloat(match[1]);
+
+    // Grup 2 adalah Teks (Satuan). Kita trim() agar spasi hilang.
+    const unitStr = match[2] ? match[2].trim() : "";
+
+    // Jika ada teksnya, simpan ke parsedUom
+    if (unitStr.length > 0) {
+      parsedUom = unitStr;
+    }
+  } else {
+    // Fallback jika input tidak sesuai pola (misal ".5" atau error lain)
+    cleanQty = parseFloat(rawQuantity);
+  }
+
+  // Validasi hasil parse quantity
+  if (isNaN(cleanQty) || cleanQty <= 0) {
+    showWarning("Kuantitas tidak valid.", "top");
+    return;
+  }
+
+  // Validasi Price (Jika ada input)
+  if (inputPrice !== null) {
+    if (isNaN(inputPrice) || inputPrice < 0) {
+      showWarning("Harga tidak valid.", "top");
+      return;
+    }
   }
 
   isProcessing.value = true;
@@ -151,7 +177,8 @@ const addItem = async () => {
     .post(route("admin.sales-order-return.add-item"), {
       order_id: form.id,
       product_code: inputBarcode,
-      qty: inputQuantity,
+      qty: cleanQty,
+      uom: parsedUom,
       price: inputPrice,
       merge: mergeItem.value,
     })
@@ -237,6 +264,7 @@ const updateItem = () => {
   const data = {
     id: item.id,
     qty: item.quantity,
+    uom: item.uom,
     price: item.price,
   };
 
@@ -267,57 +295,58 @@ const updateItem = () => {
     });
 };
 
+const handleKeyDown = (e) => {
+  // abaikan jika ada dialog yang sedang terbuka
+  if (
+    showHelpDialog.value ||
+    showItemEditorDialog.value ||
+    showProductBrowserDialog.value ||
+    showOrderInfoDialog.value
+  ) {
+    return;
+  }
+
+  if (e.key === "F1") {
+    e.preventDefault();
+    showHelpDialog.value = true;
+  } else if (e.key === "F2") {
+    e.preventDefault();
+    customerAutocompleteRef.value.focus();
+  } else if (e.key === "F3") {
+    e.preventDefault();
+    userInputRef.value.focus();
+  } else if (e.key === "F4") {
+    e.preventDefault();
+    mergeItem.value = !mergeItem.value;
+  } else if (e.key === "F12" || (e.ctrlKey && e.key === "Enter")) {
+    e.preventDefault();
+    closeOrder();
+  } else if (e.key === "F5" || e.key === "F6" || e.key === "F7") {
+    e.preventDefault();
+  }
+};
+
 onMounted(() => {
-  const handler = (e) => {
-    // abaikan jika ada dialog yang sedang terbuka
-    if (
-      showHelpDialog.value ||
-      showItemEditorDialog.value ||
-      showProductBrowserDialog.value ||
-      showOrderInfoDialog.value
-    ) {
-      return;
-    }
-
-    if (e.key === "F1") {
-      e.preventDefault();
-      showHelpDialog.value = true;
-    } else if (e.key === "F2") {
-      e.preventDefault();
-      customerAutocompleteRef.value.focus();
-    } else if (e.key === "F3") {
-      e.preventDefault();
-      userInputRef.value.focus();
-    } else if (e.key === "F4") {
-      e.preventDefault();
-      mergeItem.value = !mergeItem.value;
-    } else if (e.key === "F12" || (e.ctrlKey && e.key === "Enter")) {
-      e.preventDefault();
-      closeOrder();
-    } else if (e.key === "F5" || e.key === "F6" || e.key === "F7") {
-      e.preventDefault();
-    }
-  };
-  document.addEventListener("keydown", handler);
-  onUnmounted(() => {
-    document.removeEventListener("keydown", handler);
-  });
-
+  document.addEventListener("keydown", handleKeyDown);
   nextTick(() => {
     authLayoutRef?.value?.hideDrawer();
   });
 });
 
-const handleCustomerSelected = async (data) => {
-  customer.value = data;
-  form.customer_id = data?.id;
-  await updateOrder();
-  if (data?.id) {
-    userInputRef.value.focus();
-  } else {
-    customerAutocompleteRef.value.focus();
-  }
-};
+onUnmounted(() => {
+  document.removeEventListener("keydown", handleKeyDown);
+});
+
+// const handleCustomerSelected = async (data) => {
+//   customer.value = data;
+//   form.customer_id = data?.id;
+//   await updateOrder();
+//   if (data?.id) {
+//     userInputRef.value.focus();
+//   } else {
+//     customerAutocompleteRef.value.focus();
+//   }
+// };
 
 const updateOrder = async () => {
   isProcessing.value = true;
@@ -650,6 +679,13 @@ const isValidWalletBalance = computed(() => {
       />
       <ProductBrowserDialog
         v-model="showProductBrowserDialog"
+        :url-endpoint="
+          route('admin.product.data', {
+            filter: {
+              sales_order_id: page.props.data.sales_order.id,
+            },
+          })
+        "
         @product-selected="handleProductSelection"
       />
       <OrderInfoDialog

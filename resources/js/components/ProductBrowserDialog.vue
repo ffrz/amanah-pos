@@ -3,9 +3,7 @@ import { computed, nextTick, onMounted, reactive, ref, watch } from "vue";
 import { formatNumber } from "@/helpers/formatter";
 import { getQueryParams } from "@/helpers/utils";
 import { handleFetchItems } from "@/helpers/client-req-handler";
-import LongTextView from "./LongTextView.vue";
 import { useQuasar } from "quasar";
-import { createOptions } from "@/helpers/options";
 
 const $q = useQuasar();
 
@@ -24,6 +22,11 @@ const props = defineProps({
     type: String,
     require: false,
     default: "price_1",
+  },
+  urlEndpoint: {
+    type: String,
+    require: false,
+    default: route("admin.product.data"),
   },
 });
 
@@ -137,15 +140,15 @@ const fetchItemsWithoutProps = () => {
   fetchItems();
 };
 
-const fetchItems = (props = null) => {
+const fetchItems = (opts = null) => {
   loading.value = true;
   const initialIndex = selectedIndex.value;
   handleFetchItems({
     pagination,
     filter,
-    props,
+    opts,
     rows,
-    url: route("admin.product.data"), // Pastikan ini mengarah ke controller yang sudah diupdate (dengan stock_breakdown & productUnits)
+    url: props.urlEndpoint,
     loading,
     tableRef,
     onSuccess: () => {

@@ -1,31 +1,137 @@
 <script setup>
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
+import axios from "axios";
+import { formatNumber } from "@/helpers/formatter";
+import { onUnmounted } from "vue";
 
 const props = defineProps({
-  modelValue: {
-    type: Boolean,
-    required: true,
-  },
-  item: {
+  modelValue: { type: Boolean, required: true },
+  item: { type: Object, required: false },
+  // Tambahkan Customer untuk mendeteksi default_price_type
+  customer: {
     type: Object,
     required: false,
+    default: () => ({ default_price_type: "price_1" }),
   },
-  isProcessing: {
-    type: Boolean,
-    required: false,
-  },
+  isProcessing: { type: Boolean, required: false },
 });
 
+const isUnitMenuOpen = ref(false);
+
 const emit = defineEmits(["update:modelValue", "save"]);
+
+const subtotal = computed(() => {
+  const qty = props.item?.quantity || 0;
+  const price = props.item?.price || 0;
+  return qty * price;
+});
 
 const handleSave = () => {
   emit("save");
 };
 
-const subtotal = computed(() => {
-  return props.item.quantity * props.item.price;
+const getCurrentItem = () => {
+  return props.item;
+};
+
+defineExpose({
+  getCurrentItem,
 });
+
+// --- STATE ---
+const availableUnits = ref([]);
+const isLoadingUnits = ref(false);
+
+// --- HELPER: Tentukan kolom harga mana yang dipakai ---
+const getPriceKey = () => {
+  // Asumsi: customer.default_price_type bernilai 'price_1', 'price_2', atau 'price_3'
+  // Jika customer null atau tidak punya setting, default ke 'price_1'
+  return props.customer?.default_price_type || "price_1";
+};
+
+// --- FETCH DATA ---
+const fetchProductUnits = async () => {
+  if (!props.item?.product_id) {
+    availableUnits.value = [];
+    return;
+  }
+  isLoadingUnits.value = true;
+  try {
+    const response = await axios.get(
+      `/web-api/products/${props.item.product_id}/units`
+    );
+    if (response.data?.data) {
+      availableUnits.value = response.data.data;
+    } else {
+      availableUnits.value = [];
+    }
+  } catch (error) {
+    console.error("Error fetching units:", error);
+    // Fallback darurat
+    availableUnits.value = [
+      {
+        name: props.item.product_uom,
+        price_1: props.item.price, // Asumsi harga saat ini masuk price_1
+        is_base: true,
+      },
+    ];
+  } finally {
+    isLoadingUnits.value = false;
+  }
+};
+
+// --- WATCHER ---
+watch(
+  () => props.modelValue,
+  (isOpen) => {
+    if (isOpen) {
+      availableUnits.value = [];
+      fetchProductUnits();
+    }
+  },
+  { immediate: true }
+);
+
+// --- LOGIC UTAMA: Mapping Harga Berdasarkan Customer ---
+const unitOptions = computed(() => {
+  const priceKey = getPriceKey(); // Misal: 'price_2'
+
+  return availableUnits.value.map((u) => {
+    // Ambil harga dinamis sesuai tipe customer
+    // Jika harga tipe tersebut 0 atau null, fallback ke price_1
+    const finalPrice = parseFloat(u[priceKey] || u["price_1"] || 0);
+
+    return {
+      label: u.name,
+      value: u.name,
+      price: finalPrice,
+      description: u.is_base ? "(Dasar)" : "",
+    };
+  });
+});
+
+// --- LOGIKA GANTI SATUAN ---
+const onUnitChange = (val) => {
+  const selected = unitOptions.value.find((opt) => opt.value === val);
+  if (selected) {
+    props.item.product_uom = selected.value;
+
+    // PENTING: Jika user manual ganti satuan, harga otomatis ikut berubah
+    // sesuai kategori customer yang sedang aktif
+    props.item.price = selected.price;
+  }
+};
+
+watch(
+  () => props.customer?.default_price_type,
+  () => {
+    // Refresh harga item yang sedang diedit jika tipe harga customer berubah
+    if (props.modelValue && props.item.product_uom) {
+      onUnitChange(props.item.product_uom);
+    }
+  }
+);
 
 const preventEvent = (e) => {
   e.stopPropagation();
@@ -34,11 +140,16 @@ const preventEvent = (e) => {
 
 const handleKeyDown = (e) => {
   if (props.modelValue) {
-    if (e.key === "Enter") {
+    if (e.ctrlKey && e.key === "Enter") {
+      if (isUnitMenuOpen.value) {
+        return;
+      }
       handleSave();
-      emit("update:modelValue", false);
       preventEvent(e);
     } else if (e.key === "Escape") {
+      if (isUnitMenuOpen.value) {
+        return;
+      }
       emit("update:modelValue", false);
       preventEvent(e);
     }
@@ -52,15 +163,8 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener("keydown", handleKeyDown);
 });
-
-const getCurrentItem = () => {
-  return props.item;
-};
-
-defineExpose({
-  getCurrentItem,
-});
 </script>
+
 <template>
   <q-dialog
     :model-value="modelValue"
@@ -90,22 +194,68 @@ defineExpose({
           readonly
           :disable="isProcessing"
         />
-        <LocaleNumberInput
-          v-model="item.quantity"
-          :label="`Kwantitas (${item.product_uom})`"
-          hide-bottom-space
-          autofocus
-          :disable="isProcessing"
-        />
+
+        <div class="row q-col-gutter-sm">
+          <div class="col-8">
+            <LocaleNumberInput
+              v-model="item.quantity"
+              label="Kuantitas"
+              hide-bottom-space
+              autofocus
+              :disable="isProcessing"
+            />
+          </div>
+          <div class="col-4">
+            <q-select
+              v-model="item.product_uom"
+              :options="unitOptions"
+              label="Satuan"
+              hide-bottom-space
+              :disable="isProcessing || isLoadingUnits"
+              :loading="isLoadingUnits"
+              emit-value
+              map-options
+              behavior="dialog"
+              @update:model-value="onUnitChange"
+              @popup-show="isUnitMenuOpen = true"
+              @popup-hide="isUnitMenuOpen = false"
+            >
+              <template v-slot:option="{ itemProps, opt, selected, focused }">
+                <q-item
+                  v-bind="itemProps"
+                  :class="{
+                    'bg-grey-3': focused, // Warna saat disorot keyboard/mouse
+                    'bg-blue-1 text-primary': selected, // Warna item yang sedang terpilih
+                  }"
+                >
+                  <q-item-section>
+                    <q-item-label>{{ opt.label }}</q-item-label>
+                    <q-item-label caption>
+                      Rp {{ formatNumber(opt.price) }}
+                    </q-item-label>
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
+          </div>
+        </div>
+
         <LocaleNumberInput
           v-model="item.price"
-          label="Harga"
+          label="Harga (Rp)"
+          :readonly="
+            !(
+              item.product?.price_editable ||
+              $can('admin.sales-order.editor:edit-price')
+            )
+          "
           hide-bottom-space
           :disable="isProcessing"
         />
+
         <LocaleNumberInput
           v-model="subtotal"
-          label="Subtotal"
+          label="Subtotal (Rp)"
           hide-bottom-space
           readonly
         />
@@ -121,6 +271,7 @@ defineExpose({
           clearable
         />
       </q-card-section>
+
       <q-card-actions align="right">
         <q-btn
           flat
@@ -134,6 +285,7 @@ defineExpose({
           label="Simpan"
           color="primary"
           @click="handleSave"
+          v-close-popup
           :disable="isProcessing"
         />
       </q-card-actions>

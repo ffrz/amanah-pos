@@ -16,7 +16,6 @@
 
 namespace Modules\Admin\Http\Requests\Product;
 
-use Illuminate\Foundation\Http\FormRequest;
 use Modules\Admin\Http\Requests\DefaultGetDataRequest;
 
 class GetDataRequest extends DefaultGetDataRequest

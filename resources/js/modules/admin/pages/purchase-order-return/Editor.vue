@@ -643,6 +643,13 @@ const isValidWalletBalance = computed(() => {
       />
       <ProductBrowserDialog
         v-model="showProductBrowserDialog"
+        :url-endpoint="
+          route('admin.product.data', {
+            filter: {
+              purchase_order_id: page.props.data.purchase_order.id,
+            },
+          })
+        "
         @product-selected="handleProductSelection"
       />
       <OrderInfoDialog

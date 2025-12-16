@@ -66,25 +66,6 @@ const total = computed(() => {
   );
 });
 
-// validations
-const validateQuantity = (qty) => {
-  if (isNaN(qty) || qty <= 0) {
-    showWarning("Kuantitas tidak valid.", "top");
-    return false;
-  }
-
-  return true;
-};
-
-const validatePrice = (price) => {
-  if (isNaN(price) || price < 0) {
-    showWarning("Harga tidak valid.", "top");
-    return false;
-  }
-
-  return true;
-};
-
 const validateBarcode = (code) => {
   if (!code || code.length == 0) {
     showWarning("Barcode tidak valid.", "top");

@@ -25,6 +25,8 @@ use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\ProductQuantityPrice;
 use App\Models\ProductUnit;
+use App\Models\PurchaseOrder;
+use App\Models\SalesOrder;
 use App\Models\Setting;
 use App\Models\StockMovement;
 use App\Models\Supplier;
@@ -121,6 +123,22 @@ class ProductService
                 foreach ($suppliers as $supplier) {
                     $q->orWhere('supplier_id', '=', $supplier);
                 }
+            });
+        }
+
+        if (isset($filter['sales_order_id'])) {
+            $query->whereIn('id', function ($sub) use ($filter) {
+                $sub->select('product_id')
+                    ->from('sales_order_details')
+                    ->where('order_id', $filter['sales_order_id']);
+            });
+        }
+
+        if (isset($filter['purchase_order_id'])) {
+            $query->whereIn('id', function ($sub) use ($filter) {
+                $sub->select('product_id')
+                    ->from('purchase_order_details')
+                    ->where('order_id', $filter['purchase_order_id']);
             });
         }
 
