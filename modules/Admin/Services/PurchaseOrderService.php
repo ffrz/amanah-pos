@@ -170,10 +170,14 @@ class PurchaseOrderService
 
     private function processPurchaseOrderStockIn(PurchaseOrder $order)
     {
-        // 5. Perbarui stok produk secara massal
         foreach ($order->details as $detail) {
-            $productType = $detail->product->type;
-            // TODO: Tambahkan ke sini untuk skip tipe produk yang stoknya tidak dilacak
+            $product = Product::where('id', $detail->product_id)
+                ->lockForUpdate()
+                ->first();
+
+            $productType = $product->type;
+
+            // 2. Skip Tipe Produk Non-Stock
             if (
                 $productType == Product::Type_NonStocked
                 || $productType == Product::Type_Service
@@ -181,39 +185,90 @@ class PurchaseOrderService
                 continue;
             }
 
-            $product = $detail->product;
+            // 3. HITUNG KUANTITAS DALAM SATUAN DASAR
+            // Rumus: Qty Transaksi * Rate Konversi
+            $rate = $detail->conversion_rate > 0 ? $detail->conversion_rate : 1; // fallback ke 1, gimana kalau fallback ke data di UOM???
+            $qtyTransaction = $detail->quantity;
+            $qtyBase = $qtyTransaction * $rate; // Stock In nilainya Positif
 
+            // 4. HITUNG COST DALAM SATUAN DASAR
+            $baseCost = ($rate > 0) ? ($detail->cost / $rate) : $detail->cost;
+
+            // 5. AMBIL STOK 'REAL-TIME' UNTUK SNAPSHOT
+            $stockBefore = $product->stock;
+            $stockAfter  = $stockBefore + $qtyBase;
+
+            // 6. UPDATE STOCK MOVEMENT
+            // Kita sesuaikan array ini agar dikirim ke service,
+            // tapi strukturnya mengikuti standar SalesOrder (Base UOM + Audit Trail)
             $this->stockMovementService->processStockIn([
-                'parent_id'         => $order->id,
-                'parent_ref_type'   => StockMovement::ParentRefType_PurchaseOrder,
-                'document_code'     => $order->code,
+                // Header Dokumen
+                'parent_id'       => $order->id,
+                'parent_ref_type' => StockMovement::ParentRefType_PurchaseOrder,
+                'document_code'   => $order->code,
                 'document_datetime' => $order->datetime,
-                'party_id'          => $order->supplier_id,
-                'party_type'        => 'supplier',
-                'party_code'        => $order->supplier_code,
-                'party_name'        => $order->supplier_name,
 
+                // Pihak Terkait (Supplier)
+                'party_id'        => $order->supplier_id,
+                'party_type'      => 'supplier',
+                'party_code'      => $order->supplier_code,
+                'party_name'      => $order->supplier_name,
+
+                // Info Produk
                 'product_id'      => $detail->product_id,
                 'product_name'    => $detail->product_name,
-                'uom'             => $detail->product_uom,
+
+                // PENTING: UOM di StockMovement WAJIB Satuan Dasar Produk
+                'uom'             => $product->uom,
+
                 'ref_id'          => $detail->id,
                 'ref_type'        => StockMovement::RefType_PurchaseOrderDetail,
-                'quantity'        => $detail->quantity,
-                'quantity_before' => $product->stock,
-                'quantity_after'  => $product->stock + $detail->quantity,
-                'notes'           => "Transaksi pembelian #$order->code",
+
+                // PENTING: Quantity yang menambah stok adalah Quantity Base
+                'quantity'        => $qtyBase,
+
+                // Audit Trail (Info Transaksi Asli)
+                'user_input_qty'  => $qtyTransaction,
+                'user_input_uom'  => $detail->product_uom,
+                'conversion_rate' => $rate,
+
+                // Snapshot Stok
+                'quantity_before' => $stockBefore,
+                'quantity_after'  => $stockAfter,
+
+                'notes'           => "Pembelian #$order->code ($qtyTransaction {$detail->product_uom})",
             ]);
 
-            $product->cost = $detail->cost;
+            // 7. Update Master Product (Stok & Cost Baru)
+            $product->stock = $stockAfter;
+            $product->cost  = $baseCost; // Update modal dasar terbaru
             $product->save();
         }
     }
 
     private function processPurchaseOrderStockOut(PurchaseOrder $order)
     {
+        // Fungsi ini dipanggil saat PEMBATALAN (Void/Delete) Purchase Order
+        // Logicnya: Kurangi Stok (Reverse Stock In) & Hapus Mutasi
+
         foreach ($order->details as $detail) {
-            $this->productService->addToStock($detail->product, -abs($detail->quantity));
-            $this->stockMovementService->deleteByRef($detail->id, StockMovement::RefType_PurchaseOrderDetail);
+            // 1. HITUNG QTY BASE
+            $rate = $detail->conversion_rate > 0 ? $detail->conversion_rate : 1;
+            $qtyBase = $detail->quantity * $rate;
+
+            // 2. KEMBALIKAN STOK (KURANGI) DALAM SATUAN DASAR
+            // Karena ini reverse dari pembelian (Stock In), maka kita DECREMENT
+            Product::where('id', $detail->product_id)->decrement('stock', $qtyBase);
+
+            // Catatan: Biasanya saat reverse PO, kita tidak mengembalikan 'cost' ke harga lama
+            // karena cost bersifat fluktuatif (moving average atau last price).
+            // Jadi cukup stoknya saja yang ditarik.
+
+            // 3. HAPUS MUTASI
+            $this->stockMovementService->deleteByRef(
+                $detail->id,
+                StockMovement::RefType_PurchaseOrderDetail
+            );
         }
     }
 

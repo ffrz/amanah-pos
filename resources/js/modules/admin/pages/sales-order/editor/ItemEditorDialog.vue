@@ -1,7 +1,9 @@
 <script setup>
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
-import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import axios from "axios";
+import { formatNumber } from "@/helpers/formatter";
+import { onUnmounted } from "vue";
 
 const props = defineProps({
   modelValue: { type: Boolean, required: true },
@@ -15,7 +17,27 @@ const props = defineProps({
   isProcessing: { type: Boolean, required: false },
 });
 
+const isUnitMenuOpen = ref(false);
+
 const emit = defineEmits(["update:modelValue", "save"]);
+
+const subtotal = computed(() => {
+  const qty = props.item?.quantity || 0;
+  const price = props.item?.price || 0;
+  return qty * price;
+});
+
+const handleSave = () => {
+  emit("save");
+};
+
+const getCurrentItem = () => {
+  return props.item;
+};
+
+defineExpose({
+  getCurrentItem,
+});
 
 // --- STATE ---
 const availableUnits = ref([]);
@@ -101,14 +123,6 @@ const onUnitChange = (val) => {
   }
 };
 
-// ... sisa logic save, subtotal, onMounted sama seperti sebelumnya ...
-
-// --- Tambahan Logic Watch Customer (Opsional) ---
-// Jika tiba-tiba object customer berubah saat dialog sedang terbuka
-// maka harga di "unitOptions" akan otomatis berubah (reactive),
-// TAPI harga di "props.item.price" (yang sudah terpilih) tidak otomatis berubah
-// kecuali kita paksa update seperti ini:
-
 watch(
   () => props.customer?.default_price_type,
   () => {
@@ -118,6 +132,35 @@ watch(
     }
   }
 );
+
+const preventEvent = (e) => {
+  e.stopPropagation();
+  e.preventDefault();
+};
+
+const handleKeyDown = (e) => {
+  if (isUnitMenuOpen.value) {
+    return;
+  }
+
+  if (props.modelValue) {
+    if (e.ctrlKey && e.key === "Enter") {
+      handleSave();
+      preventEvent(e);
+    } else if (e.key === "Escape") {
+      emit("update:modelValue", false);
+      preventEvent(e);
+    }
+  }
+};
+
+onMounted(() => {
+  window.addEventListener("keydown", handleKeyDown);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("keydown", handleKeyDown);
+});
 </script>
 
 <template>
@@ -171,11 +214,16 @@ watch(
               emit-value
               map-options
               @update:model-value="onUnitChange"
+              @popup-show="isUnitMenuOpen = true"
+              @popup-hide="isUnitMenuOpen = false"
             >
               <template v-slot:option="scope">
                 <q-item v-bind="scope.itemProps">
                   <q-item-section>
                     <q-item-label>{{ scope.opt.label }}</q-item-label>
+                    <q-item-label caption>
+                      Rp {{ formatNumber(scope.opt.price) }}
+                    </q-item-label>
                   </q-item-section>
                 </q-item>
               </template>

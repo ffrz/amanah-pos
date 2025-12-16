@@ -97,12 +97,6 @@ class SalesOrderDetailService
             $order->total_price -= $item->subtotal_price;
 
             $item->quantity += $quantity;
-            // $item->user_input_qty += $quantity; (Opsional: abaikan sesuai diskusi sebelumnya)
-
-            // Harga dan Cost biasanya tidak diupdate saat merge (ikut harga awal masuk),
-            // kecuali ada requirement khusus.
-
-            $item->updateTotals();
         } else {
             // Create New Item
             $item = new SalesOrderDetail([
@@ -112,16 +106,16 @@ class SalesOrderDetailService
                 'product_barcode' => $product->barcode, // Barcode utama produk (atau mau simpan barcode unit?)
 
                 // DATA PENTING MULTI SATUAN
-                'product_uom'     => $scannedUom,            // "ROLL"
-                'quantity'        => $quantity,              // 1
-                'conversion_rate' => $unitData['conversion_rate'], // 305
-                'cost'            => $unitData['cost'],      // Modal per ROLL
-
-                'price'           => $price,                 // Harga per ROLL
+                'product_uom'     => $scannedUom,
+                'quantity'        => $quantity,
+                'cost'            => $unitData['cost'],
+                'conversion_rate' => $unitData['conversion_rate'],
+                'price'           => $price,
                 'notes'           => '',
             ]);
-            $item->updateTotals();
         }
+
+        $item->updateTotals();
 
         return DB::transaction(function () use ($order, $item) {
             $item->save();

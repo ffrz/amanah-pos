@@ -31,6 +31,7 @@ class PurchaseOrderDetail extends BaseModel
         'quantity',
         'cost',
         'subtotal_cost',
+        'conversion_rate',
         'notes',
 
         'discount_amount',

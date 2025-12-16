@@ -129,27 +129,9 @@ const addItem = async () => {
       showProductBrowserDialog.value = true;
       return;
     }
-
-    // KASUS 2: QTY*ITEM atau ITEM*HARGA
-    const part0 = parts[0];
-    const part1 = parts[1];
-
-    // Cek apakah sisi KANAN adalah Angka (Harga)?
-    // Regex ini membolehkan angka bulat atau desimal
-    const isRightSidePrice = /^[0-9]+(\.[0-9]+)?$/.test(part1);
-
-    if (!isRightSidePrice) {
-      // Pola: ITEM * HARGA (Sesuai preferensi)
-      // Contoh: "ROTI * 5000" atau "899700 * 5000"
-      inputBarcode = part0;
-      inputPrice = parseFloat(part1);
-    } else {
-      // Pola: QTY * ITEM
-      // Contoh: "10 * ROTI" atau "1 dus * KABEL"
-      // Karena sisi kanan ada hurufnya, gak mungkin itu harga.
-      rawQuantity = part0;
-      inputBarcode = part1;
-    }
+    // KASUS 2: QTY*ITEM
+    rawQuantity = parts[0];
+    inputBarcode = parts[1];
   } else if (parts.length === 3) {
     // KASUS 3: QTY * ITEM * HARGA
     rawQuantity = parts[0];

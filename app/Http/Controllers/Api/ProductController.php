@@ -202,12 +202,27 @@ class ProductController extends Controller
     {
         $units = [];
 
+        // --- 1. SIAPKAN VARIABEL HARGA DASAR DULU (Casting ke float) ---
+        $baseCost   = (float) ($product->cost ?? 0);
+        $basePrice1 = (float) ($product->price_1 ?? 0);
+        $basePrice2 = (float) ($product->price_2 ?? 0);
+        $basePrice3 = (float) ($product->price_3 ?? 0);
+
+        // --- 2. LOGIKA PENENTUAN HARGA (Fallback Chain) ---
+
+        // Jika Price 2 nol, pakai Price 1
+        $finalPrice2 = ($basePrice2 > 0) ? $basePrice2 : $basePrice1;
+
+        // Jika Price 3 nol, cek Price 2. Jika Price 2 nol juga, pakai Price 1
+        // (Cara singkat: cek Price 3, kalau 0 pakai hasil finalPrice2)
+        $finalPrice3 = ($basePrice3 > 0) ? $basePrice3 : $finalPrice2;
+
         $units[] = [
             'name' => $product->uom ?? 'PCS',
-            'cost' => $product->cost ?? 0,
-            'price_1' => $product->price_1,
-            'price_2' => $product->price_2 ?? $product->price_1,
-            'price_3' => $product->price_3 ?? $product->price_2 ?? $product->price_1,
+            'cost' => $baseCost,
+            'price_1' => $basePrice1,
+            'price_2' => $finalPrice2, // Sudah aman dari nilai 0
+            'price_3' => $finalPrice3, // Sudah aman dari nilai 0
             'is_base_unit' => true,
         ];
 
@@ -220,13 +235,25 @@ class ProductController extends Controller
                 ->get();
 
             foreach ($productUnits as $unit) {
+                $unitCost   = (float) $unit->cost;
+                $conversion = (float) $unit->conversion_factor;
+
+                // Ambil harga unit, pastikan float
+                $uPrice1 = (float) $unit->price_1;
+                $uPrice2 = (float) $unit->price_2;
+                $uPrice3 = (float) $unit->price_3;
+
+                // Logika Fallback Unit
+                $finalUnitPrice2 = ($uPrice2 > 0) ? $uPrice2 : $uPrice1;
+                $finalUnitPrice3 = ($uPrice3 > 0) ? $uPrice3 : $finalUnitPrice2;
+
                 $units[] = [
                     'name' => $unit->name,
-                    'conversion_factor' => $unit->conversion_factor,
-                    'cost' => $unit->cost ?? $product->cost * $unit->conversion_factor,
-                    'price_1' => $unit->price_1,
-                    'price_2' => $unit->price_2 ?? $unit->price_1,
-                    'price_3' => $unit->price_3 ?? $unit->price_2 ?? $unit->price_1,
+                    'conversion_factor' => $conversion,
+                    'cost' => ($unitCost > 0) ? $unitCost : ($baseCost * $conversion),
+                    'price_1' => $uPrice1,
+                    'price_2' => $finalUnitPrice2,
+                    'price_3' => $finalUnitPrice3,
                     'is_base_unit' => false,
                 ];
             }

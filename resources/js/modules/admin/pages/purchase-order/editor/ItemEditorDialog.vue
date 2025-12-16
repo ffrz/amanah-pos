@@ -1,7 +1,8 @@
 <script setup>
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
-import axios from "axios"; // Pastikan axios di-import
+import axios from "axios";
+import { formatNumber } from "@/helpers/formatter";
 
 const props = defineProps({
   modelValue: {
@@ -18,10 +19,10 @@ const props = defineProps({
   },
 });
 
-const qtyInput = ref(null);
 const emit = defineEmits(["update:modelValue", "save"]);
 
-// --- 1. STATE & FETCH LOGIC ---
+const qtyInput = ref(null);
+const isUnitMenuOpen = ref(false);
 const availableUnits = ref([]);
 const isLoadingUnits = ref(false);
 
@@ -33,8 +34,6 @@ const fetchProductUnits = async () => {
 
   isLoadingUnits.value = true;
   try {
-    // Kita gunakan endpoint yang sama karena kita butuh daftar satuannya.
-    // Harga yang dikembalikan server kita abaikan saja.
     const response = await axios.get(
       `/web-api/products/${props.item.product_id}/units`
     );
@@ -46,21 +45,27 @@ const fetchProductUnits = async () => {
     }
   } catch (error) {
     console.error("Gagal mengambil satuan produk:", error);
-    // Fallback agar select tidak kosong
-    availableUnits.value = [{ name: props.item.product_uom, is_base: true }];
+    // Fallback: gunakan data yang ada di item sekarang (SAFE CHECK)
+    if (props.item) {
+      availableUnits.value = [
+        {
+          name: props.item.product_uom,
+          cost: props.item.cost,
+          is_base_unit: true,
+        },
+      ];
+    }
   } finally {
     isLoadingUnits.value = false;
   }
 };
 
-// --- 2. WATCHER (Reset & Fetch saat Dialog Buka) ---
+// --- 2. WATCHER ---
 watch(
   () => props.modelValue,
   (isOpen) => {
     if (isOpen) {
-      // Reset data lama
       availableUnits.value = [];
-      // Fetch baru
       fetchProductUnits();
     }
   },
@@ -72,16 +77,19 @@ const unitOptions = computed(() => {
   return availableUnits.value.map((u) => ({
     label: u.name,
     value: u.name,
-    // Kita tidak mapping price di sini karena pembelian tidak otomatis ganti harga
-    description: u.is_base ? "(Dasar)" : "",
+    cost: parseFloat(u.cost || 0),
+    description: u.is_base_unit ? "(Dasar)" : "",
   }));
 });
 
 const onUnitChange = (val) => {
-  // Hanya update nama satuan, JANGAN update harga beli (cost)
-  // karena harga beli biasanya manual atau mengikuti deal terakhir
-  if (val) {
-    props.item.product_uom = val;
+  const selected = unitOptions.value.find((opt) => opt.value === val);
+
+  if (selected) {
+    props.item.product_uom = selected.value;
+    if (selected.cost > 0) {
+      props.item.cost = selected.cost;
+    }
   }
 };
 
@@ -92,7 +100,9 @@ const handleSave = () => {
 };
 
 const subtotal = computed(() => {
-  return (props.item.quantity || 0) * (props.item.cost || 0);
+  const qty = props.item?.quantity || 0;
+  const cost = props.item?.cost || 0;
+  return qty * cost;
 });
 
 const preventEvent = (e) => {
@@ -101,8 +111,12 @@ const preventEvent = (e) => {
 };
 
 const handleKeyDown = (e) => {
+  if (isUnitMenuOpen.value) {
+    return;
+  }
+
   if (props.modelValue) {
-    if (e.key === "Enter") {
+    if (e.ctrlKey && e.key === "Enter") {
       handleSave();
       preventEvent(e);
     } else if (e.key === "Escape") {
@@ -129,9 +143,12 @@ defineExpose({
 });
 
 const onShow = () => {
-  // alert("show");
+  console.log(props.item);
   nextTick(() => {
-    qtyInput.value.focus();
+    if (qtyInput.value) {
+      qtyInput.value.focus?.() ||
+        qtyInput.value.$el?.querySelector("input")?.focus();
+    }
   });
 };
 </script>
@@ -168,7 +185,6 @@ const onShow = () => {
           readonly
           :disable="isProcessing"
           class="q-mb-sm"
-          autofocus
         />
 
         <div class="row q-col-gutter-sm">
@@ -193,13 +209,15 @@ const onShow = () => {
               emit-value
               map-options
               @update:model-value="onUnitChange"
+              @popup-show="isUnitMenuOpen = true"
+              @popup-hide="isUnitMenuOpen = false"
             >
               <template v-slot:option="scope">
                 <q-item v-bind="scope.itemProps">
                   <q-item-section>
                     <q-item-label>{{ scope.opt.label }}</q-item-label>
-                    <q-item-label caption v-if="scope.opt.description">
-                      {{ scope.opt.description }}
+                    <q-item-label caption>
+                      Rp {{ formatNumber(scope.opt.cost) }}
                     </q-item-label>
                   </q-item-section>
                 </q-item>
@@ -216,7 +234,7 @@ const onShow = () => {
         />
 
         <LocaleNumberInput
-          v-model="subtotal"
+          :model-value="subtotal"
           label="Subtotal"
           hide-bottom-space
           readonly
