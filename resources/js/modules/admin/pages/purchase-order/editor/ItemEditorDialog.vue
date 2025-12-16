@@ -1,6 +1,6 @@
 <script setup>
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 import axios from "axios";
 import { formatNumber } from "@/helpers/formatter";
 
@@ -111,28 +111,22 @@ const preventEvent = (e) => {
 };
 
 const handleKeyDown = (e) => {
-  if (isUnitMenuOpen.value) {
-    return;
-  }
-
   if (props.modelValue) {
     if (e.ctrlKey && e.key === "Enter") {
+      if (isUnitMenuOpen.value) {
+        return;
+      }
       handleSave();
       preventEvent(e);
     } else if (e.key === "Escape") {
+      if (isUnitMenuOpen.value) {
+        return;
+      }
       emit("update:modelValue", false);
       preventEvent(e);
     }
   }
 };
-
-onMounted(() => {
-  window.addEventListener("keydown", handleKeyDown);
-});
-
-onUnmounted(() => {
-  window.removeEventListener("keydown", handleKeyDown);
-});
 
 const getCurrentItem = () => {
   return props.item;
@@ -159,7 +153,7 @@ const onShow = () => {
     @update:model-value="(val) => $emit('update:modelValue', val)"
     @show="onShow"
   >
-    <q-card style="width: 100%; max-width: 500px">
+    <q-card style="width: 100%; max-width: 500px" @keydown="handleKeyDown">
       <q-card-section class="q-py-sm">
         <div class="row items-center no-wrap">
           <div class="col text-subtite text-bold text-grey-8">
@@ -208,6 +202,7 @@ const onShow = () => {
               :loading="isLoadingUnits"
               emit-value
               map-options
+              behavior="dialog"
               @update:model-value="onUnitChange"
               @popup-show="isUnitMenuOpen = true"
               @popup-hide="isUnitMenuOpen = false"

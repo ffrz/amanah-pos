@@ -139,15 +139,17 @@ const preventEvent = (e) => {
 };
 
 const handleKeyDown = (e) => {
-  if (isUnitMenuOpen.value) {
-    return;
-  }
-
   if (props.modelValue) {
     if (e.ctrlKey && e.key === "Enter") {
+      if (isUnitMenuOpen.value) {
+        return;
+      }
       handleSave();
       preventEvent(e);
     } else if (e.key === "Escape") {
+      if (isUnitMenuOpen.value) {
+        return;
+      }
       emit("update:modelValue", false);
       preventEvent(e);
     }
@@ -213,16 +215,23 @@ onUnmounted(() => {
               :loading="isLoadingUnits"
               emit-value
               map-options
+              behavior="dialog"
               @update:model-value="onUnitChange"
               @popup-show="isUnitMenuOpen = true"
               @popup-hide="isUnitMenuOpen = false"
             >
-              <template v-slot:option="scope">
-                <q-item v-bind="scope.itemProps">
+              <template v-slot:option="{ itemProps, opt, selected, focused }">
+                <q-item
+                  v-bind="itemProps"
+                  :class="{
+                    'bg-grey-3': focused, // Warna saat disorot keyboard/mouse
+                    'bg-blue-1 text-primary': selected, // Warna item yang sedang terpilih
+                  }"
+                >
                   <q-item-section>
-                    <q-item-label>{{ scope.opt.label }}</q-item-label>
+                    <q-item-label>{{ opt.label }}</q-item-label>
                     <q-item-label caption>
-                      Rp {{ formatNumber(scope.opt.price) }}
+                      Rp {{ formatNumber(opt.price) }}
                     </q-item-label>
                   </q-item-section>
                 </q-item>
