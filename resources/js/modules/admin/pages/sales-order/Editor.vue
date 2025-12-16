@@ -208,6 +208,15 @@ const addItem = async () => {
       ) {
         showWarning("Harga disesuaikan oleh sistem.", "top");
       }
+
+      // FIXME: deteksi lebih lanjut apakah input barcode atau nama produk
+      // jika input barcode dan sudah multi satuan, kita bisa gunakan mode barcode input
+      // agar transaksi lebih cepat, tapi bertentangan dengan prinsip input QTY*BARCODE
+      // yang sudah ada sekarang. Jadi untuk sekarang kita tampilkan editor item saja
+      // jika hanya ada 1 bagian input (hanya barcode saja)
+      if (parts.length == 1) {
+        showItemEditor(currentItem);
+      }
     })
     .catch((error) => {
       showError(error.response?.data?.message, "top");

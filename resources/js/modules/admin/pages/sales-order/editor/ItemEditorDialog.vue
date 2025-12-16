@@ -1,6 +1,6 @@
 <script setup>
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, nextTick, onMounted, ref, watch } from "vue";
 import axios from "axios";
 import { formatNumber } from "@/helpers/formatter";
 import { onUnmounted } from "vue";
@@ -17,6 +17,7 @@ const props = defineProps({
   isProcessing: { type: Boolean, required: false },
 });
 
+const qtyInput = ref(null);
 const isUnitMenuOpen = ref(false);
 
 const emit = defineEmits(["update:modelValue", "save"]);
@@ -163,12 +164,22 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener("keydown", handleKeyDown);
 });
+
+const onShow = () => {
+  nextTick(() => {
+    if (qtyInput.value) {
+      qtyInput.value.focus?.() ||
+        qtyInput.value.$el?.querySelector("input")?.focus();
+    }
+  });
+};
 </script>
 
 <template>
   <q-dialog
     :model-value="modelValue"
     @update:model-value="(val) => $emit('update:modelValue', val)"
+    @show="onShow"
   >
     <q-card>
       <q-card-section class="q-py-sm">
@@ -198,6 +209,7 @@ onUnmounted(() => {
         <div class="row q-col-gutter-sm">
           <div class="col-8">
             <LocaleNumberInput
+              ref="qtyInput"
               v-model="item.quantity"
               label="Kuantitas"
               hide-bottom-space

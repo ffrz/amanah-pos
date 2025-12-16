@@ -108,28 +108,37 @@ const addItem = async () => {
     return;
   }
 
-  const input = userInput.value.trim();
-  if (input.length === 0) {
+  const input = userInput.value?.trim();
+  if (!input || input.length === 0) {
     showProductBrowserDialog.value = true;
     return;
   }
 
-  const parts = input.split("*");
+  // Split dan bersihkan spasi di kiri/kanan setiap bagian
+  const parts = input.split("*").map((p) => p.trim());
 
-  let inputQuantity = 1;
+  let rawQuantity = "1"; // Default string, nanti diparse
   let inputBarcode = "";
-  let inputPrice = null;
+  let inputCost = null;
 
   if (parts.length === 1) {
+    // KASUS 1: Cuma Barcode
     inputBarcode = parts[0];
-  } else if (parts.length <= 3) {
-    inputQuantity = parseInt(parts[0]);
-    inputBarcode = parts[1];
-    if (parts.length === 3) {
-      inputPrice = parseFloat(parts[2]);
+  } else if (parts.length === 2) {
+    if (input.endsWith("*")) {
+      showProductBrowserDialog.value = true;
+      return;
     }
+    // KASUS 2: QTY*ITEM atau ITEM*HARGA
+    rawQuantity = parts[0];
+    inputBarcode = parts[1];
+  } else if (parts.length === 3) {
+    // KASUS 3: QTY * ITEM * HARGA
+    rawQuantity = parts[0];
+    inputBarcode = parts[1];
+    inputCost = parseFloat(parts[2]);
   } else {
-    showWarning("Input tidak valid.", "top");
+    showWarning("Format input tidak valid.", "top");
     return;
   }
 
@@ -138,12 +147,49 @@ const addItem = async () => {
     return;
   }
 
-  if (
-    !validateBarcode(inputBarcode) &&
-    !validateQuantity(inputQuantity) &&
-    !validatePrice(inputPrice)
-  ) {
+  // 1. Validasi Barcode
+  if (!validateBarcode(inputBarcode)) {
+    // showWarning("Barcode tidak valid", "top"); // aktifkan jika validateBarcode tidak memunculkan alert
     return;
+  }
+
+  // Parsing Quantity (Support "1roll") boleh ada spasi ataupun tidak
+  let cleanQty = 0;
+  let parsedUom = null;
+
+  // ^([0-9\.]+) -> Cari angka/titik di awal
+  // \s* -> Boleh ada spasi atau tidak
+  // .*)$      -> Ambil sisanya sebagai teks (satuan)
+  const match = rawQuantity.match(/^([0-9]+(?:\.[0-9]+)?)\s*(.*)$/);
+
+  if (match) {
+    // Grup 1 adalah Angka
+    cleanQty = parseFloat(match[1]);
+
+    // Grup 2 adalah Teks (Satuan). Kita trim() agar spasi hilang.
+    const unitStr = match[2] ? match[2].trim() : "";
+
+    // Jika ada teksnya, simpan ke parsedUom
+    if (unitStr.length > 0) {
+      parsedUom = unitStr;
+    }
+  } else {
+    // Fallback jika input tidak sesuai pola (misal ".5" atau error lain)
+    cleanQty = parseFloat(rawQuantity);
+  }
+
+  // Validasi hasil parse quantity
+  if (isNaN(cleanQty) || cleanQty <= 0) {
+    showWarning("Kuantitas tidak valid.", "top");
+    return;
+  }
+
+  // Validasi Price (Jika ada input)
+  if (inputCost !== null) {
+    if (isNaN(inputCost) || inputCost < 0) {
+      showWarning("Harga tidak valid.", "top");
+      return;
+    }
   }
 
   isProcessing.value = true;
@@ -151,8 +197,9 @@ const addItem = async () => {
     .post(route("admin.purchase-order-return.add-item"), {
       order_id: form.id,
       product_code: inputBarcode,
-      qty: inputQuantity,
-      price: inputPrice,
+      qty: cleanQty,
+      uom: parsedUom,
+      price: inputCost,
       merge: mergeItem.value,
     })
     .then((response) => {
@@ -172,9 +219,11 @@ const addItem = async () => {
       }
 
       userInput.value = "";
-      if (inputPrice !== null && inputPrice !== parseFloat(currentItem.price)) {
+      if (inputCost !== null && inputCost !== parseFloat(currentItem.cost)) {
         showWarning("Harga tidak dapat diubah!", "top");
       }
+
+      showItemEditor(currentItem);
     })
     .catch((error) => {
       showError(error.response?.data?.message, "top");

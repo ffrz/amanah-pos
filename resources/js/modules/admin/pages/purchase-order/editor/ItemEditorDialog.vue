@@ -137,7 +137,6 @@ defineExpose({
 });
 
 const onShow = () => {
-  console.log(props.item);
   nextTick(() => {
     if (qtyInput.value) {
       qtyInput.value.focus?.() ||

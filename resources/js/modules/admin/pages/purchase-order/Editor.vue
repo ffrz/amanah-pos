@@ -142,8 +142,6 @@ const addItem = async () => {
     return;
   }
 
-  console.log(rawQuantity, inputBarcode, inputCost);
-
   if (inputBarcode.length === 0) {
     showProductBrowserDialog.value = true;
     return;
@@ -193,6 +191,8 @@ const addItem = async () => {
       return;
     }
   }
+
+  isProcessing.value = true;
   await axios
     .post(route("admin.purchase-order.add-item"), {
       order_id: form.id,
@@ -298,7 +298,6 @@ const updateItem = () => {
     .post(route("admin.purchase-order.update-item"), data)
     .then((response) => {
       const item = response.data.data;
-      console.log(item);
       const index = form.items.findIndex((data) => data.id === item.id);
       if (index !== -1) {
         form.items[index] = item;

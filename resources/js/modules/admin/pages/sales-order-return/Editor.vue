@@ -202,6 +202,10 @@ const addItem = async () => {
       if (inputPrice !== null && inputPrice !== parseFloat(currentItem.price)) {
         showWarning("Harga tidak dapat diubah!", "top");
       }
+
+      if (parts.length == 1) {
+        showItemEditor(currentItem);
+      }
     })
     .catch((error) => {
       showError(error.response?.data?.message, "top");
