@@ -283,7 +283,7 @@ watch(
           dense
           debounce="300"
           v-model="filter.search"
-          placeholder="Ketik nama atau scan barcode..."
+          placeholder="Ketik nama produk..."
           clearable
           @update:model-value="onFilterChange"
         >

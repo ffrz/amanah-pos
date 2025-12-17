@@ -100,6 +100,8 @@ const handleProductSelection = (product) => {
   } else {
     userInput.value = product.name;
   }
+
+  addItem();
 };
 
 const addItem = async () => {
