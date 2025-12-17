@@ -185,7 +185,7 @@ const handleFinalizePayment = () => {
   isProcessing.value = false;
 };
 
-const onBeforeShow = () => {
+const onShow = () => {
   changePaymentMode("cash", props.customer ? default_payment_mode : "cash");
 };
 
@@ -220,15 +220,29 @@ const handlePaymentMethodSelected = (newId, index) => {
     }
   });
 };
+
+const preventEvent = (e) => {
+  e.stopPropagation();
+  e.preventDefault();
+};
+
+const handleKeyDown = (e) => {
+  if (props.modelValue) {
+    if (e.key === "Escape") {
+      emit("update:modelValue", false);
+      preventEvent(e);
+    }
+  }
+};
 </script>
 
 <template>
   <q-dialog
     :model-value="modelValue"
     @update:model-value="(val) => $emit('update:modelValue', val)"
-    @before-show="onBeforeShow"
+    @show="onShow"
   >
-    <q-card style="min-width: 300px">
+    <q-card style="min-width: 300px" @keyDown="handleKeyDown">
       <q-card-section>
         <div class="text-subtitle1 text-bold text-center">
           Rincian Pembayaran
