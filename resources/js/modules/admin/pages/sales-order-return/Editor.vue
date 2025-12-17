@@ -298,6 +298,9 @@ const updateItem = () => {
     })
     .finally(() => {
       isProcessing.value = false;
+      nextTick(() => {
+        userInputRef.value?.focus();
+      });
     });
 };
 

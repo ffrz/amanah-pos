@@ -1,14 +1,12 @@
 <script setup>
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
-import { computed, nextTick, onMounted, ref, watch } from "vue";
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import axios from "axios";
 import { formatNumber } from "@/helpers/formatter";
-import { onUnmounted } from "vue";
 
 const props = defineProps({
   modelValue: { type: Boolean, required: true },
   item: { type: Object, required: false },
-  // Tambahkan Customer untuk mendeteksi default_price_type
   customer: {
     type: Object,
     required: false,
@@ -17,11 +15,22 @@ const props = defineProps({
   isProcessing: { type: Boolean, required: false },
 });
 
-const qtyInput = ref(null);
-const isUnitMenuOpen = ref(false);
-
 const emit = defineEmits(["update:modelValue", "save"]);
 
+// =====================
+// REFS
+// =====================
+const qtyInput = ref(null);
+const uomSelect = ref(null);
+const priceInput = ref(null);
+const notesInput = ref(null);
+const saveBtn = ref(null);
+
+const isUnitMenuOpen = ref(false);
+
+// =====================
+// COMPUTED & LOGIC
+// =====================
 const subtotal = computed(() => {
   const qty = props.item?.quantity || 0;
   const price = props.item?.price || 0;
@@ -32,26 +41,15 @@ const handleSave = () => {
   emit("save");
 };
 
-const getCurrentItem = () => {
-  return props.item;
-};
-
 defineExpose({
-  getCurrentItem,
+  getCurrentItem: () => props.item,
 });
 
-// --- STATE ---
 const availableUnits = ref([]);
 const isLoadingUnits = ref(false);
 
-// --- HELPER: Tentukan kolom harga mana yang dipakai ---
-const getPriceKey = () => {
-  // Asumsi: customer.default_price_type bernilai 'price_1', 'price_2', atau 'price_3'
-  // Jika customer null atau tidak punya setting, default ke 'price_1'
-  return props.customer?.default_price_type || "price_1";
-};
+const getPriceKey = () => props.customer?.default_price_type || "price_1";
 
-// --- FETCH DATA ---
 const fetchProductUnits = async () => {
   if (!props.item?.product_id) {
     availableUnits.value = [];
@@ -59,21 +57,15 @@ const fetchProductUnits = async () => {
   }
   isLoadingUnits.value = true;
   try {
-    const response = await axios.get(
+    const res = await axios.get(
       `/web-api/products/${props.item.product_id}/units`
     );
-    if (response.data?.data) {
-      availableUnits.value = response.data.data;
-    } else {
-      availableUnits.value = [];
-    }
-  } catch (error) {
-    console.error("Error fetching units:", error);
-    // Fallback darurat
+    availableUnits.value = res.data?.data || [];
+  } catch {
     availableUnits.value = [
       {
         name: props.item.product_uom,
-        price_1: props.item.price, // Asumsi harga saat ini masuk price_1
+        price_1: props.item.price,
         is_base: true,
       },
     ];
@@ -82,11 +74,10 @@ const fetchProductUnits = async () => {
   }
 };
 
-// --- WATCHER ---
 watch(
   () => props.modelValue,
-  (isOpen) => {
-    if (isOpen) {
+  (open) => {
+    if (open) {
       availableUnits.value = [];
       fetchProductUnits();
     }
@@ -94,32 +85,20 @@ watch(
   { immediate: true }
 );
 
-// --- LOGIC UTAMA: Mapping Harga Berdasarkan Customer ---
 const unitOptions = computed(() => {
-  const priceKey = getPriceKey(); // Misal: 'price_2'
-
-  return availableUnits.value.map((u) => {
-    // Ambil harga dinamis sesuai tipe customer
-    // Jika harga tipe tersebut 0 atau null, fallback ke price_1
-    const finalPrice = parseFloat(u[priceKey] || u["price_1"] || 0);
-
-    return {
-      label: u.name,
-      value: u.name,
-      price: finalPrice,
-      description: u.is_base ? "(Dasar)" : "",
-    };
-  });
+  const priceKey = getPriceKey();
+  return availableUnits.value.map((u) => ({
+    label: u.name,
+    value: u.name,
+    price: parseFloat(u[priceKey] || u.price_1 || 0),
+    description: u.is_base ? "(Dasar)" : "",
+  }));
 });
 
-// --- LOGIKA GANTI SATUAN ---
 const onUnitChange = (val) => {
   const selected = unitOptions.value.find((opt) => opt.value === val);
   if (selected) {
     props.item.product_uom = selected.value;
-
-    // PENTING: Jika user manual ganti satuan, harga otomatis ikut berubah
-    // sesuai kategori customer yang sedang aktif
     props.item.price = selected.price;
   }
 };
@@ -127,50 +106,104 @@ const onUnitChange = (val) => {
 watch(
   () => props.customer?.default_price_type,
   () => {
-    // Refresh harga item yang sedang diedit jika tipe harga customer berubah
-    if (props.modelValue && props.item.product_uom) {
+    if (props.modelValue && props.item?.product_uom) {
       onUnitChange(props.item.product_uom);
     }
   }
 );
 
-const preventEvent = (e) => {
-  e.stopPropagation();
-  e.preventDefault();
+// =====================
+// GLOBAL NAVIGATION LOGIC
+// =====================
+
+// Helper: Cek apakah Ref sedang fokus
+const isFocused = (componentRef) => {
+  if (!componentRef) return false;
+  const el = componentRef.$el || componentRef;
+  return el.contains(document.activeElement) || el === document.activeElement;
 };
 
-const handleKeyDown = (e) => {
-  if (props.modelValue) {
-    if (e.ctrlKey && e.key === "Enter") {
-      if (isUnitMenuOpen.value) {
-        return;
-      }
+// Helper: Pindah Fokus
+const setFocus = (componentRef) => {
+  if (!componentRef) return;
+  if (typeof componentRef.focus === "function") {
+    componentRef.focus();
+  } else if (componentRef.$el) {
+    const input = componentRef.$el.querySelector("input, textarea, button");
+    if (input) input.focus();
+    else componentRef.$el.focus();
+  }
+};
+
+// Main Window Handler
+const handleGlobalKeydown = (e) => {
+  // 1. Jika Dialog Tutup, abaikan
+  if (!props.modelValue) return;
+
+  // 2. Jika Menu Dropdown Satuan sedang terbuka, biarkan Enter bekerja default (pilih item)
+  if (isUnitMenuOpen.value) return;
+
+  // 3. Handle Ctrl+Enter (Save)
+  if (e.ctrlKey && e.key === "Enter") {
+    e.preventDefault();
+    handleSave();
+    return;
+  }
+
+  // 4. Handle Navigasi Enter
+  if (e.key === "Enter") {
+    // A. Quantity -> UOM
+    if (isFocused(qtyInput.value)) {
+      e.preventDefault();
+      setFocus(uomSelect.value);
+      return;
+    }
+
+    // B. UOM -> Price
+    if (isFocused(uomSelect.value)) {
+      e.preventDefault();
+      e.stopPropagation(); // Mencegah menu terbuka
+      setFocus(priceInput.value);
+      return;
+    }
+
+    // C. Price -> Notes
+    if (isFocused(priceInput.value)) {
+      e.preventDefault();
+      setFocus(notesInput.value);
+      return;
+    }
+
+    // D. Notes -> Save Button
+    if (isFocused(notesInput.value)) {
+      // Biarkan enter membuat baris baru di textarea jika mau,
+      // atau preventDefault jika ingin langsung pindah.
+      // e.preventDefault();
+      setFocus(saveBtn.value);
+      return;
+    }
+
+    // E. Save Button -> Submit
+    if (isFocused(saveBtn.value)) {
+      e.preventDefault();
       handleSave();
-      preventEvent(e);
-    } else if (e.key === "Escape") {
-      if (isUnitMenuOpen.value) {
-        return;
-      }
-      emit("update:modelValue", false);
-      preventEvent(e);
+      return;
     }
   }
 };
 
+// Attach/Detach Event Listener
 onMounted(() => {
-  window.addEventListener("keydown", handleKeyDown);
+  window.addEventListener("keydown", handleGlobalKeydown, true);
 });
 
 onUnmounted(() => {
-  window.removeEventListener("keydown", handleKeyDown);
+  window.removeEventListener("keydown", handleGlobalKeydown, true);
 });
 
 const onShow = () => {
   nextTick(() => {
-    if (qtyInput.value) {
-      qtyInput.value.focus?.() ||
-        qtyInput.value.$el?.querySelector("input")?.focus();
-    }
+    setFocus(qtyInput.value);
   });
 };
 </script>
@@ -178,20 +211,20 @@ const onShow = () => {
 <template>
   <q-dialog
     :model-value="modelValue"
-    @update:model-value="(val) => $emit('update:modelValue', val)"
+    @update:model-value="(v) => emit('update:modelValue', v)"
     @show="onShow"
   >
-    <q-card>
+    <q-card style="width: 500px; max-width: 90vw">
       <q-card-section class="q-py-sm">
         <div class="row items-center no-wrap">
-          <div class="col text-subtite text-bold text-grey-8">Edit Item</div>
+          <div class="col text-subtitle1 text-bold text-grey-8">Edit Item</div>
           <div class="col-auto">
             <q-btn
               flat
               size="sm"
               round
               icon="close"
-              @click="$emit('update:modelValue', false)"
+              @click="emit('update:modelValue', false)"
             />
           </div>
         </div>
@@ -201,9 +234,8 @@ const onShow = () => {
         <q-input
           v-model="item.product_name"
           label="Produk"
-          hide-bottom-space
           readonly
-          :disable="isProcessing"
+          hide-bottom-space
         />
 
         <div class="row q-col-gutter-sm">
@@ -214,30 +246,29 @@ const onShow = () => {
               label="Kuantitas"
               hide-bottom-space
               autofocus
-              :disable="isProcessing"
             />
           </div>
+
           <div class="col-4">
             <q-select
+              ref="uomSelect"
               v-model="item.product_uom"
               :options="unitOptions"
               label="Satuan"
-              hide-bottom-space
-              :disable="isProcessing || isLoadingUnits"
-              :loading="isLoadingUnits"
               emit-value
               map-options
-              behavior="dialog"
+              hide-bottom-space
+              :loading="isLoadingUnits"
               @update:model-value="onUnitChange"
               @popup-show="isUnitMenuOpen = true"
               @popup-hide="isUnitMenuOpen = false"
             >
-              <template v-slot:option="{ itemProps, opt, selected, focused }">
+              <template #option="{ itemProps, opt, selected, focused }">
                 <q-item
                   v-bind="itemProps"
                   :class="{
-                    'bg-grey-3': focused, // Warna saat disorot keyboard/mouse
-                    'bg-blue-1 text-primary': selected, // Warna item yang sedang terpilih
+                    'bg-grey-3': focused,
+                    'bg-blue-1 text-primary': selected,
                   }"
                 >
                   <q-item-section>
@@ -253,16 +284,16 @@ const onShow = () => {
         </div>
 
         <LocaleNumberInput
+          ref="priceInput"
           v-model="item.price"
           label="Harga (Rp)"
+          hide-bottom-space
           :readonly="
             !(
               item.product?.price_editable ||
               $can('admin.sales-order.editor:edit-price')
             )
           "
-          hide-bottom-space
-          :disable="isProcessing"
         />
 
         <LocaleNumberInput
@@ -273,11 +304,11 @@ const onShow = () => {
         />
 
         <q-input
+          ref="notesInput"
           v-model="item.notes"
           label="Catatan"
-          autogrow
           type="textarea"
-          counter
+          autogrow
           maxlength="50"
           hide-bottom-space
           clearable
@@ -285,20 +316,12 @@ const onShow = () => {
       </q-card-section>
 
       <q-card-actions align="right">
+        <q-btn label="Batal" v-close-popup />
         <q-btn
-          flat
-          label="Batal"
-          color="primary"
-          v-close-popup
-          :disable="isProcessing"
-        />
-        <q-btn
-          flat
+          ref="saveBtn"
           label="Simpan"
           color="primary"
           @click="handleSave"
-          v-close-popup
-          :disable="isProcessing"
         />
       </q-card-actions>
     </q-card>

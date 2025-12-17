@@ -225,7 +225,9 @@ const addItem = async () => {
         showWarning("Harga tidak dapat diubah!", "top");
       }
 
-      showItemEditor(currentItem);
+      if (parts.length == 1) {
+        showItemEditor(currentItem);
+      }
     })
     .catch((error) => {
       showError(error.response?.data?.message, "top");
@@ -315,6 +317,9 @@ const updateItem = () => {
     })
     .finally(() => {
       isProcessing.value = false;
+      nextTick(() => {
+        userInputRef.value?.focus();
+      });
     });
 };
 
