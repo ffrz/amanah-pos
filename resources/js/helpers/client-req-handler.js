@@ -144,7 +144,7 @@ export function handleDelete(data) {
 }
 
 export function handleFetchItems(options) {
-  const { pagination, props, rows, url, loading, filter, tableRef, onSuccess } =
+  const { pagination, props, rows, url, loading, filter, tableRef, onSuccess, opts } =
     options;
 
   let source = props ? props.pagination : pagination.value;
@@ -173,7 +173,10 @@ export function handleFetchItems(options) {
   loading.value = true;
 
   axios
-    .get(url, { params: params })
+    .get(url, {
+      params: params,
+      signal: opts?.signal
+    })
     .then((response) => {
       const apiResponse = response.data.status ? response.data : response;
       const data = apiResponse.data.data;

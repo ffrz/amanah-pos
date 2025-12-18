@@ -140,18 +140,33 @@ const fetchItemsWithoutProps = () => {
   fetchItems();
 };
 
+let currentAbortController = null;
+
 const fetchItems = (opts = null) => {
+  // 1. Jika ada request yang sedang berjalan, batalkan!
+  if (currentAbortController) {
+    currentAbortController.abort();
+  }
+
+  // 2. Buat controller baru untuk request ini
+  currentAbortController = new AbortController();
+  const signal = currentAbortController.signal;
+
   loading.value = true;
   const initialIndex = selectedIndex.value;
+
+  // Pastikan helper handleFetchItems Anda mendukung pengiriman 'opts'
+  // yang berisi signal untuk axios/fetch
   handleFetchItems({
     pagination,
     filter,
-    opts,
+    opts: { ...opts, signal }, // Kirim signal ke backend handler
     rows,
     url: props.urlEndpoint,
     loading,
     tableRef,
     onSuccess: () => {
+      // Logic setelah sukses tetap sama
       if (rows.value.length > 0) {
         if (initialIndex === 0 || initialIndex === -1) {
           selectedIndex.value = 0;
@@ -162,6 +177,17 @@ const fetchItems = (opts = null) => {
       } else {
         selectedIndex.value = -1;
       }
+
+      // Bersihkan controller setelah sukses
+      currentAbortController = null;
+    },
+    onError: (err) => {
+      // Abaikan error jika itu disebabkan oleh pembatalan (abort)
+      if (err.name === "AbortError") {
+        console.log("Request dibatalkan karena ada input baru");
+        return;
+      }
+      loading.value = false;
     },
   });
 };
@@ -247,6 +273,10 @@ watch(
     }
   }
 );
+
+const onShow = () => {
+  selectedIndex.value = -1;
+};
 </script>
 
 <template>
@@ -254,6 +284,7 @@ watch(
     :model-value="modelValue"
     @update:model-value="(val) => $emit('update:modelValue', val)"
     :maximized="$q.screen.lt.sm"
+    @before-show="onShow"
   >
     <q-card
       class="column fit product-browser-card"
