@@ -19,7 +19,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["update:modelValue", "save"]);
+const emit = defineEmits(["update:modelValue", "save", "hide"]);
 
 // =====================
 // REFS (Untuk Navigasi)
@@ -230,6 +230,7 @@ const onShow = () => {
     :model-value="modelValue"
     @update:model-value="(val) => $emit('update:modelValue', val)"
     @show="onShow"
+    @hide="$emit('hide')"
   >
     <q-card style="width: 100%; max-width: 500px">
       <q-card-section class="q-py-sm">

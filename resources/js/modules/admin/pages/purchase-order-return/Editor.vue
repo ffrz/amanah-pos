@@ -11,7 +11,7 @@ import axios from "axios";
 
 import ItemListTable from "./editor/ItemsListTable.vue";
 import CheckBox from "@/components/CheckBox.vue";
-import ItemEditorDialog from "./editor/ItemEditorDialog.vue";
+import PurchaseOrderItemEditorDialog from "@/components/PurchaseOrderItemEditorDialog.vue";
 import SupplierAutocomplete from "@/components/SupplierAutocomplete.vue";
 import {
   formatDateTime,
@@ -235,9 +235,7 @@ const addItem = async () => {
     })
     .finally(() => {
       isProcessing.value = false;
-      nextTick(() => {
-        userInputRef.value?.focus();
-      });
+      onHideItemEditorDialog();
     });
 };
 
@@ -317,9 +315,7 @@ const updateItem = () => {
     })
     .finally(() => {
       isProcessing.value = false;
-      nextTick(() => {
-        userInputRef.value?.focus();
-      });
+      onHideItemEditorDialog();
     });
 };
 
@@ -480,6 +476,12 @@ const isValidWalletBalance = computed(() => {
 
   return true;
 });
+
+const onHideItemEditorDialog = () => {
+  nextTick(() => {
+    userInputRef.value?.focus();
+  });
+};
 </script>
 
 <template>
@@ -690,11 +692,12 @@ const isValidWalletBalance = computed(() => {
         </div>
       </q-card>
 
-      <ItemEditorDialog
+      <PurchaseOrderItemEditorDialog
         ref="itemEditorRef"
         v-model="showItemEditorDialog"
         :item="itemToEdit"
         @save="updateItem()"
+        @hide="onHideItemEditorDialog()"
         :is-processing="isProcessing"
       />
       <ProductBrowserDialog

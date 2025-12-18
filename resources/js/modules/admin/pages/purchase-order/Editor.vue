@@ -8,7 +8,7 @@ import ItemListTable from "./editor/ItemsListTable.vue";
 import PaymentDialog from "./editor/PaymentDialog.vue";
 import ProductBrowserDialog from "@/components/ProductBrowserDialog.vue";
 import CheckBox from "@/components/CheckBox.vue";
-import ItemEditorDialog from "./editor/ItemEditorDialog.vue";
+import PurchaseOrderItemEditorDialog from "@/components/PurchaseOrderItemEditorDialog.vue";
 import SupplierAutocomplete from "@/components/SupplierAutocomplete.vue";
 import {
   formatDateTime,
@@ -235,9 +235,7 @@ const addItem = async () => {
     })
     .finally(() => {
       isProcessing.value = false;
-      nextTick(() => {
-        userInputRef.value?.focus();
-      });
+      onHideItemEditorDialog();
     });
 };
 
@@ -318,9 +316,7 @@ const updateItem = () => {
     })
     .finally(() => {
       isProcessing.value = false;
-      nextTick(() => {
-        userInputRef.value?.focus();
-      });
+      onHideItemEditorDialog();
     });
 };
 
@@ -462,6 +458,12 @@ const invoicePreview = () => {
     route("admin.purchase-order.detail", { id: form.id }) + "?preview=1",
     "_blank"
   );
+};
+
+const onHideItemEditorDialog = () => {
+  nextTick(() => {
+    userInputRef.value?.focus();
+  });
 };
 </script>
 
@@ -669,11 +671,12 @@ const invoicePreview = () => {
         </div>
       </q-card>
 
-      <ItemEditorDialog
+      <PurchaseOrderItemEditorDialog
         ref="itemEditorRef"
         v-model="showItemEditorDialog"
         :item="itemToEdit"
         @save="updateItem()"
+        @hide="onHideItemEditorDialog"
         :is-processing="isProcessing"
       />
       <PaymentDialog

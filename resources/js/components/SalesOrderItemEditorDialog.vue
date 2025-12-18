@@ -15,7 +15,7 @@ const props = defineProps({
   isProcessing: { type: Boolean, required: false },
 });
 
-const emit = defineEmits(["update:modelValue", "save"]);
+const emit = defineEmits(["update:modelValue", "save", "hide"]);
 
 // =====================
 // REFS
@@ -214,6 +214,7 @@ const onShow = () => {
     :model-value="modelValue"
     @update:model-value="(v) => emit('update:modelValue', v)"
     @show="onShow"
+    @hide="emit('hide')"
   >
     <q-card style="width: 500px; max-width: 90vw">
       <q-card-section class="q-py-sm">

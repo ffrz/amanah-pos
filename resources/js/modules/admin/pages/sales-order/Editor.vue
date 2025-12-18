@@ -8,7 +8,6 @@ import ItemListTable from "./editor/ItemsListTable.vue";
 import PaymentDialog from "./editor/PaymentDialog.vue";
 import ProductBrowserDialog from "@/components/ProductBrowserDialog.vue";
 import CheckBox from "@/components/CheckBox.vue";
-import ItemEditorDialog from "./editor/ItemEditorDialog.vue";
 import CustomerAutocomplete from "@/components/CustomerAutocomplete.vue";
 import {
   formatDateTime,
@@ -24,6 +23,7 @@ import { getCurrentInstance } from "vue";
 import BarcodeInputEditor from "@/components/BarcodeInputEditor.vue";
 import PartyInfo from "@/components/PartyInfo.vue";
 import UserSessionInfo from "@/components/UserSessionInfo.vue";
+import SalesOrderItemEditorDialog from "@/components/SalesOrderItemEditorDialog.vue";
 
 const $q = useQuasar();
 const page = usePage();
@@ -226,9 +226,7 @@ const addItem = async () => {
     })
     .finally(() => {
       isProcessing.value = false;
-      nextTick(() => {
-        userInputRef.value?.focus();
-      });
+      focusToUserInput();
     });
 };
 
@@ -312,9 +310,7 @@ const updateItem = async () => {
     })
     .finally(() => {
       isProcessing.value = false;
-      nextTick(() => {
-        userInputRef.value?.focus();
-      });
+      focusToUserInput();
     });
 };
 
@@ -495,6 +491,12 @@ const isValidOrder = computed(() => {
     form.status === "draft"
   );
 });
+
+const focusToUserInput = () => {
+  nextTick(() => {
+    userInputRef.value?.focus();
+  });
+};
 </script>
 
 <template>
@@ -698,12 +700,13 @@ const isValidOrder = computed(() => {
         </div>
       </q-card>
 
-      <ItemEditorDialog
+      <SalesOrderItemEditorDialog
         ref="itemEditorRef"
         v-model="showItemEditorDialog"
         :item="itemToEdit"
         :customer="customer"
         @save="updateItem()"
+        @hide="focusToUserInput"
         :is-processing="isProcessing"
       />
       <PaymentDialog
