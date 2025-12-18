@@ -6,10 +6,9 @@ import { getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
 import { useProductCategoryFilter } from "@/composables/useProductCategoryFilter";
 import { useSupplierFilter } from "@/composables/useSupplierFilter";
-import { formatNumber } from "@/helpers/formatter";
+import { formatMoney, formatNumber } from "@/helpers/formatter";
 import { createOptions } from "@/helpers/options";
 import useTableHeight from "@/composables/useTableHeight";
-import LongTextView from "@/components/LongTextView.vue";
 
 const page = usePage();
 const tableRef = ref(null);
@@ -55,6 +54,11 @@ const pagination = ref({
   descending: true,
 });
 let columns = [
+  {
+    name: "collapsible",
+    label: "",
+    field: "collapsible",
+  },
   {
     name: "name",
     label: "Nama",
@@ -140,16 +144,28 @@ const { filteredSuppliers, filterSupplierFn } = useSupplierFilter(
 );
 
 const computedColumns = computed(() => {
-  let computedColumns = [...columns];
+  // 1. Mulai dengan copy semua kolom
+  let resultCols = [...columns];
+
+  // 2. FIX BUG 1: Hapus kolom 'cost' berdasarkan NAMANYA (lebih aman dari splice index)
   if (!showCostColumn.value) {
-    computedColumns.splice(2, 1);
+    resultCols = resultCols.filter((col) => col.name !== "cost");
   }
 
-  if ($q.screen.gt.sm) return computedColumns;
+  // 3. FIX BUG 2: Sinkronkan header 'collapsible' dengan logika di HTML
+  // Di HTML Anda pakai v-if="$q.screen.gt.md", jadi header juga harus sama
+  if (!$q.screen.gt.md) {
+    resultCols = resultCols.filter((col) => col.name !== "collapsible");
+  }
 
-  return computedColumns.filter(
-    (col) => col.name === "name" || col.name === "action"
-  );
+  // 4. FIX BUG 3: Logika Mobile
+  if (!$q.screen.gt.sm) {
+    return resultCols.filter(
+      (col) => col.name === "name" || col.name === "action"
+    );
+  }
+
+  return resultCols;
 });
 
 const goToDetail = (props) => {
@@ -390,14 +406,6 @@ const getPriceDisplay = (p1, p2, p3) => {
             >
           </div>
         </template>
-        <template v-slot:header="props">
-          <q-tr :props="props">
-            <q-th auto-width />
-            <q-th v-for="col in props.cols" :key="col.name" :props="props">
-              {{ col.label }}
-            </q-th>
-          </q-tr>
-        </template>
         <template v-slot:body="props">
           <q-tr
             :props="props"
@@ -405,7 +413,12 @@ const getPriceDisplay = (p1, p2, p3) => {
             class="cursor-pointer"
             @click="goToDetail(props)"
           >
-            <q-td auto-width>
+            <q-td
+              key="collapsible"
+              v-if="$q.screen.gt.md"
+              auto-width
+              @click.stop
+            >
               <q-btn
                 size="sm"
                 flat
@@ -418,15 +431,186 @@ const getPriceDisplay = (p1, p2, p3) => {
               />
             </q-td>
 
-            <q-td
-              key="name"
-              :props="props"
-              class="wrap-column"
-              style="max-width: 250px; white-space: normal"
-            >
+            <q-td key="name" :props="props" class="wrap-column">
               <div class="text-weight-bold">{{ props.row.name }}</div>
-              <div class="text-caption text-grey-7" v-if="props.row.category">
-                {{ props.row.category.name }}
+              <div v-if="$q.screen.lt.md" class="q-mt-sm">
+                <div v-if="props.row.type == 'stocked'" class="q-mb-xs">
+                  <q-badge
+                    outline
+                    :color="
+                      props.row.stock <= 0
+                        ? 'negative'
+                        : props.row.stock < props.row.min_stock
+                        ? 'warning'
+                        : 'secondary'
+                    "
+                  >
+                    Stok: {{ formatNumber(props.row.stock) }}
+                    {{ props.row.uom }}
+                  </q-badge>
+                  <div
+                    v-if="props.row.product_units.length > 0"
+                    class="text-caption text-grey-6 q-ml-sm inline-block"
+                  >
+                    ({{ props.row.stock_breakdown_text }})
+                  </div>
+                </div>
+
+                <div
+                  v-if="showCostColumn"
+                  class="bg-grey-2 q-pa-xs rounded-borders q-mb-xs"
+                >
+                  <div class="text-caption">
+                    Modal:
+                    <span>
+                      {{ formatMoney(props.row.cost) }} /
+                      {{ props.row.uom }}
+                    </span>
+                    <span
+                      v-for="unit in props.row.product_units"
+                      :key="unit.id"
+                      class="text-grey-8"
+                    >
+                      ,
+                      {{ formatMoney(getUnitCost(props.row, unit)) }}
+                      /
+                      {{ unit.name }}
+                    </span>
+                  </div>
+                </div>
+
+                <div class="row q-col-gutter-xs q-mt-xs price-info">
+                  <div class="col-4">
+                    <div class="text-caption text-weight-bold text-primary">
+                      Eceran
+                    </div>
+                    <div class="text-caption">
+                      <div>
+                        <span class="text-weight-bold">{{
+                          formatNumber(props.row.price_1)
+                        }}</span>
+                        <span class="text-grey-6"> / {{ props.row.uom }}</span>
+                      </div>
+                      <div
+                        v-for="unit in props.row.product_units"
+                        :key="unit.id"
+                      >
+                        {{ formatNumber(unit.price_1) }}
+                        <span class="text-grey-6"> / {{ unit.name }}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-4">
+                    <div class="text-caption text-weight-bold text-primary">
+                      Partai
+                    </div>
+                    <div class="text-caption">
+                      <div
+                        v-for="display in [
+                          getPriceDisplay(
+                            props.row.price_1,
+                            props.row.price_2,
+                            props.row.price_3
+                          ),
+                        ]"
+                      >
+                        <span
+                          :class="
+                            display.p2.isFallback
+                              ? 'text-grey-5 text-italic'
+                              : 'text-weight-bold'
+                          "
+                        >
+                          {{ formatNumber(display.p2.val) }}
+                        </span>
+                        <span class="text-grey-6"> / {{ props.row.uom }}</span>
+                      </div>
+                      <div
+                        v-for="unit in props.row.product_units"
+                        :key="unit.id"
+                      >
+                        <template
+                          v-for="uDisplay in [
+                            getPriceDisplay(
+                              unit.price_1,
+                              unit.price_2,
+                              unit.price_3
+                            ),
+                          ]"
+                        >
+                          <span
+                            :class="
+                              uDisplay.p2.isFallback
+                                ? 'text-grey-5 text-italic'
+                                : 'text-grey-9'
+                            "
+                          >
+                            {{ formatNumber(uDisplay.p2.val) }}
+                          </span>
+                          <span class="text-grey-6"> / {{ unit.name }}</span>
+                        </template>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-4">
+                    <div class="text-caption text-weight-bold text-primary">
+                      Grosir
+                    </div>
+                    <div class="text-caption">
+                      <div
+                        v-for="display in [
+                          getPriceDisplay(
+                            props.row.price_1,
+                            props.row.price_2,
+                            props.row.price_3
+                          ),
+                        ]"
+                      >
+                        <span
+                          :class="
+                            display.p3.isFallback
+                              ? 'text-grey-5 text-italic'
+                              : 'text-weight-bold'
+                          "
+                        >
+                          {{ formatNumber(display.p3.val) }}
+                        </span>
+                        <span class="text-grey-6"> / {{ props.row.uom }}</span>
+                      </div>
+                      <div
+                        v-for="unit in props.row.product_units"
+                        :key="unit.id"
+                      >
+                        <template
+                          v-for="uDisplay in [
+                            getPriceDisplay(
+                              unit.price_1,
+                              unit.price_2,
+                              unit.price_3
+                            ),
+                          ]"
+                        >
+                          <span
+                            :class="
+                              uDisplay.p3.isFallback
+                                ? 'text-grey-5 text-italic'
+                                : 'text-grey-9'
+                            "
+                          >
+                            {{ formatNumber(uDisplay.p3.val) }}
+                          </span>
+                          <span class="text-grey-6">/ {{ unit.name }}</span>
+                        </template>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="text-caption text-grey">
+                {{ props.row.category?.name }}
               </div>
             </q-td>
 
@@ -482,7 +666,7 @@ const getPriceDisplay = (p1, p2, p3) => {
                 class="text-caption text-grey-9 q-mb-xs"
               >
                 {{ formatNumber(getUnitCost(props.row, unit)) }}
-                <span class="text-grey-6">/ {{ unit.name }}</span>
+                <span class="text-grey-6"> / {{ unit.name }}</span>
               </div>
             </q-td>
 
@@ -506,7 +690,7 @@ const getPriceDisplay = (p1, p2, p3) => {
                 class="text-caption text-grey-9 q-mb-xs"
               >
                 {{ formatNumber(unit.price_1) }}
-                <span class="text-grey-6">/ {{ unit.name }}</span>
+                <span class="text-grey-6"> / {{ unit.name }}</span>
               </div>
             </q-td>
 
@@ -626,7 +810,7 @@ const getPriceDisplay = (p1, p2, p3) => {
               </div>
             </q-td>
 
-            <q-td key="action" :props="props">
+            <q-td key="action" :props="props" @click.stop>
               <div class="flex justify-end">
                 <q-btn icon="more_vert" flat dense rounded @click.stop>
                   <q-menu anchor="bottom right" self="top right">
@@ -661,7 +845,7 @@ const getPriceDisplay = (p1, p2, p3) => {
             </q-td>
           </q-tr>
 
-          <q-tr v-show="props.expand" :props="props">
+          <q-tr v-if="$q.screen.gt.md" v-show="props.expand" :props="props">
             <q-td colspan="100%">
               <div class="text-caption row q-gutter-md text-grey-8">
                 <div v-if="props.row.barcode">
@@ -683,3 +867,8 @@ const getPriceDisplay = (p1, p2, p3) => {
     </div>
   </authenticated-layout>
 </template>
+<style scoped>
+.price-info .text-caption {
+  font-size: 10px;
+}
+</style>
