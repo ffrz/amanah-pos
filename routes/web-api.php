@@ -14,13 +14,9 @@
  * Email: fahmifauzirahman@gmail.com
  */
 
-use App\Helpers\JsonResponseHelper;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\SupplierController;
-use App\Models\PurchaseOrderDetail;
-use App\Models\SalesOrderDetail;
-use App\Models\StockAdjustmentDetail;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth:web', 'web'])->prefix('web-api')->group(function () {
