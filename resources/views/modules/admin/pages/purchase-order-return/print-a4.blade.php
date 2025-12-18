@@ -10,7 +10,7 @@
   $foot_note = Setting::value('pos.foot_note');
 @endphp
 
-@extends('modules.admin.layouts.print-a4-portrait')
+@extends('modules.admin.layouts.print-receipt-a4')
 
 @section('content')
   @if (!$is_pdf_export)
