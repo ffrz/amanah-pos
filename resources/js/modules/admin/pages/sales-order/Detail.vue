@@ -1,6 +1,6 @@
 <script setup>
 import { router, usePage } from "@inertiajs/vue3";
-import { nextTick, onMounted, ref } from "vue";
+import { nextTick, onMounted, onUnmounted, ref } from "vue";
 import InvoiceTab from "./detail/InvoiceTab.vue";
 import PaymentTab from "./detail/PaymentTab.vue";
 
@@ -16,16 +16,47 @@ const getInitialTab = () => {
 
 const currentTab = ref(getInitialTab());
 
+const handleKeyDown = (e) => {
+  if (e.ctrlKey && (e.key === "'" || e.key === '"')) {
+    e.stopPropagation();
+    e.preventDefault();
+    print("default");
+    return;
+  }
+
+  if (isPreview.value) return;
+
+  if (e.ctrlKey && e.key === "Enter") {
+    newOrder();
+    e.stopPropagation();
+    e.preventDefault();
+    return;
+  }
+};
+
 onMounted(() => {
   nextTick(() => {
-    const printSize = urlParams.get("print_size");
-    if (printSize) {
-      print(printSize);
-    }
+    print();
   });
+
+  document.addEventListener("keydown", handleKeyDown, true);
 });
 
+onUnmounted(() => {
+  document.removeEventListener("keydown", handleKeyDown, true);
+});
+
+const newOrder = () => {
+  router.get(route("admin.sales-order.add"));
+};
+
 const print = (size) => {
+  if (!size) {
+    const printSize = urlParams.get("print_size");
+    if (!printSize) return;
+    size = printSize;
+  }
+
   window.open(
     route("admin.sales-order.print", { id: page.props.data.id, size: size }),
     "_self"
@@ -97,7 +128,7 @@ const getWatermarkClass = () => {
         dense
         color="primary"
         rounded
-        @click="router.get(route('admin.sales-order.add'))"
+        @click="newOrder()"
       />
     </template>
 
