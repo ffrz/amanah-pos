@@ -146,6 +146,7 @@ const handleGlobalKeydown = (e) => {
   // 3. Handle Ctrl+Enter (Save)
   if (e.ctrlKey && e.key === "Enter") {
     e.preventDefault();
+    e.stopPropagation(); // Mencegah menu terbuka
     handleSave();
     return;
   }
