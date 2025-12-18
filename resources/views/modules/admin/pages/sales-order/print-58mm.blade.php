@@ -11,10 +11,11 @@
 @extends('modules.admin.layouts.print-receipt-58mm')
 
 @section('content')
+  @include('modules.admin.pages.sales-order.shortcut-handler')
   @if (!$is_pdf_export)
     <div class="no-print text-center">
       <br>
-      <a class="btn my-xs" href="{{ route('admin.sales-order.add') }}">+ Order Baru</a>
+      <a class="btn my-xs" id="new-order" href="{{ route('admin.sales-order.add') }}">+ Order Baru</a>
       <a class="btn my-xs" href="{{ route('admin.sales-order.index') }}">&laquo; Daftar Order</a>
       <a class="btn my-xs" href="{{ route('admin.sales-order.detail', $item->id) }}">&laquo; Rincian</a>
       <a class="btn my-xs" href="{{ route('admin.sales-order.print', $item->id) }}?output=pdf&size=58">Simpan PDF</a>
