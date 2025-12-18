@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, reactive, ref, watch } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import { router } from "@inertiajs/vue3";
 import { handleDelete, handleFetchItems } from "@/helpers/client-req-handler";
 import { getQueryParams } from "@/helpers/utils";
@@ -10,7 +10,6 @@ import useTableHeight from "@/composables/useTableHeight";
 import SalesOrderStatusChip from "@/components/SalesOrderStatusChip.vue";
 import SalesOrderPaymentStatusChip from "@/components/SalesOrderPaymentStatusChip.vue";
 import SalesOrderDeliveryStatusChip from "@/components/SalesOrderDeliveryStatusChip.vue";
-import MyLink from "@/components/MyLink.vue";
 import axios from "axios";
 import LongTextView from "@/components/LongTextView.vue";
 import dayjs from "dayjs";
@@ -89,7 +88,7 @@ const columns = [
   },
   {
     name: "balance",
-    label: "Saldo (Rp)",
+    label: "Utang / Piutang (Rp)",
     field: "balance",
     align: "right",
   },
@@ -349,38 +348,15 @@ const computedColumns = computed(() => {
               <div>
                 <q-icon name="tag" />
                 {{ props.row.code }}
-              </div>
-              <div>
-                <q-icon class="inline-icon" name="calendar_today" />{{
-                  formatDateTime(props.row.datetime)
-                }}
+                - {{ formatDateTime(props.row.datetime) }}
               </div>
               <template v-if="!$q.screen.gt.sm">
-                <div v-if="props.row.cashier">
-                  <q-icon name="person" class="inline-icon" />
-                  Kasir: {{ props.row.cashier?.username }}
-                </div>
-                <div v-if="props.row.cashier_session">
-                  <q-icon name="point_of_sale" class="inline-icon" />
-                  Terminal:
-                  {{ props.row.cashier_session?.cashier_terminal?.name }}
-                </div>
                 <div v-if="props.row.customer_id">
                   <q-icon name="person" class="inline-icon" />
-                  Pelanggan:
-                  <my-link
-                    :href="
-                      route('admin.customer.detail', {
-                        id: props.row.customer_id,
-                      })
-                    "
-                    @click.stop
-                    >&nbsp; {{ props.row.customer_code }} -
-                    {{ props.row.customer_name }}
-                  </my-link>
+                  {{ props.row.customer_code }} - {{ props.row.customer_name }}
                 </div>
                 <div>
-                  <q-icon name="wallet" class="inline-icon" /> Total: Rp.
+                  <q-icon name="receipt" class="inline-icon" /> Rp.
                   {{ formatNumber(props.row.grand_total) }}
                 </div>
                 <div
@@ -388,8 +364,15 @@ const computedColumns = computed(() => {
                   :class="props.row.balance > 0 ? 'text-green' : 'text-red'"
                 >
                   <q-icon name="balance" class="inline-icon" />
-                  {{ props.row.balance > 0 ? "Piutang" : "Utang" }}: Rp.
+                  {{ props.row.balance < 0 ? "Utang" : "Piutang" }}: Rp.
                   {{ formatNumber(props.row.balance) }}
+                </div>
+                <div v-if="props.row.cashier" class="text-caption text-grey-8">
+                  <q-icon name="person" class="inline-icon" />
+                  {{ props.row.cashier?.username }}
+                  <tamplate v-if="props.row.cashier_session">
+                    - {{ props.row.cashier_session?.cashier_terminal?.name }}
+                  </tamplate>
                 </div>
                 <div v-if="props.row.notes">
                   <q-icon name="notes" /> {{ props.row.notes }}
@@ -443,7 +426,9 @@ const computedColumns = computed(() => {
               :props="props"
               :class="props.row.balance > 0 ? 'text-green' : 'text-red'"
             >
-              {{ formatNumber(props.row.balance) }}
+              {{
+                props.row.balance != 0 ? formatNumber(props.row.balance) : "-"
+              }}
             </q-td>
             <q-td key="notes" :props="props">
               <LongTextView :text="props.row.notes" icon="notes" />
