@@ -2,6 +2,7 @@
 import { computed } from "vue";
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
 import PercentInput from "@/components/PercentInput.vue";
+import { formatNumberWithSymbol } from "@/helpers/formatter";
 
 const props = defineProps({
   label: { type: String, required: true },
@@ -53,6 +54,8 @@ const removeTier = (index) => {
   newTiers.splice(index, 1);
   emit("update:tiers", newTiers);
 };
+
+const profit = computed(() => props.price - props.cost);
 </script>
 
 <template>
@@ -84,8 +87,14 @@ const removeTier = (index) => {
           hide-bottom-space
         />
       </div>
+      <div
+        class="col-12 col-md-2 text-right"
+        :class="profit > 0 ? 'text-green-8' : 'text-red'"
+      >
+        {{ formatNumberWithSymbol(profit) }}
+      </div>
 
-      <div class="col-12 col-md-2 text-right">
+      <!-- <div class="col-12 col-md-2 text-right">
         <q-btn
           flat
           dense
@@ -97,10 +106,10 @@ const removeTier = (index) => {
         >
           <q-tooltip>Tambah harga khusus pembelian banyak</q-tooltip>
         </q-btn>
-      </div>
+      </div> -->
     </div>
 
-    <div
+    <!-- <div
       v-if="tiers && tiers.length > 0"
       class="q-mt-sm q-ml-md q-pl-md border-left-indicator"
     >
@@ -142,7 +151,7 @@ const removeTier = (index) => {
           />
         </div>
       </div>
-    </div>
+    </div> -->
   </div>
 </template>
 
