@@ -34,7 +34,9 @@
 <body>
   @yield('content')
   <script>
-    window.addEventListener("load", window.print());
+    @if (config('app.env') == 'production')
+      window.addEventListener("load", window.print());
+    @endif
   </script>
 </body>
 
