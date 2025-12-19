@@ -269,6 +269,7 @@ const removeItem = (item) => {
       })
       .finally(() => {
         isProcessing.value = false;
+        focusToUserInput();
       });
   });
 };
