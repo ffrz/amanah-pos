@@ -641,13 +641,7 @@ class ProductService
 
     public function scanProduct($identifier, $uom = null)
     {
-        // ======================================================================
-        // STRATEGI 1: PENCARIAN BY BARCODE (PASTI AKURAT & SPESIFIK)
-        // Jika identifier adalah barcode, kita abaikan parameter $uom
-        // karena barcode sudah menunjuk ke satu unit spesifik.
-        // ======================================================================
-
-        // 1.1 Cek Barcode di Unit Tambahan (Dus/Roll)
+        // Cek berdasarkan Barcode di Unit Tambahan (Dus/Roll)
         $unitByBarcode = \App\Models\ProductUnit::with('product')
             ->where('barcode', $identifier)
             ->first();
@@ -671,21 +665,15 @@ class ProductService
             ];
         }
 
-        // ======================================================================
-        // STRATEGI 2: PENCARIAN BY NAMA / KODE (BUTUH KONTEKS UOM)
-        // Jika barcode tidak ketemu, kita cari berdasarkan Nama/ID.
-        // Di sini parameter $uom menjadi KUNCI penentu satuan mana yang diambil.
-        // ======================================================================
-
+        // Kalau gak ketemu kita cari berdasarkan nama produk (exact match)
         $product = \App\Models\Product::query()
             ->where(function ($q) use ($identifier) {
-                $q->where('name', 'LIKE', "%{$identifier}%")
-                    ->orWhere('id', $identifier);
+                $q->where('name', '=', $identifier);
             })
             ->first();
 
         if ($product) {
-            // Produk ketemu (misal: "Kabel"), sekarang kita cek user minta satuan apa?
+            // Produk ketemu sekarang kita cek user minta satuan apa?
 
             // KASUS A: User minta satuan spesifik (misal: "ROLL")
             if (!empty($uom)) {
