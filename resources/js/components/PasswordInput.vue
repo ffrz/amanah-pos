@@ -10,7 +10,6 @@
     lazy-rules
     hide-bottom-space
     autocomplete="current-password"
-    :rules="rules"
     data-test="password"
     v-bind="$attrs"
   >
