@@ -41,7 +41,7 @@ const filter = reactive({
   type: [],
   category_id: [],
   supplier_id: [],
-  status: "all",
+  status: "active",
   stock_status: "all",
   search: "",
   ...getQueryParams(),
