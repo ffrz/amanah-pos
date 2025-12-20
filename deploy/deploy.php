@@ -201,7 +201,6 @@ function ftpSyncIncremental($ftp, string $projectRoot, string $baseRemote, array
                 if ($file->isDir()) continue;
                 $filePath = str_replace('\\', '/', $file->getPathname());
 
-                // Compute relative path (relative to project root)
                 if (strpos($filePath, $projectRoot . '/') === 0) {
                     $realPath = substr($filePath, strlen($projectRoot) + 1);
                 } else {
@@ -226,11 +225,9 @@ function ftpSyncIncremental($ftp, string $projectRoot, string $baseRemote, array
                 $remoteMTime = $remoteInfo['mtime'] ?? null;
                 $remoteHash = $remoteInfo['hash'] ?? null;
 
-                // Skip identical hash or newer remote
                 if ($remoteHash && $remoteHash === $localHash) continue;
                 if ($remoteMTime && $remoteMTime >= $localMTime) continue;
 
-                // Upload file
                 $remotePath = rtrim($baseRemote, '/') . '/' . $realPath;
                 ftpEnsureDir($ftp, dirname($remotePath));
                 logMessage("[*] Uploading (hash/mtime check): $realPath");
@@ -279,6 +276,47 @@ function ftpSyncIncremental($ftp, string $projectRoot, string $baseRemote, array
             }
         }
     }
+
+    logMessage("--------------------------------------------------");
+    logMessage("🔍 Starting Dry-Run Cleanup Process...");
+
+    foreach ($remoteList as $relPath => $info) {
+        // 1. Tentukan path lokal berdasarkan struktur remote
+        $localPath = $projectRoot . '/' . $relPath;
+
+        // 2. Cek apakah file TIDAK ADA di lokal
+        if (!file_exists($localPath)) {
+
+            // 3. Safety Check: Cek apakah file ini masuk daftar exclude?
+            // Jika masuk exclude, JANGAN dihapus (karena mungkin file sistem/logs)
+            $isExcluded = false;
+            foreach ($exclude as $ex) {
+                if (strpos($relPath, $ex) === 0) {
+                    $isExcluded = true;
+                    break;
+                }
+            }
+
+            if ($isExcluded) {
+                logMessage("ℹ️ Skipping cleanup for excluded path: $relPath");
+                continue;
+            }
+
+            // 4. Proses Dry Run (Hanya Log, tidak eksekusi hapus)
+            $remoteFullPath = rtrim($baseRemote, '/') . '/' . $relPath;
+
+            logMessage("[DRY-RUN] File not found in local. Should be deleted: $relPath");
+
+            /** * KOMENTAR PANGGILAN DELETE (SIAP DI AKTIFKAN):
+             * * if (@ftp_delete($ftp, $remoteFullPath)) {
+             * logMessage("🗑️ Deleted: $relPath");
+             * } else {
+             * logMessage("⚠️ Failed to delete: $relPath (Might be a directory)");
+             * }
+             */
+        }
+    }
+    logMessage("--------------------------------------------------");
 }
 
 /**
