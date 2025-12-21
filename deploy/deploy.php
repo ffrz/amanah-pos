@@ -277,17 +277,15 @@ function ftpSyncIncremental($ftp, string $projectRoot, string $baseRemote, array
         }
     }
 
-    // logMessage("--------------------------------------------------");
-    // logMessage("🔍 Starting Dry-Run Cleanup Process...");
-
+    // Hapus file yang tidak sinkron, skip file yang di exclude
     foreach ($remoteList as $relPath => $info) {
-        // 1. Tentukan path lokal berdasarkan struktur remote
+        // Tentukan path lokal berdasarkan struktur remote
         $localPath = $projectRoot . '/' . $relPath;
 
-        // 2. Cek apakah file TIDAK ADA di lokal
+        // Cek apakah file TIDAK ADA di lokal
         if (!file_exists($localPath)) {
 
-            // 3. Safety Check: Cek apakah file ini masuk daftar exclude?
+            // Safety Check: Cek apakah file ini masuk daftar exclude?
             // Jika masuk exclude, JANGAN dihapus (karena mungkin file sistem/logs)
             $isExcluded = false;
             foreach ($exclude as $ex) {
@@ -302,11 +300,9 @@ function ftpSyncIncremental($ftp, string $projectRoot, string $baseRemote, array
                 continue;
             }
 
-            // 4. Proses Dry Run (Hanya Log, tidak eksekusi hapus)
             $remoteFullPath = rtrim($baseRemote, '/') . '/' . $relPath;
 
-            // logMessage("[DRY-RUN] File not found in local. Should be deleted: $relPath");
-
+            // Hapus file yang tidak ada di local
             if (@ftp_delete($ftp, $remoteFullPath)) {
                 logMessage("🗑️ Deleted: $relPath");
             } else {
