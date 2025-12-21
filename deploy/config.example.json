@@ -20,14 +20,16 @@
     "exclude_path": [
         "public/hot",
         "public/uploads",
-        "bootstrap/cache",
         "storage/debugbar",
         "storage/framework/views",
         "storage/logs",
         "storage/app",
         "resources/css",
         "resources/js",
-        "resources/lang"
+        "resources/lang",
+        "bootstrap/cache",
+        "public/build",
+        "public/error_log"
     ],
     "tenants": {
         "shiftcom": {
