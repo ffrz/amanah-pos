@@ -277,8 +277,8 @@ function ftpSyncIncremental($ftp, string $projectRoot, string $baseRemote, array
         }
     }
 
-    logMessage("--------------------------------------------------");
-    logMessage("🔍 Starting Dry-Run Cleanup Process...");
+    // logMessage("--------------------------------------------------");
+    // logMessage("🔍 Starting Dry-Run Cleanup Process...");
 
     foreach ($remoteList as $relPath => $info) {
         // 1. Tentukan path lokal berdasarkan struktur remote
@@ -305,15 +305,13 @@ function ftpSyncIncremental($ftp, string $projectRoot, string $baseRemote, array
             // 4. Proses Dry Run (Hanya Log, tidak eksekusi hapus)
             $remoteFullPath = rtrim($baseRemote, '/') . '/' . $relPath;
 
-            logMessage("[DRY-RUN] File not found in local. Should be deleted: $relPath");
+            // logMessage("[DRY-RUN] File not found in local. Should be deleted: $relPath");
 
-            /** * KOMENTAR PANGGILAN DELETE (SIAP DI AKTIFKAN):
-             * * if (@ftp_delete($ftp, $remoteFullPath)) {
-             * logMessage("🗑️ Deleted: $relPath");
-             * } else {
-             * logMessage("⚠️ Failed to delete: $relPath (Might be a directory)");
-             * }
-             */
+            if (@ftp_delete($ftp, $remoteFullPath)) {
+                logMessage("🗑️ Deleted: $relPath");
+            } else {
+                logMessage("⚠️ Failed to delete: $relPath (Might be a directory)");
+            }
         }
     }
     logMessage("--------------------------------------------------");
