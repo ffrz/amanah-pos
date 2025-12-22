@@ -94,6 +94,11 @@ hr {
         width: 58mm;
     }
 
+    html.receipt-80,
+    .receipt-80 body {   
+        width: 80mm;
+    }
+
     .page {
         margin: 0;
     }

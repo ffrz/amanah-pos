@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="receipt-58" lang="en">
+<html class="receipt-80" lang="en">
 
 <head>
     <meta charset="utf-8">
@@ -19,7 +19,7 @@
 
                 .page {
                     background: #fff;
-                    width: 58mm;
+                    width: 80mm;
                     padding: 5mm;
                     border: 1px solid #888;
                     box-shadow: #bbb 5px 5px 10px;

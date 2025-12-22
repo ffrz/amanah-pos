@@ -34,6 +34,10 @@ const printSizeOptions = [
     label: "Struk 58mm",
   },
   {
+    value: "80mm",
+    label: "Struk 80mm",
+  },
+  {
     value: "a4",
     label: "Nota A4",
   },

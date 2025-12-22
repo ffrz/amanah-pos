@@ -136,7 +136,7 @@ class SalesOrderController extends Controller
         $this->authorize('view', $order);
 
         $size = $request->get('size', 'a4');
-        if (!in_array($size, ['a4', '58mm'])) {
+        if (!in_array($size, ['a4', '80mm', '58mm'])) {
             $size = 'a4';
         }
 
