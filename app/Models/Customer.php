@@ -17,6 +17,7 @@
 namespace App\Models;
 
 use App\Models\Traits\HasDocumentVersions;
+use App\Models\Traits\HasCustomerSettingsAndNotifications;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
@@ -40,7 +41,8 @@ class Customer extends BaseModel implements
         Notifiable,
         HasDocumentVersions,
         HasApiTokens,
-        SoftDeletes;
+        SoftDeletes,
+        HasCustomerSettingsAndNotifications;
 
     public $timestamps = false;
 
