@@ -28,7 +28,6 @@
         "resources/js",
         "resources/lang",
         "bootstrap/cache",
-        "public/build",
         "public/error_log"
     ],
     "tenants": {
