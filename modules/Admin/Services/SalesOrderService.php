@@ -287,8 +287,9 @@ class SalesOrderService
             // Perbarui stok produk secara massal
             $this->processSalesOrderStockOut($order);
 
-            // TODO: seharusnya ini dipindahkan ke user settings agar tidak semua user terdampak
-            Setting::setValue('pos.after_payment_action', $data['after_payment_action'] ?? 'print');
+            /** @var \App\Models\User $user */
+            $user = Auth::user();
+            $user->setSetting('pos.after_payment_action', $data['after_payment_action'] ?? 'print');
         });
     }
 

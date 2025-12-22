@@ -17,6 +17,7 @@
 namespace App\Models;
 
 use App\Models\Traits\HasDocumentVersions;
+use App\Models\Traits\HasUserSettingsAndNotifications;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
@@ -41,7 +42,8 @@ class User extends BaseModel implements
         Notifiable,
         HasRoles,
         HasDocumentVersions,
-        SoftDeletes;
+        SoftDeletes,
+        HasUserSettingsAndNotifications;
 
     public const Type_SuperUser = 'super_user';
     public const Type_StandardUser = 'standard_user';
