@@ -19,6 +19,8 @@ namespace Modules\Admin\Services;
 use App\Exceptions\ModelNotModifiedException;
 use App\Models\Setting;
 use App\Models\UserActivityLog;
+use App\Models\UserSetting;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Modules\Admin\Services\UserActivityLogService;
 
@@ -34,10 +36,15 @@ class PosSettingsService
      */
     public function getCurrentSettingsData(): array
     {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
         return [
-            'default_payment_mode' => Setting::value('pos.default_payment_mode', 'cash'),
-            'default_print_size' => Setting::value('pos.default_print_size', '58mm'),
-            'after_payment_action' => Setting::value('pos.after_payment_action', 'print'),
+            'default_payment_mode' => $user->getSetting('pos.default_payment_mode', 'cash'),
+            'default_print_size' => $user->getSetting('pos.default_print_size', '58mm'),
+            'after_payment_action' => $user->getSetting('pos.after_payment_action', 'print'),
+
+            // Global setting
             'foot_note' => Setting::value('pos.foot_note', ''),
         ];
     }
@@ -57,12 +64,14 @@ class PosSettingsService
             throw new ModelNotModifiedException();
         }
 
-        DB::transaction(function () use ($data, $oldData) {
-            Setting::setValue('pos.default_payment_mode', $data['default_payment_mode']);
-            Setting::setValue('pos.default_print_size', $data['default_print_size']);
-            Setting::setValue('pos.foot_note', $data['foot_note'] ?? '');
-            Setting::setValue('pos.after_payment_action', $data['after_payment_action']);
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        DB::transaction(function () use ($data, $oldData, $user) {
+            $user->setSetting('pos.default_payment_mode', $data['default_payment_mode']);
+            $user->setSetting('pos.default_print_size', $data['default_print_size']);
+            $user->setSetting('pos.after_payment_action', $data['after_payment_action']);
 
+            Setting::setValue('pos.foot_note', $data['foot_note'] ?? '');
             Setting::refreshAll();
 
             $this->userActivityLogService->log(

@@ -24,6 +24,7 @@ use Modules\Admin\Services\CashierSessionService;
 use Modules\Admin\Services\FinanceTransactionService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Modules\Admin\Http\Requests\SalesOrder\GetDataRequest;
 use Modules\Admin\Http\Requests\SalesOrder\SaveRequest;
 use Modules\Admin\Services\FinanceAccountService;
@@ -66,13 +67,17 @@ class SalesOrderController extends Controller
         $order = $this->service->findOrderOrFail($id);
         $this->authorize("update", $order);
         $order = $this->service->editOrder($order);
+
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
         return inertia('sales-order/Editor', [
             'data' => $order,
             'accounts' => $this->financeAccountService->getSalesFinanceAccounts(),
             'settings' => [
-                'default_payment_mode' => Setting::value('pos.default_payment_mode', 'cash'),
-                'default_print_size'   => Setting::value('pos.default_print_size', '58mm'),
-                'after_payment_action' => Setting::value('pos.after_payment_action', 'new-order'),
+                'default_payment_mode' => $user->getSetting('pos.default_payment_mode', 'cash'),
+                'default_print_size'   => $user->getSetting('pos.default_print_size', '58mm'),
+                'after_payment_action' => $user->getSetting('pos.after_payment_action', 'new-order'),
             ]
         ]);
     }
