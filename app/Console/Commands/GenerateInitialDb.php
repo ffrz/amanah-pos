@@ -20,14 +20,14 @@ class GenerateInitialDb extends Command
     {
         $fileName = 'database/shiftech_pos_initial_db.sql';
 
-        // $this->info("1. Running migrate:fresh...");
-        // Artisan::call('migrate:fresh', ['--force' => true]);
+        $this->info("1. Running migrate:fresh...");
+        Artisan::call('migrate:fresh', ['--force' => true]);
 
-        // $this->info("2. Seeding InitialDatabaseSeeder...");
-        // Artisan::call('db:seed', [
-        //     '--class' => 'InitialDatabaseSeeder',
-        //     '--force' => true
-        // ]);
+        $this->info("2. Seeding InitialDatabaseSeeder...");
+        Artisan::call('db:seed', [
+            '--class' => 'InitialDatabaseSeeder',
+            '--force' => true
+        ]);
 
         $this->info("3. Exporting database to {$fileName}...");
 
