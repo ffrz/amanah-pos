@@ -20,6 +20,7 @@ use App\Exceptions\BusinessRuleViolationException;
 use App\Models\Product;
 use App\Models\SalesOrder;
 use App\Models\SalesOrderDetail;
+use App\Models\Setting;
 use Illuminate\Support\Facades\DB;
 
 class SalesOrderDetailService
@@ -76,6 +77,11 @@ class SalesOrderDetailService
             $price = (float) $data['price'];
         }
 
+        // ini berlaku di add dan update
+        if (!Setting::value('pos.allow_selling_at_loss', false) && $price < $product->cost) {
+            throw new BusinessRuleViolationException("Anda tidak diizinkan menjual dibawah harga modal!");
+        }
+
         // 3. HITUNG MODAL & KONVERSI (Pakai Helper yang sudah kita buat)
         // Helper ini akan otomatis hitung cost ROLL dan conversion rate 305
         $unitData = $this->resolveUnitData($product, $scannedUom);
@@ -115,6 +121,10 @@ class SalesOrderDetailService
             ]);
         }
 
+        if (!Setting::value('pos.allow_negative_inventory', false) && $item->quantity > $product->stock) {
+            throw new BusinessRuleViolationException("Jumlah barang tidak tersedia, stok negatif tidak diizinkan!");
+        }
+
         $item->updateTotals();
 
         return DB::transaction(function () use ($order, $item) {
@@ -143,6 +153,10 @@ class SalesOrderDetailService
         $newUom = $data['uom'] ?? $item->product_uom; // Pakai uom lama jika tidak dikirim
         $newPrice = $data['price'] ?? $item->price;    // Pakai price lama jika tidak dikirim
 
+        if (!Setting::value('pos.allow_negative_inventory', false) && $newQty > $product->stock) {
+            throw new BusinessRuleViolationException("Jumlah barang tidak tersedia, stok negatif tidak diizinkan!");
+        }
+
         // 4. HITUNG ULANG MODAL & KONVERSI (The Core Logic)
         // Kita panggil helper tadi untuk mendapatkan cost & rate yang valid
         $unitData = $this->resolveUnitData($product, $newUom);
@@ -162,6 +176,11 @@ class SalesOrderDetailService
         // Validasi harga (cegah harga null/negatif)
         if ($newPrice !== null && $newPrice >= 0) {
             $item->price = $newPrice;
+        }
+
+        // ini berlaku di add dan update
+        if (!Setting::value('pos.allow_selling_at_loss', false) && $newPrice < $item->cost) {
+            throw new BusinessRuleViolationException("Anda tidak diizinkan menjual dibawah harga modal!");
         }
 
         // 6. Simpan & Hitung Ulang Total

@@ -18,6 +18,7 @@ namespace Modules\Admin\Services;
 
 use App\Exceptions\ModelNotModifiedException;
 use App\Models\Setting;
+use App\Models\User;
 use App\Models\UserActivityLog;
 use App\Models\UserSetting;
 use Illuminate\Support\Facades\Auth;
@@ -74,10 +75,15 @@ class PosSettingsService
             $user->setSetting('pos.default_print_size', $data['default_print_size']);
             $user->setSetting('pos.after_payment_action', $data['after_payment_action']);
 
-            Setting::setValue('pos.allow_negative_inventory', $data['allow_negative_inventory'] ?? false);
-            Setting::setValue('pos.allow_credit_limit', $data['allow_credit_limit'] ?? false);
-            Setting::setValue('pos.allow_selling_at_loss', $data['allow_selling_at_loss'] ?? false);
-            Setting::setValue('pos.foot_note', $data['foot_note'] ?? '');
+            // Untuk memungkinkan penyimpanan hanya user settings, kita butuh conditional statement
+
+            if (Auth::user()->type == User::Type_SuperUser) {
+                Setting::setValue('pos.allow_negative_inventory', $data['allow_negative_inventory']);
+                Setting::setValue('pos.allow_credit_limit', $data['allow_credit_limit']);
+                Setting::setValue('pos.allow_selling_at_loss', $data['allow_selling_at_loss']);
+                Setting::setValue('pos.foot_note', $data['foot_note']);
+            }
+
             Setting::refreshAll();
 
             $this->userActivityLogService->log(

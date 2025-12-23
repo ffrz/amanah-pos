@@ -15,9 +15,11 @@ const form = useForm({
 
   // Tab General
   foot_note: page.props.data.foot_note,
-  allow_negative_inventory: page.props.data.allow_negative_inventory ?? false,
-  allow_credit_limit: page.props.data.allow_credit_limit ?? false,
-  allow_selling_at_loss: page.props.data.allow_selling_at_loss ?? false,
+  allow_negative_inventory: !!parseInt(
+    page.props.data.allow_negative_inventory
+  ),
+  allow_credit_limit: !!parseInt(page.props.data.allow_credit_limit),
+  allow_selling_at_loss: !!parseInt(page.props.data.allow_selling_at_loss),
 });
 
 const submit = () =>
@@ -78,7 +80,12 @@ const afterPaymentActionOptions = [
                 narrow-indicator
               >
                 <q-tab name="personal" icon="person" label="Personal" />
-                <q-tab name="general" icon="settings" label="Umum" />
+                <q-tab
+                  name="general"
+                  icon="settings"
+                  label="Umum"
+                  v-if="page.props.auth.user.type == 'super_user'"
+                />
               </q-tabs>
 
               <q-separator />
