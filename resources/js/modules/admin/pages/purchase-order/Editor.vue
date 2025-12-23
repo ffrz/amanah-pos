@@ -23,6 +23,7 @@ import SuccessDialog from "./editor/SuccessDialog.vue";
 import BarcodeInputEditor from "@/components/BarcodeInputEditor.vue";
 import PartyInfo from "@/components/PartyInfo.vue";
 import UserSessionInfo from "@/components/UserSessionInfo.vue";
+import WaOrderDialog from "@/components/WaOrderDialog.vue";
 
 const $q = useQuasar();
 const page = usePage();
@@ -42,6 +43,7 @@ const showProductBrowserDialog = ref(false);
 const showItemEditorDialog = ref(false);
 const showOrderInfoDialog = ref(false);
 const showSuccessDialog = ref(false);
+const showWaDialog = ref(false);
 const itemToEdit = ref(null);
 
 const form = reactive({
@@ -466,6 +468,16 @@ const onHideItemEditorDialog = () => {
     userInputRef.value?.focus();
   });
 };
+
+const waData = computed(() => {
+  return {
+    code: form.code,
+    supplier_name: supplier.value?.name,
+    supplier_phone: supplier.value?.phone_1, // Pastikan field-nya sesuai dengan objek supplier Anda
+    notes: form.notes,
+    details: form.items, // Menyesuaikan form.items ke detail agar terbaca oleh dialog
+  };
+});
 </script>
 
 <template>
@@ -655,6 +667,17 @@ const onHideItemEditorDialog = () => {
                     clickable
                     v-ripple
                     v-close-popup
+                    @click.stop="showWaDialog = true"
+                  >
+                    <q-item-section avatar>
+                      <q-icon name="send" />
+                    </q-item-section>
+                    <q-item-section>Kirim via WA</q-item-section>
+                  </q-item>
+                  <q-item
+                    clickable
+                    v-ripple
+                    v-close-popup
                     @click.stop="cancelOrder()"
                   >
                     <q-item-section avatar>
@@ -708,5 +731,7 @@ const onHideItemEditorDialog = () => {
         :payment="payment"
       />
     </q-page>
+
+    <WaOrderDialog v-model="showWaDialog" :data="waData" />
   </authenticated-layout>
 </template>

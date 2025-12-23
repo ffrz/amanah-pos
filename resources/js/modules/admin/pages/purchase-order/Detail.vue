@@ -3,12 +3,16 @@ import { router, usePage } from "@inertiajs/vue3";
 import { ref } from "vue";
 import InvoiceTab from "./detail/InvoiceTab.vue";
 import PaymentTab from "./detail/PaymentTab.vue";
+import WaOrderDialog from "@/components/WaOrderDialog.vue"; // Import komponen baru
 
 const urlParams = new URLSearchParams(window.location.search);
 const page = usePage();
 const data = page.props.data;
 const title = `Rincian Pembelian`;
 const isPreview = ref(urlParams.get("preview") || false);
+
+// State untuk mengontrol dialog WA
+const showWaDialog = ref(false);
 
 const getInitialTab = () => {
   return urlParams.get("tab") || "invoice";
@@ -23,19 +27,16 @@ const print = () => {
   );
 };
 
+// Membuka dialog WA
+const openWaDialog = () => {
+  showWaDialog.value = true;
+};
+
 const getWatermarkClass = () => {
-  if (currentTab.value != "invoice") {
-    return "";
-  }
-  if (page.props.data.status == "canceled") {
-    return "canceled-label";
-  }
-  if (isPreview.value) {
-    return "draft-label";
-  }
-  if (page.props.data.payment_status == "fully_paid") {
-    return "paid-label";
-  }
+  if (currentTab.value != "invoice") return "";
+  if (page.props.data.status == "canceled") return "canceled-label";
+  if (isPreview.value) return "draft-label";
+  if (page.props.data.payment_status == "fully_paid") return "paid-label";
   return "unpaid-label";
 };
 </script>
@@ -48,6 +49,7 @@ const getWatermarkClass = () => {
         <span>{{ title }}</span>
       </div>
     </template>
+
     <template #left-button>
       <div class="q-gutter-sm">
         <q-btn
@@ -66,8 +68,19 @@ const getWatermarkClass = () => {
         />
       </div>
     </template>
+
     <template #right-button>
       <q-btn icon="print" dense color="primary" flat rounded @click="print()" />
+
+      <q-btn
+        class="q-ml-sm"
+        icon="send"
+        dense
+        rounded
+        flat
+        @click="openWaDialog()"
+      />
+
       <q-btn
         v-if="!isPreview"
         class="q-ml-sm"
@@ -116,5 +129,7 @@ const getWatermarkClass = () => {
         </q-card>
       </div>
     </q-page>
+
+    <WaOrderDialog v-model="showWaDialog" :data="data" />
   </authenticated-layout>
 </template>
