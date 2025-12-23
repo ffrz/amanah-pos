@@ -272,7 +272,7 @@ class SalesOrderService
             $order->save();
 
             // catat utang piutang
-            if ($order->customer_id && $order->balance != 0) {
+            if ($order->customer_id && $order->balance < 0) {
                 app(CustomerLedgerService::class)->save([
                     'customer_id' => $order->customer_id,
                     'datetime'    => now(),

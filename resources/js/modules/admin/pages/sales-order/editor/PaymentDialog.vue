@@ -8,244 +8,129 @@ import DatePicker from "@/components/DatePicker.vue";
 import { date as QuasarDate } from "quasar";
 
 const props = defineProps({
-  modelValue: {
-    type: Boolean,
-    required: true,
-  },
-  form: {
-    type: Object,
-    required: true,
-  },
-  customer: {
-    type: Object,
-    required: false,
-  },
-  total: {
-    type: Number,
-    required: true,
-  },
+  modelValue: { type: Boolean, required: true },
+  form: { type: Object, required: true },
+  customer: { type: Object, required: false },
+  total: { type: Number, required: true },
 });
 
 const emit = defineEmits(["update:modelValue", "accepted"]);
 
 const page = usePage();
 const isProcessing = ref(false);
-const paymentMode = ref("cash");
 const debtDueDate = ref(new Date());
 const nextAction = ref(page.props.settings.after_payment_action ?? "print");
-const selectRefs = ref([]);
+const showOtherPayments = ref(false);
 const paymentInputRefs = ref([]);
 
-const payments = reactive([{ id: "cash", amount: 0.0 }]);
-const default_payment_mode = page.props.settings.default_payment_mode;
-const nextActionOptions = [
-  {
-    value: "print",
-    label: "Cetak",
-  },
-  {
-    value: "detail",
-    label: "Rincian",
-  },
-  {
-    value: "new-order",
-    label: "Penjualan Baru",
-  },
-];
+const payments = reactive([]);
+const defaultMode = computed(
+  () => page.props.settings.default_payment_mode || "cash"
+);
 
-const paymentOptions = computed(() => [
-  { label: "Laci Kasir", value: "cash" },
-  ...(props.customer ? [{ label: "Wallet", value: "wallet" }] : []),
-  ...page.props.accounts.map((a) => ({
-    label: a.name,
-    value: a.id,
-  })),
-]);
+const nextActionOptions = [
+  { value: "print", label: "Cetak" },
+  { value: "detail", label: "Rincian" },
+  { value: "new-order", label: "Penjualan Baru" },
+];
 
 const totalPayment = computed(() => {
   return payments.reduce((sum, p) => sum + (p.amount || 0.0), 0.0);
 });
 
-const remainingTotal = computed(() => {
-  return props.total - totalPayment.value;
-});
+const remainingTotal = computed(() => props.total - totalPayment.value);
+const isDebtNeeded = computed(() => remainingTotal.value > 0);
 
 const isCreditLimitExceeded = computed(() => {
-  if (!props.customer) return false;
-
+  if (!props.customer || !isDebtNeeded.value) return false;
   if (parseInt(page.props.settings.allow_credit_limit)) return false;
-
   const currentBalance = Math.abs(parseFloat(props.customer.balance)) || 0;
-  const newBalance = currentBalance + props.total;
-  const limit = props.customer.credit_limit || 0;
-
-  return newBalance > limit;
+  return (
+    currentBalance + remainingTotal.value > (props.customer.credit_limit || 0)
+  );
 });
 
 const isWalletAmountValid = computed(() => {
   if (!props.customer) return true;
-  const walletPayment = payments.find((p) => p.id === "wallet");
-  const amount = walletPayment ? walletPayment.amount : 0.0;
-  return amount <= props.customer.wallet_balance;
+  const wallet = payments.find((p) => p.id === "wallet");
+  return wallet ? wallet.amount <= props.customer.wallet_balance : true;
 });
 
-const today = new Date();
-const futureDate = QuasarDate.addToDate(new Date(), { days: 30 });
-
-const debtDateRules = computed(() => [
-  (val) => !!val || "Tanggal jatuh tempo harus diisi",
-  (val) => {
-    if (
-      !QuasarDate.isBetweenDates(val, today, futureDate, {
-        inclusiveFrom: true,
-        inclusiveTo: true,
-      })
-    ) {
-      return `Tanggal tidak boleh kurang dari hari ini dan lebih dari 30 hari dari sekarang.`;
-    }
-    return true;
-  },
-]);
+// Logika Smart Visibility
+const isPaymentVisible = (payment, index) => {
+  // Selalu tampilkan yang pertama (default), jika menu dibuka, atau jika ada isinya
+  return index === 0 || showOtherPayments.value || payment.amount > 0;
+};
 
 const isValid = computed(() => {
-  if (paymentMode.value === "debt") {
-    return (
-      !!props.customer &&
-      !isCreditLimitExceeded.value &&
-      debtDateRules.value.every((rule) => rule(debtDueDate.value) === true)
-    );
-  }
-
   const walletValid = isWalletAmountValid.value;
-  const hasPaymentAmount = payments.some((p) => (p.amount || 0) > 0);
-  const noNegativePayment = payments.every((p) => (p.amount || 0) >= 0);
-  const isFullyPaid = remainingTotal.value <= 0;
-
-  return walletValid && hasPaymentAmount && noNegativePayment && isFullyPaid;
+  const noNegative = payments.every((p) => (p.amount || 0) >= 0);
+  if (isDebtNeeded.value) {
+    if (!props.customer || isCreditLimitExceeded.value) return false;
+  }
+  return walletValid && noNegative;
 });
 
-const addPayment = () => {
-  if (payments.length < 3) {
-    const newIndex = payments.length; // Index dari item yang baru akan ditambahkan
-    payments.push({ id: "cash", amount: 0.0 });
-
-    nextTick(() => {
-      const newSelect = selectRefs.value[newIndex];
-      if (newSelect) {
-        // 1. Fokuskan ke QSelect yang baru
-        newSelect.focus();
-        // 2. Tampilkan popup pilihannya (showPopup adalah metode Quasar QSelect)
-        newSelect.showPopup();
-      }
-    });
-  }
-};
-
-const removePayment = (id) => {
-  if (payments.length > 1) {
-    const index = payments.findIndex((p) => p.id === id);
-    if (index !== -1) {
-      payments.splice(index, 1);
-    }
-  }
-};
-
-const changePaymentMode = (mode, default_payment_mode = "cash") => {
-  paymentMode.value = mode;
-  debtDueDate.value = new Date();
-  payments.splice(0, payments.length);
-
-  if (mode === "cash") {
-    payments.splice(0, payments.length, {
-      id: default_payment_mode,
-      amount: props.total,
-    });
-    nextTick(() => {
-      // Fokuskan ke input jumlah pembayaran pertama
-      if (paymentInputRefs.value.length > 0 && paymentInputRefs.value[0]) {
-        paymentInputRefs.value[0].focus();
-        paymentInputRefs.value[0].select();
-      }
-    });
-  }
-};
-
 const handleFinalizePayment = () => {
-  if (!isValid.value) {
-    return;
-  }
-
+  if (!isValid.value) return;
   isProcessing.value = true;
-  let payload = {
+  const activePayments = payments
+    .filter((p) => p.amount > 0)
+    .map((p) => ({ id: p.id, amount: p.amount }));
+
+  emit("accepted", {
+    id: props.form.id,
     total: props.total,
-    is_debt: paymentMode.value === "debt",
+    is_debt: remainingTotal.value > 0,
     after_payment_action: nextAction.value,
-  };
-
-  if (paymentMode.value === "debt") {
-    payload.due_date = QuasarDate.formatDate(debtDueDate.value, "YYYY-MM-DD");
-    payload.payments = [];
-  } else {
-    const totalPaid = totalPayment.value;
-    const change = totalPaid > props.total ? totalPaid - props.total : 0;
-    const remainingDebt = remainingTotal.value > 0 ? remainingTotal.value : 0;
-    payload.payments = payments;
-    payload.remaining_debt = remainingDebt;
-    payload.change = change;
-  }
-
-  emit("accepted", payload);
+    payments: activePayments,
+    remaining_debt: remainingTotal.value > 0 ? remainingTotal.value : 0,
+    change: remainingTotal.value < 0 ? Math.abs(remainingTotal.value) : 0,
+    due_date: isDebtNeeded.value
+      ? QuasarDate.formatDate(debtDueDate.value, "YYYY-MM-DD")
+      : null,
+  });
   isProcessing.value = false;
 };
 
 const onShow = () => {
-  changePaymentMode("cash", props.customer ? default_payment_mode : "cash");
-};
+  showOtherPayments.value = false;
+  debtDueDate.value = new Date();
 
-onMounted(() => {
-  const handler = (e) => {
-    if (!props.modelValue) {
-      // abaikan kalau dialog tidak sedang tampil
-      return;
-    }
-
-    if (e.ctrlKey && e.key === "Enter") {
-      e.preventDefault();
-      handleFinalizePayment();
-    }
-  };
-
-  document.addEventListener("keydown", handler);
-  onUnmounted(() => {
-    document.removeEventListener("keydown", handler);
+  // 1. Kumpulkan semua opsi
+  let list = [{ id: "cash", label: "Laci Kasir (Tunai)", amount: 0 }];
+  if (props.customer) {
+    list.push({
+      id: "wallet",
+      label: `Wallet (Sisa: ${formatNumber(props.customer.wallet_balance)})`,
+      amount: 0,
+    });
+  }
+  page.props.accounts.forEach((acc) => {
+    list.push({ id: acc.id, label: acc.name, amount: 0 });
   });
-});
 
-/**
- * Memfokuskan ke LocaleNumberInput yang sesuai setelah QSelect diubah.
- */
-const handlePaymentMethodSelected = (newId, index) => {
-  // Gunakan nextTick untuk memastikan input sudah ada di DOM
+  // 2. Re-order berdasarkan Default Payment Mode
+  const defaultIdx = list.findIndex((item) => item.id === defaultMode.value);
+  if (defaultIdx > -1) {
+    const defaultItem = list.splice(defaultIdx, 1)[0];
+    list.unshift(defaultItem); // Pindah ke paling atas
+  }
+
+  // 3. Set nilai awal pada item teratas
+  list[0].amount = props.total;
+  payments.splice(0, payments.length, ...list);
+
   nextTick(() => {
-    if (paymentInputRefs.value[index]) {
-      paymentInputRefs.value[index].focus();
-      paymentInputRefs.value[index].select(); // Pilih semua teks agar mudah ditimpa
+    if (paymentInputRefs.value[0]) {
+      paymentInputRefs.value[0].focus();
+      paymentInputRefs.value[0].select();
     }
   });
-};
-
-const preventEvent = (e) => {
-  e.stopPropagation();
-  e.preventDefault();
 };
 
 const handleKeyDown = (e) => {
-  if (props.modelValue) {
-    if (e.key === "Escape") {
-      emit("update:modelValue", false);
-      preventEvent(e);
-    }
-  }
+  if (props.modelValue && e.key === "Escape") emit("update:modelValue", false);
 };
 </script>
 
@@ -255,200 +140,104 @@ const handleKeyDown = (e) => {
     @update:model-value="(val) => $emit('update:modelValue', val)"
     @show="onShow"
   >
-    <q-card style="min-width: 300px" @keyDown="handleKeyDown">
-      <q-card-section>
-        <div class="text-subtitle1 text-bold text-center">
-          Rincian Pembayaran
+    <q-card style="min-width: 380px" @keyDown="handleKeyDown">
+      <q-card-section class="q-pb-none text-center">
+        <div class="text-subtitle2 text-bold">Pembayaran</div>
+        <div v-if="customer" class="q-mt-xs">
+          <div class="text-bold text-primary" style="font-size: 0.8rem">
+            {{ customer.name }}
+          </div>
+          <div class="text-caption text-grey-7" style="font-size: 0.7rem">
+            Hutang: Rp {{ formatNumber(customer.balance) }}
+          </div>
         </div>
       </q-card-section>
-      <q-card-section class="q-pt-none">
-        <div v-if="customer" class="text-center q-mb-md text-grey-8">
-          <div class="text-subtitle2 text-weight-medium">
-            <div>
-              <my-link
-                :href="route('admin.customer.detail', { id: customer.id })"
-                target="_blank"
-              >
-                {{ customer.code }} - {{ customer.name }}
-              </my-link>
-            </div>
-            <div
-              :class="customer.wallet_balance > 0 ? 'text-green' : 'text-red'"
-            >
-              Saldo Wallet: Rp. {{ formatNumber(customer.wallet_balance) }}
-            </div>
-            <div :class="customer.balance > 0 ? 'text-green' : 'text-red'">
-              {{ customer.balance > 0 ? "Piutang" : "Utang" }}:
-              {{ formatNumber(customer.balance) }}
-            </div>
-          </div>
+
+      <q-card-section>
+        <div
+          class="bg-primary text-white q-pa-xs rounded-borders text-center q-mb-md"
+        >
+          <div class="text-h6 text-bold">Rp {{ formatNumber(total) }}</div>
         </div>
-        <div class="text-h5 text-center text-primary q-pb-md">
-          Total: Rp. {{ formatNumber(total) }}
-        </div>
-        <div class="q-mb-md flex flex-center">
-          <q-btn-toggle
-            v-model="paymentMode"
-            @update:model-value="changePaymentMode"
-            :options="[
-              { label: 'Tunai', value: 'cash', slot: 'cash', color: 'green' },
-              {
-                label: 'Tempo',
-                value: 'debt',
-                slot: 'debt',
-                disable: !customer,
-                color: 'red',
-              },
-            ]"
-            flat
-            spread
-            class="bg-grey-2"
-          />
-        </div>
-        <div v-if="paymentMode === 'cash'">
-          <div
-            v-for="(payment, index) in payments"
-            :key="index"
-            class="row q-col-gutter-sm q-mb-sm"
-          >
-            <div class="col-6">
-              <q-select
-                v-model="payment.id"
-                :options="paymentOptions"
-                label="Metode Pembayaran"
-                :outlined="true"
-                emit-value
-                map-options
-                dense
-                class="custom-select"
-                :disable="isProcessing"
-                hide-bottom-space
-                @update:model-value="
-                  (newId) => handlePaymentMethodSelected(newId, index)
-                "
-                :ref="(el) => (selectRefs[index] = el)"
-              />
-            </div>
-            <div class="col-6">
-              <LocaleNumberInput
-                v-model="payment.amount"
-                label="Jumlah"
-                :outlined="true"
-                dense
-                :disable="isProcessing"
-                :error="payment.id === 'wallet' && !isWalletAmountValid"
-                :error-message="
-                  payment.id === 'wallet' && !isWalletAmountValid
-                    ? 'Saldo tidak cukup!'
-                    : ''
-                "
-                hide-bottom-space
-                :ref="(el) => (paymentInputRefs[index] = el)"
-              >
-                <template v-slot:append v-if="payments.length > 1">
-                  <q-icon
-                    size="xs"
-                    name="close"
-                    class="cursor-pointer"
-                    @click="removePayment(payment.id)"
-                  />
-                </template>
-              </LocaleNumberInput>
-            </div>
-          </div>
-          <div class="row">
+
+        <div class="q-gutter-y-xs">
+          <template v-for="(payment, index) in payments" :key="payment.id">
+            <LocaleNumberInput
+              v-show="isPaymentVisible(payment, index)"
+              v-model="payment.amount"
+              :label="payment.label"
+              dense
+              outlined
+              :disable="isProcessing"
+              :error="payment.id === 'wallet' && !isWalletAmountValid"
+              hide-bottom-space
+              :ref="(el) => (paymentInputRefs[index] = el)"
+            />
+          </template>
+
+          <div class="text-center q-py-xs">
             <q-btn
-              :disable="!(payments.length < 3 && remainingTotal > 0)"
               flat
               dense
-              icon="add"
-              label="Tambah Pembayaran"
-              @click="addPayment"
+              no-caps
+              color="grey-7"
               size="sm"
+              :icon="showOtherPayments ? 'expand_less' : 'expand_more'"
+              :label="
+                showOtherPayments ? 'Sembunyikan Opsi' : 'Metode Bayar Lainnya'
+              "
+              @click="showOtherPayments = !showOtherPayments"
             />
           </div>
-          <div class="text-center q-mt-md">
-            <div
-              v-if="remainingTotal > 0"
-              class="text-h6 text-negative text-weight-bold"
-            >
-              Sisa Tagihan: Rp. {{ formatNumber(remainingTotal) }}
-            </div>
-            <div
-              v-else-if="remainingTotal < 0"
-              class="text-h6 text-green-8 text-weight-bold"
-            >
-              Kembalian: Rp. {{ formatNumber(Math.abs(remainingTotal)) }}
-            </div>
-            <div v-else class="text-h6 text-positive text-weight-bold">
-              Tagihan Terbayar
-            </div>
-          </div>
         </div>
-        <div v-else-if="paymentMode === 'debt' && customer">
-          <div
-            v-if="isCreditLimitExceeded"
-            class="q-pa-sm q-mb-md bg-red-1 text-red-9 rounded-borders border-red text-center"
-          >
-            <div class="text-bold">
-              <q-icon name="warning" size="sm" /> Limit Kredit Terlampaui!
-            </div>
-            <div class="text-caption">
-              Limit: Rp. {{ formatNumber(customer.credit_limit) }} <br />
-              Total Piutang jika disimpan: Rp.
-              {{ formatNumber(Math.abs(parseFloat(customer.balance)) + total) }}
-            </div>
-          </div>
 
-          <DatePicker
-            outlined
-            v-model="debtDueDate"
-            label="Tanggal Jatuh Tempo"
-            hint="Pilih tanggal jatuh tempo pembayaran utang"
-            class="q-mb-md"
-            :min-date="today"
-            :max-date="futureDate"
-            :rules="debtDateRules"
-          />
-          <div class="text-h6 text-negative text-center">
-            Total Utang: Rp. -{{ formatNumber(total) }}
+        <div class="q-mt-md text-center">
+          <div v-if="remainingTotal > 0" class="text-negative text-bold">
+            Sisa Kurang: Rp {{ formatNumber(remainingTotal) }}
           </div>
-        </div>
-        <div v-else-if="paymentMode === 'debt' && !customer">
-          <div class="text-center text-negative text-h6">
-            Tidak dapat mencatat utang tanpa memilih pelanggan.
+          <div v-else-if="remainingTotal < 0" class="text-positive text-bold">
+            Kembali: Rp {{ formatNumber(Math.abs(remainingTotal)) }}
           </div>
+          <div v-else class="text-positive text-bold">LUNAS</div>
         </div>
+
+        <div
+          v-if="isCreditLimitExceeded"
+          class="q-pa-xs q-mt-sm bg-red-1 text-red-9 rounded-borders text-center text-caption"
+        >
+          <q-icon name="warning" /> <strong>Limit Terlampaui!</strong>
+        </div>
+
+        <q-slide-transition>
+          <div v-if="isDebtNeeded && customer" class="q-mt-sm">
+            <DatePicker
+              outlined
+              dense
+              v-model="debtDueDate"
+              label="Jatuh Tempo Hutang"
+              :min-date="today"
+            />
+          </div>
+        </q-slide-transition>
       </q-card-section>
-      <q-card-actions align="center" class="q-mb-sm row q-gutter-xs q-pa-md">
-        <q-select
-          v-model="nextAction"
-          :options="nextActionOptions"
-          label="Aksi setelah bayar"
-          title="Aksi setelah bayar"
-          :outlined="true"
-          emit-value
-          map-options
-          dense
-          class="custom-select col"
-          :disable="isProcessing"
-          hide-bottom-space
-        />
-        <q-btn
-          flat
-          label="Batal"
-          color="grey"
-          @click="$emit('update:modelValue', false)"
-          class="col"
-        />
-        <q-btn
-          :label="paymentMode === 'debt' ? 'Catat Utang' : 'Bayar'"
-          color="positive"
-          @click="handleFinalizePayment"
-          :disable="isProcessing || !isValid"
-          :loading="isProcessing"
-          class="col"
-        />
+
+      <q-card-actions align="center" class="q-px-md q-pb-md">
+        <div class="row full-width q-col-gutter-sm">
+          <div class="col-4">
+            <q-btn flat label="Batal" v-close-popup class="full-width" />
+          </div>
+          <div class="col-8">
+            <q-btn
+              label="Proses (Ctrl+Enter)"
+              color="primary"
+              unelevated
+              @click="handleFinalizePayment"
+              :disable="isProcessing || !isValid"
+              :loading="isProcessing"
+              class="full-width"
+            />
+          </div>
+        </div>
       </q-card-actions>
     </q-card>
   </q-dialog>
