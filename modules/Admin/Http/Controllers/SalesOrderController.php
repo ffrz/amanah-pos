@@ -78,6 +78,7 @@ class SalesOrderController extends Controller
                 'default_payment_mode' => $user->getSetting('pos.default_payment_mode', 'cash'),
                 'default_print_size'   => $user->getSetting('pos.default_print_size', '58mm'),
                 'after_payment_action' => $user->getSetting('pos.after_payment_action', 'new-order'),
+                'allow_credit_limit'   => Setting::value('pos.allow_credit_limit', false),
             ]
         ]);
     }

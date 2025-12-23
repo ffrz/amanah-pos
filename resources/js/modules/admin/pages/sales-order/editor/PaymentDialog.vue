@@ -70,6 +70,18 @@ const remainingTotal = computed(() => {
   return props.total - totalPayment.value;
 });
 
+const isCreditLimitExceeded = computed(() => {
+  if (!props.customer) return false;
+
+  if (parseInt(page.props.settings.allow_credit_limit)) return false;
+
+  const currentBalance = Math.abs(parseFloat(props.customer.balance)) || 0;
+  const newBalance = currentBalance + props.total;
+  const limit = props.customer.credit_limit || 0;
+
+  return newBalance > limit;
+});
+
 const isWalletAmountValid = computed(() => {
   if (!props.customer) return true;
   const walletPayment = payments.find((p) => p.id === "wallet");
@@ -99,6 +111,7 @@ const isValid = computed(() => {
   if (paymentMode.value === "debt") {
     return (
       !!props.customer &&
+      !isCreditLimitExceeded.value &&
       debtDateRules.value.every((rule) => rule(debtDueDate.value) === true)
     );
   }
@@ -373,6 +386,20 @@ const handleKeyDown = (e) => {
           </div>
         </div>
         <div v-else-if="paymentMode === 'debt' && customer">
+          <div
+            v-if="isCreditLimitExceeded"
+            class="q-pa-sm q-mb-md bg-red-1 text-red-9 rounded-borders border-red text-center"
+          >
+            <div class="text-bold">
+              <q-icon name="warning" size="sm" /> Limit Kredit Terlampaui!
+            </div>
+            <div class="text-caption">
+              Limit: Rp. {{ formatNumber(customer.credit_limit) }} <br />
+              Total Piutang jika disimpan: Rp.
+              {{ formatNumber(Math.abs(parseFloat(customer.balance)) + total) }}
+            </div>
+          </div>
+
           <DatePicker
             outlined
             v-model="debtDueDate"
@@ -384,7 +411,7 @@ const handleKeyDown = (e) => {
             :rules="debtDateRules"
           />
           <div class="text-h6 text-negative text-center">
-            Total Utang: Rp. {{ formatNumber(total) }}
+            Total Utang: Rp. -{{ formatNumber(total) }}
           </div>
         </div>
         <div v-else-if="paymentMode === 'debt' && !customer">
@@ -398,6 +425,7 @@ const handleKeyDown = (e) => {
           v-model="nextAction"
           :options="nextActionOptions"
           label="Aksi setelah bayar"
+          title="Aksi setelah bayar"
           :outlined="true"
           emit-value
           map-options
