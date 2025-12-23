@@ -3,13 +3,13 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
+ *
  * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
+ *
  * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
+ *
  * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
@@ -45,6 +45,9 @@ class PosSettingsService
             'after_payment_action' => $user->getSetting('pos.after_payment_action', 'print'),
 
             // Global setting
+            'allow_negative_inventory' => Setting::value('pos.allow_negative_inventory', false),
+            'allow_credit_limit' => Setting::value('pos.allow_credit_limit', false),
+            'allow_selling_at_loss' => Setting::value('pos.allow_selling_at_loss', false),
             'foot_note' => Setting::value('pos.foot_note', ''),
         ];
     }
@@ -71,6 +74,9 @@ class PosSettingsService
             $user->setSetting('pos.default_print_size', $data['default_print_size']);
             $user->setSetting('pos.after_payment_action', $data['after_payment_action']);
 
+            Setting::setValue('pos.allow_negative_inventory', $data['allow_negative_inventory'] ?? false);
+            Setting::setValue('pos.allow_credit_limit', $data['allow_credit_limit'] ?? false);
+            Setting::setValue('pos.allow_selling_at_loss', $data['allow_selling_at_loss'] ?? false);
             Setting::setValue('pos.foot_note', $data['foot_note'] ?? '');
             Setting::refreshAll();
 
