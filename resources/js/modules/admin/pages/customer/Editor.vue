@@ -18,6 +18,7 @@ const form = useForm({
   name: page.props.data.name,
   default_price_type: page.props.data.default_price_type,
   phone: page.props.data.phone,
+  credit_limit: page.props.data.credit_limit,
   address: page.props.data.address,
   active: !!page.props.data.active,
   password: !page.props.data.id ? "12345" : null,

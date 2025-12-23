@@ -2,6 +2,7 @@
 import { ref } from "vue";
 import { createOptions } from "@/helpers/options";
 import StandardCheckBox from "@/components/StandardCheckBox.vue";
+import LocaleNumberInput from "./LocaleNumberInput.vue";
 
 const props = defineProps({
   dialogMode: {
@@ -75,6 +76,17 @@ const toggleSimpleMode = () => {
           transition-show="jump-up"
           transition-hide="jump-up"
           class="q-mb-md"
+        />
+
+        <LocaleNumberInput
+          v-model:modelValue="form.credit_limit"
+          label="Batas Piutang"
+          lazyRules
+          :disable="form.processing"
+          :error="!!form.errors.credit_limit"
+          :errorMessage="form.errors.credit_limit"
+          :rules="[]"
+          hide-bottom-space
         />
 
         <q-select

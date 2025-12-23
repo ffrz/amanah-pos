@@ -3,6 +3,7 @@ import { router, usePage } from "@inertiajs/vue3";
 import {
   formatDateTime,
   formatDateTimeFromNow,
+  formatNumber,
   formatNumberWithSymbol,
 } from "@/helpers/formatter";
 import { handleDelete } from "@/helpers/client-req-handler";
@@ -77,6 +78,17 @@ const confirmDelete = () => {
         <td>:</td>
         <td :class="page.props.data.balance < 0 ? 'text-red' : 'text-grey-8'">
           Rp. {{ formatNumberWithSymbol(page.props.data.balance) }}
+        </td>
+      </tr>
+      <tr>
+        <td>{{ "Batas Utang" }}</td>
+        <td>:</td>
+        <td>
+          {{
+            page.props.data.credit_limit > 0
+              ? "Rp. " + formatNumber(page.props.data.credit_limit)
+              : "Tidak terbatas"
+          }}
         </td>
       </tr>
       <tr>

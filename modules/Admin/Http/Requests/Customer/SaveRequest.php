@@ -3,13 +3,13 @@
 /**
  * Proprietary Software / Perangkat Lunak Proprietary
  * Copyright (c) 2025 Fahmi Fauzi Rahman. All rights reserved.
- * 
+ *
  * EN: Unauthorized use, copying, modification, or distribution is prohibited.
  * ID: Penggunaan, penyalinan, modifikasi, atau distribusi tanpa izin dilarang.
- * 
+ *
  * See the LICENSE file in the project root for full license information.
  * Lihat file LICENSE di root proyek untuk informasi lisensi lengkap.
- * 
+ *
  * GitHub: https://github.com/ffrz
  * Email: fahmifauzirahman@gmail.com
  */
@@ -42,6 +42,7 @@ class SaveRequest extends FormRequest
             'name' => 'required|max:255',
             'phone' => 'nullable|max:100',
             'address' => 'nullable|max:1000',
+            'credit_limit' => 'nullable|numeric',
             'default_price_type' => 'required|string|max:10|in:price_1,price_2,price_3',
             'active'   => 'required|boolean',
             'password' => (!$id ? 'required' : 'nullable') . '|min:5|max:40',
@@ -67,6 +68,7 @@ class SaveRequest extends FormRequest
             'phone' => $this->phone ?? '',
             'address' => $this->address ?? '',
             'password' => $this->password ?? '',
+            'credit_limit' => $this->credit_limit ?? 0,
         ]);
     }
 }
