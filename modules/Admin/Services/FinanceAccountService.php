@@ -201,6 +201,7 @@ class FinanceAccountService
     public function getSalesFinanceAccounts(): Collection
     {
         return FinanceAccount::where('active', '=', true)
+            ->where('type', '<>', FinanceAccount::Type_CashierCash)
             ->where('show_in_pos_payment', '=', true)
             ->orderBy('name')
             ->get();
