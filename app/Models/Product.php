@@ -38,6 +38,7 @@ class Product extends BaseModel
         'product_id',
         'category_id',
         'supplier_id',
+        'brand_id',
         // 'tax_scheme_id',
 
         'name',
@@ -135,6 +136,7 @@ class Product extends BaseModel
             'category_id' => 'integer',
             'supplier_id' => 'integer',
             'tax_scheme_id' => 'integer',
+            'brand_id'    => 'integer',
 
             'name'        => 'string',
             'description' => 'string',
@@ -218,6 +220,11 @@ class Product extends BaseModel
     public function supplier()
     {
         return $this->belongsTo(Supplier::class);
+    }
+
+    public function brand()
+    {
+        return $this->belongsTo(ProductBrand::class);
     }
 
     /**
