@@ -489,8 +489,9 @@ const goToCursorPage = (cursorType) => {
                     transition-hide="scale"
                   >
                     <q-list style="width: 200px">
+                      <!-- Nonaktifkan edit sampai betul-betul kita butuh fitur ini -->
                       <q-item
-                        v-if="$can('admin.finance-transaction.edit')"
+                        v-if="false && $can('admin.finance-transaction.edit')"
                         @click.stop="editItem(props.row)"
                         clickable
                         v-ripple
