@@ -83,7 +83,7 @@ class CommonDataService
             $query->where('active', true);
         }
 
-        $query->orderBy('code');
+        $query->orderBy('name');
 
         return $query->get($fields);
     }
@@ -190,7 +190,7 @@ class CommonDataService
         $query->orderBy('name');
         return $query->get();
     }
-  
+
     public function getAllCashierTerminals($fields = ['id', 'name'], $activeOnly = true)
     {
         $query = CashierTerminal::query();
