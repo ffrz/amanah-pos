@@ -1,29 +1,47 @@
 <script setup>
 import { scrollToFirstErrorField } from "@/helpers/utils";
 import { router, useForm, usePage } from "@inertiajs/vue3";
-import { computed, ref, watch } from "vue";
+import { computed, ref, watch, onMounted } from "vue";
+import { useQuasar } from "quasar";
+import WaPriceListDialog from "./components/WaPriceListDialog.vue";
 
+const $q = useQuasar();
 const title = "Kirim Daftar Harga";
 const page = usePage();
+
+// --- STATE ---
 const generatedMessage = ref("");
 const messageInputRef = ref(null);
+const selectedCategory = ref(null);
+const showWaDialog = ref(false);
+const filteredProducts = ref([]);
+const filteredCustomers = ref([]);
+
+const form = useForm({
+  price_types: ["price_1"],
+  products: [],
+  customers: [],
+});
+
+// --- DATA MAPPING ---
+const categoryOptions = computed(() => {
+  const categories =
+    page.props.categories?.map((c) => ({
+      value: c.id,
+      label: c.name + `${c.code}`,
+    })) || [];
+  return [{ value: null, label: "Semua Kategori" }, ...categories];
+});
 
 const allProductsMap = computed(() => {
   const map = new Map();
-  page.props.products?.forEach((p) => {
-    map.set(p.id, p);
-  });
+  page.props.products?.forEach((p) => map.set(p.id, p));
   return map;
 });
 
-// hanya customer yang punya field phone yang ditampilkan
 const allCustomersMap = computed(() => {
   const map = new Map();
-  page.props.customers
-    ?.filter((c) => c.phone && c.phone.trim() !== "")
-    .forEach((c) => {
-      map.set(c.id, c);
-    });
+  page.props.customers?.filter((c) => c.phone).forEach((c) => map.set(c.id, c));
   return map;
 });
 
@@ -32,48 +50,25 @@ const allCustomersOptions = computed(
     page.props.customers?.map((c) => ({
       value: c.id,
       label: c.name,
+      phone: c.phone,
     })) || []
 );
 
-const allProductsOptions = computed(
-  () =>
-    page.props.products?.map((p) => ({
-      value: p.id,
-      label: `${p.name}`,
-    })) || []
-);
-
-const prices = [
-  {
-    value: "price_1",
-    label: "Harga Eceran",
-  },
-  {
-    value: "price_2",
-    label: "Harga Partai",
-  },
-  {
-    value: "price_3",
-    label: "Harga Grosir",
-  },
-];
-
-const filteredProducts = ref(allProductsOptions.value);
-const filteredCustomers = ref(allCustomersOptions.value);
-
-const form = useForm({
-  price_types: [],
-  products: [],
-  customers: [],
+const baseProductOptions = computed(() => {
+  let products = page.props.products || [];
+  if (selectedCategory.value) {
+    products = products.filter((p) => p.category_id === selectedCategory.value);
+  }
+  return products.map((p) => ({ value: p.id, label: p.name }));
 });
 
-form.transform((data) => ({
-  // ...data,
-  // products: data.products.map((product) => product.value),
-  customers: data.customers.map((customer) => customer.value),
-  message: generatedMessage.value,
-}));
+const prices = [
+  { value: "price_1", label: "Harga Eceran" },
+  { value: "price_2", label: "Harga Partai" },
+  { value: "price_3", label: "Harga Grosir" },
+];
 
+// --- FORMATTERS ---
 const formatRupiah = (number) => {
   if (!number) return "Rp. 0";
   return new Intl.NumberFormat("id-ID", {
@@ -83,24 +78,23 @@ const formatRupiah = (number) => {
   }).format(number);
 };
 
-const getPriceLabel = (value) => {
-  const price = prices.find((p) => p.value === value);
-  return price ? price.label : value;
+const getPriceLabel = (value) =>
+  prices.find((p) => p.value === value)?.label || value;
+
+// --- LOGIC MESSAGE ---
+// Helper label tanpa awalan 'H'
+const getShortPriceLabel = (value) => {
+  const map = {
+    price_1: "Eceran",
+    price_2: "Partai",
+    price_3: "Grosir",
+  };
+  return map[value] || value;
 };
 
-const selectAllText = () => {
-  if (messageInputRef.value) {
-    const textarea = messageInputRef.value.$el.querySelector("textarea");
-    if (textarea) {
-      textarea.select();
-      try {
-        document.execCommand("copy");
-        console.log("Teks berhasil disalin!");
-      } catch (err) {
-        console.error("Gagal menyalin teks ke clipboard:", err);
-      }
-    }
-  }
+const formatSimpleNumber = (number) => {
+  if (!number) return "0";
+  return new Intl.NumberFormat("id-ID").format(number);
 };
 
 const plainTextContent = computed(() => {
@@ -108,120 +102,113 @@ const plainTextContent = computed(() => {
     return "Silakan pilih Produk dan Jenis Harga untuk membuat daftar harga.";
   }
 
-  // TODO: pindahkan ke template
   let textContent = "*DAFTAR HARGA TERBARU*\n";
-  textContent += `Tanggal: ${new Date().toLocaleDateString("id-ID")}\n`;
+  textContent += `Tgl: ${new Date().toLocaleDateString("id-ID")}\n`;
   textContent += "------------------------------\n\n";
 
-  (form.products || []).forEach((selectedProduct) => {
-    const productDetail = allProductsMap.value.get(selectedProduct.value);
+  form.products.forEach((selected) => {
+    const p = allProductsMap.value.get(selected.value);
+    if (!p) return;
 
-    if (productDetail) {
-      textContent += `*${productDetail.name}*\n`;
+    textContent += `*${p.name.toUpperCase()}*\n`;
 
-      (form.price_types || []).forEach((priceKey) => {
-        const priceLabel = getPriceLabel(priceKey);
-        const priceValue = productDetail[priceKey];
-        const uom = productDetail.uom || "pcs";
+    // Ambil nama base UOM untuk pengecekan duplikat (case-insensitive)
+    const baseUomName = p.uom ? p.uom.toLowerCase().trim() : "";
 
-        if (priceValue !== undefined && priceValue !== null && priceValue > 0) {
-          textContent += `- ${priceLabel}: *${formatRupiah(
-            priceValue
-          )}* / ${uom}\n`;
-        }
-      });
-      textContent += "\n";
-    }
+    form.price_types.forEach((type) => {
+      const priceLines = [];
+
+      // 1. Ambil Harga Satuan Utama (Base)
+      const baseVal = parseFloat(p[type]);
+      if (baseVal > 0) {
+        priceLines.push(`${formatSimpleNumber(baseVal)} / ${p.uom}`);
+      }
+
+      // 2. Ambil Harga dari Satuan Lainnya (Multi UOM)
+      if (p.product_units?.length > 0) {
+        p.product_units.forEach((unit) => {
+          const unitUomName = unit.name ? unit.name.toLowerCase().trim() : "";
+
+          // CEK DUPLIKAT: Jangan tampilkan jika nama UOM sama dengan Base UOM
+          if (unitUomName === baseUomName) return;
+
+          const unitVal = parseFloat(unit[type]);
+          if (unitVal > 0) {
+            priceLines.push(`${formatSimpleNumber(unitVal)} / ${unit.name}`);
+          }
+        });
+      }
+
+      // Tampilkan baris per jenis harga: "Grosir: 1.000 / m, 200.000 / roll"
+      if (priceLines.length > 0) {
+        textContent += `${getShortPriceLabel(type)}: ${priceLines.join(
+          ", "
+        )}\n`;
+      }
+    });
+
+    textContent += "\n";
   });
 
   textContent += "------------------------------\n";
-  // TODO: pindahkan ke template
-  textContent +=
-    "Terima kasih atas perhatiannya. Harga dapat berubah sewaktu-waktu tanpa pemberitahuan.";
+  textContent += "Harga dapat berubah sewaktu-waktu.";
 
   return textContent;
 });
 
 watch(
   plainTextContent,
-  (newContent) => {
-    generatedMessage.value = newContent;
+  (newVal) => {
+    generatedMessage.value = newVal;
   },
   { immediate: true }
 );
-
-const selectedCustomers = computed(() => {
-  return (form.customers || [])
-    .map((c) => allCustomersMap.value.get(c.value))
-    .filter((c) => c && c.phone);
+watch(selectedCategory, () => {
+  filteredProducts.value = baseProductOptions.value;
 });
 
-const getWhatsAppLink = (phoneNumber) => {
-  const plainText = generatedMessage.value;
-
-  let formattedPhone = phoneNumber.startsWith("0")
-    ? "62" + phoneNumber.substring(1)
-    : phoneNumber;
-  formattedPhone = formattedPhone.replace(/[^0-9]/g, "");
-
-  const encodedText = encodeURIComponent(plainText);
-  return `https://wa.me/${formattedPhone}?text=${encodedText}`;
-};
-
+// --- FILTER & SUBMIT ---
 const filterProducts = (val, update) => {
-  if (val === "") {
-    update(() => {
-      filteredProducts.value = allProductsOptions.value;
-    });
-    return;
-  }
-
   update(() => {
     const needle = val.toLowerCase();
-    filteredProducts.value = allProductsOptions.value.filter(
-      (v) => v.label.toLowerCase().indexOf(needle) > -1
+    filteredProducts.value = baseProductOptions.value.filter((v) =>
+      v.label.toLowerCase().includes(needle)
     );
   });
 };
 
 const filterCustomers = (val, update) => {
-  if (val === "") {
-    update(() => {
-      filteredCustomers.value = allCustomersOptions.value;
-    });
-    return;
-  }
-
   update(() => {
     const needle = val.toLowerCase();
-    filteredCustomers.value = allCustomersOptions.value.filter(
-      (v) => v.label.toLowerCase().indexOf(needle) > -1
+    filteredCustomers.value = allCustomersOptions.value.filter((v) =>
+      v.label.toLowerCase().includes(needle)
     );
   });
 };
 
 const submit = () => {
-  if (
-    form.price_types?.length === 0 ||
-    form.products?.length === 0 ||
-    form.customers?.length === 0
-  ) {
-    console.error("Harap lengkapi Produk, Pelanggan, dan Jenis Harga.");
-    return;
-  }
+  // 1. Simpan Log ke database di background
+  showWaDialog.value = true;
 
-  form.post(route("admin.product.send-price-list"), {
-    onSuccess: () => {
-      // Form tidak direset agar pesan yang sudah digenerate tetap terlihat
-    },
-    onError: () => {
-      scrollToFirstErrorField();
-    },
-    onFinish: () => {
-      form.clearErrors();
-    },
-  });
+  // Kita nonaktifkan dulu karena belum ada wa gateway
+  // form
+  //   .transform((data) => ({
+  //     customers: data.customers.map((c) => c.value),
+  //     message: generatedMessage.value,
+  //   }))
+  //   .post(route("admin.product.send-price-list"), {
+  //     onSuccess: () => {
+  //       // 2. Tampilkan dialog kirim manual setelah log berhasil disimpan
+  //       showWaDialog.value = true;
+  //     },
+  //     onError: () => scrollToFirstErrorField(),
+  //   });
 };
+
+onMounted(() => {
+  filteredProducts.value = baseProductOptions.value;
+  filteredCustomers.value = allCustomersOptions.value;
+});
 </script>
 
 <template>
@@ -229,130 +216,156 @@ const submit = () => {
   <authenticated-layout :show-drawer-button="true">
     <template #title>{{ title }}</template>
     <template #left-button>
-      <div class="q-gutter-sm">
-        <q-btn
-          icon="arrow_back"
-          dense
-          color="grey-7"
-          flat
-          rounded
-          @click="router.get(route('admin.product.index'))"
-        />
-      </div>
+      <q-btn
+        icon="arrow_back"
+        dense
+        color="grey-7"
+        flat
+        rounded
+        @click="router.get(route('admin.product.index'))"
+      />
     </template>
-    <q-page class="row justify-center">
+
+    <q-page class="row justify-center bg-grey-2">
       <div class="col col-md-8 q-pa-xs">
-        <q-form
-          class="row q-col-gutter-xs"
-          @submit.prevent="submit"
-          @validation-error="scrollToFirstErrorField"
-        >
+        <q-form class="row q-col-gutter-xs" @submit.prevent="submit">
           <div class="col-12 col-md-6">
             <q-card square flat bordered class="col full-width">
               <q-card-section class="q-pt-none">
-                <div class="text-subtitle1 q-pt-md q-pb-sm">
+                <div
+                  class="text-subtitle1 q-pt-md q-pb-sm text-bold text-primary"
+                >
                   Pilih Data Kiriman
                 </div>
                 <div class="text-caption text-grey-7 q-pb-lg">
-                  Pilih produk, jenis harga, dan pelanggan tujuan.
+                  Pilih produk, harga, dan pelanggan tujuan.
                 </div>
 
                 <q-select
-                  v-model="form.products"
-                  :options="filteredProducts"
-                  label="Pilih Produk"
-                  hint="Ketik nama produk untuk mencari"
-                  multiple
-                  use-chips
-                  clearable
+                  v-model="selectedCategory"
+                  :options="categoryOptions"
+                  label="Filter Kategori"
                   outlined
                   dense
-                  class="q-mb-md"
-                  :error="!!form.errors.products"
-                  :error-message="form.errors.products"
-                  :loading="form.processing"
-                  use-input
-                  @filter="filterProducts"
-                  @clear="form.products = []"
-                  input-debounce="0"
-                >
-                  <template v-slot:no-option>
-                    <q-item>
-                      <q-item-section class="text-grey">
-                        Tidak ada produk ditemukan
-                      </q-item-section>
-                    </q-item>
-                  </template>
-                </q-select>
-
-                <q-select
-                  v-model="form.price_types"
-                  :options="prices"
-                  label="Pilih Jenis Harga"
-                  hint="Pilih satu atau lebih jenis harga"
                   emit-value
                   map-options
-                  outlined
-                  dense
                   class="q-mb-md"
-                  :error="!!form.errors.price_types"
-                  :error-message="form.errors.price_types"
-                  :loading="form.processing"
-                  multiple
-                  use-chips
-                  clearable
-                  @clear="form.price_types = []"
+                  bg-color="blue-1"
                 />
 
-                <q-select
-                  v-model="form.customers"
-                  :options="filteredCustomers"
-                  label="Pilih Pelanggan Tujuan"
-                  hint="Ketik nama pelanggan untuk mencari"
-                  multiple
-                  use-chips
-                  clearable
-                  outlined
-                  dense
-                  class="q-mb-md"
-                  :error="!!form.errors.customers"
-                  :error-message="form.errors.customers"
-                  :loading="form.processing"
-                  use-input
-                  @filter="filterCustomers"
-                  @clear="form.customers = []"
-                  input-debounce="0"
-                >
-                  <template v-slot:no-option>
-                    <q-item>
-                      <q-item-section class="text-grey">
-                        Tidak ada pelanggan ditemukan
-                      </q-item-section>
-                    </q-item>
-                  </template>
-                </q-select>
+                <div class="q-gutter-y-sm">
+                  <q-select
+                    v-model="form.products"
+                    :options="filteredProducts"
+                    label="Pilih Produk"
+                    multiple
+                    use-chips
+                    outlined
+                    dense
+                    use-input
+                    @filter="filterProducts"
+                    virtual-scroll
+                  >
+                    <template v-slot:option="scope">
+                      <q-item
+                        v-bind="scope.itemProps"
+                        dense
+                        class="q-py-none q-px-sm"
+                      >
+                        <q-item-section side
+                          ><q-checkbox
+                            dense
+                            :model-value="scope.selected"
+                            @update:model-value="scope.toggleOption(scope.opt)"
+                        /></q-item-section>
+                        <q-item-section
+                          ><q-item-label class="text-caption">{{
+                            scope.opt.label
+                          }}</q-item-label></q-item-section
+                        >
+                      </q-item>
+                    </template>
+                  </q-select>
+
+                  <q-select
+                    v-model="form.price_types"
+                    :options="prices"
+                    label="Jenis Harga"
+                    multiple
+                    use-chips
+                    outlined
+                    dense
+                    emit-value
+                    map-options
+                  >
+                    <template v-slot:option="scope">
+                      <q-item
+                        v-bind="scope.itemProps"
+                        dense
+                        class="q-py-none q-px-sm"
+                      >
+                        <q-item-section side
+                          ><q-checkbox
+                            dense
+                            :model-value="scope.selected"
+                            @update:model-value="scope.toggleOption(scope.opt)"
+                        /></q-item-section>
+                        <q-item-section
+                          ><q-item-label class="text-caption">{{
+                            scope.opt.label
+                          }}</q-item-label></q-item-section
+                        >
+                      </q-item>
+                    </template>
+                  </q-select>
+
+                  <q-select
+                    v-model="form.customers"
+                    :options="filteredCustomers"
+                    label="Pilih Pelanggan"
+                    multiple
+                    use-chips
+                    outlined
+                    dense
+                    use-input
+                    @filter="filterCustomers"
+                  >
+                    <template v-slot:option="scope">
+                      <q-item
+                        v-bind="scope.itemProps"
+                        dense
+                        class="q-py-none q-px-sm"
+                      >
+                        <q-item-section side
+                          ><q-checkbox
+                            dense
+                            :model-value="scope.selected"
+                            @update:model-value="scope.toggleOption(scope.opt)"
+                        /></q-item-section>
+                        <q-item-section
+                          ><q-item-label class="text-caption">{{
+                            scope.opt.label
+                          }}</q-item-label></q-item-section
+                        >
+                      </q-item>
+                    </template>
+                  </q-select>
+                </div>
               </q-card-section>
 
-              <q-card-section class="q-gutter-sm">
+              <q-card-section>
                 <q-btn
                   icon="send"
                   type="submit"
-                  label="Kirim via WA Gateway"
+                  label="Kirim Manual"
                   color="primary"
-                  :disable="
-                    form.processing ||
-                    form.products?.length === 0 ||
-                    form.customers?.length === 0 ||
-                    form.price_types?.length === 0
-                  "
+                  class="full-width"
+                  unelevated
                   :loading="form.processing"
+                  :disable="
+                    form.products.length === 0 || form.customers.length === 0
+                  "
                 />
-                <!-- <q-btn
-                  icon="cancel"
-                  label="Batal"
-                  :disable="form.processing"
-                  @click="router.get(route('admin.product.index'))"
-                /> -->
               </q-card-section>
             </q-card>
           </div>
@@ -360,73 +373,33 @@ const submit = () => {
           <div class="col-12 col-md-6">
             <q-card square flat bordered class="col full-width">
               <q-card-section>
-                <div
-                  class="text-subtitle1 q-mb-sm flex items-center justify-between"
-                >
-                  Pratinjau Pesan (Teks Biasa)
-                  <q-btn
-                    label="Salin & Pilih Semua"
-                    icon="content_copy"
-                    color="grey-7"
-                    size="sm"
-                    flat
-                    dense
-                    @click="selectAllText"
-                    :disable="generatedMessage.length === 0"
-                  />
+                <div class="text-subtitle1 q-mb-sm text-bold">
+                  Pratinjau Pesan
                 </div>
-
                 <q-input
                   v-model="generatedMessage"
-                  ref="messageInputRef"
                   type="textarea"
-                  label="Pesan Daftar Harga"
                   autogrow
                   outlined
                   dense
-                  :rows="10"
+                  readonly
+                  input-style="font-family: monospace; font-size: 12px; background: #fafafa"
                 />
-
-                <!-- <div class="text-caption text-grey-7 q-mt-sm">
-                  Pesan di atas akan dienkode dan dikirim melalui WhatsApp.
-                </div> -->
               </q-card-section>
-
-              <q-card-section
-                v-if="selectedCustomers.length > 0"
-                class="q-pt-none"
-              >
-                <div class="text-subtitle2 q-mb-sm">
-                  Kirim ke Pelanggan (via WA)
-                </div>
-
-                <div class="q-gutter-sm">
-                  <q-btn
-                    v-for="customer in selectedCustomers"
-                    :key="customer.id"
-                    :label="`Kirim ke ${customer.name}`"
-                    :href="getWhatsAppLink(customer.phone)"
-                    target="_blank"
-                    icon="lab la-whatsapp"
-                    color="green-8"
-                    class="full-width"
-                    :disable="
-                      !(form.products.length > 0 && form.price_types.length > 0)
-                    "
-                  >
-                    <q-tooltip v-if="!customer.phone">
-                      Nomor telepon tidak tersedia
-                    </q-tooltip>
-                  </q-btn>
-                </div>
-                <div class="text-caption text-grey-7 q-mt-sm">
-                  Link WhatsApp akan terbuka di tab baru.
-                </div>
+              <q-card-section class="q-pt-none text-caption text-grey-7 italic">
+                Pesan di atas akan muncul kembali di dialog konfirmasi sebelum
+                dikirim.
               </q-card-section>
             </q-card>
           </div>
         </q-form>
       </div>
     </q-page>
+
+    <WaPriceListDialog
+      v-model="showWaDialog"
+      :message="generatedMessage"
+      :customers="form.customers"
+    />
   </authenticated-layout>
 </template>

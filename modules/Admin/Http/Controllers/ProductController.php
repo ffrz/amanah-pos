@@ -184,8 +184,17 @@ class ProductController extends Controller
         }
 
         return inertia('product/SendPriceList', [
-            'customers' => $this->commonDataService->getCustomers(['id', 'name', 'phone']),
-            'products'  => $this->commonDataService->getProducts(['id', 'name', 'price_1', 'price_2', 'price_3']),
+            'customers' => $this->commonDataService->getCustomers(['id', 'code', 'name', 'phone']),
+            'categories' => $this->commonDataService->getProductCategories(),
+            'products' => \App\Models\Product::query()
+                ->select('id', 'name', 'category_id', 'uom', 'price_1', 'price_2', 'price_3')
+                ->with([
+                    'category:id,name',
+                    'productUnits:id,product_id,name,price_1,price_2,price_3' // 'name' di sini adalah UOM (misal: DUS)
+                ])
+                ->where('active', true)
+                ->orderBy('name')
+                ->get(),
         ]);
     }
 }
