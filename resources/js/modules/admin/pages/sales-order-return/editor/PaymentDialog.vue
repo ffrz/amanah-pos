@@ -173,23 +173,24 @@ const onBeforeShow = () => {
   changePaymentMode("cash", props.customer ? default_payment_mode : "cash");
 };
 
+const keydownHandler = (e) => {
+  if (!props.modelValue) {
+    // abaikan kalau dialog tidak sedang tampil
+    return;
+  }
+
+  if (e.ctrlKey && e.key === "Enter") {
+    e.preventDefault();
+    handleFinalizePayment();
+  }
+};
+
 onMounted(() => {
-  const handler = (e) => {
-    if (!props.modelValue) {
-      // abaikan kalau dialog tidak sedang tampil
-      return;
-    }
+  document.addEventListener("keydown", keydownHandler);
+});
 
-    if (e.ctrlKey && e.key === "Enter") {
-      e.preventDefault();
-      handleFinalizePayment();
-    }
-  };
-
-  document.addEventListener("keydown", handler);
-  onUnmounted(() => {
-    document.removeEventListener("keydown", handler);
-  });
+onUnmounted(() => {
+  document.removeEventListener("keydown", keydownHandler);
 });
 
 /**
