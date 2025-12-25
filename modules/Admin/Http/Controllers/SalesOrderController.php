@@ -78,6 +78,8 @@ class SalesOrderController extends Controller
                 'default_payment_mode' => $user->getSetting('pos.default_payment_mode', 'cash'),
                 'default_print_size'   => $user->getSetting('pos.default_print_size', '58mm'),
                 'after_payment_action' => $user->getSetting('pos.after_payment_action', 'new-order'),
+                'merge_transaction_items' => $user->getSetting('pos.merge_transaction_items', true),
+                'barcode_mode' => $user->getSetting('pos.barcode_mode', true),
                 'allow_credit_limit'   => Setting::value('pos.allow_credit_limit', false),
             ]
         ]);

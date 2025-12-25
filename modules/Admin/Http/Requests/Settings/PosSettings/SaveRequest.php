@@ -35,6 +35,8 @@ class SaveRequest extends FormRequest
             'default_payment_mode' => ['required', 'string'],
             'default_print_size' => ['required', 'string'],
             'after_payment_action' => ['required', 'string'],
+            'merge_transaction_items' => ['nullable', 'boolean'],
+            'barcode_mode' => ['nullable', 'boolean'],
             'foot_note' => ['nullable', 'string', 'max:200'],
             'allow_negative_inventory' => ['nullable', 'boolean'],
             'allow_credit_limit' => ['nullable', 'boolean'],

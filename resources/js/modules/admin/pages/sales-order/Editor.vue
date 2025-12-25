@@ -27,8 +27,8 @@ import SalesOrderItemEditorDialog from "@/components/SalesOrderItemEditorDialog.
 
 const $q = useQuasar();
 const page = usePage();
-const mergeItem = ref(true);
-const barcodeMode = ref(true);
+const mergeItem = ref(!!parseInt(page.props.settings.merge_transaction_items));
+const barcodeMode = ref(!!parseInt(page.props.settings.barcode_mode));
 const userInputRef = ref(null);
 const itemEditorRef = ref(null);
 const customerAutocompleteRef = ref(null);
@@ -404,9 +404,16 @@ const handlePayment = (data) => {
     return;
   }
 
+  const { after_payment_action, ...tmpData } = data;
+
   const payload = {
     id: form.id,
-    ...data,
+    settings: {
+      merge_transaction_items: mergeItem.value,
+      barcode_mode: barcodeMode.value,
+      after_payment_action: after_payment_action,
+    },
+    ...tmpData,
   };
 
   isProcessing.value = true;
@@ -414,7 +421,7 @@ const handlePayment = (data) => {
     .post(route("admin.sales-order.close"), payload)
     .then((response) => {
       showInfo("Transaksi selesai");
-      if (payload.after_payment_action === "print") {
+      if (after_payment_action === "print") {
         window.open(
           route("admin.sales-order.print", {
             id: form.id,
@@ -422,13 +429,13 @@ const handlePayment = (data) => {
           }),
           "_self"
         );
-      } else if (payload.after_payment_action === "detail") {
+      } else if (after_payment_action === "detail") {
         router.get(
           route("admin.sales-order.detail", {
             id: form.id,
           })
         );
-      } else if (payload.after_payment_action === "new-order") {
+      } else if (after_payment_action === "new-order") {
         router.get(route("admin.sales-order.add"));
       }
       return;

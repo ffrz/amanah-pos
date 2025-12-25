@@ -44,6 +44,8 @@ class PosSettingsService
             'default_payment_mode' => $user->getSetting('pos.default_payment_mode', 'cash'),
             'default_print_size' => $user->getSetting('pos.default_print_size', '58mm'),
             'after_payment_action' => $user->getSetting('pos.after_payment_action', 'print'),
+            'merge_transaction_items' => $user->getSetting('pos.merge_transaction_items', true),
+            'barcode_mode' => $user->getSetting('pos.barcode_mode', true),
 
             // Global setting
             'allow_negative_inventory' => Setting::value('pos.allow_negative_inventory', false),
@@ -74,6 +76,8 @@ class PosSettingsService
             $user->setSetting('pos.default_payment_mode', $data['default_payment_mode']);
             $user->setSetting('pos.default_print_size', $data['default_print_size']);
             $user->setSetting('pos.after_payment_action', $data['after_payment_action']);
+            $user->setSetting('pos.merge_transaction_items', $data['merge_transaction_items']);
+            $user->setSetting('pos.barcode_mode', $data['barcode_mode']);
 
             // Untuk memungkinkan penyimpanan hanya user settings, kita butuh conditional statement
 

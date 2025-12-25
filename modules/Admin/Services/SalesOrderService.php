@@ -246,6 +246,8 @@ class SalesOrderService
         $this->ensureOrderIsEditable($order);
 
         DB::transaction(function () use ($order, $data) {
+            $settings = $data['settings'] ?? [];
+            unset($data['settings']);
             $cashierSession = $this->cashierSessionService->getActiveSession();
 
             $this->updateTotalAndValidateClientTotal($order, $data['total'] ?? 0);
@@ -289,7 +291,9 @@ class SalesOrderService
 
             /** @var \App\Models\User $user */
             $user = Auth::user();
-            $user->setSetting('pos.after_payment_action', $data['after_payment_action'] ?? 'print');
+            $user->setSetting('pos.after_payment_action', $settings['after_payment_action'] ?? 'print');
+            $user->setSetting('pos.merge_transaction_items', $settings['merge_transaction_items'] ?? false);
+            $user->setSetting('pos.barcode_mode', $settings['barcode_mode'] ?? false);
         });
     }
 

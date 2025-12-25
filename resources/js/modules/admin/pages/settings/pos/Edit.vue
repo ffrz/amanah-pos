@@ -12,6 +12,8 @@ const form = useForm({
   default_payment_mode: page.props.data.default_payment_mode,
   default_print_size: page.props.data.default_print_size,
   after_payment_action: page.props.data.after_payment_action,
+  merge_transaction_items: !!parseInt(page.props.data.merge_transaction_items),
+  barcode_mode: !!parseInt(page.props.data.barcode_mode),
 
   // Tab General
   foot_note: page.props.data.foot_note,
@@ -137,6 +139,36 @@ const afterPaymentActionOptions = [
                     :error="!!form.errors.after_payment_action"
                     :error-message="form.errors.after_payment_action"
                   />
+                  <q-list dense>
+                    <q-item tag="label" v-ripple>
+                      <q-item-section>
+                        <q-item-label>Gabung Item Penjualan</q-item-label>
+                        <q-item-label caption
+                          >Gabungkan item pada transaksi
+                          penjualan.</q-item-label
+                        >
+                      </q-item-section>
+                      <q-item-section side>
+                        <q-toggle
+                          v-model="form.merge_transaction_items"
+                          color="primary"
+                        />
+                      </q-item-section>
+                    </q-item>
+
+                    <q-item tag="label" v-ripple>
+                      <q-item-section>
+                        <q-item-label>Mode Input Barcode</q-item-label>
+                        <q-item-label caption
+                          >Aktifkan jika input item transaksi menggunakan
+                          barcode scanner.</q-item-label
+                        >
+                      </q-item-section>
+                      <q-item-section side>
+                        <q-toggle v-model="form.barcode_mode" color="primary" />
+                      </q-item-section>
+                    </q-item>
+                  </q-list>
                 </q-tab-panel>
 
                 <q-tab-panel name="general" class="q-gutter-y-sm">
