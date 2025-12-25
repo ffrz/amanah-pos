@@ -28,6 +28,7 @@ import SalesOrderItemEditorDialog from "@/components/SalesOrderItemEditorDialog.
 const $q = useQuasar();
 const page = usePage();
 const mergeItem = ref(true);
+const barcodeMode = ref(true);
 const userInputRef = ref(null);
 const itemEditorRef = ref(null);
 const customerAutocompleteRef = ref(null);
@@ -216,7 +217,7 @@ const addItem = async () => {
       // agar transaksi lebih cepat, tapi bertentangan dengan prinsip input QTY*BARCODE
       // yang sudah ada sekarang. Jadi untuk sekarang kita tampilkan editor item saja
       // jika hanya ada 1 bagian input (hanya barcode saja)
-      if (parts.length == 1) {
+      if (parts.length == 1 && !barcodeMode.value) {
         showItemEditor(currentItem);
       }
     })
@@ -564,6 +565,12 @@ const focusToUserInput = () => {
                 class="col"
                 v-model="mergeItem"
                 label="Gabungkan item"
+                :disable="isProcessing"
+              />
+              <CheckBox
+                class="col"
+                v-model="barcodeMode"
+                label="Mode Barcode"
                 :disable="isProcessing"
               />
             </div>
