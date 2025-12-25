@@ -1,6 +1,7 @@
 <script setup>
 import { router } from "@inertiajs/vue3";
 import { scrollToFirstErrorField } from "@/helpers/utils";
+import StandardCheckBox from "./StandardCheckBox.vue";
 
 const props = defineProps({
   form: {
@@ -50,27 +51,18 @@ const emit = defineEmits([
           class="q-mb-md"
         />
 
-        <q-input
-          v-model.trim="form.description"
-          type="textarea"
-          autogrow
-          counter
-          maxlength="200"
-          label="Deskripsi"
-          lazy-rules
+        <standard-check-box
+          v-model="form.active"
+          label="Aktif"
           :disable="form.processing"
-          :error="!!form.errors.description"
-          :error-message="form.errors.description"
-          hide-bottom-space
         />
       </q-card-section>
 
       <q-card-section
         class="q-gutter-sm"
-        :class="dialogMode ? 'q-pa-none' : ''"
+        :class="dialogMode ? 'q-pa-none q-pt-md' : ''"
       >
         <q-btn
-          icon="save"
           type="submit"
           label="Simpan"
           color="primary"
@@ -78,7 +70,6 @@ const emit = defineEmits([
           :loading="form.processing"
         />
         <q-btn
-          icon="cancel"
           label="Batal"
           :disable="form.processing"
           @click.stop="

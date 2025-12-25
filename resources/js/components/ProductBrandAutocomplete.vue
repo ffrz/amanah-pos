@@ -1,17 +1,17 @@
 <script setup>
 import { computed, ref, watch } from "vue";
 import { QSelect, QItem, QItemSection, QBtn } from "quasar";
-import ProductCategoryEditorDialog from "./ProductCategoryEditorDialog.vue";
+import ProductBrandEditorDialog from "./ProductBrandEditorDialog.vue";
 
 const props = defineProps({
   modelValue: [String, Number, null],
-  categories: {
+  brands: {
     type: Array,
     default: () => [],
   },
   label: {
     type: String,
-    default: "Kategori (Opsional)",
+    default: "Merk",
   },
   disable: Boolean,
   error: Boolean,
@@ -24,17 +24,16 @@ const props = defineProps({
 
 const emit = defineEmits(["update:modelValue"]);
 
-const productCategoryDialogRef = ref(null);
+const dialogRef = ref(null);
 
-const categoryOptions = computed(() => {
-  return props.categories.map((c) => ({
+const brandOptions = computed(() => {
+  return props.brands.map((c) => ({
     label: c.name || c.label,
     value: c.id || c.value,
-    categoryData: c,
   }));
 });
 
-const filteredOptions = ref(categoryOptions.value);
+const filteredOptions = ref(brandOptions.value);
 const internalValue = ref(props.modelValue);
 
 watch(
@@ -51,27 +50,27 @@ watch(internalValue, (newValue) => {
   emit("update:modelValue", newValue);
 });
 
-const showNewCategoryDialog = () => {
-  productCategoryDialogRef.value.show();
+const showNewBrandDialog = () => {
+  dialogRef.value.show();
 };
 
-const handleNewCategoryCreated = (newCategory) => {
-  props.categories.push(newCategory);
-  internalValue.value = newCategory.id;
-  filteredOptions.value = categoryOptions.value;
+const handleNewBrandCreated = (newBrand) => {
+  props.brands.push(newBrand);
+  internalValue.value = newBrand.id;
+  filteredOptions.value = brandOptions.value;
 };
 
 const filterFn = (val, update) => {
   if (val === "") {
     update(() => {
-      filteredOptions.value = categoryOptions.value;
+      filteredOptions.value = brandOptions.value;
     });
     return;
   }
 
   update(() => {
     const needle = val.toLowerCase();
-    filteredOptions.value = categoryOptions.value.filter(
+    filteredOptions.value = brandOptions.value.filter(
       (v) => v.label.toLowerCase().indexOf(needle) > -1
     );
   });
@@ -105,23 +104,23 @@ const filterFn = (val, update) => {
           round
           dense
           size="sm"
-          @click.stop="showNewCategoryDialog"
+          @click.stop="showNewBrandDialog"
           :disable="disable"
         >
-          <q-tooltip>Tambah Kategori Baru</q-tooltip>
+          <q-tooltip>Tambah Merk Baru</q-tooltip>
         </q-btn>
       </template>
 
       <template v-slot:no-option>
         <q-item>
-          <q-item-section>Kategori tidak ditemukan</q-item-section>
+          <q-item-section>Merk tidak ditemukan</q-item-section>
         </q-item>
       </template>
     </q-select>
 
-    <ProductCategoryEditorDialog
-      ref="productCategoryDialogRef"
-      @categoryCreated="handleNewCategoryCreated"
+    <ProductBrandEditorDialog
+      ref="dialogRef"
+      @itemCreated="handleNewBrandCreated"
     />
   </div>
 </template>

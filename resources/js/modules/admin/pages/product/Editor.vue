@@ -215,14 +215,14 @@ onMounted(() => {
                     maxlength="200"
                     label="Deskripsi"
                   />
-                  <ProductCategoryAutocomplete
-                    v-model:modelValue="form.category_id"
-                    :categories="page.props.categories"
-                    label="Kategori"
-                  />
                   <ProductBrandAutocomplete
                     v-model:modelValue="form.brand_id"
                     :brands="page.props.brands"
+                    label="Merk"
+                  />
+                  <ProductCategoryAutocomplete
+                    v-model:modelValue="form.category_id"
+                    :categories="page.props.categories"
                     label="Kategori"
                   />
                   <SupplierAutocomplete

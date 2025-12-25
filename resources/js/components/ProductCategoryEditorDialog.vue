@@ -28,6 +28,7 @@ const submit = async () => {
     url: route("admin.product-category.save"),
     onSuccess: (response) => {
       emit("categoryCreated", response.data);
+      hide();
     },
   });
 };

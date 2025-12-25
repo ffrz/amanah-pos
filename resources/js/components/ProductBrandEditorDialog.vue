@@ -1,17 +1,16 @@
 <script setup>
 import { ref } from "vue";
-import { useQuasar } from "quasar";
-import ProductCategoryForm from "./ProductCategoryForm.vue";
+import ProductBrandForm from "./ProductBrandForm.vue";
 import { handleSubmit } from "@/helpers/client-req-handler";
 import { useApiForm } from "@/composables/useApiForm";
 
 const showDialog = ref(false);
 const form = useApiForm({
   id: null,
+  active: true,
   name: null,
-  description: null,
 });
-const emit = defineEmits(["categoryCreated"]);
+const emit = defineEmits(["itemCreated"]);
 const show = () => {
   form.reset();
   form.clearErrors();
@@ -25,9 +24,10 @@ const hide = () => {
 const submit = async () => {
   handleSubmit({
     form,
-    url: route("admin.product-category.save"),
+    url: route("admin.product-brand.save"),
     onSuccess: (response) => {
-      emit("categoryCreated", response.data);
+      emit("itemCreated", response.data);
+      hide();
     },
   });
 };
@@ -42,7 +42,7 @@ defineExpose({
   <q-dialog v-model="showDialog" persistent>
     <q-card style="width: 400px; max-width: 90vw">
       <q-card-section class="row items-center q-pb-none">
-        <div class="text-subtitle1 text-grey-8">Tambah Kategori Produk</div>
+        <div class="text-subtitle1 text-grey-8">Tambah Merk</div>
         <q-space />
         <q-btn
           icon="close"
@@ -56,7 +56,7 @@ defineExpose({
       </q-card-section>
 
       <q-card-section class="q-pt-md">
-        <product-category-form
+        <product-brand-form
           :form="form"
           dialog-mode
           @submit="submit"

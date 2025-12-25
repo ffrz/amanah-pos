@@ -35,6 +35,7 @@ use Modules\Admin\Http\Controllers\FinanceTransactionTagController;
 use Modules\Admin\Http\Controllers\HomeController;
 use Modules\Admin\Http\Controllers\OperationalCostController;
 use Modules\Admin\Http\Controllers\OperationalCostCategoryController;
+use Modules\Admin\Http\Controllers\ProductBrandController;
 use Modules\Admin\Http\Controllers\ProductCategoryController;
 use Modules\Admin\Http\Controllers\ProductController;
 use Modules\Admin\Http\Controllers\PurchaseOrderController;
@@ -171,6 +172,16 @@ Route::middleware([Auth::class])
                 Route::get('duplicate/{id}', [UomController::class, 'duplicate'])->name('admin.uom.duplicate');
                 Route::post('save', [UomController::class, 'save'])->name('admin.uom.save');
                 Route::post('delete/{id}', [UomController::class, 'delete'])->name('admin.uom.delete');
+            });
+
+            Route::prefix('product-brands')->group(function () {
+                Route::get('', [ProductBrandController::class, 'index'])->name('admin.product-brand.index');
+                Route::get('data', [ProductBrandController::class, 'data'])->name('admin.product-brand.data');
+                Route::get('add', [ProductBrandController::class, 'editor'])->name('admin.product-brand.add');
+                Route::get('edit/{id}', [ProductBrandController::class, 'editor'])->name('admin.product-brand.edit');
+                Route::get('duplicate/{id}', [ProductBrandController::class, 'duplicate'])->name('admin.product-brand.duplicate');
+                Route::post('save', [ProductBrandController::class, 'save'])->name('admin.product-brand.save');
+                Route::post('delete/{id}', [ProductBrandController::class, 'delete'])->name('admin.product-brand.delete');
             });
 
             Route::prefix('finance-accounts')->group(function () {

@@ -141,6 +141,28 @@ class AppPermissions
                 // 'admin.product-category.duplicate' => 'Duplikasi Kategori Produk',
                 // 'admin.product-category.data' => 'Data Kategori Produk',
             ],
+            'Manajemen Satuan Produk' => [
+                'admin.uom.index' => 'Lihat Daftar Kategori Produk',
+                'admin.uom.add' => 'Tambah / Duplikat Satuan Produk',
+                'admin.uom.edit' => 'Edit Satuan Produk',
+                'admin.uom.delete' => 'Hapus Satuan Produk',
+            ],
+            'Manajemen Merk Produk' => [
+                'admin.product-brand.index' => 'Lihat Daftar Merk Produk',
+                'admin.product-brand.add' => 'Tambah / Duplikat Merk Produk',
+                'admin.product-brand.edit' => 'Edit Merk Produk',
+                'admin.product-brand.delete' => 'Hapus Merk Produk',
+            ],
+            'Manajemen Kategori Produk' => [
+                'admin.product-category.index' => 'Lihat Daftar Kategori Produk',
+                // 'admin.product-category.detail' => 'Lihat Detail Kategori Produk',
+                'admin.product-category.add' => 'Tambah / Duplikat Kategori Produk',
+                'admin.product-category.edit' => 'Edit Kategori Produk',
+                'admin.product-category.delete' => 'Hapus Kategori Produk',
+                // 'admin.product-category.save' => 'Simpan Kategori Produk',
+                // 'admin.product-category.duplicate' => 'Duplikasi Kategori Produk',
+                // 'admin.product-category.data' => 'Data Kategori Produk',
+            ],
             'Manajemen Stok' => [
                 'admin.stock-movement.index' => 'Lihat Daftar Pergerakan Stok',
                 'admin.stock-adjustment.index' => 'Lihat Daftar Penyesuaian Stok',
