@@ -7,7 +7,6 @@ import { useQuasar } from "quasar";
 
 const $q = useQuasar();
 
-// Prop untuk mengontrol dialog
 const props = defineProps({
   modelValue: {
     type: Boolean,
@@ -30,12 +29,10 @@ const props = defineProps({
   },
 });
 
-const showCost = ref(props.showCost);
-const showCostEnabled = ref(props.showCost);
-
-// Emit event
 const emit = defineEmits(["update:modelValue", "product-selected"]);
 
+const showCost = ref(props.showCost);
+const showCostEnabled = ref(props.showCost);
 const tableRef = ref(null);
 const rows = ref([]);
 const loading = ref(true);
@@ -55,7 +52,6 @@ const pagination = ref({
   descending: false,
 });
 
-// Update Definisi Kolom agar lebih ringkas & informatif
 const columns = [
   {
     name: "name",
@@ -64,7 +60,7 @@ const columns = [
     align: "left",
     sortable: true,
   },
-  { name: "stock", label: "Stok", field: "stock", align: "left" }, // Align left utk breakdown text
+  { name: "stock", label: "Stok", field: "stock", align: "left" },
   { name: "cost", label: "Modal", field: "cost", align: "right" },
   { name: "price_1", label: "Eceran", field: "price_1", align: "right" },
   { name: "price_2", label: "Partai", field: "price_2", align: "right" },
@@ -72,18 +68,15 @@ const columns = [
 ];
 
 const computedColumns = computed(() => {
-  // handle desktop
   if ($q.screen.gt.sm) {
     if (!showCost.value) {
       return columns.filter((col) => col.name !== "cost");
     }
     return columns;
   }
-  // layar kecil
+
   return columns.filter((col) => col.name === "name");
 });
-
-// --- HELPER LOGIC ---
 
 // Helper Hitung Modal Unit
 const getUnitCost = (row, unit) => {
@@ -114,7 +107,6 @@ onMounted(() => {
   fetchItemsWithoutProps();
 });
 
-// --- KEYBOARD NAVIGATION LOGIC (SAMA SEPERTI SEBELUMNYA) ---
 const scrollToSelectedIndex = () => {
   if (tableRef.value && selectedIndex.value !== -1) {
     const firstIndexOnPage =
@@ -142,51 +134,55 @@ const fetchItemsWithoutProps = () => {
 
 let currentAbortController = null;
 
-const fetchItems = (opts = null) => {
-  // 1. Jika ada request yang sedang berjalan, batalkan!
+const fetchItems = (requestProp = null) => {
+  // Sinkronisasi state pagination dari event Quasar ke ref lokal kita
+  if (requestProp && requestProp.pagination) {
+    const { page, rowsPerPage, sortBy, descending } = requestProp.pagination;
+
+    pagination.value.page = page;
+    pagination.value.rowsPerPage = rowsPerPage;
+    pagination.value.sortBy = sortBy;
+    pagination.value.descending = descending;
+  }
+
+  // Logika Abort Controller tetap sama
   if (currentAbortController) {
     currentAbortController.abort();
   }
 
-  // 2. Buat controller baru untuk request ini
   currentAbortController = new AbortController();
   const signal = currentAbortController.signal;
 
   loading.value = true;
   const initialIndex = selectedIndex.value;
 
-  // Pastikan helper handleFetchItems Anda mendukung pengiriman 'opts'
-  // yang berisi signal untuk axios/fetch
   handleFetchItems({
     pagination,
     filter,
-    opts: { ...opts, signal }, // Kirim signal ke backend handler
+    opts: { signal },
     rows,
     url: props.urlEndpoint,
     loading,
     tableRef,
     onSuccess: () => {
-      // Logic setelah sukses tetap sama
+      // Hitung ulang selectedIndex agar kursor keyboard tidak hilang saat pindah halaman
+      const firstIndexOnPage =
+        (pagination.value.page - 1) * pagination.value.rowsPerPage;
+
       if (rows.value.length > 0) {
-        if (initialIndex === 0 || initialIndex === -1) {
-          selectedIndex.value = 0;
-        }
+        // Jika pindah halaman, arahkan seleksi ke baris pertama halaman baru
+        selectedIndex.value = firstIndexOnPage;
+
         nextTick(() => {
           scrollToSelectedIndex();
         });
       } else {
         selectedIndex.value = -1;
       }
-
-      // Bersihkan controller setelah sukses
       currentAbortController = null;
     },
     onError: (err) => {
-      // Abaikan error jika itu disebabkan oleh pembatalan (abort)
-      if (err.name === "AbortError") {
-        console.log("Request dibatalkan karena ada input baru");
-        return;
-      }
+      if (err.name === "AbortError") return;
       loading.value = false;
     },
   });
@@ -743,21 +739,15 @@ const onShow = () => {
 
 <style scoped>
 .product-browser-card {
-  width: 900px; /* Diperlebar agar 3 kolom harga muat */
+  width: 900px;
   max-width: 95vw;
 }
 
 .selected-row td,
 .selected-row {
-  background-color: rgb(
-    225,
-    240,
-    255
-  ) !important; /* Warna seleksi lebih soft */
-  /*border-bottom: 1px solid rgb(33, 150, 243) !important; /* Indikator garis bawah */
+  background-color: rgb(225, 240, 255) !important;
 }
 
-/* Hilangkan border kiri kanan seleksi agar bersih */
 .selected-row td {
   border-top: 1px solid rgba(33, 150, 243, 0.6) !important;
   border-bottom: 1px solid rgba(33, 150, 243, 0.6) !important;
