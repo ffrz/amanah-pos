@@ -11,6 +11,7 @@ import CheckBox from "@/components/CheckBox.vue";
 import BarcodeInput from "@/components/BarcodeInput.vue";
 import SupplierAutocomplete from "@/components/SupplierAutocomplete.vue";
 import ProductCategoryAutocomplete from "@/components/ProductCategoryAutocomplete.vue";
+import ProductBrandAutocomplete from "@/components/ProductBrandAutocomplete.vue";
 import UomAutocomplete from "@/components/UomAutocomplete.vue";
 
 // Import komponen pricing (sesuaikan path)
@@ -36,6 +37,7 @@ const form = useForm({
   id: page.props.data.id,
   category_id: page.props.data.category_id,
   supplier_id: page.props.data.supplier_id,
+  brand_id: page.props.data.brand_id,
   type: page.props.data.type || "",
   name: page.props.data.name || "",
   description: page.props.data.description || "",
@@ -216,6 +218,11 @@ onMounted(() => {
                   <ProductCategoryAutocomplete
                     v-model:modelValue="form.category_id"
                     :categories="page.props.categories"
+                    label="Kategori"
+                  />
+                  <ProductBrandAutocomplete
+                    v-model:modelValue="form.brand_id"
+                    :brands="page.props.brands"
                     label="Kategori"
                   />
                   <SupplierAutocomplete
