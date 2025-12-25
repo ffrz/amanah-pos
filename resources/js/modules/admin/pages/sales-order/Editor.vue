@@ -438,6 +438,7 @@ const handlePayment = (data) => {
       } else if (after_payment_action === "new-order") {
         router.get(route("admin.sales-order.add"));
       }
+      showPaymentDialog.value = false;
       return;
     })
     .catch((error) => {
@@ -722,7 +723,7 @@ const focusToUserInput = () => {
         :customer="customer"
         @save="updateItem()"
         @hide="focusToUserInput"
-        :is-processing="isProcessing"
+        :isParentProcessing="isProcessing"
       />
       <PaymentDialog
         v-model="showPaymentDialog"
@@ -730,6 +731,7 @@ const focusToUserInput = () => {
         :form="form"
         :customer="customer"
         :total="total"
+        :isParentProcessing="isProcessing"
         :accounts="page.props.accounts"
       />
       <ProductBrowserDialog
