@@ -3,7 +3,6 @@ import { formatNumber } from "@/helpers/formatter";
 import { ref, computed, nextTick, reactive, onMounted, onUnmounted } from "vue";
 import { usePage } from "@inertiajs/vue3";
 import LocaleNumberInput from "@/components/LocaleNumberInput.vue";
-import { QSelect, QBtnToggle } from "quasar";
 import DatePicker from "@/components/DatePicker.vue";
 import { date as QuasarDate } from "quasar";
 
@@ -223,15 +222,17 @@ onUnmounted(() => {
         </div>
 
         <q-slide-transition>
-          <div v-if="isDebtNeeded && customer" class="q-mt-sm">
-            <DatePicker
-              outlined
-              dense
-              v-model="debtDueDate"
-              label="Jatuh Tempo Hutang"
-              :min-date="today"
-            />
-          </div>
+          <template v-if="isDebtNeeded && customer">
+            <div class="q-mt-sm">
+              <DatePicker
+                outlined
+                dense
+                v-model="debtDueDate"
+                label="Jatuh Tempo Hutang"
+                :minDate="new Date()"
+              />
+            </div>
+          </template>
         </q-slide-transition>
       </q-card-section>
 

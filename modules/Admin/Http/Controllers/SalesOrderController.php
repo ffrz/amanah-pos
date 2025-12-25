@@ -66,6 +66,13 @@ class SalesOrderController extends Controller
 
         $order = $this->service->findOrderOrFail($id);
         $this->authorize("update", $order);
+
+        if ($id && $order->status !== SalesOrder::Status_Draft) {
+            return redirect()
+                ->route('admin.sales-order.detail', $id)
+                ->with('warning', 'Transaksi sudah selesai tidak dapat diedit!');
+        }
+
         $order = $this->service->editOrder($order);
 
         /** @var \App\Models\User $user */
