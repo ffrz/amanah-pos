@@ -105,22 +105,39 @@ const getWatermarkClass = () => {
       </div>
     </template>
     <template #right-button>
-      <q-btn
-        icon="receipt"
-        dense
-        color="primary"
+      <q-btn-dropdown
+        split
         flat
         rounded
-        @click="print('58mm')"
-      />
-      <q-btn
+        dense
+        color="primary"
         icon="print"
-        dense
-        color="primary"
-        flat
-        rounded
-        @click="print('a4')"
-      />
+        @click="print('58mm')"
+      >
+        <q-list>
+          <q-item clickable v-close-popup @click="print('58mm')">
+            <q-item-section avatar>
+              <q-icon name="receipt" color="grey-7" />
+            </q-item-section>
+            <q-item-section>Struk 58mm</q-item-section>
+          </q-item>
+
+          <q-item clickable v-close-popup @click="print('80mm')">
+            <q-item-section avatar>
+              <q-icon name="receipt" color="grey-7" />
+            </q-item-section>
+            <q-item-section>Struk 80mm</q-item-section>
+          </q-item>
+
+          <q-item clickable v-close-popup @click="print('a4')">
+            <q-item-section avatar>
+              <q-icon name="description" color="grey-7" />
+            </q-item-section>
+            <q-item-section>Kertas A4 (PDF)</q-item-section>
+          </q-item>
+        </q-list>
+      </q-btn-dropdown>
+
       <q-btn
         v-if="!isPreview"
         class="q-ml-sm"
