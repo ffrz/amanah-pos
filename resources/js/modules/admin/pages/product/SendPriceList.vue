@@ -13,6 +13,7 @@ const page = usePage();
 const generatedMessage = ref("");
 const messageInputRef = ref(null);
 const selectedCategory = ref(null);
+const selectedBrand = ref(null);
 const showWaDialog = ref(false);
 const filteredProducts = ref([]);
 const filteredCustomers = ref([]);
@@ -28,7 +29,7 @@ const categoryOptions = computed(() => {
   const categories =
     page.props.categories?.map((c) => ({
       value: c.id,
-      label: c.name + `${c.code}`,
+      label: c.name,
     })) || [];
   return [{ value: null, label: "Semua Kategori" }, ...categories];
 });
@@ -59,14 +60,26 @@ const baseProductOptions = computed(() => {
   if (selectedCategory.value) {
     products = products.filter((p) => p.category_id === selectedCategory.value);
   }
+  // Tambahkan filter brand di sini
+  if (selectedBrand.value) {
+    products = products.filter((p) => p.brand_id === selectedBrand.value);
+  }
   return products.map((p) => ({ value: p.id, label: p.name }));
 });
-
 const prices = [
   { value: "price_1", label: "Harga Eceran" },
   { value: "price_2", label: "Harga Partai" },
   { value: "price_3", label: "Harga Grosir" },
 ];
+
+const brandOptions = computed(() => {
+  const brands =
+    page.props.brands?.map((b) => ({
+      value: b.id,
+      label: b.name,
+    })) || [];
+  return [{ value: null, label: "Semua Brand" }, ...brands];
+});
 
 // --- FORMATTERS ---
 const formatRupiah = (number) => {
@@ -163,7 +176,8 @@ watch(
   },
   { immediate: true }
 );
-watch(selectedCategory, () => {
+
+watch([selectedCategory, selectedBrand], () => {
   filteredProducts.value = baseProductOptions.value;
 });
 
@@ -240,6 +254,18 @@ onMounted(() => {
                 <div class="text-caption text-grey-7 q-pb-lg">
                   Pilih produk, harga, dan pelanggan tujuan.
                 </div>
+
+                <q-select
+                  v-model="selectedBrand"
+                  :options="brandOptions"
+                  label="Filter Brand"
+                  outlined
+                  dense
+                  emit-value
+                  map-options
+                  class="q-mb-md"
+                  bg-color="blue-1"
+                />
 
                 <q-select
                   v-model="selectedCategory"

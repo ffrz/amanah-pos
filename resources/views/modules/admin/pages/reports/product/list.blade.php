@@ -26,6 +26,7 @@
       'active' => 'Status', // Boolean
       'type' => 'Jenis', // Label/Constant
       'category' => 'Kategori', // Relation
+      'brand' => 'Merk',
       'supplier' => 'Pemasok', // Relation
   ];
 
@@ -87,6 +88,16 @@
             <td style="vertical-align: top">:</td>
             <td>
               {{ implode(', ', array_map(fn($t) => Product::Types[$t] ?? $t, $filter['types'])) }}
+            </td>
+          </tr>
+        @endif
+
+        @if (!empty($filter['brands']))
+          <tr>
+            <td style="vertical-align: top">Merk</td>
+            <td style="vertical-align: top">:</td>
+            <td>
+              {{ $format_filter_list($filter['brands'], $brands, 'id', 'name', 2) }}
             </td>
           </tr>
         @endif
@@ -159,6 +170,8 @@
                     {{ $item->type_label }}
                   @elseif ($col_key == 'category')
                     {{ $item->category->name ?? '-' }}
+                  @elseif ($col_key == 'brand')
+                    {{ $item->brand->name ?? '-' }}
                   @elseif ($col_key == 'supplier')
                     {{ $item->supplier->name ?? '-' }}
                   @else

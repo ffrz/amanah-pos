@@ -72,6 +72,7 @@ class ProductReportController extends BaseController
         'active' => 'Status',
         'type' => 'Jenis',
         'category' => 'Kategori',
+        'brand' => 'Merk',
         'supplier' => 'Pemasok',
     ];
 
@@ -92,6 +93,7 @@ class ProductReportController extends BaseController
         "status"     => "active",
         "types"      => [],
         "categories" => [],
+        "brands"     => [],
         "suppliers"  => [],
     ];
 
@@ -110,9 +112,9 @@ class ProductReportController extends BaseController
     public function index()
     {
         return $this->generateIndexResponse('reports/product/Index', [
-
             'categories' => $this->commonDataService->getProductCategories(),
             'suppliers' => $this->commonDataService->getSuppliers(),
+            'brands' => $this->commonDataService->getActiveBrands(),
         ]);
     }
 
@@ -127,12 +129,15 @@ class ProductReportController extends BaseController
             'filter.categories.*' => 'integer',
             'filter.suppliers' => 'nullable|array',
             'filter.suppliers.*' => 'integer',
+            'filter.brands' => 'nullable|array',
+            'filter.brands.*' => 'integer',
         ]);
 
         $data['filter']['status'] = $data['filter']['status'] ?? 'all';
         $data['filter']['types'] = $data['filter']['types'] ?? [];
         $data['filter']['categories'] = $data['filter']['categories'] ?? [];
         $data['filter']['suppliers'] = $data['filter']['suppliers'] ?? [];
+        $data['filter']['brands'] = $data['filter']['brands'] ?? [];
 
         $q = Product::query();
 
@@ -147,6 +152,16 @@ class ProductReportController extends BaseController
             // Pastikan foreign key-nya ADA di daftar select
             if (!in_array('category_id', $queryColumns)) {
                 $queryColumns[] = 'category_id';
+            }
+        }
+
+        if (in_array('brand', $data['columns'])) {
+            $q->with('brand');
+            // Hapus 'brand' dari daftar select (karena ini bukan kolom di tabel 'products')
+            $queryColumns = array_diff($queryColumns, ['brand']);
+            // Pastikan foreign key-nya ADA di daftar select
+            if (!in_array('brand_id', $queryColumns)) {
+                $queryColumns[] = 'brand_id';
             }
         }
 
@@ -172,6 +187,10 @@ class ProductReportController extends BaseController
 
         if (!empty($filter['categories'])) {
             $q->whereIn('category_id', $filter['categories']);
+        }
+
+        if (!empty($filter['brands'])) {
+            $q->whereIn('brand_id', $filter['brands']);
         }
 
         if (!empty($filter['suppliers'])) {
@@ -202,6 +221,7 @@ class ProductReportController extends BaseController
             $queryColumns[] = 'id';
         }
 
+        $data['brands'] = $this->commonDataService->getActiveBrands();
         $data['categories'] = $this->commonDataService->getProductCategories();
         $data['suppliers']  = $this->commonDataService->getSuppliers();
         $data['query_columns'] = $queryColumns;
@@ -234,6 +254,17 @@ class ProductReportController extends BaseController
             $order = $option['order'];
 
             switch ($column) {
+                case 'brand':
+                    // Cek apakah tabel 'product_brands' sudah di-join
+                    if (!isset($joinedTables['brand'])) {
+                        // LEFT JOIN ke tabel kategori
+                        $q->leftJoin('product_brands', 'products.brand_id', '=', 'product_brands.id');
+                        $joinedTables['brand'] = true;
+                    }
+                    // Urutkan berdasarkan nama kategori
+                    $q->orderBy('product_brands.name', $order);
+                    break;
+
                 case 'category':
                     // Cek apakah tabel 'product_categories' sudah di-join
                     if (!isset($joinedTables['category'])) {

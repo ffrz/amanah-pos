@@ -9,6 +9,7 @@ import { useSupplierFilter } from "@/composables/useSupplierFilter";
 import { formatMoney, formatNumber } from "@/helpers/formatter";
 import { createOptions } from "@/helpers/options";
 import useTableHeight from "@/composables/useTableHeight";
+import { useProductBrandFilter } from "@/composables/useProductBrandFilter";
 
 const page = usePage();
 const tableRef = ref(null);
@@ -39,6 +40,7 @@ const rows = ref([]);
 const loading = ref(true);
 const filter = reactive({
   type: [],
+  brand_id: [],
   category_id: [],
   supplier_id: [],
   status: "active",
@@ -141,6 +143,9 @@ const { filteredCategories, filterCategories } = useProductCategoryFilter(
 );
 const { filteredSuppliers, filterSupplierFn } = useSupplierFilter(
   page.props.suppliers
+);
+const { filteredBrands, filterBrands } = useProductBrandFilter(
+  page.props.brands
 );
 
 const computedColumns = computed(() => {
@@ -323,6 +328,24 @@ const getPriceDisplay = (p1, p2, p3) => {
             emit-value
             outlined
             @update:model-value="onFilterChange"
+          />
+          <q-select
+            v-model="filter.brand_id"
+            label="Merk"
+            class="custom-select col-xs-12 col-sm-2"
+            outlined
+            use-input
+            input-debounce="300"
+            clearable
+            :options="filteredBrands"
+            map-options
+            dense
+            emit-value
+            @filter="filterBrands"
+            style="min-width: 150px"
+            @update:model-value="onFilterChange"
+            multiple
+            use-chips
           />
           <q-select
             v-model="filter.category_id"

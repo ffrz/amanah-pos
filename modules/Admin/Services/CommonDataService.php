@@ -220,6 +220,6 @@ class CommonDataService
         $query = ProductBrand::query()
             ->where('active', true)
             ->orderBy('name');
-        return $query->get();
+        return $query->get(['id', 'name', 'active']);
     }
 }
