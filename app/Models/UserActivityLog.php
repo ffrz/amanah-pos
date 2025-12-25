@@ -61,7 +61,8 @@ class UserActivityLog extends Model
     public const Category_StockAdjustment = 'stock-adjustment';
     public const Category_TaxScheme = 'tax-scheme';
     public const Category_Uom = 'uom';
-    public const Category_Database = 'database'; // <-- BARU
+    public const Category_ProductBrand = 'product-brand';
+    public const Category_Database = 'database';
 
     /**
      * Array pemetaan Kategori untuk tampilan (Opsional, tapi konsisten)
@@ -98,7 +99,8 @@ class UserActivityLog extends Model
         self::Category_StockAdjustment => 'Manajemen Penyesuaian Stok',
         self::Category_TaxScheme => 'Manajemen Skema Pajak',
         self::Category_Uom => 'Manajemen Satuan',
-        self::Category_Database => 'Pengelolaan Database', // <-- BARU
+        self::Category_ProductBrand => 'Manajemen Merk Produk',
+        self::Category_Database => 'Pengelolaan Database',
     ];
 
     /**
@@ -246,10 +248,13 @@ class UserActivityLog extends Model
     public const Name_TaxScheme_Update = 'tax-scheme.update';
     public const Name_TaxScheme_Delete = 'tax-scheme.delete';
 
-    // Uom
     public const Name_Uom_Create = 'uom.create';
     public const Name_Uom_Update = 'uom.update';
     public const Name_Uom_Delete = 'uom.delete';
+
+    public const Name_ProductBrand_Create = 'product-brand.create';
+    public const Name_ProductBrand_Update = 'product-brand.update';
+    public const Name_ProductBrand_Delete = 'product-brand.delete';
 
     /**
      * Array pemetaan Nama Aktivitas
@@ -368,9 +373,13 @@ class UserActivityLog extends Model
         self::Name_TaxScheme_Update => 'Memperbarui Skema Pajak',
         self::Name_TaxScheme_Delete => 'Menghapus Skema Pajak',
 
-        self::Name_Uom_Create => 'Membuat Satuan',
-        self::Name_Uom_Update => 'Memperbarui Satuan',
-        self::Name_Uom_Delete => 'Menghapus Satuan',
+        self::Name_Uom_Create => 'Membuat Satuan Produk',
+        self::Name_Uom_Update => 'Memperbarui Satuan Produk',
+        self::Name_Uom_Delete => 'Menghapus Satuan Produk',
+
+        self::Name_ProductBrand_Create => 'Membuat Merk Produk',
+        self::Name_ProductBrand_Update => 'Memperbarui Merk Produk',
+        self::Name_ProductBrand_Delete => 'Menghapus Merk Produk',
 
         self::Name_CustomerWalletTransaction_Create => 'Membuat Transaksi Deposit Pelanggan',
         self::Name_CustomerWalletTransaction_Update => 'Memperbarui Transaksi Deposit Pelanggan',

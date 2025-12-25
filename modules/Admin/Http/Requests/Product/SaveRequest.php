@@ -31,6 +31,7 @@ class SaveRequest extends FormRequest
         return [
             // --- Product Basic Info ---
             'id' => 'nullable|integer|exists:products,id',
+            'brand_id' => ['nullable', Rule::exists('product_brands', 'id')],
             'category_id' => ['nullable', Rule::exists('product_categories', 'id')],
             'supplier_id' => ['nullable', Rule::exists('suppliers', 'id')],
             'type' => ['nullable', Rule::in(array_keys(Product::Types))],
@@ -107,6 +108,7 @@ class SaveRequest extends FormRequest
         return [
             'category_id.exists' => 'Kategori yang dipilih tidak ditemukan.',
             'supplier_id.exists' => 'Pemasok yang dipilih tidak ditemukan.',
+            'brand_id.exists'    => 'Brand yang dipilih tidak ditemukan.',
             'name.unique'        => 'Nama produk sudah digunakan.',
 
             'product_units.*.name.required_with' => 'Nama satuan tambahan harus diisi.',

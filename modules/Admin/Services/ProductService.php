@@ -56,12 +56,14 @@ class ProductService
         $query = Product::query()->with([
             'supplier:id,code,name',
             'category:id,name',
+            'brand:id,name',
             'productUnits' => fn($q) => $q->where('is_base_unit', false)->orderBy('conversion_factor', 'asc')
         ])
             ->select([
                 'id',
                 'type',
                 'supplier_id',
+                'brand_id',
                 'category_id',
                 'name',
                 'cost',

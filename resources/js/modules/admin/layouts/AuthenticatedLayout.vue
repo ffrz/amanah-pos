@@ -620,6 +620,21 @@ defineExpose({
                 <q-item-label>Satuan Produk</q-item-label>
               </q-item-section>
             </q-item>
+            <q-item
+              v-if="$can('admin.product-brand.index')"
+              class="subnav"
+              clickable
+              v-ripple
+              :active="$page.url.startsWith('/admin/product-brands')"
+              @click="router.get(route('admin.product-brand.index'))"
+            >
+              <q-item-section avatar>
+                <q-icon name="brand_family" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Merk Produk</q-item-label>
+              </q-item-section>
+            </q-item>
           </q-expansion-item>
 
           <q-item

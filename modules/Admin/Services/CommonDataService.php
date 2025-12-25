@@ -20,6 +20,7 @@ use App\Models\FinanceTransactionCategory;
 use App\Models\FinanceTransactionTag;
 use App\Models\OperationalCostCategory;
 use App\Models\Product;
+use App\Models\ProductBrand;
 use App\Models\Supplier;
 use App\Models\Uom;
 use App\Models\User;
@@ -212,5 +213,13 @@ class CommonDataService
             ->orderBy('name');
 
         return $query->get($fields);
+    }
+
+    public function getActiveBrands()
+    {
+        $query = ProductBrand::query()
+            ->where('active', true)
+            ->orderBy('name');
+        return $query->get();
     }
 }
