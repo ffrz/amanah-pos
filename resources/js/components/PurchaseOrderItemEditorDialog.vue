@@ -231,22 +231,12 @@ const onShow = () => {
     @update:model-value="(val) => $emit('update:modelValue', val)"
     @show="onShow"
     @hide="$emit('hide')"
+    persistent
   >
     <q-card style="width: 100%; max-width: 500px">
       <q-card-section class="q-py-sm">
         <div class="row items-center no-wrap">
-          <div class="col text-subtite text-bold text-grey-8">
-            Edit Item Pembelian
-          </div>
-          <div class="col-auto">
-            <q-btn
-              flat
-              size="sm"
-              round
-              icon="close"
-              @click="$emit('update:modelValue', false)"
-            />
-          </div>
+          <div class="col text-subtite text-bold text-grey-8">Edit Item</div>
         </div>
       </q-card-section>
 
