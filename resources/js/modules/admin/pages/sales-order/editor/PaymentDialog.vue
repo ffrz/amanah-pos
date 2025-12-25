@@ -12,12 +12,12 @@ const props = defineProps({
   form: { type: Object, required: true },
   customer: { type: Object, required: false },
   total: { type: Number, required: true },
+  isParentProcessing: { type: Boolean, required: true },
 });
 
 const emit = defineEmits(["update:modelValue", "accepted"]);
 
 const page = usePage();
-const isProcessing = ref(false);
 const debtDueDate = ref(new Date());
 const nextAction = ref(page.props.settings.after_payment_action ?? "print");
 const showOtherPayments = ref(false);
@@ -27,12 +27,6 @@ const payments = reactive([]);
 const defaultMode = computed(
   () => page.props.settings.default_payment_mode || "cash"
 );
-
-const nextActionOptions = [
-  { value: "print", label: "Cetak" },
-  { value: "detail", label: "Rincian" },
-  { value: "new-order", label: "Penjualan Baru" },
-];
 
 const totalPayment = computed(() => {
   return payments.reduce((sum, p) => sum + (p.amount || 0.0), 0.0);
@@ -73,7 +67,6 @@ const isValid = computed(() => {
 
 const handleFinalizePayment = () => {
   if (!isValid.value) return;
-  isProcessing.value = true;
   const activePayments = payments
     .filter((p) => p.amount > 0)
     .map((p) => ({ id: p.id, amount: p.amount }));
@@ -90,7 +83,6 @@ const handleFinalizePayment = () => {
       ? QuasarDate.formatDate(debtDueDate.value, "YYYY-MM-DD")
       : null,
   });
-  isProcessing.value = false;
 };
 
 const onShow = () => {
@@ -130,8 +122,30 @@ const onShow = () => {
 };
 
 const handleKeyDown = (e) => {
-  if (props.modelValue && e.key === "Escape") emit("update:modelValue", false);
+  if (props.modelValue && e.key === "Escape") {
+    emit("update:modelValue", false);
+  }
 };
+
+const keydownHandler = (e) => {
+  if (!props.modelValue) {
+    // abaikan kalau dialog tidak sedang tampil
+    return;
+  }
+
+  if (e.ctrlKey && e.key === "Enter") {
+    e.preventDefault();
+    handleFinalizePayment();
+  }
+};
+
+onMounted(() => {
+  document.addEventListener("keydown", keydownHandler);
+});
+
+onUnmounted(() => {
+  document.removeEventListener("keydown", keydownHandler);
+});
 </script>
 
 <template>
@@ -168,7 +182,7 @@ const handleKeyDown = (e) => {
               :label="payment.label"
               dense
               outlined
-              :disable="isProcessing"
+              :disable="isParentProcessing"
               :error="payment.id === 'wallet' && !isWalletAmountValid"
               hide-bottom-space
               :ref="(el) => (paymentInputRefs[index] = el)"
@@ -228,12 +242,12 @@ const handleKeyDown = (e) => {
           </div>
           <div class="col-8">
             <q-btn
-              label="Proses (Ctrl+Enter)"
+              label="Proses"
               color="primary"
               unelevated
               @click="handleFinalizePayment"
-              :disable="isProcessing || !isValid"
-              :loading="isProcessing"
+              :disable="isParentProcessing || !isValid"
+              :loading="isParentProcessing"
               class="full-width"
             />
           </div>
