@@ -133,7 +133,7 @@ const getWatermarkClass = () => {
             <q-item-section avatar>
               <q-icon name="description" color="grey-7" />
             </q-item-section>
-            <q-item-section>Kertas A4 (PDF)</q-item-section>
+            <q-item-section>Kertas A4</q-item-section>
           </q-item>
         </q-list>
       </q-btn-dropdown>
