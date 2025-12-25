@@ -12,7 +12,7 @@ const props = defineProps({
     required: false,
     default: () => ({ default_price_type: "price_1" }),
   },
-  isProcessing: { type: Boolean, required: false },
+  isParentProcessing: { type: Boolean, required: false },
 });
 
 const emit = defineEmits(["update:modelValue", "save", "hide"]);
@@ -215,20 +215,12 @@ const onShow = () => {
     @update:model-value="(v) => emit('update:modelValue', v)"
     @show="onShow"
     @hide="emit('hide')"
+    persistent
   >
     <q-card style="width: 500px; max-width: 90vw">
       <q-card-section class="q-py-sm">
         <div class="row items-center no-wrap">
           <div class="col text-subtitle1 text-bold text-grey-8">Edit Item</div>
-          <div class="col-auto">
-            <q-btn
-              flat
-              size="sm"
-              round
-              icon="close"
-              @click="emit('update:modelValue', false)"
-            />
-          </div>
         </div>
       </q-card-section>
 
@@ -261,6 +253,7 @@ const onShow = () => {
               map-options
               hide-bottom-space
               :loading="isLoadingUnits"
+              :disable="isParentProcessing"
               @update:model-value="onUnitChange"
               @popup-show="isUnitMenuOpen = true"
               @popup-hide="isUnitMenuOpen = false"
@@ -290,6 +283,7 @@ const onShow = () => {
           v-model="item.price"
           label="Harga (Rp)"
           hide-bottom-space
+          :disable="isParentProcessing"
           :readonly="
             !(
               item.product?.price_editable ||
@@ -314,16 +308,19 @@ const onShow = () => {
           maxlength="50"
           hide-bottom-space
           clearable
+          :disable="isParentProcessing"
         />
       </q-card-section>
 
       <q-card-actions align="right">
-        <q-btn label="Batal" v-close-popup />
+        <q-btn label="Batal" v-close-popup :disable="isParentProcessing" />
         <q-btn
           ref="saveBtn"
           label="Simpan"
           color="primary"
           @click="handleSave"
+          :disable="isParentProcessing"
+          :loading="isParentProcessing"
         />
       </q-card-actions>
     </q-card>
