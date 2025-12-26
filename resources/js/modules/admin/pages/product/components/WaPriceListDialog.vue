@@ -1,6 +1,7 @@
 <script setup>
 import { ref, watch } from "vue";
 import { useQuasar, copyToClipboard } from "quasar";
+import { cleanPhoneNumber, formatPhoneNumber } from "@/helpers/formatter"; // <--- AREA UBAHAN 1: Import Helper
 
 const props = defineProps({
   modelValue: Boolean,
@@ -32,16 +33,9 @@ const copyMessage = () => {
 };
 
 const sendToWa = (phoneNumber) => {
-  if (!phoneNumber) return;
-
-  // Standarisasi nomor WA
-  let cleanPhone = phoneNumber.replace(/\D/g, "");
-  if (cleanPhone.startsWith("0")) {
-    cleanPhone = "62" + cleanPhone.substring(1);
-  }
-  if (cleanPhone.startsWith("8")) {
-    cleanPhone = "62" + cleanPhone;
-  }
+  // AREA UBAHAN 2: Menggunakan helper cleanPhoneNumber
+  const cleanPhone = cleanPhoneNumber(phoneNumber);
+  if (!cleanPhone) return;
 
   const encodedMsg = encodeURIComponent(localMessage.value);
   window.open(`https://wa.me/${cleanPhone}?text=${encodedMsg}`, "_blank");
@@ -82,16 +76,18 @@ const sendToWa = (phoneNumber) => {
           <q-item v-for="c in customers" :key="c.value" dense class="q-py-sm">
             <q-item-section>
               <q-item-label class="text-bold">{{ c.label }}</q-item-label>
-              <q-item-label caption :class="!c.phone ? 'text-red' : ''">
-                {{ c.phone || "Nomor WA tidak tersedia" }}
+              <q-item-label
+                caption
+                :class="!cleanPhoneNumber(c.phone) ? 'text-red' : ''"
+              >
+                {{ formatPhoneNumber(c.phone) }}
               </q-item-label>
             </q-item-section>
             <q-item-section side>
               <q-btn
-                :label="c.phone ? 'Kirim' : 'No WA'"
-                :color="c.phone ? 'green-8' : 'grey-5'"
-                :icon="c.phone ? 'lab la-whatsapp' : 'warning'"
-                :disable="!c.phone"
+                label="Kirim"
+                color="primary"
+                :disable="!cleanPhoneNumber(c.phone)"
                 size="sm"
                 unelevated
                 @click="sendToWa(c.phone)"
