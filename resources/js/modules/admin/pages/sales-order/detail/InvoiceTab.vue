@@ -6,9 +6,16 @@ import {
   formatNumber,
   formatNumberWithSymbol,
 } from "@/helpers/formatter";
+import { computed } from "vue";
 
 const props = defineProps({
   data: Object,
+});
+
+const total = computed(() => {
+  return (
+    parseFloat(props.data.grand_total) + parseFloat(props.data.total_discount)
+  );
 });
 </script>
 
@@ -235,21 +242,22 @@ const props = defineProps({
             </div>
           </div>
         </template>
-        <div class="row justify-end q-gutter-y-xs">
+        <div
+          v-if="total != parseFloat(data.grand_total)"
+          class="row justify-end q-gutter-y-xs"
+        >
           <div class="col-12 row justify-between">
             <div class="text-subtitle2 text-grey-7">Total</div>
             <div class="text-subtitle2 text-bold">
               Rp
-              {{
-                formatNumber(
-                  parseFloat(props.data.grand_total) +
-                    parseFloat(props.data.total_discount)
-                )
-              }}
+              {{ formatNumber(total) }}
             </div>
           </div>
         </div>
-        <div class="row justify-end q-gutter-y-xs text-negative">
+        <div
+          v-if="props.data.total_discount != 0"
+          class="row justify-end q-gutter-y-xs text-negative"
+        >
           <div class="col-12 row justify-between">
             <div class="text-subtitle2">Diskon Akhir</div>
             <div class="text-subtitle2 text-bold">

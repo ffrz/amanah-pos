@@ -99,16 +99,20 @@
           <hr style="margin: 4px 0;">
         </td>
       </tr>
-      <tr>
-        <td class="text-right">
-          <b>Total: Rp. {{ format_number($item->grand_total + $item->total_discount) }}</b>
-        </td>
-      </tr>
-      <tr>
-        <td class="text-right">
-          <b>Diskon Akhir: Rp. -{{ format_number($item->total_discount) }}</b>
-        </td>
-      </tr>
+      @if ($item->grand_total + $item->total_discount != $item->grand_total)
+        <tr>
+          <td class="text-right">
+            <b>Total: Rp. {{ format_number($item->grand_total + $item->total_discount) }}</b>
+          </td>
+        </tr>
+      @endif
+      @if ($item->total_discount != 0)
+        <tr>
+          <td class="text-right">
+            <b>Diskon Akhir: Rp. -{{ format_number($item->total_discount) }}</b>
+          </td>
+        </tr>
+      @endif
       <tr>
         <td class="text-right">
           <b>Grand Total: Rp. {{ format_number(abs($item->grand_total)) }}</b>
