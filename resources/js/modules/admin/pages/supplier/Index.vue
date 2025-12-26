@@ -5,7 +5,7 @@ import { handleDelete, handleFetchItems } from "@/helpers/client-req-handler";
 import { getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
 import useTableHeight from "@/composables/useTableHeight";
-import { formatNumber } from "@/helpers/formatter";
+import { formatNumber, formatPhoneNumber } from "@/helpers/formatter";
 import { useTableClickProtection } from "@/composables/useTableClickProtection";
 
 const title = "Pemasok";
@@ -245,7 +245,8 @@ const computedColumns = computed(() => {
                   {{ formatNumber(props.row.wallet_balance) }}
                 </div>
                 <div v-if="props.row.phone_1">
-                  <q-icon name="phone" /> {{ props.row.phone_1 }}
+                  <q-icon name="phone" />
+                  {{ formatPhoneNumber(props.row.phone_1) }}
                 </div>
                 <div v-if="props.row.address">
                   <q-icon name="home_pin" /> {{ props.row.address }}
@@ -276,7 +277,7 @@ const computedColumns = computed(() => {
               </div>
             </q-td>
             <q-td key="phone_1" :props="props">
-              {{ props.row.phone_1 }}
+              {{ formatPhoneNumber(props.row.phone_1) }}
             </q-td>
             <q-td key="address" :props="props">
               {{ props.row.address }}

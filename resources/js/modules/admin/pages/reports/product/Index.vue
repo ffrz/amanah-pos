@@ -5,12 +5,16 @@ import { createOptions } from "@/helpers/options";
 import { usePage } from "@inertiajs/vue3";
 import { useProductCategoryFilter } from "@/composables/useProductCategoryFilter";
 import { useSupplierFilter } from "@/composables/useSupplierFilter";
+import { useProductBrandFilter } from "@/composables/useProductBrandFilter";
 
 const page = usePage();
 const title = "Laporan Produk";
 
 const options = page.props.options;
 
+const { filteredBrands, filterBrands } = useProductBrandFilter(
+  page.props.brands
+);
 const { filteredCategories, filterCategories } = useProductCategoryFilter(
   page.props.categories
 );
@@ -58,6 +62,18 @@ const typeOptions = createOptions(window.CONSTANTS.PRODUCT_TYPES);
           multiple
           use-chips
           clearable
+        />
+        <q-select
+          label="Merk"
+          v-model="form.filter.brands"
+          :options="filteredBrands"
+          @filter="filterBrands"
+          map-options
+          emit-value
+          use-input
+          clearable
+          multiple
+          use-chips
         />
         <q-select
           label="Kategori"

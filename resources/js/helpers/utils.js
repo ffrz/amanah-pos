@@ -30,7 +30,7 @@ export async function scrollToFirstErrorField(ref) {
  */
 export function waMeUrl(phone, message = "") {
   // 1. Validasi
-  if (!phone || typeof phone !== "string" || phone.length > 15) {
+  if (!phone || typeof phone !== "string" || phone.length > 16) {
     return "#";
   }
 

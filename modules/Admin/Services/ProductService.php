@@ -118,6 +118,15 @@ class ProductService
             });
         }
 
+        if (isset($filter['brand_id']) && is_array($filter['brand_id'])) {
+            $brands = $filter['brand_id'];
+            $query->where(function ($q) use ($brands) {
+                foreach ($brands as $brand) {
+                    $q->orWhere('brand_id', '=', $brand);
+                }
+            });
+        }
+
         // Filter by supplier
         if (isset($filter['supplier_id']) && $filter['supplier_id'] != 'all') {
             $suppliers = $filter['supplier_id'];

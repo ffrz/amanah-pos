@@ -54,6 +54,7 @@ class ProductController extends Controller
         return Inertia::render('product/Index', [
             'categories' => $this->commonDataService->getProductCategories(),
             'suppliers' => $this->commonDataService->getSuppliers(),
+            'brands' => $this->commonDataService->getActiveBrands(),
         ]);
     }
 
@@ -185,12 +186,14 @@ class ProductController extends Controller
         }
 
         return inertia('product/SendPriceList', [
+            'brands' => $this->commonDataService->getActiveBrands(),
             'customers' => $this->commonDataService->getCustomers(['id', 'code', 'name', 'phone']),
             'categories' => $this->commonDataService->getProductCategories(),
             'products' => \App\Models\Product::query()
-                ->select('id', 'name', 'category_id', 'uom', 'price_1', 'price_2', 'price_3')
+                ->select('id', 'name', 'brand_id', 'category_id', 'uom', 'price_1', 'price_2', 'price_3')
                 ->with([
                     'category:id,name',
+                    'brand:id,name',
                     'productUnits:id,product_id,name,price_1,price_2,price_3' // 'name' di sini adalah UOM (misal: DUS)
                 ])
                 ->where('active', true)

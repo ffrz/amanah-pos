@@ -1,18 +1,16 @@
 <script setup>
-import { scrollToFirstErrorField } from "@/helpers/utils";
 import { router, useForm, usePage } from "@inertiajs/vue3";
 import { computed, ref, watch, onMounted } from "vue";
 import { useQuasar } from "quasar";
 import WaPriceListDialog from "./components/WaPriceListDialog.vue";
 
-const $q = useQuasar();
 const title = "Kirim Daftar Harga";
 const page = usePage();
 
 // --- STATE ---
 const generatedMessage = ref("");
-const messageInputRef = ref(null);
 const selectedCategory = ref(null);
+const selectedBrand = ref(null);
 const showWaDialog = ref(false);
 const filteredProducts = ref([]);
 const filteredCustomers = ref([]);
@@ -28,7 +26,7 @@ const categoryOptions = computed(() => {
   const categories =
     page.props.categories?.map((c) => ({
       value: c.id,
-      label: c.name + `${c.code}`,
+      label: c.name,
     })) || [];
   return [{ value: null, label: "Semua Kategori" }, ...categories];
 });
@@ -36,12 +34,6 @@ const categoryOptions = computed(() => {
 const allProductsMap = computed(() => {
   const map = new Map();
   page.props.products?.forEach((p) => map.set(p.id, p));
-  return map;
-});
-
-const allCustomersMap = computed(() => {
-  const map = new Map();
-  page.props.customers?.filter((c) => c.phone).forEach((c) => map.set(c.id, c));
   return map;
 });
 
@@ -59,6 +51,9 @@ const baseProductOptions = computed(() => {
   if (selectedCategory.value) {
     products = products.filter((p) => p.category_id === selectedCategory.value);
   }
+  if (selectedBrand.value) {
+    products = products.filter((p) => p.brand_id === selectedBrand.value);
+  }
   return products.map((p) => ({ value: p.id, label: p.name }));
 });
 
@@ -68,21 +63,16 @@ const prices = [
   { value: "price_3", label: "Harga Grosir" },
 ];
 
+const brandOptions = computed(() => {
+  const brands =
+    page.props.brands?.map((b) => ({
+      value: b.id,
+      label: b.name,
+    })) || [];
+  return [{ value: null, label: "Semua Merk" }, ...brands];
+});
+
 // --- FORMATTERS ---
-const formatRupiah = (number) => {
-  if (!number) return "Rp. 0";
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-  }).format(number);
-};
-
-const getPriceLabel = (value) =>
-  prices.find((p) => p.value === value)?.label || value;
-
-// --- LOGIC MESSAGE ---
-// Helper label tanpa awalan 'H'
 const getShortPriceLabel = (value) => {
   const map = {
     price_1: "Eceran",
@@ -112,24 +102,19 @@ const plainTextContent = computed(() => {
 
     textContent += `*${p.name.toUpperCase()}*\n`;
 
-    // Ambil nama base UOM untuk pengecekan duplikat (case-insensitive)
     const baseUomName = p.uom ? p.uom.toLowerCase().trim() : "";
 
     form.price_types.forEach((type) => {
       const priceLines = [];
 
-      // 1. Ambil Harga Satuan Utama (Base)
       const baseVal = parseFloat(p[type]);
       if (baseVal > 0) {
         priceLines.push(`${formatSimpleNumber(baseVal)} / ${p.uom}`);
       }
 
-      // 2. Ambil Harga dari Satuan Lainnya (Multi UOM)
       if (p.product_units?.length > 0) {
         p.product_units.forEach((unit) => {
           const unitUomName = unit.name ? unit.name.toLowerCase().trim() : "";
-
-          // CEK DUPLIKAT: Jangan tampilkan jika nama UOM sama dengan Base UOM
           if (unitUomName === baseUomName) return;
 
           const unitVal = parseFloat(unit[type]);
@@ -139,7 +124,6 @@ const plainTextContent = computed(() => {
         });
       }
 
-      // Tampilkan baris per jenis harga: "Grosir: 1.000 / m, 200.000 / roll"
       if (priceLines.length > 0) {
         textContent += `${getShortPriceLabel(type)}: ${priceLines.join(
           ", "
@@ -163,16 +147,37 @@ watch(
   },
   { immediate: true }
 );
-watch(selectedCategory, () => {
-  filteredProducts.value = baseProductOptions.value;
+
+// AREA UBAHAN: Menghilangkan item yang sudah terpilih saat filter kategori/brand berubah
+watch([selectedCategory, selectedBrand], () => {
+  const selectedIds = form.products.map((p) => p.value);
+  filteredProducts.value = baseProductOptions.value.filter(
+    (v) => !selectedIds.includes(v.value)
+  );
 });
+
+// AREA UBAHAN: Watch form.products agar daftar dropdown terupdate saat item dihapus dari chip
+watch(
+  () => form.products,
+  (newVal) => {
+    const selectedIds = newVal.map((p) => p.value);
+    filteredProducts.value = baseProductOptions.value.filter(
+      (v) => !selectedIds.includes(v.value)
+    );
+  },
+  { deep: true }
+);
 
 // --- FILTER & SUBMIT ---
 const filterProducts = (val, update) => {
   update(() => {
     const needle = val.toLowerCase();
-    filteredProducts.value = baseProductOptions.value.filter((v) =>
-      v.label.toLowerCase().includes(needle)
+    const selectedIds = form.products.map((p) => p.value); // Ambil ID yang sudah terpilih
+
+    // AREA UBAHAN: Tambahkan kondisi !selectedIds.includes(v.value)
+    filteredProducts.value = baseProductOptions.value.filter(
+      (v) =>
+        v.label.toLowerCase().includes(needle) && !selectedIds.includes(v.value)
     );
   });
 };
@@ -187,27 +192,16 @@ const filterCustomers = (val, update) => {
 };
 
 const submit = () => {
-  // 1. Simpan Log ke database di background
   showWaDialog.value = true;
-
-  // Kita nonaktifkan dulu karena belum ada wa gateway
-  // form
-  //   .transform((data) => ({
-  //     customers: data.customers.map((c) => c.value),
-  //     message: generatedMessage.value,
-  //   }))
-  //   .post(route("admin.product.send-price-list"), {
-  //     onSuccess: () => {
-  //       // 2. Tampilkan dialog kirim manual setelah log berhasil disimpan
-  //       showWaDialog.value = true;
-  //     },
-  //     onError: () => scrollToFirstErrorField(),
-  //   });
 };
 
 onMounted(() => {
-  filteredProducts.value = baseProductOptions.value;
-  filteredCustomers.value = allCustomersOptions.value;
+  // AREA UBAHAN: Inisialisasi awal dengan membuang item yang mungkin sudah ada di form.products
+  const selectedIds = form.products.map((p) => p.value);
+  filteredProducts.value = baseProductOptions.value.filter(
+    (v) => !selectedIds.includes(v.value)
+  );
+  filteredCustomers.value = allCustomersOptions.value.filter((v) => v);
 });
 </script>
 
@@ -241,19 +235,28 @@ onMounted(() => {
                   Pilih produk, harga, dan pelanggan tujuan.
                 </div>
 
-                <q-select
-                  v-model="selectedCategory"
-                  :options="categoryOptions"
-                  label="Filter Kategori"
-                  outlined
-                  dense
-                  emit-value
-                  map-options
-                  class="q-mb-md"
-                  bg-color="blue-1"
-                />
-
                 <div class="q-gutter-y-sm">
+                  <q-select
+                    v-model="selectedBrand"
+                    :options="brandOptions"
+                    label="Filter Merk"
+                    outlined
+                    dense
+                    emit-value
+                    map-options
+                    hide-bottom-space
+                  />
+
+                  <q-select
+                    v-model="selectedCategory"
+                    :options="categoryOptions"
+                    label="Filter Kategori"
+                    outlined
+                    dense
+                    emit-value
+                    map-options
+                  />
+
                   <q-select
                     v-model="form.products"
                     :options="filteredProducts"
@@ -272,17 +275,11 @@ onMounted(() => {
                         dense
                         class="q-py-none q-px-sm"
                       >
-                        <q-item-section side
-                          ><q-checkbox
-                            dense
-                            :model-value="scope.selected"
-                            @update:model-value="scope.toggleOption(scope.opt)"
-                        /></q-item-section>
-                        <q-item-section
-                          ><q-item-label class="text-caption">{{
-                            scope.opt.label
-                          }}</q-item-label></q-item-section
-                        >
+                        <q-item-section>
+                          <q-item-label class="text-caption">
+                            {{ scope.opt.label }}
+                          </q-item-label>
+                        </q-item-section>
                       </q-item>
                     </template>
                   </q-select>
@@ -304,17 +301,18 @@ onMounted(() => {
                         dense
                         class="q-py-none q-px-sm"
                       >
-                        <q-item-section side
-                          ><q-checkbox
+                        <q-item-section side>
+                          <q-checkbox
                             dense
                             :model-value="scope.selected"
                             @update:model-value="scope.toggleOption(scope.opt)"
-                        /></q-item-section>
-                        <q-item-section
-                          ><q-item-label class="text-caption">{{
-                            scope.opt.label
-                          }}</q-item-label></q-item-section
-                        >
+                          />
+                        </q-item-section>
+                        <q-item-section>
+                          <q-item-label class="text-caption">
+                            {{ scope.opt.label }}
+                          </q-item-label>
+                        </q-item-section>
                       </q-item>
                     </template>
                   </q-select>
@@ -336,17 +334,18 @@ onMounted(() => {
                         dense
                         class="q-py-none q-px-sm"
                       >
-                        <q-item-section side
-                          ><q-checkbox
+                        <q-item-section side>
+                          <q-checkbox
                             dense
                             :model-value="scope.selected"
                             @update:model-value="scope.toggleOption(scope.opt)"
-                        /></q-item-section>
-                        <q-item-section
-                          ><q-item-label class="text-caption">{{
-                            scope.opt.label
-                          }}</q-item-label></q-item-section
-                        >
+                          />
+                        </q-item-section>
+                        <q-item-section>
+                          <q-item-label class="text-caption">
+                            {{ scope.opt.label }}
+                          </q-item-label>
+                        </q-item-section>
                       </q-item>
                     </template>
                   </q-select>
