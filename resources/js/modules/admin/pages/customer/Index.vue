@@ -4,7 +4,7 @@ import { router } from "@inertiajs/vue3";
 import { handleDelete, handleFetchItems } from "@/helpers/client-req-handler";
 import { getQueryParams } from "@/helpers/utils";
 import { useQuasar } from "quasar";
-import { formatNumber } from "@/helpers/formatter";
+import { formatNumber, formatPhoneNumber } from "@/helpers/formatter";
 import LongTextView from "@/components/LongTextView.vue";
 import useTableHeight from "@/composables/useTableHeight";
 import { useTableClickProtection } from "@/composables/useTableClickProtection";
@@ -257,7 +257,8 @@ const computedColumns = computed(() => {
                   {{ props.row.name }}
                 </div>
                 <div v-if="props.row.phone">
-                  <q-icon name="phone" /> {{ props.row.phone }}
+                  <q-icon name="phone" />
+                  {{ formatPhoneNumber(props.row.phone) }}
                 </div>
                 <LongTextView
                   v-if="props.row.address"
@@ -284,7 +285,7 @@ const computedColumns = computed(() => {
               {{ formatNumber(props.row.balance) }}
             </q-td>
             <q-td key="phone" :props="props">
-              {{ props.row.phone }}
+              {{ formatPhoneNumber(props.row.phone) }}
             </q-td>
             <q-td key="address" :props="props">
               <LongTextView :text="props.row.address" />

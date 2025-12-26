@@ -76,3 +76,44 @@ export function formatTimeForEditing(val = new Date(), fmt = "HH:mm:ss") {
 export function formatDateTimeFromNow(val) {
   return dayjs(val).fromNow();
 }
+
+
+/**
+ * Membersihkan nomor telepon agar hanya berisi angka dan berawalan 62
+ * Contoh: +62 857-7558 -> 628577558
+ */
+export const cleanPhoneNumber = (phone) => {
+  if (!phone) return "";
+
+  let cleaned = phone.toString().replace(/\D/g, "");
+
+  if (cleaned.startsWith("0")) {
+    cleaned = "62" + cleaned.substring(1);
+  } else if (cleaned.startsWith("8")) {
+    cleaned = "62" + cleaned;
+  }
+
+  return cleaned;
+};
+
+/**
+ * Memformat nomor telepon menjadi standar cantik: +62 8xx-xxxx-xxxx
+ */
+export const formatPhoneNumber = (phone) => {
+  const cleaned = cleanPhoneNumber(phone);
+  if (!cleaned) return "-";
+
+  // Jika format tidak sesuai standar minimal (misal nomor telp kantor pendek)
+  if (cleaned.length < 10) return `+${cleaned}`;
+
+  const country = cleaned.substring(0, 2); // 62
+  const prefix = cleaned.substring(2, 5);  // 8xx
+  const middle = cleaned.substring(5, 9);  // xxxx
+  const end = cleaned.substring(9);       // xxxx...
+
+  let formatted = `+${country} ${prefix}`;
+  if (middle) formatted += `-${middle}`;
+  if (end) formatted += `-${end}`;
+
+  return formatted;
+};
