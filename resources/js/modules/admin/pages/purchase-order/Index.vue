@@ -7,6 +7,7 @@ import {
   formatDateTime,
   formatNumber,
   formatNumberWithSymbol,
+  formatPhoneNumber,
 } from "@/helpers/formatter";
 import { Dialog, useQuasar } from "quasar";
 import { getCurrentMonth, getCurrentYear } from "@/helpers/datetime";
@@ -415,7 +416,9 @@ const computedColumns = computed(() => {
                 </div>
                 <div v-if="props.row.supplier_phone">
                   <q-icon name="phone" class="inline-icon" />
-                  {{ props.row.supplier_phone }}
+                  {{
+                    formatPhoneNumber(props.row.customesupplier_phoner_phone)
+                  }}
                 </div>
                 <div v-if="props.row.supplier_address">
                   <q-icon name="home_pin" class="inline-icon" />

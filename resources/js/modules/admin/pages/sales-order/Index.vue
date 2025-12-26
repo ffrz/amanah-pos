@@ -3,7 +3,11 @@ import { computed, onMounted, reactive, ref } from "vue";
 import { router } from "@inertiajs/vue3";
 import { handleDelete, handleFetchItems } from "@/helpers/client-req-handler";
 import { getQueryParams } from "@/helpers/utils";
-import { formatDateTime, formatNumber } from "@/helpers/formatter";
+import {
+  formatDateTime,
+  formatNumber,
+  formatPhoneNumber,
+} from "@/helpers/formatter";
 import { Dialog, useQuasar } from "quasar";
 import { createOptions } from "@/helpers/options";
 import useTableHeight from "@/composables/useTableHeight";
@@ -410,7 +414,7 @@ const computedColumns = computed(() => {
                 </div>
                 <div v-if="props.row.customer_phone">
                   <q-icon name="phone" class="inline-icon" />
-                  {{ props.row.customer_phone }}
+                  {{ formatPhoneNumber(props.row.customer_phone) }}
                 </div>
                 <div v-if="props.row.customer_address">
                   <q-icon name="home_pin" class="inline-icon" />
