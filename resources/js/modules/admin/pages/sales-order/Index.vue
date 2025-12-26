@@ -360,7 +360,7 @@ const computedColumns = computed(() => {
                   {{ formatNumber(props.row.grand_total) }}
                 </div>
                 <div
-                  v-if="props.row.balance != 0"
+                  v-if="props.row.status == 'closed' && props.row.balance != 0"
                   :class="props.row.balance > 0 ? 'text-green' : 'text-red'"
                 >
                   <q-icon name="balance" class="inline-icon" />
@@ -424,10 +424,16 @@ const computedColumns = computed(() => {
             <q-td
               key="balance"
               :props="props"
-              :class="props.row.balance > 0 ? 'text-green' : 'text-red'"
+              :class="
+                props.row.status == 'closed' && props.row.balance < 0
+                  ? 'text-red'
+                  : ''
+              "
             >
               {{
-                props.row.balance != 0 ? formatNumber(props.row.balance) : "-"
+                props.row.status == "closed" && props.row.balance != 0
+                  ? formatNumber(props.row.balance)
+                  : "-"
               }}
             </q-td>
             <q-td key="notes" :props="props">
