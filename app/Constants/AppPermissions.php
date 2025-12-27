@@ -290,6 +290,7 @@ class AppPermissions
 
                 'admin.company-profile.edit' => 'Edit Profil Perusahaan',
             ],
+
         ];
     }
 }

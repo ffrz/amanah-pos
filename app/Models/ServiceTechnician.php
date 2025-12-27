@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Traits\HasDocumentVersions;
+use App\Models\Traits\HasTransactionCode;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -14,6 +15,7 @@ class ServiceTechnician extends BaseModel
 
     protected $fillable = [
         'user_id',
+        'code',
         'name',
         'phone',
         'address',
@@ -39,5 +41,14 @@ class ServiceTechnician extends BaseModel
     public function serviceOrders(): HasMany
     {
         return $this->hasMany(ServiceOrder::class, 'technician_id');
+    }
+
+    public static function generateCode(): string
+    {
+        $lastId = self::max('id') ?? 0;
+        $nextId = $lastId + 1;
+        $code = str_pad($nextId, 2, '0', STR_PAD_LEFT);
+        $prefix = Setting::value('service.technician.code-prefix', 'ST-');
+        return $prefix . $code;
     }
 }

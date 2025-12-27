@@ -39,6 +39,7 @@ use App\Models\PurchaseOrderReturn;
 use App\Models\SalesOrder;
 use App\Models\SalesOrderPayment;
 use App\Models\SalesOrderReturn;
+use App\Models\ServiceTechnician;
 use App\Models\StockAdjustment;
 use App\Models\StockMovement;
 use App\Models\Supplier;
@@ -96,6 +97,8 @@ class AuthServiceProvider extends ServiceProvider
         CashierCashDrop::class => CashierCashDropPolicy::class,
         CustomerLedger::class => DefaultPolicy::class,
         SupplierLedger::class => DefaultPolicy::class,
+
+        ServiceTechnician::class => DefaultPolicy::class,
     ];
 
     /**

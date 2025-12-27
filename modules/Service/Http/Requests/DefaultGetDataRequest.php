@@ -14,12 +14,12 @@
  * Email: fahmifauzirahman@gmail.com
  */
 
-namespace Modules\Admin\Http\Requests;
+namespace Modules\Service\Http\Requests;
 
-use App\Http\Requests\DefaultGetDataRequest as AdminDefaultGetDataRequest;
+use App\Http\Requests\DefaultGetDataRequest as ServiceDefaultGetDataRequest;
 
 /**
  * Validates request parameters for retrieving paginated and filtered
  * operational cost categories.
  */
-class DefaultGetDataRequest extends AdminDefaultGetDataRequest {}
+class DefaultGetDataRequest extends ServiceDefaultGetDataRequest {}

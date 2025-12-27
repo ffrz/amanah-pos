@@ -166,6 +166,7 @@ defineExpose({
               <q-item-label>Beranda</q-item-label>
             </q-item-section>
           </q-item>
+
           <q-item
             v-if="$can('service.dashboard')"
             clickable
@@ -178,6 +179,21 @@ defineExpose({
             </q-item-section>
             <q-item-section>
               <q-item-label>Dashboard</q-item-label>
+            </q-item-section>
+          </q-item>
+
+          <q-item
+            v-if="$can('service.technician.index')"
+            clickable
+            v-ripple
+            :active="$page.url.startsWith('/service/technicians')"
+            @click="router.get(route('service.technician.index'))"
+          >
+            <q-item-section avatar>
+              <q-icon name="engineering" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Teknisi</q-item-label>
             </q-item-section>
           </q-item>
 
@@ -195,6 +211,8 @@ defineExpose({
               <q-item-label>Laporan</q-item-label>
             </q-item-section>
           </q-item>
+
+          <q-separator q-my-sm />
 
           <q-item
             clickable
