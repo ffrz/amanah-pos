@@ -39,6 +39,7 @@ use App\Models\PurchaseOrderReturn;
 use App\Models\SalesOrder;
 use App\Models\SalesOrderPayment;
 use App\Models\SalesOrderReturn;
+use App\Models\ServiceOrder;
 use App\Models\ServiceTechnician;
 use App\Models\StockAdjustment;
 use App\Models\StockMovement;
@@ -99,6 +100,7 @@ class AuthServiceProvider extends ServiceProvider
         SupplierLedger::class => DefaultPolicy::class,
 
         ServiceTechnician::class => DefaultPolicy::class,
+        ServiceOrder::class => DefaultPolicy::class,
     ];
 
     /**

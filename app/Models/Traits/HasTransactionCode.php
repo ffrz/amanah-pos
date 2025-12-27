@@ -14,8 +14,9 @@ trait HasTransactionCode
     protected static function bootHasTransactionCode(): void
     {
         static::creating(function (Model $model) {
-            if (empty($model->code)) {
-                $model->code = $model->generateTransactionCode();
+            $field = $model->getCodeFieldName();
+            if (empty($model->$field)) {
+                $model->$field = $model->generateTransactionCode();
             }
         });
     }
@@ -48,6 +49,13 @@ trait HasTransactionCode
         $datePart = $date->format('ymd');
         $sequence = str_pad($nextNumber, $this->getTransactionNumberPadSize(), '0', STR_PAD_LEFT);
         return "{$prefix}-{$datePart}-{$sequence}";
+    }
+
+    public function getCodeFieldName(): string
+    {
+        return property_exists($this, 'codeFieldName')
+            ? $this->codeFieldName
+            : 'code';
     }
 
     /**

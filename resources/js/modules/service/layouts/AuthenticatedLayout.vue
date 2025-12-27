@@ -183,6 +183,21 @@ defineExpose({
           </q-item>
 
           <q-item
+            v-if="$can('service.service-order.index')"
+            clickable
+            v-ripple
+            :active="$page.url.startsWith('/service/service-orders')"
+            @click="router.get(route('service.service-order.index'))"
+          >
+            <q-item-section avatar>
+              <q-icon name="assignment" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Order Servis</q-item-label>
+            </q-item-section>
+          </q-item>
+
+          <q-item
             v-if="$can('service.technician.index')"
             clickable
             v-ripple

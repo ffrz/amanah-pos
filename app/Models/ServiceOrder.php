@@ -7,15 +7,17 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasDocumentVersions;
 use App\Models\Traits\HasTransactionCode;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ServiceOrder extends BaseModel
 {
-    use HasFactory, HasTransactionCode, SoftDeletes;
+    use HasFactory, HasTransactionCode, SoftDeletes, HasDocumentVersions;
 
-    protected string $transactionPrefix = 'SVC'; // Service Code Prefix
+    protected string $codeFieldName = 'order_code';
+    protected string $transactionPrefix = 'SVC';
 
     protected $fillable = [
         'order_code',

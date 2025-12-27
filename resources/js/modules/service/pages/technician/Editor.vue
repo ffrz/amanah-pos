@@ -1,30 +1,46 @@
 <script setup>
 import { router, useForm, usePage } from "@inertiajs/vue3";
+
 import { handleSubmit } from "@/helpers/client-req-handler";
+
 import { scrollToFirstErrorField } from "@/helpers/utils";
+
 import StandardCheckBox from "@/components/StandardCheckBox.vue";
 
 const page = usePage();
+
 const title = (!!page.props.data.id ? "Edit" : "Tambah") + " Teknisi Service";
 
 /**
+
  * Inisialisasi Form Inertia
+
  * Menyesuaikan field dengan fillable model ServiceTechnician
+
  */
+
 const form = useForm({
   id: page.props.data.id ?? null,
+
   user_id: page.props.data.user_id ?? null,
+
   code: page.props.data.code ?? "",
+
   name: page.props.data.name ?? "",
+
   email: page.props.data.email ?? "",
+
   phone: page.props.data.phone ?? "",
+
   address: page.props.data.address ?? "",
+
   active: page.props.data.id ? !!page.props.data.active : true,
 });
 
 const submit = () =>
   handleSubmit({
     form,
+
     url: route("service.technician.save", {
       id: form.id,
     }),
@@ -33,6 +49,7 @@ const submit = () =>
 
 <template>
   <i-head :title="title" />
+
   <authenticated-layout>
     <template #title>{{ title }}</template>
 
@@ -148,6 +165,7 @@ const submit = () =>
                   label="Aktif"
                   :disable="form.processing"
                 />
+
                 <div class="text-caption text-grey-7 q-ml-md">
                   Teknisi aktif akan muncul dalam pilihan penugasan order
                   service.
